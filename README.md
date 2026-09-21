@@ -64,12 +64,18 @@ status: posted        # draft | posted
 
 Lowercase only, hyphens instead of spaces, no Korean characters in file names. Week folders are `week-01` through `week-14`.
 
-## Deploy
-
-Every push to `main` on GitHub deploys automatically on Vercel.
+## Save your work
 
 ```bash
 git add -A
 git commit -m "Week 03: title"
 git push
 ```
+
+The code lives on GitHub at `yhan11-123/advanced-interface`.
+
+## Hosting
+
+Not set up yet, on purpose. The site runs locally only.
+
+When a public URL is needed for critique, pick a host (Vercel and GitHub Pages are both free and support a custom domain) and point the domain at it. `npm run build` produces plain static files in `dist/`, so any static host will serve them.
