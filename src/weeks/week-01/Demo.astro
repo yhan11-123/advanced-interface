@@ -13,6 +13,10 @@ const DETERMINATE = [
   { id: 'seg', name: 'Segmented', note: 'Progress as countable chunks.' },
   { id: 'num', name: 'Numeric', note: 'Precise, but nothing to watch.' },
 ];
+const PLACEMENT = [
+  { id: 'btn', name: 'Button state', note: 'The control that was pressed reports on itself.' },
+  { id: 'inline', name: 'Inline state', note: 'Only the part that is updating waits.' },
+];
 const INDETERMINATE = [
   { id: 'spin', name: 'Spinner', note: 'Points at the wait itself.' },
   { id: 'ibar', name: 'Indeterminate bar', note: 'Grows and shrinks along a track.' },
@@ -29,8 +33,8 @@ const INDETERMINATE = [
   <header class="head">
     <h1>Loading pattern survey</h1>
     <p class="lede">
-      Eight existing patterns on one shared clock. Same real duration in every cell,
-      so the only difference is how the wait is described.
+      Ten existing patterns on one shared clock. Same real duration in every cell,
+      so the only difference is how the wait gets described.
     </p>
 
     <div class="controls">
@@ -95,6 +99,33 @@ const INDETERMINATE = [
             {s.id === 'skel' && (
               <div class="skel" role="progressbar" aria-label="Skeleton, working">
                 <span class="w70"></span><span class="w100"></span><span class="w45"></span>
+              </div>
+            )}
+          </div>
+          <figcaption><b>{s.name}</b><span>{s.note}</span></figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Placement <span>same forms, put somewhere specific</span></h2>
+    <div class="grid duo">
+      {PLACEMENT.map((s) => (
+        <figure class="spec" data-spec={s.id}>
+          <div class="stage">
+            {s.id === 'btn' && (
+              <button class="btnstate" type="button" data-phase="idle">
+                <span class="mini" aria-hidden="true"></span><span class="blabel">Save</span>
+              </button>
+            )}
+            {s.id === 'inline' && (
+              <div class="inline">
+                <div class="irow"><i class="w80"></i></div>
+                <div class="irow"><i class="w55"></i></div>
+                <div class="irow busy" role="progressbar" aria-label="Searching products">
+                  <span class="mini" aria-hidden="true"></span><span class="itext">Searching products...</span>
+                </div>
               </div>
             )}
           </div>
@@ -215,16 +246,45 @@ const INDETERMINATE = [
   .skel .w70 { width: 70%; } .skel .w100 { width: 100%; } .skel .w45 { width: 45%; }
   @keyframes shimmer { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 
+  /* placement ------------------------------------------------------------ */
+  .grid.duo { grid-template-columns: repeat(2, minmax(158px, 330px)); }
+  @media (max-width: 430px) { .grid.duo { grid-template-columns: 1fr; } }
+
+  .mini {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff;
+    animation: spin .8s linear infinite;
+  }
+
+  .btnstate {
+    display: inline-flex; align-items: center; gap: 8px;
+    font: 600 13px/1 inherit; color: #fff;
+    background: var(--accent); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 10px 15px; cursor: default;
+  }
+  .btnstate .mini { display: none; }
+  .btnstate[data-phase="busy"] { background: #8d99e6; border-color: #8d99e6; }
+  .btnstate[data-phase="busy"] .mini { display: block; }
+  .btnstate[data-phase="done"] { background: #1f9d6b; border-color: #1f9d6b; }
+
+  .inline { width: 100%; display: grid; gap: 9px; }
+  .inline .irow { display: flex; align-items: center; gap: 7px; min-height: 12px; }
+  .inline i { display: block; height: 9px; border-radius: 3px; background: var(--bone); }
+  .inline .w80 { width: 80%; } .inline .w55 { width: 55%; }
+  .inline .busy .mini { border-color: var(--bone); border-top-color: var(--accent); }
+  .inline .itext { font-size: 11.5px; color: var(--muted); }
+
   .foot { margin-top: 30px; font-size: 12.5px; color: var(--muted); }
 
   /* paused --------------------------------------------------------------- */
   .sheet.paused .spinner,
   .sheet.paused .ibar i,
   .sheet.paused .dots span,
-  .sheet.paused .skel span { animation-play-state: paused; }
+  .sheet.paused .skel span,
+  .sheet.paused .mini { animation-play-state: paused; }
 
   @media (prefers-reduced-motion: reduce) {
-    .spinner, .ibar i, .dots span, .skel span { animation: none; }
+    .spinner, .ibar i, .dots span, .skel span, .mini { animation: none; }
     .ibar i { left: 0; right: 62%; }
     .dots span { opacity: .5; }
     .motion-note { display: block; }
@@ -237,6 +297,8 @@ const INDETERMINATE = [
   const segHost = sheet.querySelector<HTMLElement>('.seg')!;
   const numEl = sheet.querySelector<HTMLElement>('.num')!;
   const toggle = sheet.querySelector<HTMLButtonElement>('#toggle')!;
+  const btn = sheet.querySelector<HTMLButtonElement>('.btnstate')!;
+  const blabel = sheet.querySelector<HTMLElement>('.blabel')!;
 
   const HOLD_MS = 700;   // pause at 100% before looping, so the finish reads
   let duration = 3000;
@@ -264,6 +326,14 @@ const INDETERMINATE = [
     for (const el of barsWithAria) el.setAttribute('aria-valuenow', String(pct));
     const lit = Math.round(p * segCount);
     segItems.forEach((seg, i) => seg.classList.toggle('on', i < lit));
+
+    // the pressed control reports on itself: Save -> Saving -> Saved
+    const phase = p >= 1 ? 'done' : p > 0 ? 'busy' : 'idle';
+    if (btn.dataset.phase !== phase) {
+      btn.dataset.phase = phase;
+      blabel.textContent = phase === 'done' ? 'Saved' : phase === 'busy' ? 'Saving...' : 'Save';
+      btn.setAttribute('aria-busy', String(phase === 'busy'));
+    }
   }
 
   function frame(now: number) {
