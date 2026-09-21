@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 &middot; Loading &middot; Advanced Interface</title>
+  <meta name="description" content="Six progress indicators are due. Starting with research into how loading gets signalled, and how waiting is actually felt." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 01</div>
+      <h1>Loading</h1>
+      <div class="meta">
+        <span>Sep 21, 2026</span>
+        <a class="tag" href="../index.html#loading">loading</a>
+        <a class="tag" href="../index.html#progress-indicators">progress-indicators</a>
+        <a class="tag" href="../index.html#research">research</a>
+        <a class="tag" href="../index.html#motion">motion</a>
+        <a class="tag" href="../index.html#tone">tone</a>
+        <a class="demo-link" href="demo.html" target="_blank" rel="noopener">Open live demo</a>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Research</h2>
+
+      <p>Started with loading as a topic rather than with sketches, because determinate and indeterminate is not a style choice. It is a claim about what the system knows.</p>
+
+      <h3>How long is the wait</h3>
+
+      <img src="images/response-time-thresholds.svg" alt="What to show, by how long the wait lasts" />
+
+      <p>The threshold picks the type. One catch: hold the indicator back about half a second past the limit, because flashing a spinner at work that finishes quickly makes the interface feel slower. Knowing when not to appear is part of the job.</p>
+
+      <h3>Determinate or indeterminate</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Determinate</th><th>Indeterminate</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claims</td><td>This much is done</td><td>Something is happening, length unknown</td></tr>
+          <tr><td>Use when</td><td>The system can count, past 10 s</td><td>Short waits, or nothing countable</td></tr>
+          <tr><td>Must</td><td>Track the real thing, never reassure</td><td>Never stall</td></tr>
+          <tr><td>Screen reader</td><td><code>role="progressbar"</code> plus live <code>aria-valuenow</code></td><td>Same role, <code>aria-valuenow</code> left out</td></tr>
+        </tbody>
+      </table>
+
+      <p>As soon as progress becomes knowable, an indicator should move from the right column to the left. Direction is fixed too: linear runs leading edge to trailing, circular starts at the top and turns clockwise.</p>
+
+      <h3>Why the same wait feels different</h3>
+
+      <table>
+        <thead>
+          <tr><th>Finding</th><th>Source</th><th>What I take from it</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Backwards ribbing that decelerates cut perceived duration about 11 percent</td><td>Harrison and others, 2010</td><td>Motion direction is a lever, not decoration</td></tr>
+          <tr><td>More, smaller steps read as faster; fewer, larger steps stretch the wait</td><td>Ziat and others, 2022</td><td>Step granularity is a tone control</td></tr>
+          <tr><td>A skeleton previews the layout, a spinner spotlights the delay</td><td>Repeated everywhere, no controlled study</td><td>Trust the direction, not the 30 percent figure</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <table>
+        <thead>
+          <tr><th>Rule</th><th>What it forces</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Keep moving</td><td>A frozen loader reads as a frozen app</td></tr>
+          <tr><td>Stay proportional</td><td>Small update, small indicator</td></tr>
+          <tr><td>Speak plainly</td><td>&ldquo;Saving changes&rdquo;, not &ldquo;API request pending&rdquo;</td></tr>
+          <tr><td>Offer a way out</td><td>Cancel on long work, when it is safe</td></tr>
+          <tr><td>Do not block</td><td>Let background work run and report back</td></tr>
+          <tr><td>Never motion alone</td><td>Status needs text, and has to park under reduced motion</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Pattern survey</h3>
+
+      <p>Ten existing patterns on one shared clock, so the same real duration can be compared across forms. The last group separates form from placement: a button state and an inline state are the same shapes put somewhere specific.</p>
+
+      <figure class="demo-frame">
+        <!-- height is measured from the demo itself; adjust it when the demo grows -->
+        <iframe src="demo.html" title="Loading pattern survey" loading="lazy" style="height: 965px"></iframe>
+        <figcaption>
+          <span>Live demo. Interact with it here or open it on its own.</span>
+          <a href="demo.html" target="_blank" rel="noopener">Open full screen</a>
+        </figcaption>
+      </figure>
+
+      <p>At 10 seconds the numeric readout is the most precise and the least bearable, because there is nothing to watch between updates. The segmented bar at 20 steps feels quicker than the smooth bar over an identical duration, exactly as the study predicts.</p>
+
+      <h3>Into the designs</h3>
+
+      <ul>
+        <li>Both halves of a set share a tone, not a shape. A bar squeezed into a circle is not the same indicator.</li>
+        <li>Granularity, easing, and direction are where tone lives, and critique can argue with all three.</li>
+        <li>Each set needs a named context, because an indicator has no tone without something to be the tone of.</li>
+        <li>Status text is part of the design. Three tones should produce three different sentences.</li>
+      </ul>
+
+      <h3>Sources</h3>
+
+      <ul>
+        <li>Loading in Web and Mobile Interfaces, my compiled guide, drawing on Nielsen Norman Group, Apple Human Interface Guidelines and Material Design</li>
+        <li><a href="https://www.nngroup.com/articles/response-times-3-important-limits/">Response Time Limits</a>, Jakob Nielsen, NN/g</li>
+        <li><a href="https://m3.material.io/components/progress-indicators/guidelines">Progress indicators</a>, Material Design 3</li>
+        <li><a href="https://www.chrisharrison.net/projects/progressbars2/ProgressBarsHarrison.pdf">Faster Progress Bars</a>, Harrison, Yeo and Hudson, CHI 2010</li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9213475">Malleability of time through progress bars and throbbers</a>, Ziat and others, Scientific Reports, 2022</li>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/progressbar_role">ARIA progressbar role</a>, MDN</li>
+      </ul>
+
+      <h2>Process</h2>
+
+      <p>Next: three tones, named with their contexts, then sketches before any code.</p>
+
+      <p>Sketches and iteration notes go here. Images belong in this week&rsquo;s <code>images/</code> folder.</p>
+
+      <h2>Result</h2>
+
+      <p>The six indicators are not designed yet. This section gets the three sets, each with its determinate and indeterminate pair, once the drawings and prototypes exist.</p>
+
+      <h2>Critique</h2>
+
+      <p>Feedback from class goes here.</p>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../index.html">&larr; All weeks</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+</body>
+</html>

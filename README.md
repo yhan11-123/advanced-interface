@@ -1,64 +1,37 @@
 # Advanced Interface
 
-A 14-week log of vibe-coded design experiments. Each week has a post (process, result, critique) and a live demo that runs inside the site.
+A 14-week log of vibe-coded design experiments. Each week has a page (process, result, critique) and a live demo that runs inside the site.
 
-## Run locally
+Plain HTML, CSS and JavaScript. No build step, no npm, no framework.
 
-```bash
-npm install
-npm run dev
-```
+## Look at it
 
-Open http://localhost:4321. Every save shows up in the browser instantly.
+Double-click `index.html`. That is the whole workflow. Edit a file, save, refresh the browser.
 
 ## Add a week
 
-```bash
-npm run new-week 3
-```
+1. Duplicate the `_template` folder and rename it `week-02`, `week-03`, and so on.
+2. Open `week-02/index.html` and fill in the title, date, tags, and the Process, Result and Critique sections.
+3. Build the experiment in `week-02/demo.html`. It shows up inside the page automatically and also has its own address.
+4. Put sketches and screenshots in `week-02/images/` and point at them with `<img src="images/sketch.png" />`.
+5. Open `index.html` and replace the `Week 02 &middot; Upcoming` row with a filled-in row. Copy the Week 01 row as the model.
 
-That copies `src/weeks/_template` to `src/weeks/week-03` and sets the week number and date. Then:
-
-1. Edit `src/weeks/week-03/index.mdx`: title, tags, summary, and the Process / Result / Critique sections.
-2. Build the experiment in `src/weeks/week-03/Demo.astro`. Plain HTML/CSS/JS or a React component, anything goes.
-3. Put sketches and screenshots in `src/weeks/week-03/images/` and reference them as `![caption](./images/file.png)`.
-4. Change `status: draft` to `status: posted` when it is ready. Drafts show locally but are hidden from the deployed site.
-
-Or skip the script and duplicate the `_template` folder by hand. Nothing needs registering; the timeline and tag pages pick the folder up automatically.
+Step 5 is the only bookkeeping. The `data-tags` attribute on that row is what the topic filter reads, so keep it matching the tags in the post.
 
 ## Where things live
 
 ```
-src/weeks/week-01/        one folder per week
-  index.mdx               frontmatter + writeup, <Demo /> marks where the demo embeds
-  Demo.astro              the live experiment, served at /week-01/demo
-  images/                 sketches and screenshots
-src/pages/                site routes (home, tags, week post, demo)
-src/components/           Timeline card, demo frame
-src/layouts/Base.astro    site shell
-src/styles/global.css     site styles (demos have their own scoped styles)
+index.html            home: the 14-week timeline and topic filter
+shared/site.css       every page except the demos
+shared/favicon.svg
+_template/            copy this to start a week
+week-01/
+  index.html          the writeup
+  demo.html           the live experiment, a page of its own
+  images/             sketches and screenshots
 ```
 
-## URLs
-
-| Page | URL |
-|---|---|
-| Timeline with tag filters | `/` |
-| Week post | `/week-01` |
-| Full-screen demo | `/week-01/demo` |
-| All topics | `/tags` |
-| One topic | `/tags/motion` |
-
-## Frontmatter
-
-```yaml
-title: "Cursor-reactive gradient field"
-week: 1
-date: 2026-09-21
-tags: [motion, color, interaction]
-summary: "One line shown on the timeline."
-status: posted        # draft | posted
-```
+Each demo is a separate page holding its own CSS and JavaScript, so a week's experiment can never break another week or the site around it.
 
 ## File naming
 
@@ -68,7 +41,7 @@ Lowercase only, hyphens instead of spaces, no Korean characters in file names. W
 
 ```bash
 git add -A
-git commit -m "Week 03: title"
+git commit -m "Week 02: title"
 git push
 ```
 
@@ -76,6 +49,10 @@ The code lives on GitHub at `yhan11-123/advanced-interface`.
 
 ## Hosting
 
-Not set up yet, on purpose. The site runs locally only.
+Not set up yet, on purpose. The site runs from local files.
 
-When a public URL is needed for critique, pick a host (Vercel and GitHub Pages are both free and support a custom domain) and point the domain at it. `npm run build` produces plain static files in `dist/`, so any static host will serve them.
+When a public URL is needed for critique, any static host will serve this folder as-is, and a custom domain can point at it. There is nothing to build first.
+
+## History
+
+Weeks 1 was first built with Astro, a site framework. It was converted to plain HTML on 2026-09-21 to keep everything editable by hand. The Astro version is still in the git history if it is ever wanted back.

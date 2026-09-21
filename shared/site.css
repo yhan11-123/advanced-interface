@@ -1,3 +1,8 @@
+/* ---------------------------------------------------------------
+   Advanced Interface - shared styles for every page on the site.
+   Week demos keep their own styles inside their own demo.html.
+   --------------------------------------------------------------- */
+
 :root {
   --bg: #f7f6f2;
   --bg-elev: #ffffff;
@@ -76,16 +81,14 @@ button { font: inherit; color: inherit; }
   display: grid; grid-template-columns: 84px 1fr; gap: 16px; align-items: start;
   padding: 16px; border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--bg-elev);
-  transition: opacity .2s, transform .2s;
 }
-.slot a { display: contents; }
+.slot > a { display: contents; }
 .slot .num { font-family: var(--mono); font-size: 13px; color: var(--fg-muted); padding-top: 3px; }
 .slot .title { font-weight: 600; margin: 0; }
 .slot .summary { margin: 2px 0 8px; color: var(--fg-muted); font-size: 14px; }
 .slot .meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--fg-muted); }
 .slot .tag { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
 .slot.is-upcoming { color: var(--fg-muted); background: transparent; border-style: dashed; }
-.slot.is-draft .title::after { content: "draft"; margin-left: 8px; font-size: 11px; font-weight: 500; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 0 5px; vertical-align: middle; }
 .slot.is-hidden { display: none; }
 @media (max-width: 520px) { .slot { grid-template-columns: 1fr; gap: 4px; } }
 
@@ -112,26 +115,13 @@ button { font: inherit; color: inherit; }
 .prose pre { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; overflow: auto; font-size: 14px; }
 .prose pre code { background: none; padding: 0; }
 
-.prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 18px 0 24px;
-  font-size: 15px;
-  line-height: 1.5;
-}
+.prose table { width: 100%; border-collapse: collapse; margin: 18px 0 24px; font-size: 15px; line-height: 1.5; }
 .prose thead th {
-  text-align: left;
-  font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .08em;
-  color: var(--fg-muted);
-  padding: 0 16px 9px 0;
-  border-bottom: 1px solid var(--line);
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--fg-muted);
+  padding: 0 16px 9px 0; border-bottom: 1px solid var(--line);
 }
-.prose tbody td {
-  padding: 12px 16px 12px 0;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
+.prose tbody td { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .prose tbody tr:last-child td { border-bottom: 0; }
 .prose tbody td:first-child { font-weight: 600; }
 .prose th:last-child, .prose td:last-child { padding-right: 0; }
@@ -139,17 +129,16 @@ button { font: inherit; color: inherit; }
 @media (max-width: 560px) { .prose table { font-size: 13.5px; } .prose tbody td { padding-right: 10px; } }
 
 .demo-frame { margin: 20px 0 24px; }
+/* Each demo is a separate page, so its frame needs a height. This is only a
+   default: set the real one on the iframe itself, e.g. style="height: 965px" */
 .demo-frame iframe {
   width: 100%; height: 70vh; display: block; border: 1px solid var(--line);
   border-radius: var(--radius); background: var(--bg-elev);
 }
-.demo-frame figcaption { display: flex; justify-content: space-between; font-size: 13px; color: var(--fg-muted); margin-top: 8px; }
+.demo-frame figcaption { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--fg-muted); margin-top: 8px; }
 .demo-frame figcaption a { color: var(--accent); }
 
 .post-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
 .post-nav a { color: var(--fg-muted); }
 .post-nav a:hover { color: var(--accent); }
-.post-nav .next { text-align: right; }
-
-/* ---------- tag page ---------- */
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.post-nav .next { text-align: right; margin-left: auto; }
