@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="320" viewBox="0 0 900 320" role="img" aria-label="Which loading indicator to show, by how long the wait lasts">
+  <rect width="900" height="320" fill="#f6f4ef"/>
+  <text x="60" y="46" font-family="system-ui, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">What to show, by how long the wait lasts</text>
+  <text x="60" y="68" font-family="system-ui, sans-serif" font-size="13" fill="#77756e">Thresholds after Nielsen, Response Time Limits</text>
+
+  <g font-family="system-ui, sans-serif">
+    <!-- bands -->
+    <rect x="60"  y="96" width="150" height="88" fill="#e8e6df"/>
+    <rect x="210" y="96" width="200" height="88" fill="#dcdad1"/>
+    <rect x="410" y="96" width="220" height="88" fill="#c9d0f2"/>
+    <rect x="630" y="96" width="210" height="88" fill="#2b47ff"/>
+
+    <!-- band headings -->
+    <text x="135" y="124" font-size="13" font-weight="600" fill="#3a3a36" text-anchor="middle">feels instant</text>
+    <text x="310" y="124" font-size="13" font-weight="600" fill="#3a3a36" text-anchor="middle">noticed, flow intact</text>
+    <text x="520" y="124" font-size="13" font-weight="600" fill="#26306b" text-anchor="middle">attention wandering</text>
+    <text x="735" y="124" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">likely to give up</text>
+
+    <!-- what to show -->
+    <text x="135" y="150" font-size="12.5" fill="#55534d" text-anchor="middle">show nothing</text>
+    <text x="310" y="150" font-size="12.5" fill="#55534d" text-anchor="middle">nothing, or the</text>
+    <text x="310" y="166" font-size="12.5" fill="#55534d" text-anchor="middle">result arriving</text>
+    <text x="520" y="150" font-size="12.5" fill="#26306b" text-anchor="middle">indeterminate is</text>
+    <text x="520" y="166" font-size="12.5" fill="#26306b" text-anchor="middle">enough</text>
+    <text x="735" y="150" font-size="12.5" fill="#e6e9ff" text-anchor="middle">determinate, with</text>
+    <text x="735" y="166" font-size="12.5" fill="#e6e9ff" text-anchor="middle">percent and time left</text>
+
+    <!-- axis -->
+    <line x1="60" y1="208" x2="840" y2="208" stroke="#b6b3a9" stroke-width="1.5"/>
+    <g stroke="#6f6d66" stroke-width="1.5">
+      <line x1="210" y1="202" x2="210" y2="216"/>
+      <line x1="410" y1="202" x2="410" y2="216"/>
+      <line x1="630" y1="202" x2="630" y2="216"/>
+    </g>
+    <g font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#3a3a36" text-anchor="middle">
+      <text x="210" y="238">0.1 s</text>
+      <text x="410" y="238">1 s</text>
+      <text x="630" y="238">10 s</text>
+    </g>
+
+    <text x="60" y="284" font-size="12.5" fill="#77756e">The threshold decides the type. Tone decides everything else about how it looks and moves.</text>
+  </g>
+</svg>
