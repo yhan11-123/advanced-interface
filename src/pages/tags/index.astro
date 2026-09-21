@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getWeeks, tagCounts } from '../../lib/weeks';
+const tags = tagCounts(await getWeeks());
+---
+<Base title="Topics">
+  <section class="intro">
+    <h1>Topics</h1>
+    <p>Every tag used so far, with how many weeks touch it.</p>
+  </section>
+  <ul class="chips">
+    {tags.map(([tag, count]) => (
+      <li><a class="chip" href={`/tags/${tag}`}>{tag}<span class="count">{count}</span></a></li>
+    ))}
+  </ul>
+  {tags.length === 0 && <p>No tags yet.</p>}
+</Base>

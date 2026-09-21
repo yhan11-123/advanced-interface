@@ -1,0 +1,45 @@
+---
+/**
+ * Bare page for a week's live demo: no site chrome, the experiment owns the viewport.
+ * Renders src/weeks/<week>/Demo.astro.
+ */
+import { getWeeks, slugOf, pad } from '../../lib/weeks';
+
+export async function getStaticPaths() {
+  const weeks = await getWeeks();
+  return weeks.map((entry) => ({ params: { week: slugOf(entry) }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const slug = slugOf(entry);
+const demos = import.meta.glob('/src/weeks/*/Demo.astro');
+const load = demos[`/src/weeks/${slug}/Demo.astro`];
+const Demo = load ? ((await load()) as { default: any }).default : null;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week {pad(entry.data.week)} demo · {entry.data.title}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      html, body { margin: 0; min-height: 100%; }
+      body { min-height: 100vh; }
+      .back-pill {
+        position: fixed; left: 12px; bottom: 12px; z-index: 9999;
+        font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+        padding: 8px 12px; border-radius: 999px; text-decoration: none; backdrop-filter: blur(6px);
+      }
+      .back-pill:hover { background: rgba(0,0,0,.85); }
+    </style>
+  </head>
+  <body>
+    {Demo ? <Demo /> : <p style="font-family:system-ui;padding:24px">No Demo.astro found in src/weeks/{slug}/</p>}
+    <a class="back-pill" href={`/${slug}`} hidden>← Week {pad(entry.data.week)}</a>
+    <script>
+      // Only show the back link when the demo is opened directly, not inside the post's iframe.
+      if (window.self === window.top) document.querySelector('.back-pill')?.removeAttribute('hidden');
+    </script>
+  </body>
+</html>
