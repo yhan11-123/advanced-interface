@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="330" viewBox="0 0 900 330" role="img" aria-label="Which loading state to show, by how long the wait lasts">
-  <rect width="900" height="330" fill="#f6f4ef"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="272" viewBox="0 0 900 272" role="img" aria-label="Which loading state to show, by how long the wait lasts">
+  <rect width="900" height="272" fill="#f6f4ef"/>
   <text x="60" y="46" font-family="system-ui, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">What to show, by how long the wait lasts</text>
   <text x="60" y="68" font-family="system-ui, sans-serif" font-size="13" fill="#77756e">Thresholds after Nielsen, as collected in my loading guidelines</text>
 
@@ -38,7 +38,5 @@
       <text x="630" y="246">10 s</text>
     </g>
 
-    <text x="60" y="288" font-size="12.5" fill="#77756e">The threshold picks the type. Tone decides everything else about how it looks and moves.</text>
-    <text x="60" y="308" font-size="12.5" fill="#77756e">One catch: hold the loader back about half a second, or fast responses flash it for nothing.</text>
   </g>
 </svg>
