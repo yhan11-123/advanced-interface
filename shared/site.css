@@ -128,6 +128,19 @@ button { font: inherit; color: inherit; }
 .prose table code { font-size: .85em; }
 @media (max-width: 560px) { .prose table { font-size: 13.5px; } .prose tbody td { padding-right: 10px; } }
 
+/* Photos and scans of physical work: sketches, paper prototypes, models.
+   One image:
+     <figure class="shot">
+       <img src="images/sketch-01.jpg" alt="what it shows" />
+       <figcaption>What to notice in it.</figcaption>
+     </figure>
+   Several side by side: wrap the images in <div class="shot-row">. */
+.prose figure.shot { margin: 20px 0 24px; }
+.prose figure.shot img { margin: 0; width: 100%; }
+.prose figure.shot figcaption { margin-top: 9px; font-size: 13.5px; line-height: 1.5; color: var(--fg-muted); }
+.prose .shot-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.prose .shot-row img { height: 100%; object-fit: cover; }
+
 .demo-frame { margin: 20px 0 24px; }
 /* Each demo is a separate page, so its frame needs a height. This is only a
    default: set the real one on the iframe itself, e.g. style="height: 965px" */

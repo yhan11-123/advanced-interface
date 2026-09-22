@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- 1. Change the title and description. -->
+  <!-- 1. Rename this file and week-00-demo.html, swapping 00 for the week number. -->
+  <!-- 2. Change the title and description. -->
   <title>Week 00 &middot; Untitled &middot; Advanced Interface</title>
   <meta name="description" content="One sentence about this week." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
@@ -19,14 +20,14 @@
   <main class="page">
 
     <div class="post-head">
-      <!-- 2. Week number, title, date, and tags. Keep the tags the same as the
+      <!-- 3. Week number, title, date, and tags. Keep the tags the same as the
            row you add to index.html, or the filter will disagree with the post. -->
       <div class="kicker">Week 00</div>
       <h1>Untitled</h1>
       <div class="meta">
         <span>Jan 1, 2026</span>
         <a class="tag" href="../index.html#topic">topic</a>
-        <a class="demo-link" href="demo.html" target="_blank" rel="noopener">Open live demo</a>
+        <a class="demo-link" href="week-00-demo.html" target="_blank" rel="noopener">Open live demo</a>
       </div>
     </div>
 
@@ -36,20 +37,33 @@
 
       <p>What I set out to try, and why.</p>
 
-      <!-- Put sketches and screenshots in this week's images/ folder. -->
-      <img src="images/sketch.svg" alt="Early sketch" />
+      <!-- Put sketches, scans and photos in this week's images/ folder.
+           Name them lowercase with hyphens: sketch-01.jpg, paper-test-02.jpg -->
+      <figure class="shot">
+        <img src="images/sketch.svg" alt="Early sketch" />
+        <figcaption>What this sketch was testing.</figcaption>
+      </figure>
+
+      <!-- Two or more side by side: -->
+      <figure class="shot">
+        <div class="shot-row">
+          <img src="images/sketch.svg" alt="First attempt" />
+          <img src="images/sketch.svg" alt="Second attempt" />
+        </div>
+        <figcaption>Left, the first attempt. Right, after the change.</figcaption>
+      </figure>
 
       <p>Iteration notes. What changed between attempts, and what each one taught me.</p>
 
       <h2>Result</h2>
 
-      <!-- 3. The live experiment lives in demo.html and shows up here. -->
+      <!-- 4. The live experiment lives in the demo file next to this one. -->
       <figure class="demo-frame">
         <!-- set a height that fits the demo, e.g. style="height: 700px" -->
-        <iframe src="demo.html" title="Live demo" loading="lazy"></iframe>
+        <iframe src="week-00-demo.html" title="Live demo" loading="lazy"></iframe>
         <figcaption>
           <span>Live demo. Interact with it here or open it on its own.</span>
-          <a href="demo.html" target="_blank" rel="noopener">Open full screen</a>
+          <a href="week-00-demo.html" target="_blank" rel="noopener">Open full screen</a>
         </figcaption>
       </figure>
 
