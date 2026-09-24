@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Stairwell loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     The sketch is its own dark room, so it stays dark in either scheme. */
+  :root {
+    --bg: #0e0908;
+    --ui: #d8c7bd;
+    --ui-dim: #8a7870;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ui);
+    font: 12px/1.4 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* Experiment controls. Shown only when the sketch is opened on its own,
+     so the Ideation card shows the loader alone. */
+  .controls {
+    position: fixed; left: 12px; right: 12px; bottom: 12px;
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+    padding: 10px 12px; border-radius: 8px;
+    background: rgba(14, 9, 8, 0.82); border: 1px solid #2a1f1c;
+  }
+  .controls[hidden] { display: none; }
+  .controls .row { display: flex; gap: 8px; align-items: center; }
+  .controls .scrub { flex: 1 1 260px; }
+  .controls .scrub input { flex: 1; }
+  .controls button {
+    font: inherit; color: var(--ui); background: #22181560; cursor: pointer;
+    border: 1px solid #3a2b27; border-radius: 5px; padding: 4px 9px;
+  }
+  .controls button[aria-pressed="true"] { background: #a92e2d; border-color: #a92e2d; color: #fff; }
+  .controls label { display: flex; gap: 6px; align-items: center; color: var(--ui-dim); }
+  .controls output { color: var(--ui); min-width: 3.2em; font-variant-numeric: tabular-nums; }
+  .controls input[type="range"] { width: 96px; accent-color: #a92e2d; }
+  .controls .scrub input[type="range"] { width: auto; }
+  .controls input[type="checkbox"] { accent-color: #a92e2d; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <div class="controls" hidden>
+    <div class="row">
+      <button id="play" type="button">Pause</button>
+      <button id="restart" type="button">Restart</button>
+      <button id="half" type="button" aria-pressed="false">0.5&times;</button>
+    </div>
+    <label class="scrub">Time <input id="scrub" type="range" min="0" step="0.01" /> <output id="time"></output></label>
+    <label><input id="stutter" type="checkbox" checked /> Film stutter</label>
+    <label><input id="ghost" type="checkbox" /> Ghosting</label>
+    <label>Box height <input id="boxh" type="range" min="0.3" max="0.8" step="0.01" /> <output id="boxhOut"></output></label>
+    <label>Tilt <input id="tilt" type="range" min="0" max="5" step="0.1" /> <output id="tiltOut"></output></label>
+    <label>Turn <input id="turn" type="range" min="0.4" max="2" step="0.05" /> <output id="turnOut"></output></label>
+    <label>Stutter fps <input id="fps" type="range" min="4" max="24" step="1" /> <output id="fpsOut"></output></label>
+  </div>
+
+  <script>
+  // Stairwell. After In the Mood for Love. A red gap opens in the dark.
+  // A woman in a qipao, seen from the waist up, climbs into it, back to us, six
+  // steps, the upper body swaying from the waist. She pauses, turns to her
+  // left, and walks out behind the left wall, the same dark as the wall,
+  // so she seems to go into it. The empty red then floods the screen.
+  // Only her motion is step-printed at 10 fps; the box moves smoothly.
+
+  // ---------- colour ----------
+  const BG = '#0e0908';          // outside the box, and the silhouette
+  const RED = '#a92e2d';         // inside the box
+
+  // ---------- size ----------
+  const BOX_W = 0.17;            // box width, share of screen width
+  const BOX_W_MIN = 70;          // px
+  let   BOX_H = 0.52;            // box height, share of screen height
+  const FIG = 0.15;              // one head height, share of box height: crown at the
+                                 // middle, the box bottom cuts her at the waist
+  const FIG_FIT = 1.9;           // ...but never more than box width / this
+  const BLUR = 1;                // px, soft backlit edge
+
+  // ---------- timing (seconds) ----------
+  const OPEN = 0.5;              // box opens from its vertical centre
+  const RISE = 2.9;              // six steps up
+  const STEPS = 6;
+  const PAUSE = 0.3;
+  let   TURN = 1.0;              // turn to her left
+  const HEAD_LEAD = 0.3;         // head starts this much before the body
+  const WALK = 0.85;             // out behind the left wall
+  const EMPTY = 0.15;            // empty box holds
+  const EXPAND = 0.9;            // box floods the screen
+  const END_HOLD = 1.2;          // full red, then loop
+
+  // ---------- motion ----------
+  let   TILT = 1.7;              // degrees of sway per step, from the waist
+  const STEP_BOB = 0.05;         // upward bob per step, in head heights
+  const HEAD_TILT_BACK = 3;      // degrees, head tilted in the back view
+  const HEAD_TILT_SIDE = -5;     // degrees, head tilted in profile
+  const WALK_POW = 1.35;         // slow first step, then faster
+  const WALK_LEAN = -2.5;        // degrees, leaning into the walk
+  const WALK_BOB = 0.035;        // head heights
+  let   FPS = 10;                // step printing
+  const GHOSTS = [0.22, 0.12, 0.06];   // alpha of the last three frames
+
+  // ---------- curves ----------
+  // cubicBezier as in Motion and CSS: solve x for t, return y.
+  function cubicBezier(x1, y1, x2, y2) {
+    const ax = 3 * x1 - 3 * x2 + 1, bx = 3 * x2 - 6 * x1, cx = 3 * x1;
+    const ay = 3 * y1 - 3 * y2 + 1, by = 3 * y2 - 6 * y1, cy = 3 * y1;
+    const X = t => ((ax * t + bx) * t + cx) * t, dX = t => (3 * ax * t + 2 * bx) * t + cx;
+    return x => {
+      if (x <= 0) return 0; if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 8; i++) { const d = dX(t); if (Math.abs(d) < 1e-6) break; t -= (X(t) - x) / d; }
+      return ((ay * t + by) * t + cy) * t;
+    };
+  }
+  const easeInOut = cubicBezier(0.42, 0, 0.58, 1);
+  const flood = cubicBezier(0.7, 0, 0.2, 1);
+  const clamp01 = v => Math.min(1, Math.max(0, v));
+  const span = (t, a, b) => clamp01((t - a) / (b - a));
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  // ---------- timeline, rebuilt when a slider changes it ----------
+  let T;
+  function timeline() {
+    const rise = OPEN, turn = rise + RISE + PAUSE, walk = turn + TURN;
+    const expand = walk + WALK + EMPTY, end = expand + EXPAND;
+    T = { rise, turn, walk, expand, end, total: end + END_HOLD };
+  }
+  timeline();
+
+  // ---------- the figure ----------
+  // Outlines in head heights, origin at the waist, y down. Two key poses:
+  // back view (climbing) and profile facing left (after the turn). Each
+  // part is resampled to the same number of points, so a pose between
+  // them is a plain blend, point by point.
+  const BACK = {
+    // bouffant: full and high on top, tucked in at the nape
+    head: [[0,-3.4],[0.3,-3.37],[0.52,-3.22],[0.62,-2.98],[0.6,-2.72],[0.5,-2.5],[0.36,-2.34],
+           [0.22,-2.2],[-0.22,-2.2],[-0.36,-2.35],[-0.5,-2.51],[-0.6,-2.73],[-0.62,-2.99],[-0.52,-3.22],[-0.29,-3.37]],
+    body: [[0.17,-2.22],[0.19,-1.98],[0.34,-1.85],[0.58,-1.73],[0.7,-1.62],[0.74,-1.45],[0.66,-1.36],
+           [0.56,-1.3],[0.52,-0.9],[0.46,-0.35],[0.45,0],[0.55,0.4],[0.64,0.8],[0.62,1.2],[0.52,1.8],
+           [0.42,2.6],[0.32,3.6],[-0.32,3.6],[-0.42,2.6],[-0.52,1.8],[-0.62,1.2],[-0.64,0.8],[-0.55,0.4],
+           [-0.45,0],[-0.46,-0.35],[-0.52,-0.9],[-0.56,-1.3],[-0.66,-1.36],[-0.74,-1.45],[-0.7,-1.62],
+           [-0.58,-1.73],[-0.34,-1.85],[-0.19,-1.98],[-0.17,-2.22]],
+    headTilt: HEAD_TILT_BACK,
+  };
+  const SIDE = {
+    // bouffant behind, then forehead, nose, lips and chin down the left
+    head: [[-0.05,-3.4],[0.28,-3.36],[0.54,-3.18],[0.66,-2.92],[0.6,-2.64],[0.44,-2.44],[0.28,-2.3],
+           [0.16,-2.16],[-0.08,-2.12],[-0.28,-2.18],[-0.36,-2.26],[-0.4,-2.34],[-0.39,-2.4],[-0.42,-2.45],
+           [-0.4,-2.5],[-0.51,-2.58],[-0.43,-2.73],[-0.44,-2.84],[-0.39,-2.96],[-0.32,-3.16],[-0.22,-3.32]],
+    body: [[0.16,-2.2],[0.2,-1.96],[0.3,-1.78],[0.36,-1.4],[0.3,-0.8],[0.24,-0.2],[0.26,0.1],
+           [0.44,0.55],[0.46,0.9],[0.38,1.3],[0.3,1.9],[0.24,2.6],[0.2,3.6],[-0.26,3.6],[-0.28,2.6],
+           [-0.32,1.8],[-0.34,1.1],[-0.3,0.5],[-0.26,0],[-0.28,-0.5],[-0.4,-0.95],[-0.38,-1.25],
+           [-0.3,-1.5],[-0.22,-1.8],[-0.2,-1.97],[-0.16,-2.2]],
+    headTilt: HEAD_TILT_SIDE,
+  };
+
+  function resample(pts, n) {
+    const segs = pts.map((p, i) => { const q = pts[(i + 1) % pts.length]; return Math.hypot(q[0] - p[0], q[1] - p[1]); });
+    const total = segs.reduce((a, b) => a + b, 0), out = [];
+    let i = 0, acc = 0;
+    for (let k = 0; k < n; k++) {
+      const d = k / n * total;
+      while (acc + segs[i] < d) acc += segs[i++];
+      const p = pts[i], q = pts[(i + 1) % pts.length], f = (d - acc) / segs[i];
+      out.push([lerp(p[0], q[0], f), lerp(p[1], q[1], f)]);
+    }
+    return out;
+  }
+  const PARTS = { head: 72, body: 96 };
+  for (const [k, n] of Object.entries(PARTS)) { BACK[k] = resample(BACK[k], n); SIDE[k] = resample(SIDE[k], n); }
+
+  // Arms and clutch are solid, not outlines: joints in 3D (x to her right
+  // as seen from behind, y down, z towards us), turned with the body and
+  // flattened onto the screen, so they keep their volume through the turn.
+  const ARMS = [
+    // right arm bent at the elbow, forearm across the small of the back
+    [[0.6,-1.58,0], [0.84,-0.58,0.12], [0.14,-0.34,0.34]],
+    // left arm bent, the clutch pinched against her side, hand in front
+    [[-0.6,-1.58,0], [-0.72,-0.56,0.04], [-0.4,-0.42,-0.44]],
+  ];
+  const ARM_W = [0.25, 0.2];          // upper arm, forearm, in head heights
+  const CLUTCH = { x: -0.66, y: [-0.62, -0.3], z: [-0.52, 0.06], thick: 0.16 };
+
+  // ---------- the pose at a moment ----------
+  // Returns where the waist sits (x, y in head heights from the box
+  // centre / crown line) and how the parts are blended and bent.
+  function pose(t) {
+    const p = { x: 0, rise: 1, head: 0, body: 0, tilt: 0, bob: 0 };
+    // climbing: six eased steps, swaying left and right, a small bob each
+    const r = span(t, T.rise, T.rise + RISE) * STEPS;
+    const k = Math.min(STEPS - 1, Math.floor(r)), u = r >= STEPS ? 1 : r - k;
+    p.rise = (k + easeInOut(u)) / STEPS;
+    if (r < STEPS) {
+      p.tilt = (k % 2 ? 1 : -1) * TILT * Math.sin(Math.PI * u);
+      p.bob = STEP_BOB * Math.sin(Math.PI * u);
+    }
+    // turning: head first, body after
+    const lead = Math.min(HEAD_LEAD, TURN * 0.5);
+    p.head = easeInOut(span(t, T.turn, T.turn + TURN - lead));
+    p.body = easeInOut(span(t, T.turn + lead, T.turn + TURN));
+    // walking out to the left
+    const w = span(t, T.walk, T.walk + WALK);
+    if (w > 0) {
+      p.x = -Math.pow(w, WALK_POW);
+      p.tilt = WALK_LEAN * Math.min(1, w * 4);
+      p.bob = WALK_BOB * Math.abs(Math.sin(w * Math.PI * 3));
+    }
+    return p;
+  }
+
+  // ---------- drawing ----------
+  const canvas = document.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const sheet = document.createElement('canvas');     // the figure is built here first
+  const sctx = sheet.getContext('2d');
+  let W = 0, H = 0;
+
+  function layout() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    W = rect.width; H = rect.height;
+    canvas.width = sheet.width = Math.round(W * dpr);
+    canvas.height = sheet.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function box() {
+    const w = Math.max(BOX_W_MIN, BOX_W * W), h = BOX_H * H;
+    return { x: (W - w) / 2, y: (H - h) / 2, w, h };
+  }
+
+  // Smooth closed outline through the points, via midpoints.
+  function outline(c, pts) {
+    const n = pts.length, m = i => { const a = pts[i % n], b = pts[(i + 1) % n]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; };
+    const s = m(n - 1);
+    c.moveTo(s[0], s[1]);
+    for (let i = 0; i < n; i++) { const e = m(i); c.quadraticCurveTo(pts[i][0], pts[i][1], e[0], e[1]); }
+    c.closePath();
+  }
+
+  function drawFigure(p, b, alpha) {
+    const h = Math.min(FIG * b.h, b.w / FIG_FIT);     // on a narrow screen, fit her to the width
+    const cx = b.x + b.w / 2 + p.x * (b.w / 2 + 0.75 * h);         // at x = -1 she is past the left wall
+    const top = b.y + b.h / 2 + 3.4 * h, bottom = b.y + b.h + 3.5 * h;
+    const wy = lerp(bottom, top, p.rise) - p.bob * h;              // the waist
+    const a = p.tilt * Math.PI / 180;
+    const ht = lerp(BACK.headTilt, SIDE.headTilt, p.head) * Math.PI / 180;
+
+    // Bend above the waist: full turn from 0.3 heads up, easing in below that.
+    const bend = ([x, y]) => {
+      const f = clamp01(-y / 0.3), c = Math.cos(a * f), s = Math.sin(a * f);
+      return [x * c - y * s, x * s + y * c];
+    };
+    const place = ([x, y]) => [cx + x * h, wy + y * h];
+    const part = (key, k, extra) => BACK[key].map((q, i) => {
+      let pt = [lerp(q[0], SIDE[key][i][0], k), lerp(q[1], SIDE[key][i][1], k)];
+      if (extra) pt = extra(pt);
+      return place(bend(pt));
+    });
+    const tiltHead = ([x, y]) => {
+      const nx = x, ny = y + 2.15, c = Math.cos(ht), s = Math.sin(ht);
+      return [nx * c - ny * s, nx * s + ny * c - 2.15];
+    };
+
+    // Each part filled on its own, so overlaps never cancel out, then the
+    // whole figure softened in one pass so no seams show between parts.
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.clearRect(0, 0, sheet.width, sheet.height);
+    sctx.setTransform(ctx.getTransform());
+    sctx.fillStyle = sctx.strokeStyle = BG;
+    for (const pts of [part('body', p.body), part('head', p.head, tiltHead)]) {
+      sctx.beginPath(); outline(sctx, pts); sctx.fill();
+    }
+
+    // Turned a quarter to her left at p.body = 1: facing away becomes facing left.
+    const th = p.body * Math.PI / 2, tc = Math.cos(th), ts = Math.sin(th);
+    const flat = ([x, y, z]) => place(bend([x * tc + z * ts, y]));
+    sctx.lineCap = sctx.lineJoin = 'round';
+    for (const [sh, el, wr] of ARMS) {
+      const a = flat(sh), e = flat(el), w = flat(wr);
+      sctx.lineWidth = ARM_W[0] * h;
+      sctx.beginPath(); sctx.moveTo(a[0], a[1]); sctx.lineTo(e[0], e[1]); sctx.stroke();
+      sctx.lineWidth = ARM_W[1] * h;
+      sctx.beginPath(); sctx.moveTo(e[0], e[1]); sctx.lineTo(w[0], w[1]); sctx.stroke();
+    }
+    const c = CLUTCH, xs = [c.x - c.thick / 2, c.x + c.thick / 2];
+    const cx3 = xs.flatMap(x => c.z.map(z => x * tc + z * ts));
+    const x0 = Math.min(...cx3), x1 = Math.max(...cx3);
+    const corners = [[x0, c.y[0]], [x1, c.y[0]], [x1, c.y[1]], [x0, c.y[1]]].map(q => place(bend(q)));
+    sctx.lineWidth = 0.06 * h;                                     // rounds the clutch corners
+    sctx.beginPath(); corners.forEach(([x, y], i) => i ? sctx.lineTo(x, y) : sctx.moveTo(x, y));
+    sctx.closePath(); sctx.fill(); sctx.stroke();
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = alpha;
+    ctx.filter = BLUR ? `blur(${BLUR * (window.devicePixelRatio || 1)}px)` : 'none';
+    ctx.drawImage(sheet, 0, 0);
+    ctx.restore();
+  }
+
+  function draw(t) {
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+    const b = box();
+
+    // The box: opens from its middle, and at the end floods the screen.
+    const open = easeInOut(span(t, 0, OPEN));
+    const f = flood(span(t, T.expand, T.end));
+    const oh = b.h * open;
+    const r = {
+      x: lerp(b.x, 0, f), y: lerp(b.y + (b.h - oh) / 2, 0, f),
+      w: lerp(b.w, W, f), h: lerp(oh, H, f),
+    };
+    if (r.h <= 0) return;
+    ctx.fillStyle = RED;
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+
+    // The figure, clipped to the box, on her own step-printed clock.
+    if (t < T.rise || t > T.walk + WALK) return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip();
+    const q = settings.stutter ? Math.floor(t * FPS) / FPS : t;
+    if (settings.ghost) {
+      GHOSTS.forEach((g, i) => { const s = q - (i + 1) / FPS; if (s > T.rise) drawFigure(pose(s), b, g); });
+    }
+    drawFigure(pose(q), b, 1);
+    ctx.restore();
+  }
+
+  // ---------- clock and controls ----------
+  const settings = { stutter: true, ghost: false, half: false, playing: true };
+  let t = 0, last = performance.now();
+
+  const $ = id => document.getElementById(id);
+  const controls = document.querySelector('.controls');
+  const alone = window.self === window.top;
+  controls.hidden = !alone;
+
+  function syncUI() {
+    $('scrub').max = T.total;
+    $('scrub').value = t;
+    $('time').textContent = t.toFixed(2) + 's';
+    $('play').textContent = settings.playing ? 'Pause' : 'Play';
+  }
+  function slider(id, get, set, fmt) {
+    const el = $(id), out = $(id + 'Out');
+    el.value = get(); out.textContent = fmt(get());
+    el.addEventListener('input', () => { set(parseFloat(el.value)); out.textContent = fmt(get()); timeline(); syncUI(); });
+  }
+  slider('boxh', () => BOX_H, v => BOX_H = v, v => Math.round(v * 100) + '%');
+  slider('tilt', () => TILT, v => TILT = v, v => v.toFixed(1) + '°');
+  slider('turn', () => TURN, v => TURN = v, v => v.toFixed(2) + 's');
+  slider('fps',  () => FPS,  v => FPS = v,  v => v + '');
+  $('play').addEventListener('click', () => { settings.playing = !settings.playing; syncUI(); });
+  $('restart').addEventListener('click', () => { t = 0; settings.playing = true; syncUI(); });
+  $('half').addEventListener('click', e => { settings.half = !settings.half; e.currentTarget.setAttribute('aria-pressed', settings.half); });
+  $('scrub').addEventListener('input', e => { t = parseFloat(e.target.value); settings.playing = false; syncUI(); });
+  $('stutter').addEventListener('change', e => settings.stutter = e.target.checked);
+  $('ghost').addEventListener('change', e => settings.ghost = e.target.checked);
+
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (reduce.matches) {
+      t = T.turn;                          // parked: she stands at the top, back to us
+    } else if (settings.playing) {
+      t += dt * (settings.half ? 0.5 : 1);
+      if (t > T.total) t = 0;
+    }
+    draw(t);
+    if (alone) syncUI();
+    requestAnimationFrame(frame);
+  }
+
+  layout();
+  new ResizeObserver(layout).observe(canvas);
+  syncUI();
+  requestAnimationFrame(frame);
+  </script>
+
+</body>
+</html>
