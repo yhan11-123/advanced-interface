@@ -51,7 +51,7 @@
   // away to the far left, then the far right, alternating. Plain perspective
   // projection (screen = f * world / depth) is what makes it feel 3D: the
   // ball grows as it nears, shrinks and slows as it leaves, and its shadow
-  // on the court tells you where it is in depth.
+  // on the ground tells you where it is in depth.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
@@ -61,7 +61,7 @@
     const BALL = 0.1;          // ball radius, world units
     const EYE = 1.5;           // camera height above the court
     const NET_Z = 4.2, NET_H = 0.3;
-    const COURT = { half: 1.6, near: 0.9, far: 8.4, service: 1.7 };
+    const NET_HALF = 1.75;     // half the net's width
 
     // Where the ball turns around: you hit it at NEAR, the other side at FAR.
     const NEAR = { x: 0, y: 1, z: 1.2 };
@@ -105,25 +105,8 @@
       };
     }
 
-    function line(x1, z1, x2, z2) {
-      const p = project(x1, 0, z1), q = project(x2, 0, z2);
-      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
-    }
-
-    function drawCourt() {
-      const { half, near, far, service } = COURT;
-      ctx.strokeStyle = colors.line;
-      ctx.lineWidth = 1;
-      line(-half, near, -half, far);
-      line(half, near, half, far);
-      line(0, NET_Z - service, 0, NET_Z + service);  // centre service line
-      line(-half, far, half, far);                   // far baseline
-      line(-half, NET_Z + service, half, NET_Z + service);   // far service line
-      line(-half, NET_Z - service, half, NET_Z - service);   // near service line
-    }
-
     function drawNet() {
-      const l = project(-COURT.half - 0.15, 0, NET_Z), r = project(COURT.half + 0.15, 0, NET_Z);
+      const l = project(-NET_HALF, 0, NET_Z), r = project(NET_HALF, 0, NET_Z);
       const top = project(0, NET_H, NET_Z).y;
       ctx.globalAlpha = 0.18;
       ctx.fillStyle = colors.line;
@@ -159,7 +142,6 @@
 
     function draw(t) {
       ctx.clearRect(0, 0, W, H);
-      drawCourt();
       const b = ballAt(t);
       if (b.z > NET_Z) { drawBall(b); drawNet(); }   // behind the net: net covers it
       else { drawNet(); drawBall(b); }
