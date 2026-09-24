@@ -77,6 +77,37 @@
 
   .num { font-variant-numeric: tabular-nums; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; }
 
+  .pie { width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p) * 360deg), var(--bone) 0); }
+
+  .buffer { position: relative; width: 100%; height: 6px; background: var(--bone); border-radius: 99px; overflow: hidden; }
+  .buffer b, .buffer i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
+  .buffer b { width: calc(min(1, var(--p) * 1.3 + 0.12) * 100%); background: rgba(43, 71, 255, .25); }
+  .buffer i { width: calc(var(--p) * 100%); background: var(--accent); }
+
+  .steps { width: 100%; display: grid; gap: 8px; justify-items: center; }
+  .steps ol { display: flex; align-items: center; width: 100%; margin: 0; padding: 0; list-style: none; }
+  .steps li { flex: 1; display: flex; align-items: center; }
+  .steps li:first-child { flex: 0; }
+  .steps li::before { content: ""; flex: 1; height: 2px; margin: 0 4px; background: var(--bone); }
+  .steps li:first-child::before { display: none; }
+  .steps li span { width: 12px; height: 12px; flex: none; border-radius: 50%; border: 2px solid var(--bone); background: var(--surface); }
+  .steps li.done::before, .steps li.now::before { background: var(--accent); }
+  .steps li.done span { background: var(--accent); border-color: var(--accent); }
+  .steps li.now span { border-color: var(--accent); }
+  .steps small, .count small { font-size: 12px; color: var(--muted); }
+
+  .count { display: grid; gap: 2px; text-align: center; }
+  .count strong { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .stripe { width: 100%; height: 10px; background: var(--bone); border-radius: 99px; overflow: hidden; }
+  .stripe i {
+    display: block; height: 100%; width: calc(var(--p) * 100%); border-radius: 99px;
+    background: linear-gradient(135deg, #5c73ff 25%, var(--accent) 25% 50%, #5c73ff 50% 75%, var(--accent) 75%);
+    background-size: 16px 16px;
+    animation: march .6s linear infinite;
+  }
+  @keyframes march { from { background-position: 16px 0; } to { background-position: 0 0; } }
+
   /* indeterminate --------------------------------------------------------- */
   .spinner { width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--bone); border-top-color: var(--accent); animation: spin .9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -88,6 +119,10 @@
     60%  { left: 100%; right: -90%; }
     100% { left: 100%; right: -90%; }
   }
+
+  .pong { position: relative; width: 100%; height: 6px; background: var(--bone); border-radius: 99px; overflow: hidden; }
+  .pong i { position: absolute; top: 0; bottom: 0; left: 0; width: 28%; background: var(--accent); border-radius: 99px; animation: pong 1.1s ease-in-out infinite alternate; }
+  @keyframes pong { to { left: 72%; } }
 
   .dots { display: flex; gap: 8px; }
   .dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); animation: blink 1.3s ease-in-out infinite; }
@@ -134,12 +169,15 @@
   /* paused ---------------------------------------------------------------- */
   .sheet.paused .spinner,
   .sheet.paused .ibar i,
+  .sheet.paused .pong i,
+  .sheet.paused .stripe i,
   .sheet.paused .dots span,
   .sheet.paused .skel span,
   .sheet.paused .mini { animation-play-state: paused; }
 
   @media (prefers-reduced-motion: reduce) {
-    .spinner, .ibar i, .dots span, .skel span, .mini { animation: none; }
+    .spinner, .ibar i, .pong i, .stripe i, .dots span, .skel span, .mini { animation: none; }
+    .pong i { left: 36%; }
     .ibar i { left: 0; right: 62%; }
     .dots span { opacity: .5; }
     .motion-note { display: block; }
@@ -159,7 +197,7 @@
   <header class="head">
     <h1>Loading pattern survey</h1>
     <p class="lede">
-      Ten existing patterns on one shared clock. Same real duration in every cell,
+      Sixteen existing patterns on one shared clock. Same real duration in every cell,
       so the only difference is how the wait gets described.
     </p>
 
@@ -216,6 +254,46 @@
         <figcaption><b>Numeric</b><span>Precise, but nothing to watch.</span></figcaption>
       </figure>
 
+      <figure class="spec">
+        <div class="stage">
+          <div class="pie" role="progressbar" aria-label="Pie" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <figcaption><b>Pie</b><span>A ring filled solid. Reads as a share of a whole.</span></figcaption>
+      </figure>
+
+      <figure class="spec">
+        <div class="stage">
+          <div class="buffer" role="progressbar" aria-label="Buffer bar" aria-valuemin="0" aria-valuemax="100"><b></b><i></i></div>
+        </div>
+        <figcaption><b>Buffer bar</b><span>Two measures at once: done, and ready ahead of it.</span></figcaption>
+      </figure>
+
+      <figure class="spec">
+        <div class="stage">
+          <div class="steps" role="progressbar" aria-label="Steps" aria-valuemin="0" aria-valuemax="100">
+            <ol><li><span></span></li><li><span></span></li><li><span></span></li><li><span></span></li></ol>
+            <small>Step 1 of 4</small>
+          </div>
+        </div>
+        <figcaption><b>Steps</b><span>Named stages instead of a percentage.</span></figcaption>
+      </figure>
+
+      <figure class="spec">
+        <div class="stage">
+          <div class="count" role="progressbar" aria-label="Count and time left" aria-valuemin="0" aria-valuemax="100">
+            <strong>0 of 40 files</strong><small>About 3 s left</small>
+          </div>
+        </div>
+        <figcaption><b>Count and time left</b><span>Counts real things and says when it ends.</span></figcaption>
+      </figure>
+
+      <figure class="spec">
+        <div class="stage">
+          <div class="stripe" role="progressbar" aria-label="Striped bar" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+        </div>
+        <figcaption><b>Striped bar</b><span>The fill keeps moving, so it looks alive between updates.</span></figcaption>
+      </figure>
+
     </div>
   </section>
 
@@ -231,6 +309,11 @@
       <figure class="spec">
         <div class="stage"><div class="ibar" role="progressbar" aria-label="Indeterminate bar, working"><i></i></div></div>
         <figcaption><b>Indeterminate bar</b><span>Grows and shrinks along a track.</span></figcaption>
+      </figure>
+
+      <figure class="spec">
+        <div class="stage"><div class="pong" role="progressbar" aria-label="Ping-pong bar, working"><i></i></div></div>
+        <figcaption><b>Ping-pong bar</b><span>A block bounces end to end. Never moves forward.</span></figcaption>
       </figure>
 
       <figure class="spec">
@@ -294,6 +377,11 @@
   var determinate = [].slice.call(sheet.querySelectorAll('[role="progressbar"][aria-valuemax]'));
   var segItems = [].slice.call(sheet.querySelectorAll('.seg i'));
   var numEl = sheet.querySelector('.num');
+  var stepItems = [].slice.call(sheet.querySelectorAll('.steps li'));
+  var stepText = sheet.querySelector('.steps small');
+  var countNow = sheet.querySelector('.count strong');
+  var countLeft = sheet.querySelector('.count small');
+  var FILES = 40;
   var toggle = document.getElementById('toggle');
   var btn = sheet.querySelector('.btnstate');
   var blabel = sheet.querySelector('.blabel');
@@ -321,6 +409,18 @@
     var pct = Math.round(p * 100);
     numEl.textContent = pct + '%';
     determinate.forEach(function (el) { el.setAttribute('aria-valuenow', String(pct)); });
+
+    // stepper: finished stages filled, the current one ringed
+    var step = Math.min(stepItems.length, Math.floor(p * stepItems.length) + 1);
+    stepItems.forEach(function (li, i) {
+      li.classList.toggle('done', p >= 1 || i < step - 1);
+      li.classList.toggle('now', p < 1 && i === step - 1);
+    });
+    stepText.textContent = p >= 1 ? 'All 4 steps done' : 'Step ' + step + ' of ' + stepItems.length;
+
+    // count of real things, plus an estimate of what is left
+    countNow.textContent = Math.round(p * FILES) + ' of ' + FILES + ' files';
+    countLeft.textContent = p >= 1 ? 'Done' : 'About ' + Math.max(1, Math.ceil((1 - p) * duration / 1000)) + ' s left';
 
     var lit = Math.round(p * segCount);
     segItems.forEach(function (seg, i) { seg.classList.toggle('on', i < lit); });

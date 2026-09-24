@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Fill and ball loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --track: #d6d3ca;
+    --fill: #b8c2ff;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --track: #3a3936;
+      --fill: #5a67b8;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { flex: 1; min-height: 120px; display: grid; place-items: center; }
+  .track {
+    --d: 16px;                                   /* ball diameter */
+    position: relative;
+    width: min(70%, 320px); height: 4px;
+    border-radius: 4px; background: var(--track);
+  }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; background: var(--fill); }
+  .ball {
+    position: absolute; left: 0; top: calc(50% - var(--d) / 2);
+    width: var(--d); height: var(--d); border-radius: 50%;
+    background: var(--accent);
+  }
+  .status {
+    margin: 0; padding: 0 16px 14px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+    font-variant-numeric: tabular-nums;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="track" aria-hidden="true"><div class="fill"></div><div class="ball"></div></div>
+  </div>
+  <p class="status" aria-hidden="true">Loading 0%</p>
+
+  <script>
+  // Determinate with a pulse. The fill grows left to right and is the real
+  // progress; it never goes backwards. The ball bounces back and forth, but
+  // only inside what is already filled, so its motion shows the thing is
+  // alive without ever claiming more than is done. At 100% its range is the
+  // whole bar. The demo fakes a load that runs 0 to 100, holds, and repeats.
+  (() => {
+    const stage = document.querySelector('.stage');
+    const track = document.querySelector('.track');
+    const fill = document.querySelector('.fill');
+    const ball = document.querySelector('.ball');
+    const status = document.querySelector('.status');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const RUN = 7;            // seconds from 0 to 100
+    const HOLD = 1.2;         // seconds parked at 100 before restarting
+    const BOUNCE = 1.1;       // seconds for one end-to-end trip
+
+    // Fake progress: quick at first, slower in the middle, a small stall,
+    // then a run to the finish. Real work would set this from what it counts.
+    function fake(s) {
+      const x = Math.min(s / RUN, 1);
+      const eased = x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+                  : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+                  : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+      return eased;
+    }
+
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = Math.max(0, now - t0) / 1000;
+      if (s > RUN + HOLD) { t0 = now; s = 0; }
+      const p = fake(s);
+
+      const d = ball.offsetWidth, w = track.clientWidth;
+      const filled = p * w;
+      fill.style.width = filled + 'px';
+
+      // The ball's room is the filled part; eased turns at both ends.
+      const room = Math.max(0, filled - d);
+      const swing = reduce.matches ? 1 : 0.5 - 0.5 * Math.cos((Math.PI * s) / BOUNCE);
+      ball.style.left = room * swing + 'px';
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) {
+        shown = pct;
+        status.textContent = pct >= 100 ? 'Done' : 'Loading ' + pct + '%';
+        stage.setAttribute('aria-valuenow', pct);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
