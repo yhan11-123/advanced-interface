@@ -61,7 +61,7 @@
     const HOLD = 1.4;         // seconds held full, reading as done
     const CLEAR = 0.5;        // seconds to clear before the next run
     const BAND = 0.3;         // soft front, as a share of the width
-    const SWAY = 0.05;        // how far the front sways, share of the width
+    const SWAY = 0.14;        // how far the front sways, share of the width
     const STRIP = 3;          // px per horizontal strip
 
     let W = 0, H = 0, color = '', ramp = null;
@@ -105,7 +105,7 @@
       const band = BAND * W, sway = still ? 0 : SWAY * W;
       // Front position chosen so p = 0 shows nothing and p = 1 covers all,
       // whatever the waves are doing.
-      const base = -sway + p * (W + band * 1.25 + 2 * sway);   // 1.25: the band's widest breath
+      const base = -sway + p * (W + band * 1.4 + 2 * sway);    // 1.4: the band's widest breath
       ctx.fillStyle = color;
       for (let y = 0; y < H; y += STRIP) {
         const v = y / H;
@@ -115,7 +115,7 @@
           0.30 * Math.sin(v * 11.7 - t * 2.1 + 1.7) +
           0.15 * Math.sin(v * 23.0 + t * 3.4 + 0.4);
         const front = base + sway * wave;
-        const soft = band * (still ? 1 : 1 + 0.25 * Math.sin(v * 3.3 - t * 0.9));
+        const soft = band * (still ? 1 : 1 + 0.4 * Math.sin(v * 3.3 - t * 0.9));
         const solid = front - soft;
         if (front > 0) ctx.drawImage(ramp, solid, y, soft, STRIP);
         // solid part overlaps the soft front by 1px so no seam shows between them
