@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Hourglass loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: relative; flex: 1; min-height: 120px; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .status {
+    margin: 0; padding: 0 16px 14px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuetext="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+  <p class="status">Loading</p>
+
+  <script>
+  // An hourglass drawn only in particles. The top chamber drains from the
+  // middle, so its surface dips into a funnel. Grains leave the neck as a
+  // stream that thins as it falls, like a thick liquid pouring. Below, they
+  // pile into a mound, narrow on top and wide at the base. When the top is
+  // empty the whole thing turns over and runs again, without end.
+  (() => {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const DRAIN = 6;           // seconds for the top to empty
+    const FLIP = 0.9;          // seconds to turn over
+    const PAUSE = 0.35;        // beat before turning over
+    const FUNNEL = 1.1;        // how deep the dip in the top surface is
+    const MOUND = 1.1;         // how steep the pile is below
+    const STREAM_RATE = 90;    // grains per second leaving the neck
+
+    let W = 0, H = 0, cx = 0, cy = 0;
+    let chamber = 0, neck = 0, gap = 0, pitch = 0, grain = 0;
+    let slots = [], drainOrder = [], fillOrder = [];
+    let color = '';
+
+    function readColors() {
+      color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    }
+
+    // Seeded random, so the grains keep their places from frame to frame.
+    function rng(seed) {
+      return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    }
+
+    // Half-width of a chamber at distance d from the neck: opens out quickly,
+    // then runs straight up to a flat end, like a glass bulb.
+    const halfWidth = d => neck + (chamber * 0.62 - neck) * Math.sin(Math.min(1, d / (chamber * 0.55)) * Math.PI / 2);
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      cx = W / 2; cy = H / 2;
+      chamber = Math.min(H * 0.4, W * 0.55);        // height of one chamber
+      gap = Math.max(2, chamber * 0.04);             // half the neck's length
+      neck = Math.max(1.5, chamber * 0.03);
+      pitch = Math.max(2.6, chamber / 42);           // grain spacing
+      grain = pitch * 0.34;                          // grain radius: small
+
+      // Grain places in one chamber, measured as (x, d) with d = distance
+      // from the neck. The same places serve the top (d up) and bottom (d down).
+      const rand = rng(7);
+      slots = [];
+      for (let d = pitch * 0.5; d < chamber; d += pitch * 0.87) {
+        const hw = halfWidth(d) - grain;
+        const row = Math.round(d / pitch) % 2 ? pitch / 2 : 0;
+        for (let x = -hw + row; x <= hw; x += pitch) {
+          slots.push({ x: x + (rand() - 0.5) * pitch * 0.35, d: d + (rand() - 0.5) * pitch * 0.35 });
+        }
+      }
+      const n = slots.map((_, i) => i);
+      // Top: the surface sinks in the middle first, so the grains that go
+      // first are high up and near the centre line. drainOrder runs from
+      // the last grain to leave to the first, so the grains still in the
+      // top are always its first entries.
+      const drainKey = i => slots[i].d - FUNNEL * Math.abs(slots[i].x);
+      drainOrder = n.slice().sort((a, b) => drainKey(a) - drainKey(b));
+      // Bottom: lowest places fill first, the middle before the edges, so
+      // the pile grows as a mound, narrow on top and wide at the base.
+      const fillKey = i => (chamber - slots[i].d) + MOUND * Math.abs(slots[i].x);
+      fillOrder = n.slice().sort((a, b) => fillKey(a) - fillKey(b));
+    }
+
+    // Draw one hourglass state: `top` grains left above, `bottom` grains piled below.
+    function drawGlass(top, bottom, stream, t) {
+      ctx.beginPath();
+      // top chamber: keep the grains that have not drained yet
+      for (let i = 0; i < top; i++) {
+        const s = slots[drainOrder[i]];
+        ctx.rect(cx + s.x - grain, cy - gap - s.d - grain, grain * 2, grain * 2);
+      }
+      // bottom pile
+      let peak = cy + gap + chamber;
+      for (let i = 0; i < bottom; i++) {
+        const s = slots[fillOrder[i]];
+        const y = cy + gap + s.d;
+        if (y < peak) peak = y;
+        ctx.rect(cx + s.x - grain, y - grain, grain * 2, grain * 2);
+      }
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // the stream: grains leave the neck, fall faster and faster, and the
+      // column narrows and thins on the way down
+      if (stream) {
+        const y0 = cy - gap, y1 = peak - grain;
+        const len = Math.max(1, y1 - y0);
+        const g = (2 * len) / (0.5 * 0.5);           // reach the pile in ~0.5 s
+        ctx.beginPath();
+        const first = Math.floor((t - 0.5) * STREAM_RATE), last = Math.floor(t * STREAM_RATE);
+        for (let k = Math.max(0, first); k <= last; k++) {
+          const age = t - k / STREAM_RATE;
+          if (age < 0) continue;
+          const y = y0 + 0.5 * g * age * age;
+          if (y > y1) continue;
+          const p = (y - y0) / len;                   // 0 at the neck, 1 at the pile
+          const j = (rng(k * 97 + 13)() - 0.5) * 2;
+          if (rng(k * 31 + 5)() < p * 0.55) continue; // fewer grains lower down
+          const x = cx + j * neck * 1.6 * (1 - 0.8 * p);
+          const r = grain * (1 - 0.35 * p);
+          ctx.rect(x - r, y - r, r * 2, r * 2);
+        }
+        ctx.fill();
+      }
+    }
+
+    function draw(t) {
+      ctx.clearRect(0, 0, W, H);
+      const N = slots.length;
+      const cycle = DRAIN + 0.5 + PAUSE + FLIP;
+      const c = t % cycle;
+
+      if (c < DRAIN + 0.5 + PAUSE) {
+        const left = Math.max(0, 1 - c / DRAIN);
+        const landed = Math.max(0, Math.min(1, (c - 0.5) / DRAIN));
+        drawGlass(Math.round(N * left), Math.round(N * landed), c < DRAIN, c);
+        return;
+      }
+      // turning over: the full bottom swings up to become the top
+      const k = (c - DRAIN - 0.5 - PAUSE) / FLIP;
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.PI * e);
+      ctx.translate(-cx, -cy);
+      drawGlass(0, N, false, 0);
+      ctx.restore();
+    }
+
+    let raf = 0, t0 = 0;
+
+    function frame(now) {
+      draw(Math.max(0, now - t0) / 1000);
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      cancelAnimationFrame(raf);
+      layout(); readColors();
+      if (reduce.matches) {
+        // Parked: half run through, no falling stream.
+        ctx.clearRect(0, 0, W, H);
+        const N = slots.length;
+        drawGlass(Math.round(N / 2), Math.round(N / 2), false, 0);
+        return;
+      }
+      t0 = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+
+    new ResizeObserver(start).observe(canvas);
+    reduce.addEventListener('change', start);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); if (reduce.matches) start(); });
+  })();
+  </script>
+
+</body>
+</html>
