@@ -12,7 +12,6 @@
     --ink: #1a1a1a;
     --muted: #77756e;
     --chain: #8a877f;
-    --accent: #2b47ff;
     color-scheme: light dark;
   }
   @media (prefers-color-scheme: dark) {
@@ -21,7 +20,6 @@
       --ink: #ededea;
       --muted: #9a9a94;
       --chain: #8d8b85;
-      --accent: #8fa0ff;
     }
   }
   html, body { margin: 0; height: 100%; }
@@ -46,27 +44,26 @@
   <p class="status">Loading</p>
 
   <script>
-  // A ball chain hangs from the top edge. The weight at its end sits 30% up
-  // from the bottom and is driven left and right; everything above it is a
-  // loose chain (Verlet points with gravity) that lags behind and sways.
+  // Fifteen ball chains hang side by side from the top edge down to 30% up
+  // from the bottom. The tops stay pinned; the lower part swings left and
+  // right, more the further down it is, and each point trails a little behind
+  // the one below it so the chain bends as it sways.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const LINKS = 22;         // simulated points along the chain
-    const SLACK = 1.06;       // chain is 6% longer than the straight drop
+    const CHAINS = 15;
+    const LINKS = 40;         // points along each chain's curve
     const PERIOD = 1.8;       // seconds for one full left-right-left swing
-    const GRAVITY = 1800;     // px/s²
-    const DAMPING = 0.985;
-    const STEP = 1 / 120;     // fixed physics step
+    const STIFF = 2.2;        // higher keeps more of the top straight
+    const LAG = 1.1;          // radians the top trails the bottom by
 
-    let W = 0, H = 0, anchor, rest, amp, segLen, pts = [];
-    let colors = {};
+    let W = 0, H = 0, topY, drop, amp, xs = [];
+    let chainColor = '';
 
     function readColors() {
-      const s = getComputedStyle(document.documentElement);
-      colors = { chain: s.getPropertyValue('--chain').trim(), accent: s.getPropertyValue('--accent').trim() };
+      chainColor = getComputedStyle(document.documentElement).getPropertyValue('--chain').trim();
     }
 
     function layout() {
@@ -77,73 +74,39 @@
       canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      anchor = { x: W / 2, y: -6 };
-      rest = { x: W / 2, y: H * 0.7 };              // 30% up from the bottom
-      const drop = rest.y - anchor.y;
-      amp = Math.min(W * 0.3, drop * 0.45);
-      segLen = (drop * SLACK) / (LINKS - 1);
+      topY = -6;
+      drop = H * 0.7 - topY;                         // ends 30% up from the bottom
+      const span = Math.min(W * 0.6, 420);           // width the row of chains covers
+      amp = Math.max(0, Math.min((W - span) / 2 - 16, drop * 0.3));
+      xs = Array.from({ length: CHAINS }, (_, c) => W / 2 - span / 2 + (span * c) / (CHAINS - 1));
+    }
 
-      pts = Array.from({ length: LINKS }, (_, i) => {
-        const y = anchor.y + (drop * i) / (LINKS - 1);
-        return { x: W / 2, y, px: W / 2, py: y };
+    // One chain's curve at time t: s runs 0 at the pinned top to 1 at the tip.
+    function curve(x0, t) {
+      const w = (2 * Math.PI * t) / PERIOD;
+      return Array.from({ length: LINKS }, (_, i) => {
+        const s = i / (LINKS - 1);
+        return { x: x0 + amp * Math.pow(s, STIFF) * Math.sin(w - (1 - s) * LAG), y: topY + drop * s };
       });
     }
 
-    function bobAt(t) {
-      return { x: rest.x + amp * Math.sin((2 * Math.PI * t) / PERIOD), y: rest.y };
-    }
-
-    function simulate(bob) {
-      const g = GRAVITY * STEP * STEP;
-      for (let i = 1; i < LINKS - 1; i++) {
-        const p = pts[i];
-        const vx = (p.x - p.px) * DAMPING, vy = (p.y - p.py) * DAMPING;
-        p.px = p.x; p.py = p.y;
-        p.x += vx; p.y += vy + g;
-      }
-      const first = pts[0], last = pts[LINKS - 1];
-      first.x = anchor.x; first.y = anchor.y;
-      last.px = last.x; last.py = last.y;
-      last.x = bob.x; last.y = bob.y;
-
-      for (let k = 0; k < 24; k++) {
-        for (let i = 0; i < LINKS - 1; i++) {
-          const a = pts[i], b = pts[i + 1];
-          const dx = b.x - a.x, dy = b.y - a.y;
-          const d = Math.hypot(dx, dy) || 1e-6;
-          const diff = (d - segLen) / d;
-          const aPinned = i === 0, bPinned = i + 1 === LINKS - 1;
-          if (aPinned && bPinned) continue;
-          const wa = aPinned ? 0 : bPinned ? 1 : 0.5;
-          const wb = bPinned ? 0 : aPinned ? 1 : 0.5;
-          a.x += dx * diff * wa; a.y += dy * diff * wa;
-          b.x -= dx * diff * wb; b.y -= dy * diff * wb;
-        }
-      }
-    }
-
-    function draw(bob) {
-      ctx.clearRect(0, 0, W, H);
-
+    function drawChain(pts) {
       // the thin wire the balls are strung on
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < LINKS; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.strokeStyle = colors.chain;
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
       ctx.globalAlpha = 0.45;
-      ctx.lineWidth = 1;
       ctx.stroke();
       ctx.globalAlpha = 1;
 
-      // balls placed at an even pitch along the simulated curve
+      // balls placed at an even pitch along the curve
       const R = 2.6, PITCH = 7.5;
-      ctx.fillStyle = colors.chain;
       let carry = 0;
-      for (let i = 0; i < LINKS - 1; i++) {
+      for (let i = 0; i < pts.length - 1; i++) {
         const a = pts[i], b = pts[i + 1];
         const len = Math.hypot(b.x - a.x, b.y - a.y);
-        for (let s = carry; s < len; s += PITCH) {
-          const t = s / len;
+        for (let d = carry; d < len; d += PITCH) {
+          const t = d / len;
           ctx.beginPath();
           ctx.arc(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, R, 0, Math.PI * 2);
           ctx.fill();
@@ -151,41 +114,37 @@
         carry = (carry - len) % PITCH;
         if (carry < 0) carry += PITCH;
       }
-
-      // the weight
-      ctx.beginPath();
-      ctx.arc(bob.x, bob.y, 13, 0, Math.PI * 2);
-      ctx.fillStyle = colors.accent;
-      ctx.fill();
     }
 
-    let raf = 0, last = 0, acc = 0, clock = 0;
+    function draw(t) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = ctx.fillStyle = chainColor;
+      ctx.lineWidth = 1;
+      xs.forEach(x => drawChain(curve(x, t)));
+    }
+
+    let raf = 0, t0 = 0;
 
     function frame(now) {
-      const dt = Math.min((now - last) / 1000, 0.05);
-      last = now; acc += dt;
-      while (acc >= STEP) { clock += STEP; simulate(bobAt(clock)); acc -= STEP; }
-      draw(bobAt(clock));
+      draw((now - t0) / 1000);
       raf = requestAnimationFrame(frame);
     }
 
     function start() {
       cancelAnimationFrame(raf);
       layout(); readColors();
-      clock = 0; acc = 0;
       if (reduce.matches) {
-        // Parked: settle the chain once, then hold still at rest.
-        for (let i = 0; i < 240; i++) simulate(rest);
-        draw(rest);
+        // Parked: hang straight and still.
+        const a = amp; amp = 0; draw(0); amp = a;
         return;
       }
-      last = performance.now();
+      t0 = performance.now();
       raf = requestAnimationFrame(frame);
     }
 
     new ResizeObserver(start).observe(canvas);
     reduce.addEventListener('change', start);
-    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); if (reduce.matches) draw(rest); });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); if (reduce.matches) start(); });
   })();
   </script>
 
