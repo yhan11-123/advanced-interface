@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Rippling wash loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity .5s ease; }
+  canvas.clearing { opacity: 0; }
+
+  /* Status inverts against whatever is under it, so it reads either way. */
+  .status {
+    position: absolute; left: 0; right: 0; bottom: 14px; margin: 0;
+    text-align: center; font-size: 13px; letter-spacing: .02em;
+    color: #fff; mix-blend-mode: difference;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+    <p class="status" aria-hidden="true">Loading</p>
+  </div>
+
+  <script>
+  // Wash, developed. The screen still fills with colour from left to right,
+  // and a full screen still means done. But the soft gradient front is no
+  // longer a straight edge: it ripples like water, each height swaying on
+  // its own slow waves, and the soft band itself breathes wider and
+  // narrower as it goes.
+  (() => {
+    const stage = document.querySelector('.stage');
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.querySelector('.status');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const RUN = 6;            // seconds from empty to full
+    const HOLD = 1.4;         // seconds held full, reading as done
+    const CLEAR = 0.5;        // seconds to clear before the next run
+    const BAND = 0.3;         // soft front, as a share of the width
+    const SWAY = 0.05;        // how far the front sways, share of the width
+    const STRIP = 3;          // px per horizontal strip
+
+    let W = 0, H = 0, color = '', ramp = null;
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(s) {
+      const x = Math.min(s / RUN, 1);
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    // '#2b47ff' -> 'rgba(43, 71, 255, 0)'
+    function clear(hex) {
+      const n = parseInt(hex.replace('#', ''), 16);
+      return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, 0)`;
+    }
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+      // One soft front, drawn once, then stretched into place on each strip.
+      ramp = document.createElement('canvas');
+      ramp.width = 256; ramp.height = 1;
+      const rc = ramp.getContext('2d');
+      const g = rc.createLinearGradient(0, 0, 256, 0);
+      g.addColorStop(0, color);
+      g.addColorStop(1, clear(color));             // same colour at zero alpha, so the fade does not grey out
+      rc.fillStyle = g;
+      rc.fillRect(0, 0, 256, 1);
+    }
+
+    function draw(p, t, still) {
+      ctx.clearRect(0, 0, W, H);
+      const band = BAND * W, sway = still ? 0 : SWAY * W;
+      // Front position chosen so p = 0 shows nothing and p = 1 covers all,
+      // whatever the waves are doing.
+      const base = -sway + p * (W + band * 1.25 + 2 * sway);   // 1.25: the band's widest breath
+      ctx.fillStyle = color;
+      for (let y = 0; y < H; y += STRIP) {
+        const v = y / H;
+        // three slow waves at different lengths and speeds, so it never repeats cleanly
+        const wave = still ? 0 :
+          0.55 * Math.sin(v * 5.1 + t * 1.3) +
+          0.30 * Math.sin(v * 11.7 - t * 2.1 + 1.7) +
+          0.15 * Math.sin(v * 23.0 + t * 3.4 + 0.4);
+        const front = base + sway * wave;
+        const soft = band * (still ? 1 : 1 + 0.25 * Math.sin(v * 3.3 - t * 0.9));
+        const solid = front - soft;
+        if (front > 0) ctx.drawImage(ramp, solid, y, soft, STRIP);
+        // solid part overlaps the soft front by 1px so no seam shows between them
+        if (solid > 0) ctx.fillRect(0, y, Math.min(W, solid + 1), STRIP);
+      }
+    }
+
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = Math.max(0, now - t0) / 1000;
+      if (s > RUN + HOLD + CLEAR) { t0 = now; s = 0; }
+      const p = fake(s);
+      canvas.classList.toggle('clearing', s > RUN + HOLD);
+      draw(p, now / 1000, reduce.matches);
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) {
+        shown = pct;
+        status.textContent = pct >= 100 ? 'Done' : 'Loading';
+        stage.setAttribute('aria-valuenow', pct);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', layout);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
