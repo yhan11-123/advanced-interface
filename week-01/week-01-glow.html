@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Glow loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { flex: 1; min-height: 120px; display: grid; place-items: center; }
+
+  /* One box in the middle that never moves. Only its opacity changes, easing
+     up and down slowly like a light breathing on and off. */
+  .box {
+    width: min(22vmin, 72px); aspect-ratio: 1;
+    border-radius: 10px;
+    background: var(--accent);
+    animation: glow 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { opacity: .15; }
+    to   { opacity: 1; }
+  }
+
+  /* Parked: held half lit. */
+  @media (prefers-reduced-motion: reduce) {
+    .box { animation: none; opacity: .55; }
+  }
+
+  .status {
+    margin: 0; padding: 0 16px 14px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuetext="Loading">
+    <div class="box" aria-hidden="true"></div>
+  </div>
+  <p class="status">Loading</p>
+
+</body>
+</html>
