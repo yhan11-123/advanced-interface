@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Edge loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --track: #d6d3ca;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --track: #3a3936;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  svg path { fill: none; stroke-width: 3; stroke-linecap: round; }
+  .track { stroke: var(--track); }
+  .fill { stroke: var(--accent); stroke-dasharray: 0 100; }
+  .readout { position: relative; text-align: center; }
+  .num {
+    display: block;
+    font-size: clamp(28px, 14vmin, 96px); font-weight: 600;
+    letter-spacing: -0.04em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .num small { font-size: .4em; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: .08em; }
+  .status { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <svg aria-hidden="true"><path class="track" pathLength="100" /><path class="fill" pathLength="100" /></svg>
+    <div class="readout" aria-hidden="true">
+      <span class="num"><span>0</span><small>%</small></span>
+      <span class="status">Loading</span>
+    </div>
+  </div>
+
+  <script>
+  // The whole screen edge is the bar. A line runs just inside the margin,
+  // starting at top centre and filling clockwise, while the number in the
+  // middle counts the same progress. The demo fakes a load that runs 0 to
+  // 100, holds, and starts again.
+  (() => {
+    const stage = document.querySelector('.stage');
+    const paths = document.querySelectorAll('svg path');
+    const fill = document.querySelector('.fill');
+    const num = document.querySelector('.num span');
+
+    const RUN = 6;            // seconds from 0 to 100
+    const HOLD = 1;           // seconds parked at 100 before restarting
+    const CORNER = 10;
+
+    // One loop round the inside of the margin, starting at top centre.
+    function outline() {
+      const inset = Math.max(10, Math.min(24, Math.min(innerWidth, innerHeight) * 0.03));   // gap to the screen edge
+      const W = innerWidth, H = innerHeight, l = inset, t = inset, r = W - inset, b = H - inset;
+      const c = Math.min(CORNER, (r - l) / 2, (b - t) / 2);
+      const d = [
+        `M ${W / 2} ${t}`,
+        `H ${r - c}`, `A ${c} ${c} 0 0 1 ${r} ${t + c}`,
+        `V ${b - c}`, `A ${c} ${c} 0 0 1 ${r - c} ${b}`,
+        `H ${l + c}`, `A ${c} ${c} 0 0 1 ${l} ${b - c}`,
+        `V ${t + c}`, `A ${c} ${c} 0 0 1 ${l + c} ${t}`,
+        `H ${W / 2}`,
+      ].join(' ');
+      paths.forEach(p => p.setAttribute('d', d));
+    }
+
+    // Fake progress: quick at first, slower in the middle, a small stall,
+    // then a run to the finish. Real work would set this from what it counts.
+    function fake(s) {
+      const x = Math.min(s / RUN, 1);
+      const eased = x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+                  : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+                  : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+      return Math.round(eased * 100);
+    }
+
+    let shown = -1, t0 = performance.now();
+
+    function set(p) {
+      if (p === shown) return;
+      shown = p;
+      fill.style.strokeDasharray = `${p} ${100 - p}`;
+      fill.style.opacity = p ? 1 : 0;                // no round-cap dot at 0
+      num.textContent = p;
+      stage.setAttribute('aria-valuenow', p);
+    }
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD) { t0 = now; s = 0; }
+      set(fake(s));
+      requestAnimationFrame(frame);
+    }
+
+    outline();
+    addEventListener('resize', outline);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
