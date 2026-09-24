@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Bar and ball loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --track: #d6d3ca;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --track: #3a3936;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { flex: 1; min-height: 120px; display: grid; place-items: center; }
+  .status {
+    margin: 0; padding: 0 16px 14px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+  }
+
+  /* A circle slides from one end of a thin bar to the other and back,
+     easing into each turn. */
+  .track {
+    --d: 16px;                                   /* circle diameter */
+    position: relative;
+    width: min(70%, 320px); height: 2px;
+    border-radius: 2px; background: var(--track);
+  }
+  .ball {
+    position: absolute; left: 0; top: calc(50% - var(--d) / 2);
+    width: var(--d); height: var(--d); border-radius: 50%;
+    background: var(--accent);
+    animation: slide 1.4s ease-in-out infinite alternate;
+  }
+  @keyframes slide {
+    from { left: 0; }
+    to   { left: calc(100% - var(--d)); }
+  }
+
+  /* Parked in the middle of the bar. */
+  @media (prefers-reduced-motion: reduce) {
+    .ball { animation: none; left: calc(50% - var(--d) / 2); }
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuetext="Loading">
+    <div class="track" aria-hidden="true"><div class="ball"></div></div>
+  </div>
+  <p class="status">Loading</p>
+
+</body>
+</html>

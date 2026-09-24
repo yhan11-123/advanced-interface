@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Star loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --track: #d6d3ca;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --track: #3a3936;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { flex: 1; min-height: 120px; display: grid; place-items: center; }
+  .status {
+    margin: 0; padding: 0 16px 14px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+  }
+
+  /* Eight rays leave one centre, 45 degrees apart. A circle on each runs out
+     to the tip and back in. Each ray starts an eighth of a cycle after the
+     one before, so the pulse travels round the star clockwise. */
+  .star {
+    --r: min(34vmin, 96px);                      /* ray length */
+    --d: 10px;                                   /* circle diameter */
+    --t: 1.6s;                                   /* one out-and-back */
+    position: relative; width: calc(var(--r) * 2); height: calc(var(--r) * 2);
+  }
+  .star::after {                                 /* the shared centre */
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 4px; height: 4px; margin: -2px 0 0 -2px;
+    border-radius: 50%; background: var(--track);
+  }
+  .ray {
+    position: absolute; left: 50%; top: 50%;
+    width: var(--r); height: 1px; margin-top: -0.5px;
+    background: var(--track);
+    transform-origin: 0 50%;
+    transform: rotate(calc(var(--i) * 45deg - 90deg));   /* ray 0 points up */
+  }
+  .ray i {
+    position: absolute; top: calc(50% - var(--d) / 2); left: 0;
+    width: var(--d); height: var(--d); border-radius: 50%;
+    background: var(--accent);
+    animation: out-and-in var(--t) ease-in-out infinite;
+    animation-delay: calc(var(--i) * var(--t) / 8 - var(--t));
+  }
+  @keyframes out-and-in {
+    0%, 100% { left: calc(var(--d) * 0.6); }
+    50%      { left: calc(100% - var(--d)); }
+  }
+
+  /* Parked: every circle halfway out, a still star. */
+  @media (prefers-reduced-motion: reduce) {
+    .ray i { animation: none; left: calc(50% - var(--d) / 2); }
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuetext="Loading">
+    <div class="star" aria-hidden="true">
+      <div class="ray" style="--i: 0"><i></i></div>
+      <div class="ray" style="--i: 1"><i></i></div>
+      <div class="ray" style="--i: 2"><i></i></div>
+      <div class="ray" style="--i: 3"><i></i></div>
+      <div class="ray" style="--i: 4"><i></i></div>
+      <div class="ray" style="--i: 5"><i></i></div>
+      <div class="ray" style="--i: 6"><i></i></div>
+      <div class="ray" style="--i: 7"><i></i></div>
+    </div>
+  </div>
+  <p class="status">Loading</p>
+
+</body>
+</html>
