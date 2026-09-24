@@ -17,12 +17,12 @@ Double-click `index.html`. That is the whole workflow. Edit a file, save, refres
 5. Put sketches and screenshots in `week-02/images/` and point at them with `<img src="images/sketch.png" />`.
 6. Open `index.html` and replace the `Week 02 Upcoming` row with a filled-in row. Copy the Week 01 row as the model.
 
-Step 6 is the only bookkeeping. The `data-tags` attribute on that row is what the topic filter reads, so keep it matching the tags in the post.
+Step 6 is the only bookkeeping. Keep the tags on that row matching the tags in the post.
 
 ## Where things live
 
 ```
-index.html            home: the 14-week timeline and topic filter
+index.html            home: the 14-week timeline
 shared/site.css       every page except the demos
 shared/favicon.svg
 _template/            copy this to start a week

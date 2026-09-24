@@ -21,13 +21,10 @@
       <p>Each week: a vibe-coded design experiment, the process behind it, and what critique said.</p>
     </section>
 
-    <!-- Topic chips are built from the data-tags attributes below. -->
-    <ul class="chips" id="tag-filter" aria-label="Filter by topic"></ul>
-
     <!-- ONE LINE PER WEEK. To publish a week, replace its Upcoming row with a
-         filled-in row like Week 01, and keep data-tags in sync with the post. -->
+         filled-in row like Week 01, and keep its tags in sync with the post. -->
     <ol class="timeline" id="timeline">
-        <li class="slot" data-tags="loading progress-indicators research motion tone">
+        <li class="slot">
           <a href="week-01/week-01.html">
             <span class="num">Week 01</span>
             <div>
@@ -44,55 +41,55 @@
             </div>
           </a>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 02</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 03</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 04</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 05</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 06</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 07</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 08</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 09</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 10</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 11</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 12</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 13</span>
           <span>Upcoming</span>
         </li>
-        <li class="slot is-upcoming" data-tags="">
+        <li class="slot is-upcoming">
           <span class="num">Week 14</span>
           <span>Upcoming</span>
         </li>
@@ -102,67 +99,6 @@
   <footer class="site-footer">
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
-
-  <script>
-    // Build the topic chips from the rows above, then filter in place.
-    (function () {
-      var list = document.getElementById('tag-filter');
-      var slots = [].slice.call(document.querySelectorAll('#timeline .slot'));
-
-      var counts = {};
-      slots.forEach(function (slot) {
-        (slot.dataset.tags || '').split(' ').filter(Boolean).forEach(function (tag) {
-          counts[tag] = (counts[tag] || 0) + 1;
-        });
-      });
-
-      var tags = Object.keys(counts).sort(function (a, b) {
-        return counts[b] - counts[a] || a.localeCompare(b);
-      });
-      if (!tags.length) { list.hidden = true; return; }
-
-      function addChip(tag, label, count) {
-        var li = document.createElement('li');
-        var btn = document.createElement('button');
-        btn.className = 'chip';
-        btn.setAttribute('data-tag', tag);
-        btn.textContent = label;
-        if (count != null) {
-          var c = document.createElement('span');
-          c.className = 'count';
-          c.textContent = count;
-          btn.appendChild(c);
-        }
-        li.appendChild(btn);
-        list.appendChild(li);
-      }
-
-      addChip('', 'All', null);
-      tags.forEach(function (tag) { addChip(tag, tag, counts[tag]); });
-
-      var chips = [].slice.call(list.querySelectorAll('.chip'));
-
-      function apply(tag) {
-        chips.forEach(function (chip) {
-          chip.classList.toggle('is-active', (chip.getAttribute('data-tag') || '') === tag);
-        });
-        slots.forEach(function (slot) {
-          var has = (slot.dataset.tags || '').split(' ').indexOf(tag) !== -1;
-          slot.classList.toggle('is-hidden', tag !== '' && !has);
-        });
-        try { history.replaceState(null, '', tag ? '#' + encodeURIComponent(tag) : ' '); } catch (e) {}
-      }
-
-      chips.forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          apply(chip.getAttribute('data-tag') || '');
-        });
-      });
-
-      var initial = decodeURIComponent(location.hash.slice(1));
-      apply(counts[initial] ? initial : '');
-    }());
-  </script>
 
 </body>
 </html>
