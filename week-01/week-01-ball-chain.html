@@ -12,6 +12,7 @@
     --ink: #1a1a1a;
     --muted: #77756e;
     --chain: #8a877f;
+    --accent: #2b47ff;
     color-scheme: light dark;
   }
   @media (prefers-color-scheme: dark) {
@@ -20,6 +21,7 @@
       --ink: #ededea;
       --muted: #9a9a94;
       --chain: #8d8b85;
+      --accent: #8fa0ff;
     }
   }
   html, body { margin: 0; height: 100%; }
@@ -44,10 +46,10 @@
   <p class="status">Loading</p>
 
   <script>
-  // Fifteen ball chains hang side by side from the top edge down to 30% up
-  // from the bottom. The tops stay pinned; the lower part swings left and
-  // right, more the further down it is, and each point trails a little behind
-  // the one below it so the chain bends as it sways.
+  // Fifteen ball chains hang still from the top edge down to 30% up from the
+  // bottom. In place of an indeterminate bar, a circle sweeps back and forth
+  // across their lower ends. Only the chains it touches move: the circle drags
+  // them along, then they swing back and settle. Tops stay pinned.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
@@ -55,15 +57,20 @@
 
     const CHAINS = 15;
     const LINKS = 40;         // points along each chain's curve
-    const PERIOD = 1.8;       // seconds for one full left-right-left swing
+    const PERIOD = 2.4;       // seconds for the circle to go there and back
+    const RADIUS = 12;
     const STIFF = 2.2;        // higher keeps more of the top straight
-    const LAG = 1.1;          // radians the top trails the bottom by
+    const SPRING = 60;        // pull back toward hanging straight
+    const FRICTION = 2.6;     // how fast a swing dies out
+    const GRIP = 14;          // how strongly a touching circle drags a chain
+    const STEP = 1 / 120;
 
-    let W = 0, H = 0, topY, drop, amp, xs = [];
-    let chainColor = '';
+    let W = 0, H = 0, topY, drop, ballY, reach, maxOff, chains = [];
+    let colors = {};
 
     function readColors() {
-      chainColor = getComputedStyle(document.documentElement).getPropertyValue('--chain').trim();
+      const st = getComputedStyle(document.documentElement);
+      colors = { chain: st.getPropertyValue('--chain').trim(), accent: st.getPropertyValue('--accent').trim() };
     }
 
     function layout() {
@@ -76,17 +83,40 @@
 
       topY = -6;
       drop = H * 0.7 - topY;                         // ends 30% up from the bottom
+      ballY = topY + drop * 0.88;                    // circle runs across the lower ends
       const span = Math.min(W * 0.6, 420);           // width the row of chains covers
-      amp = Math.max(0, Math.min((W - span) / 2 - 16, drop * 0.3));
-      xs = Array.from({ length: CHAINS }, (_, c) => W / 2 - span / 2 + (span * c) / (CHAINS - 1));
+      reach = span / 2 + RADIUS * 3;                 // circle travels just past the row
+      maxOff = drop * 0.25;
+      chains = Array.from({ length: CHAINS }, (_, c) => ({
+        x: W / 2 - span / 2 + (span * c) / (CHAINS - 1),
+        off: 0, vel: 0, lag: 0,                      // tip offset, its speed, and a trailing copy for the bend
+      }));
     }
 
-    // One chain's curve at time t: s runs 0 at the pinned top to 1 at the tip.
-    function curve(x0, t) {
-      const w = (2 * Math.PI * t) / PERIOD;
+    const ballX = t => W / 2 - reach * Math.cos((2 * Math.PI * t) / PERIOD);
+    const ballV = t => reach * Math.sin((2 * Math.PI * t) / PERIOD) * (2 * Math.PI) / PERIOD;
+
+    // Where a chain sits at the circle's height.
+    const xAtBall = c => c.x + c.off * Math.pow((ballY - topY) / drop, STIFF);
+
+    function simulate(t) {
+      const bx = ballX(t), bv = ballV(t);
+      for (const c of chains) {
+        let acc = -SPRING * c.off - FRICTION * c.vel;
+        if (Math.abs(bx - xAtBall(c)) < RADIUS + 3) acc += GRIP * (bv - c.vel);
+        c.vel += acc * STEP;
+        c.off = Math.max(-maxOff, Math.min(maxOff, c.off + c.vel * STEP));
+        c.lag += (c.off - c.lag) * Math.min(1, STEP * 10);
+      }
+    }
+
+    // One chain's curve: s runs 0 at the pinned top to 1 at the tip. The
+    // upper part follows a trailing copy of the tip, so the chain bends.
+    function curve(c) {
       return Array.from({ length: LINKS }, (_, i) => {
         const s = i / (LINKS - 1);
-        return { x: x0 + amp * Math.pow(s, STIFF) * Math.sin(w - (1 - s) * LAG), y: topY + drop * s };
+        const shift = c.lag + (c.off - c.lag) * s;
+        return { x: c.x + shift * Math.pow(s, STIFF), y: topY + drop * s };
       });
     }
 
@@ -106,9 +136,9 @@
         const a = pts[i], b = pts[i + 1];
         const len = Math.hypot(b.x - a.x, b.y - a.y);
         for (let d = carry; d < len; d += PITCH) {
-          const t = d / len;
+          const k = d / len;
           ctx.beginPath();
-          ctx.arc(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, R, 0, Math.PI * 2);
+          ctx.arc(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, R, 0, Math.PI * 2);
           ctx.fill();
         }
         carry = (carry - len) % PITCH;
@@ -116,29 +146,38 @@
       }
     }
 
-    function draw(t) {
+    function draw(bx) {
       ctx.clearRect(0, 0, W, H);
-      ctx.strokeStyle = ctx.fillStyle = chainColor;
+      ctx.strokeStyle = ctx.fillStyle = colors.chain;
       ctx.lineWidth = 1;
-      xs.forEach(x => drawChain(curve(x, t)));
+      chains.forEach(c => drawChain(curve(c)));
+
+      ctx.beginPath();
+      ctx.arc(bx, ballY, RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = colors.accent;
+      ctx.fill();
     }
 
-    let raf = 0, t0 = 0;
+    let raf = 0, last = 0, acc = 0, clock = 0;
 
     function frame(now) {
-      draw((now - t0) / 1000);
+      acc += Math.min((now - last) / 1000, 0.05);
+      last = now;
+      while (acc >= STEP) { clock += STEP; simulate(clock); acc -= STEP; }
+      draw(ballX(clock));
       raf = requestAnimationFrame(frame);
     }
 
     function start() {
       cancelAnimationFrame(raf);
       layout(); readColors();
+      clock = 0; acc = 0;
       if (reduce.matches) {
-        // Parked: hang straight and still.
-        const a = amp; amp = 0; draw(0); amp = a;
+        // Parked: chains hang straight, circle rests off to the left.
+        draw(ballX(0));
         return;
       }
-      t0 = performance.now();
+      last = performance.now();
       raf = requestAnimationFrame(frame);
     }
 
