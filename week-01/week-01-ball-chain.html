@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Ball chain loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --chain: #8a877f;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --muted: #9a9a94;
+      --chain: #8d8b85;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: relative; flex: 1; min-height: 240px; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .status {
+    margin: 0; padding: 0 16px 20px; text-align: center;
+    font-size: 13px; color: var(--muted); letter-spacing: .02em;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuetext="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+  <p class="status">Loading</p>
+
+  <script>
+  // A ball chain hangs from the top edge. The weight at its end sits 30% up
+  // from the bottom and is driven left and right; everything above it is a
+  // loose chain (Verlet points with gravity) that lags behind and sways.
+  (() => {
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const LINKS = 22;         // simulated points along the chain
+    const SLACK = 1.06;       // chain is 6% longer than the straight drop
+    const PERIOD = 1.8;       // seconds for one full left-right-left swing
+    const GRAVITY = 1800;     // px/s²
+    const DAMPING = 0.985;
+    const STEP = 1 / 120;     // fixed physics step
+
+    let W = 0, H = 0, anchor, rest, amp, segLen, pts = [];
+    let colors = {};
+
+    function readColors() {
+      const s = getComputedStyle(document.documentElement);
+      colors = { chain: s.getPropertyValue('--chain').trim(), accent: s.getPropertyValue('--accent').trim() };
+    }
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      anchor = { x: W / 2, y: -6 };
+      rest = { x: W / 2, y: H * 0.7 };              // 30% up from the bottom
+      const drop = rest.y - anchor.y;
+      amp = Math.min(W * 0.3, drop * 0.45);
+      segLen = (drop * SLACK) / (LINKS - 1);
+
+      pts = Array.from({ length: LINKS }, (_, i) => {
+        const y = anchor.y + (drop * i) / (LINKS - 1);
+        return { x: W / 2, y, px: W / 2, py: y };
+      });
+    }
+
+    function bobAt(t) {
+      return { x: rest.x + amp * Math.sin((2 * Math.PI * t) / PERIOD), y: rest.y };
+    }
+
+    function simulate(bob) {
+      const g = GRAVITY * STEP * STEP;
+      for (let i = 1; i < LINKS - 1; i++) {
+        const p = pts[i];
+        const vx = (p.x - p.px) * DAMPING, vy = (p.y - p.py) * DAMPING;
+        p.px = p.x; p.py = p.y;
+        p.x += vx; p.y += vy + g;
+      }
+      const first = pts[0], last = pts[LINKS - 1];
+      first.x = anchor.x; first.y = anchor.y;
+      last.px = last.x; last.py = last.y;
+      last.x = bob.x; last.y = bob.y;
+
+      for (let k = 0; k < 24; k++) {
+        for (let i = 0; i < LINKS - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const d = Math.hypot(dx, dy) || 1e-6;
+          const diff = (d - segLen) / d;
+          const aPinned = i === 0, bPinned = i + 1 === LINKS - 1;
+          if (aPinned && bPinned) continue;
+          const wa = aPinned ? 0 : bPinned ? 1 : 0.5;
+          const wb = bPinned ? 0 : aPinned ? 1 : 0.5;
+          a.x += dx * diff * wa; a.y += dy * diff * wa;
+          b.x -= dx * diff * wb; b.y -= dy * diff * wb;
+        }
+      }
+    }
+
+    function draw(bob) {
+      ctx.clearRect(0, 0, W, H);
+
+      // the thin wire the balls are strung on
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < LINKS; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.strokeStyle = colors.chain;
+      ctx.globalAlpha = 0.45;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // balls placed at an even pitch along the simulated curve
+      const R = 2.6, PITCH = 7.5;
+      ctx.fillStyle = colors.chain;
+      let carry = 0;
+      for (let i = 0; i < LINKS - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        for (let s = carry; s < len; s += PITCH) {
+          const t = s / len;
+          ctx.beginPath();
+          ctx.arc(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, R, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        carry = (carry - len) % PITCH;
+        if (carry < 0) carry += PITCH;
+      }
+
+      // the weight
+      ctx.beginPath();
+      ctx.arc(bob.x, bob.y, 13, 0, Math.PI * 2);
+      ctx.fillStyle = colors.accent;
+      ctx.fill();
+    }
+
+    let raf = 0, last = 0, acc = 0, clock = 0;
+
+    function frame(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now; acc += dt;
+      while (acc >= STEP) { clock += STEP; simulate(bobAt(clock)); acc -= STEP; }
+      draw(bobAt(clock));
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      cancelAnimationFrame(raf);
+      layout(); readColors();
+      clock = 0; acc = 0;
+      if (reduce.matches) {
+        // Parked: settle the chain once, then hold still at rest.
+        for (let i = 0; i < 240; i++) simulate(rest);
+        draw(rest);
+        return;
+      }
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+
+    new ResizeObserver(start).observe(canvas);
+    reduce.addEventListener('change', start);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); if (reduce.matches) draw(rest); });
+  })();
+  </script>
+
+</body>
+</html>
