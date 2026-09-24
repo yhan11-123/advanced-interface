@@ -151,6 +151,20 @@ button { font: inherit; color: inherit; }
 .demo-frame figcaption { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--fg-muted); margin-top: 8px; }
 .demo-frame figcaption a { color: var(--accent); }
 
+/* ---------- ideation: small live sketches side by side ----------
+   <div class="idea-grid">
+     <figure class="idea">
+       <iframe src="week-01-sketch.html" title="..." loading="lazy"></iframe>
+       <figcaption><b>Name</b><span>One line on the idea.</span><a href="week-01-sketch.html" target="_blank" rel="noopener">Open</a></figcaption>
+     </figure>
+   </div> */
+.idea-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+.idea { margin: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.idea iframe { display: block; width: 100%; height: 220px; border: 0; border-bottom: 1px solid var(--line); }
+.idea figcaption { padding: 10px 12px 12px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.idea figcaption b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
+.idea figcaption a { display: inline-block; margin-top: 6px; color: var(--accent); }
+
 .post-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
 .post-nav a { color: var(--fg-muted); }
 .post-nav a:hover { color: var(--accent); }
