@@ -46,12 +46,11 @@
   <p class="status">Loading</p>
 
   <script>
-  // First person, standing at the baseline. A ball rallies with you: every
-  // return comes straight down the middle to you, every shot you hit goes
-  // away to the far left, then the far right, alternating. Plain perspective
-  // projection (screen = f * world / depth) is what makes it feel 3D: the
-  // ball grows as it nears, shrinks and slows as it leaves, and its shadow
-  // on the ground tells you where it is in depth.
+  // First person. A ball rallies with you: every return comes straight down
+  // the middle to you, every shot you hit goes away to the far left, then the
+  // far right, alternating. There is nothing else on screen; plain
+  // perspective projection (screen = f * world / depth) carries the 3D on
+  // its own: the ball grows as it nears, and shrinks and slows as it leaves.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
@@ -60,8 +59,6 @@
     const LEG = 0.85;          // seconds for one flight, either direction
     const BALL = 0.1;          // ball radius, world units
     const EYE = 1.5;           // camera height above the court
-    const NET_Z = 4.2, NET_H = 0.3;
-    const NET_HALF = 1.75;     // half the net's width
 
     // Where the ball turns around: you hit it at NEAR, the other side at FAR.
     const NEAR = { x: 0, y: 1, z: 1.2 };
@@ -73,9 +70,7 @@
     function readColors() {
       const st = getComputedStyle(document.documentElement);
       colors = {
-        line: st.getPropertyValue('--track').trim(),
         ball: st.getPropertyValue('--accent').trim(),
-        ink: st.getPropertyValue('--ink').trim(),
       };
     }
 
@@ -105,29 +100,7 @@
       };
     }
 
-    function drawNet() {
-      const l = project(-NET_HALF, 0, NET_Z), r = project(NET_HALF, 0, NET_Z);
-      const top = project(0, NET_H, NET_Z).y;
-      ctx.globalAlpha = 0.18;
-      ctx.fillStyle = colors.line;
-      ctx.fillRect(l.x, top, r.x - l.x, l.y - top);
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = colors.line;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(l.x, top); ctx.lineTo(r.x, top); ctx.stroke();
-    }
-
     function drawBall(b) {
-      // shadow straight below on the court, softer the higher the ball is
-      const sh = project(b.x, 0, b.z);
-      ctx.save();
-      ctx.globalAlpha = Math.max(0.05, 0.28 - b.y * 0.1);
-      ctx.fillStyle = colors.ink;
-      ctx.beginPath();
-      ctx.ellipse(sh.x, sh.y, BALL * sh.s * 1.1, BALL * sh.s * 0.35, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
       // the ball, lit from the upper left so it reads as round
       const p = project(b.x, b.y, b.z), r = BALL * p.s;
       const g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.4, r * 0.1, p.x, p.y, r);
@@ -142,9 +115,7 @@
 
     function draw(t) {
       ctx.clearRect(0, 0, W, H);
-      const b = ballAt(t);
-      if (b.z > NET_Z) { drawBall(b); drawNet(); }   // behind the net: net covers it
-      else { drawNet(); drawBall(b); }
+      drawBall(ballAt(t));
     }
 
     let raf = 0, t0 = 0;
