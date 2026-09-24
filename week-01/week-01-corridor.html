@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Corridor loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     The corridor is its own dark room, so it stays dark in either scheme. */
+  :root {
+    --bg: #0e0908;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Corridor. After the hotel corridor in In the Mood for Love, kept to its
+  // depth alone. One flat box sits in the dark. As loading runs, its back
+  // wall slowly draws away and the box deepens into a long hall of plain
+  // planes, darker the further in. Depth is the progress: when the far
+  // wall is as far as it goes, loading is done.
+  (() => {
+    // ---------- colour ----------
+    const BG = '#0e0908';
+    const PLANES = {           // each face its own tone, so the hall reads as a volume
+      left: '#8e1a14',
+      right: '#6e1410',
+      ceiling: '#3a1510',
+      floor: '#4a1a13',
+      back: '#a92e2d',
+    };
+    const RIB = 'rgba(14, 9, 8, 0.35)';   // faint edge at each stretch of the hall
+
+    // ---------- size ----------
+    const BOX_H = 0.62;          // box height, share of screen height
+    const BOX_RATIO = 1.05;      // width / height
+    const BOX_W_MAX = 0.6;       // never wider than this share of the screen
+    const VP_Y = 0.5;            // vanishing point, share down the box
+    const SEGS = 8;              // hall length, in stretches
+    const FOCAL = 1.0;           // lower = steeper perspective
+    const FOG = 0.7;             // how dark the far end gets
+
+    // ---------- timing (seconds) ----------
+    const RUN = 11;              // flat box to full depth
+    const HOLD = 2;              // done, held
+    const COLLAPSE = 1.4;        // the hall folds back flat
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    // The cross-section of the hall at depth z, drawn toward the vanishing
+    // point. z = 0 is the box itself.
+    function section(b, vx, vy, z) {
+      const s = FOCAL / (FOCAL + z);
+      return {
+        l: vx + (b.x - vx) * s, r: vx + (b.x + b.w - vx) * s,
+        t: vy + (b.y - vy) * s, b: vy + (b.y + b.h - vy) * s,
+      };
+    }
+
+    function quad(pts, fill) {
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+      ctx.closePath(); ctx.fill();
+    }
+
+    const fog = z => FOG * Math.min(1, z / SEGS);
+    // A plane's colour sunk toward the dark by a, as one opaque fill, so
+    // slices that overlap never darken twice.
+    const rgb = hex => [0, 2, 4].map(i => parseInt(hex.slice(1 + i, 3 + i), 16));
+    const DARK = rgb(BG);
+    const sink = (hex, a) => `rgb(${rgb(hex).map((v, i) => Math.round(v + (DARK[i] - v) * a))})`;
+
+    function draw(depth) {
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, W, H);
+      const h = BOX_H * H, w = Math.min(BOX_W_MAX * W, h * BOX_RATIO);
+      const b = { x: (W - w) / 2, y: (H - h) / 2, w, h };
+      const vx = b.x + b.w / 2, vy = b.y + b.h * VP_Y;
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.clip();
+
+      // back wall, dimmed by how far it has gone
+      const E = section(b, vx, vy, depth);
+      const back = [[E.l, E.t], [E.r, E.t], [E.r, E.b], [E.l, E.b]];
+      quad(back, sink(PLANES.back, fog(depth)));
+
+      // the four planes, in thin slices so each darkens smoothly with depth
+      const STEP = 0.25;
+      for (let za = Math.floor(depth / STEP) * STEP; za >= 0; za -= STEP) {
+        const zb = Math.min(za + STEP, depth);
+        if (zb <= za) continue;
+        // each slice reaches a hair past the next, so no seams show between them
+        const A = section(b, vx, vy, za), B = section(b, vx, vy, Math.min(zb + 0.02, depth));
+        const f = fog((za + zb) / 2);
+        const faces = [
+          [PLANES.ceiling, [[A.l, A.t], [A.r, A.t], [B.r, B.t], [B.l, B.t]]],
+          [PLANES.floor,   [[A.l, A.b], [A.r, A.b], [B.r, B.b], [B.l, B.b]]],
+          [PLANES.left,    [[A.l, A.t], [B.l, B.t], [B.l, B.b], [A.l, A.b]]],
+          [PLANES.right,   [[A.r, A.t], [B.r, B.t], [B.r, B.b], [A.r, A.b]]],
+        ];
+        for (const [c, pts] of faces) quad(pts, sink(c, f));
+      }
+
+      // a faint frame at each whole stretch, so the depth can be counted
+      ctx.strokeStyle = RIB;
+      ctx.lineWidth = 1;
+      for (let k = 1; k < depth; k++) {
+        const S = section(b, vx, vy, k);
+        ctx.strokeRect(S.l, S.t, S.r - S.l, S.b - S.t);
+      }
+      ctx.restore();
+    }
+
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD + COLLAPSE) { t0 = now; s = 0; }
+      let p;
+      if (reduce.matches) p = 1;
+      else if (s < RUN) p = fake(s / RUN);
+      else if (s < RUN + HOLD) p = 1;
+      else { const c = (s - RUN - HOLD) / COLLAPSE; p = 1 - (0.5 - 0.5 * Math.cos(c * Math.PI)); }
+      draw(p * SEGS);
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown && s < RUN + HOLD) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
