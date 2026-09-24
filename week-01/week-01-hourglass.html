@@ -44,26 +44,24 @@
   <p class="status">Loading</p>
 
   <script>
-  // An hourglass drawn only in particles. The top chamber drains from the
-  // middle, so its surface dips into a funnel. Grains leave the neck as a
-  // stream that thins as it falls, like a thick liquid pouring. Below, they
-  // pile into a mound, narrow on top and wide at the base. When the top is
-  // empty the whole thing turns over and runs again, without end.
+  // An hourglass drawn only in particles. The two shapes never change: a
+  // full top chamber, and below it a mound, narrow on top and wide at the
+  // base. Nothing drains and nothing piles up. Only the stream between them
+  // moves: grains leave the neck without pause and fall, the column
+  // narrowing and thinning on the way down like a thick liquid pouring.
+  // It has no start and no end, it just keeps flowing.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const DRAIN = 6;           // seconds for the top to empty
-    const FLIP = 0.9;          // seconds to turn over
-    const PAUSE = 0.35;        // beat before turning over
-    const FUNNEL = 1.1;        // how deep the dip in the top surface is
-    const MOUND = 1.1;         // how steep the pile is below
-    const STREAM_RATE = 90;    // grains per second leaving the neck
+    const PILE = 0.6;          // share of the bottom chamber the mound fills
+    const MOUND = 1.1;         // how steep the mound is
+    const STREAM_RATE = 220;   // grains per second leaving the neck
 
     let W = 0, H = 0, cx = 0, cy = 0;
     let chamber = 0, neck = 0, gap = 0, pitch = 0, grain = 0;
-    let slots = [], drainOrder = [], fillOrder = [];
+    let slots = [], fillOrder = [];
     let color = '';
 
     function readColors() {
@@ -73,6 +71,12 @@
     // Seeded random, so the grains keep their places from frame to frame.
     function rng(seed) {
       return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    }
+    // A well-mixed 0..1 value per stream grain, so neighbours do not line up.
+    function hash(n) {
+      n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
+      n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
     }
 
     // Half-width of a chamber at distance d from the neck: opens out quickly,
@@ -106,28 +110,22 @@
         }
       }
       const n = slots.map((_, i) => i);
-      // Top: the surface sinks in the middle first, so the grains that go
-      // first are high up and near the centre line. drainOrder runs from
-      // the last grain to leave to the first, so the grains still in the
-      // top are always its first entries.
-      const drainKey = i => slots[i].d - FUNNEL * Math.abs(slots[i].x);
-      drainOrder = n.slice().sort((a, b) => drainKey(a) - drainKey(b));
-      // Bottom: lowest places fill first, the middle before the edges, so
-      // the pile grows as a mound, narrow on top and wide at the base.
+      // Bottom: taking the lowest places first, the middle before the edges,
+      // gives a mound, narrow on top and wide at the base.
       const fillKey = i => (chamber - slots[i].d) + MOUND * Math.abs(slots[i].x);
       fillOrder = n.slice().sort((a, b) => fillKey(a) - fillKey(b));
     }
 
-    // Draw one hourglass state: `top` grains left above, `bottom` grains piled below.
-    function drawGlass(top, bottom, stream, t) {
+    // Draw the hourglass at time t: the two fixed shapes, and the stream.
+    function drawGlass(t, stream) {
       ctx.beginPath();
-      // top chamber: keep the grains that have not drained yet
-      for (let i = 0; i < top; i++) {
-        const s = slots[drainOrder[i]];
+      // top chamber, full
+      for (const s of slots) {
         ctx.rect(cx + s.x - grain, cy - gap - s.d - grain, grain * 2, grain * 2);
       }
-      // bottom pile
+      // bottom mound
       let peak = cy + gap + chamber;
+      const bottom = Math.round(slots.length * PILE);
       for (let i = 0; i < bottom; i++) {
         const s = slots[fillOrder[i]];
         const y = cy + gap + s.d;
@@ -151,8 +149,8 @@
           const y = y0 + 0.5 * g * age * age;
           if (y > y1) continue;
           const p = (y - y0) / len;                   // 0 at the neck, 1 at the pile
-          const j = (rng(k * 97 + 13)() - 0.5) * 2;
-          if (rng(k * 31 + 5)() < p * 0.55) continue; // fewer grains lower down
+          const j = (hash(k * 2 + 1) - 0.5) * 2;
+          if (hash(k * 2 + 2) < p * 0.45) continue;   // fewer grains lower down
           const x = cx + j * neck * 1.6 * (1 - 0.8 * p);
           const r = grain * (1 - 0.35 * p);
           ctx.rect(x - r, y - r, r * 2, r * 2);
@@ -163,31 +161,13 @@
 
     function draw(t) {
       ctx.clearRect(0, 0, W, H);
-      const N = slots.length;
-      const cycle = DRAIN + 0.5 + PAUSE + FLIP;
-      const c = t % cycle;
-
-      if (c < DRAIN + 0.5 + PAUSE) {
-        const left = Math.max(0, 1 - c / DRAIN);
-        const landed = Math.max(0, Math.min(1, (c - 0.5) / DRAIN));
-        drawGlass(Math.round(N * left), Math.round(N * landed), c < DRAIN, c);
-        return;
-      }
-      // turning over: the full bottom swings up to become the top
-      const k = (c - DRAIN - 0.5 - PAUSE) / FLIP;
-      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(Math.PI * e);
-      ctx.translate(-cx, -cy);
-      drawGlass(0, N, false, 0);
-      ctx.restore();
+      drawGlass(t, true);
     }
 
     let raf = 0, t0 = 0;
 
     function frame(now) {
-      draw(Math.max(0, now - t0) / 1000);
+      draw(1 + Math.max(0, now - t0) / 1000);        // +1 s: already flowing on the first frame
       raf = requestAnimationFrame(frame);
     }
 
@@ -195,10 +175,9 @@
       cancelAnimationFrame(raf);
       layout(); readColors();
       if (reduce.matches) {
-        // Parked: half run through, no falling stream.
+        // Parked: the two shapes, no falling stream.
         ctx.clearRect(0, 0, W, H);
-        const N = slots.length;
-        drawGlass(Math.round(N / 2), Math.round(N / 2), false, 0);
+        drawGlass(0, false);
         return;
       }
       t0 = performance.now();
