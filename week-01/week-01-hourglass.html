@@ -44,24 +44,28 @@
   <p class="status">Loading</p>
 
   <script>
-  // An hourglass drawn only in particles. The two shapes never change: a
-  // full top chamber, and below it a mound, narrow on top and wide at the
-  // base. Nothing drains and nothing piles up. Only the stream between them
-  // moves: grains leave the neck without pause and fall, the column
-  // narrowing and thinning on the way down like a thick liquid pouring.
-  // It has no start and no end, it just keeps flowing.
+  // An hourglass drawn only in particles. The two shapes never change: sand
+  // settled in the bottom of the top chamber, and below it a mound, narrow
+  // on top and wide at the base. Nothing drains and nothing piles up. Only
+  // the flow moves: grains slide out of the settled sand toward the neck,
+  // pass through it, and fall, the column narrowing and thinning on the way
+  // down like a thick liquid pouring. It has no start and no end.
   (() => {
     const canvas = document.querySelector('canvas');
     const ctx = canvas.getContext('2d');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const PILE = 0.6;          // share of the bottom chamber the mound fills
+    const TOP = 0.42;          // share of the top chamber the settled sand fills
+    const DIP = 0.12;          // how much its surface sags in the middle
+    const PILE = 0.34;         // share of the bottom chamber the mound fills
     const MOUND = 1.1;         // how steep the mound is
-    const STREAM_RATE = 220;   // grains per second leaving the neck
+    const RATE = 75;           // grains per second passing the neck
+    const SLIDE = 0.45;        // seconds a grain takes to slide to the neck
+    const FALL = 0.55;         // seconds from the neck to the mound
 
     let W = 0, H = 0, cx = 0, cy = 0;
     let chamber = 0, neck = 0, gap = 0, pitch = 0, grain = 0;
-    let slots = [], fillOrder = [];
+    let slots = [], topOrder = [], fillOrder = [];
     let color = '';
 
     function readColors() {
@@ -110,20 +114,28 @@
         }
       }
       const n = slots.map((_, i) => i);
+      // Top: sand settles against the neck, its surface sagging a little in
+      // the middle where it is flowing out.
+      const topKey = i => slots[i].d - DIP * Math.abs(slots[i].x);
+      topOrder = n.slice().sort((a, b) => topKey(a) - topKey(b));
       // Bottom: taking the lowest places first, the middle before the edges,
       // gives a mound, narrow on top and wide at the base.
       const fillKey = i => (chamber - slots[i].d) + MOUND * Math.abs(slots[i].x);
       fillOrder = n.slice().sort((a, b) => fillKey(a) - fillKey(b));
     }
 
-    // Draw the hourglass at time t: the two fixed shapes, and the stream.
-    function drawGlass(t, stream) {
+    // Draw the hourglass at time t: the two fixed shapes, and the flow.
+    function drawGlass(t, flowing) {
       ctx.beginPath();
-      // top chamber, full
-      for (const s of slots) {
+      // settled sand in the top chamber
+      const top = Math.round(slots.length * TOP);
+      let surface = 0;                               // highest settled grain, as d
+      for (let i = 0; i < top; i++) {
+        const s = slots[topOrder[i]];
+        surface = Math.max(surface, s.d);
         ctx.rect(cx + s.x - grain, cy - gap - s.d - grain, grain * 2, grain * 2);
       }
-      // bottom mound
+      // the mound below
       let peak = cy + gap + chamber;
       const bottom = Math.round(slots.length * PILE);
       for (let i = 0; i < bottom; i++) {
@@ -134,29 +146,38 @@
       }
       ctx.fillStyle = color;
       ctx.fill();
+      if (!flowing) return;
 
-      // the stream: grains leave the neck, fall faster and faster, and the
-      // column narrows and thins on the way down
-      if (stream) {
-        const y0 = cy - gap, y1 = peak - grain;
-        const len = Math.max(1, y1 - y0);
-        const g = (2 * len) / (0.5 * 0.5);           // reach the pile in ~0.5 s
-        ctx.beginPath();
-        const first = Math.floor((t - 0.5) * STREAM_RATE), last = Math.floor(t * STREAM_RATE);
-        for (let k = Math.max(0, first); k <= last; k++) {
-          const age = t - k / STREAM_RATE;
-          if (age < 0) continue;
-          const y = y0 + 0.5 * g * age * age;
-          if (y > y1) continue;
-          const p = (y - y0) / len;                   // 0 at the neck, 1 at the pile
-          const j = (hash(k * 2 + 1) - 0.5) * 2;
-          if (hash(k * 2 + 2) < p * 0.45) continue;   // fewer grains lower down
-          const x = cx + j * neck * 1.6 * (1 - 0.8 * p);
-          const r = grain * (1 - 0.35 * p);
-          ctx.rect(x - r, y - r, r * 2, r * 2);
+      // The flow. Each grain starts somewhere in the settled sand, slides
+      // down and in to the neck (slowly, then faster), then drops. On the
+      // drop it speeds up, and the column narrows and thins toward the mound.
+      const y0 = cy - gap, y1 = peak - grain;
+      const len = Math.max(1, y1 - y0);
+      ctx.beginPath();
+      const first = Math.floor((t - SLIDE - FALL) * RATE), last = Math.floor(t * RATE);
+      for (let k = Math.max(0, first); k <= last; k++) {
+        const age = t - k / RATE;
+        if (age < 0) continue;
+        const a = hash(k * 4 + 1), b = hash(k * 4 + 2), j = (hash(k * 4 + 3) - 0.5) * 2;
+        let x, y, r = grain;
+        if (age < SLIDE) {
+          // start point: inside the settled sand, near the middle
+          const d0 = neck + a * surface * 0.55;
+          const x0 = (b - 0.5) * 2 * halfWidth(d0) * 0.6;
+          const u = age / SLIDE, e = u * u;          // ease in: gathers pace
+          const d = d0 * (1 - e);
+          x = cx + x0 * (1 - e) + j * neck * e;
+          y = cy - gap - d;
+        } else {
+          const u = (age - SLIDE) / FALL;            // 0 at the neck, 1 at the mound
+          if (hash(k * 4 + 4) < u * 0.4) continue;   // fewer grains lower down
+          y = y0 + len * u * u;                      // falling: speeds up
+          x = cx + j * neck * 1.4 * (1 - 0.8 * u);
+          r = grain * (1 - 0.35 * u);
         }
-        ctx.fill();
+        ctx.rect(x - r, y - r, r * 2, r * 2);
       }
+      ctx.fill();
     }
 
     function draw(t) {
