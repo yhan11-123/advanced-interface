@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Wash loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    --accent: #2b47ff;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+      --accent: #8fa0ff;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+
+  /* The whole screen is the bar. Colour washes in from the left edge with a
+     soft, wide gradient front instead of a hard line. --p is progress 0..1;
+     at 1 the screen is solid colour, and that is the finish. */
+  .stage { position: fixed; inset: 0; --p: 0; --band: 0.35; }
+  .wash {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right,
+      var(--accent) calc((var(--p) * (1 + var(--band)) - var(--band)) * 100%),
+      transparent   calc(var(--p) * (1 + var(--band)) * 100%));
+    transition: opacity .5s ease;
+  }
+  .wash.clearing { opacity: 0; }
+
+  /* Status sits over both the bare and the washed part, so it inverts
+     against whatever is under it and stays readable either way. */
+  .status {
+    position: absolute; left: 0; right: 0; bottom: 14px; margin: 0;
+    text-align: center; font-size: 13px; letter-spacing: .02em;
+    color: #fff; mix-blend-mode: difference;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="wash" aria-hidden="true"></div>
+    <p class="status" aria-hidden="true">Loading</p>
+  </div>
+
+  <script>
+  // The demo fakes a load: colour washes across from left to right, holds
+  // once the screen is full (done), clears, and runs again. Real work would
+  // set --p from what it actually counts.
+  (() => {
+    const stage = document.querySelector('.stage');
+    const wash = document.querySelector('.wash');
+    const status = document.querySelector('.status');
+
+    const RUN = 6;            // seconds from empty to full
+    const HOLD = 1.4;         // seconds held full, reading as done
+    const CLEAR = 0.5;        // seconds to clear before the next run
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(s) {
+      const x = Math.min(s / RUN, 1);
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = Math.max(0, now - t0) / 1000;
+      if (s > RUN + HOLD + CLEAR) { t0 = now; s = 0; }
+      const p = fake(s);
+      wash.classList.toggle('clearing', s > RUN + HOLD);
+      stage.style.setProperty('--p', p);
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) {
+        shown = pct;
+        status.textContent = pct >= 100 ? 'Done' : 'Loading';
+        stage.setAttribute('aria-valuenow', pct);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
