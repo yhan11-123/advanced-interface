@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 &middot; Edgy, determinate</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     A brushed-metal panel and black cracks, the same in either scheme. */
+  :root {
+    --bg: #c9cdd1;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Edgy, determinate. One brushed-metal panel, a highlight drifting across
+  // it. A crack starts at the middle and runs out along the seams of pieces
+  // not yet there, branching at every joint.
+  // Each tip is a sharp point; behind it the black widens slowly like
+  // mercury, swelling into round pools where the lines meet. The branches
+  // run at different speeds, so the front is never even. How far out it has
+  // spread is how much has loaded, and the roomiest face near the middle
+  // carries the percentage; when the cracks reach every edge of the
+  // screen it is done. Then the black keeps flowing, swallows the pieces,
+  // and a fresh panel comes back for the next load.
+  (() => {
+    const PANEL = '#c9cdd1';           // the metal's mid tone, for anything drawn before the texture is ready
+    const SHEEN = 7;                   // seconds for the highlight to cross the panel
+    const INK = '#0d0d0d';
+    const CELL = 0.2;                  // rough size of a piece, share of the short side
+    const JOIN = 0.5;                  // chance a piece is joined to a neighbour, for bent, notched shapes
+    const WIDTH = [0.003, 0.008];      // half a crack's full width, narrowest to widest, share of the short side
+    const WIDE = 0.08;                 // share of cracks that open a little wider
+    const POOL = [0.009, 0.022];       // pool radius at a joint, share of the short side
+    const SPEED = [0.5, 1.6];          // each seam's own speed, slowest to fastest
+    const BEHIND = 0.16;               // how far behind its tip a crack reaches full width, share of the short side
+    const FLOW = 0.14;                 // how much the widths slowly swell and ebb
+
+    // ---------- timing ----------
+    const START = 0.4;                 // the whole panel
+    const RUN = 11;                    // seconds of loading
+    const HOLD = 0.5;                  // done, cracked to every edge
+    const FLOOD = 1.4;                 // the black swallows the pieces
+    const DARK = 0.4;                  // all black
+    const FADE = 0.6;                  // a fresh panel fades in
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0, seed = 5, joints = [], seams = [], far = 1, pieces = [], label = null;
+
+    // a small seeded random, so one load's cracks stay the same through a resize
+    function rng(a) {
+      return () => {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    // Cut a convex shape by the line n·x = k, keeping the side n·x <= k.
+    // Each corner carries the name of the edge that leaves it.
+    function clip(poly, n, k, name) {
+      const out = [], side = p => n[0] * p.x + n[1] * p.y - k;
+      for (let i = 0; i < poly.length; i++) {
+        const P = poly[i], Q = poly[(i + 1) % poly.length], a = side(P), b = side(Q);
+        const at = () => { const f = a / (a - b); return { x: P.x + (Q.x - P.x) * f, y: P.y + (Q.y - P.y) * f }; };
+        if (a <= 0) {
+          out.push(P);
+          if (b > 0) out.push({ ...at(), e: name });
+        } else if (b <= 0) out.push({ ...at(), e: P.e });
+      }
+      return out;
+    }
+
+    // Lay out the pieces, then keep only their seams: the lines the crack
+    // will run along, and the joints where seams meet. Then work out when
+    // the crack reaches each joint, going the quickest way from the middle.
+    function build() {
+      const rnd = rng(seed);
+      const mid = [W * (0.5 + (rnd() - 0.5) * 0.1), H * (0.5 + (rnd() - 0.5) * 0.1)];
+      const step = S * CELL, cols = Math.ceil(W / step) + 1, rows = Math.ceil(H / step) + 1;
+      const ox = (W - (cols - 1) * step) / 2, oy = (H - (rows - 1) * step) / 2;
+      const at = [];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        at.push([ox + (c + (rnd() - 0.5) * 0.95) * step, oy + (r + (rnd() - 0.5) * 0.95) * step]);
+      }
+      const m = S * 0.03;
+      const polys = at.map((a, i) => {
+        let poly = [{ x: -m, y: -m, e: -1 }, { x: W + m, y: -m, e: -1 }, { x: W + m, y: H + m, e: -1 }, { x: -m, y: H + m, e: -1 }];
+        at.forEach((b, j) => {
+          if (j === i || poly.length < 3) return;
+          const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy), n = [dx / d, dy / d];
+          poly = clip(poly, n, n[0] * (a[0] + b[0]) / 2 + n[1] * (a[1] + b[1]) / 2, j);
+        });
+        return poly;
+      });
+      // join some pieces to a neighbour: the seam between them never cracks
+      const group = at.map((_, i) => i), size = at.map(() => 1);
+      polys.forEach((poly, i) => {
+        if (rnd() > JOIN) return;
+        const next = poly.map(p => p.e).filter(e => e >= 0);
+        const j = next[Math.floor(rnd() * next.length)];
+        if (j === undefined) return;
+        const a = group[i], b = group[j];
+        if (a === b || size[a] + size[b] > 3) return;
+        group.forEach((g, k) => { if (g === a) group[k] = b; });
+        size[b] += size[a];
+      });
+      // each piece as it will shrink away at the end
+      // (a centre past the screen's edge may have no piece at all; it is left out)
+      pieces = at.map((a, i) => ({ i, at: a, group: group[i], gone: polys[i].length < 3, next: [...new Set(polys[i].map(p => p.e).filter(e => e >= 0))] }));
+      pieces.sites = at;
+      // the face that carries the percentage: the roomiest piece near the
+      // middle, the number set in its centre and sized to sit inside it
+      label = null;
+      polys.forEach((poly, i) => {
+        if (poly.length < 3 || poly.some(p => p.x < 0 || p.y < 0 || p.x > W || p.y > H)) return;
+        let A = 0, cx = 0, cy = 0;
+        poly.forEach((p, k) => {
+          const q = poly[(k + 1) % poly.length], c = p.x * q.y - q.x * p.y;
+          A += c; cx += (p.x + q.x) * c; cy += (p.y + q.y) * c;
+        });
+        cx /= 3 * A; cy /= 3 * A;
+        if (Math.hypot(cx - mid[0], cy - mid[1]) > S * 0.35) return;
+        // room: the nearest edge to the centre
+        let room = Infinity;
+        poly.forEach((p, k) => {
+          const q = poly[(k + 1) % poly.length], dx = q.x - p.x, dy = q.y - p.y, l = Math.hypot(dx, dy);
+          room = Math.min(room, Math.abs((cx - p.x) * dy - (cy - p.y) * dx) / l);
+        });
+        if (!label || room > label.room) label = { x: cx, y: cy, room };
+      });
+      // joints, one for each corner shared between pieces
+      joints = [];
+      const joint = p => {
+        for (const J of joints) if (Math.abs(J.x - p.x) < 1.5 && Math.abs(J.y - p.y) < 1.5) return J;
+        const J = { x: p.x, y: p.y, seams: [], pool: S * (POOL[0] + (POOL[1] - POOL[0]) * rnd()), phase: rnd() * 6.28, when: Infinity };
+        joints.push(J);
+        return J;
+      };
+      seams = [];
+      const seen = new Set();
+      polys.forEach((poly, i) => poly.forEach((P, k) => {
+        const j = P.e;
+        if (j < 0 || group[i] === group[j]) return;
+        const key = Math.min(i, j) + ',' + Math.max(i, j);
+        if (seen.has(key)) return;
+        seen.add(key);
+        const A = joint(P), B = joint(poly[(k + 1) % poly.length]);
+        if (A === B) return;
+        const len = Math.hypot(B.x - A.x, B.y - A.y);
+        const seam = { A, B, len, speed: SPEED[0] + (SPEED[1] - SPEED[0]) * rnd(), phase: rnd() * 6.28,
+                       wide: S * (rnd() < WIDE ? WIDTH[1] * (1.2 + rnd() * 0.5) : WIDTH[0] + (WIDTH[1] - WIDTH[0]) * rnd() ** 1.5) };
+        seams.push(seam);
+        A.seams.push(seam); B.seams.push(seam);
+      }));
+      // when the crack gets to each joint, the quickest way from the one nearest the middle
+      let first = joints[0];
+      for (const J of joints) if (Math.hypot(J.x - mid[0], J.y - mid[1]) < Math.hypot(first.x - mid[0], first.y - mid[1])) first = J;
+      first.when = 0;
+      const open = new Set([first]);
+      while (open.size) {
+        let J = null;
+        for (const K of open) if (!J || K.when < J.when) J = K;
+        open.delete(J);
+        for (const s of J.seams) {
+          const K = s.A === J ? s.B : s.A, t = J.when + s.len / s.speed;
+          if (t < K.when) { K.when = t; open.add(K); }
+        }
+      }
+      // done when the crack has reached the edge of the screen all the way round
+      const out = joints.filter(J => J.x <= 0 || J.y <= 0 || J.x >= W || J.y >= H);
+      far = Math.max(...out.map(J => J.when).filter(isFinite));
+    }
+
+    // ---------- the metal ----------
+    // Brushed steel, made once per size: soft chrome bands running across,
+    // and fine horizontal brush streaks, each row a little lighter or darker
+    // and varying slowly along its length.
+    const tex = document.createElement('canvas'), metal = document.createElement('canvas');
+    const mctx = metal.getContext('2d');
+    let dpr = 1, face = PANEL;
+    function brushed() {
+      const w = Math.round(W * dpr), h = Math.round(H * dpr);
+      tex.width = metal.width = w; tex.height = metal.height = h;
+      const tctx = tex.getContext('2d'), img = tctx.createImageData(w, h), d = img.data;
+      const rnd = rng(99);
+      const K = Math.ceil(w / (60 * dpr)) + 2;           // knots along a row for its slow streaks
+      for (let y = 0; y < h; y++) {
+        const v = y / h;
+        const band = 200 + 26 * Math.sin(v * Math.PI * 1.4 + 0.6) + 11 * Math.sin(v * Math.PI * 4.3 + 2) + 5 * Math.sin(v * Math.PI * 11);
+        const row = (rnd() - 0.5) * 16;
+        const knots = Array.from({ length: K }, () => (rnd() - 0.5) * 14);
+        for (let x = 0; x < w; x++) {
+          const u = x / (60 * dpr), i = Math.floor(u), f = u - i, g = f * f * (3 - 2 * f);
+          const streak = knots[i] + (knots[i + 1] - knots[i]) * g;
+          const b = band + row + streak + 7 * Math.sin(x / w * Math.PI * 1.2) + (rnd() - 0.5) * 6;
+          const o = (y * w + x) * 4;
+          d[o] = b - 5; d[o + 1] = b - 2; d[o + 2] = b + 3; d[o + 3] = 255;
+        }
+      }
+      tctx.putImageData(img, 0, 0);
+    }
+    // Each frame: the brushed steel with a soft highlight drifting across it
+    // on the slant, as if the light moved.
+    function polish(t) {
+      const w = metal.width, h = metal.height;
+      mctx.drawImage(tex, 0, 0);
+      const k = ((t / SHEEN) % 1) * 1.6 - 0.3;           // where the highlight is, across and past the panel
+      const x0 = w * k, g = mctx.createLinearGradient(x0 - w * 0.35, 0, x0 + w * 0.35, h * 0.6);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.45, 'rgba(255,255,255,0.28)');
+      g.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+      g.addColorStop(0.58, 'rgba(255,255,255,0.12)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      mctx.fillStyle = g;
+      mctx.fillRect(0, 0, w, h);
+      face = ctx.createPattern(metal, 'no-repeat');
+      face.setTransform(new DOMMatrix().scale(1 / dpr));
+    }
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height; S = Math.min(W, H);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
+      brushed();
+    }
+
+    const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+
+    // One seam cracking in from joint A, `run` along it so far (may pass
+    // its end). Sharp at the tip, widening behind, flaring into A's pool.
+    // Filled as it is traced.
+    function side(seam, A, B, run, t, swell) {
+      if (run <= 0) return;
+      const reach = Math.min(run, seam.len), N = Math.max(4, Math.ceil(reach / (S * 0.02)));
+      const dx = (B.x - A.x) / seam.len, dy = (B.y - A.y) / seam.len, nx = -dy, ny = dx;
+      const flow = 1 + FLOW * Math.sin(t * 1.1 + seam.phase);
+      const pool = A.pool * swell * ease((run) / (S * 0.06));
+      const L = [], R = [];
+      for (let k = 0; k <= N; k++) {
+        const s = reach * k / N;
+        let w = seam.wide * swell * flow * ease((run - s) / (S * BEHIND)) ** 0.8;
+        w += pool * 0.85 * Math.exp(-((s / (pool * 1.6 + 1)) ** 2));      // the meniscus into the pool
+        const x = A.x + dx * s, y = A.y + dy * s;
+        L.push([x + nx * w, y + ny * w]); R.push([x - nx * w, y - ny * w]);
+      }
+      const pts = [...L, ...R.reverse()];
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (const p of pts) ctx.lineTo(p[0], p[1]);
+      ctx.fill();
+    }
+
+    // The whole crack as far as `front` has got (in the same units as
+    // `when`); `swell` widens it a little as it settles.
+    function crack(front, t, swell) {
+      // each shape filled on its own, so where they overlap they never cut holes
+      ctx.fillStyle = INK;
+      for (const s of seams) {
+        side(s, s.A, s.B, (front - s.A.when) * s.speed, t, swell);
+        side(s, s.B, s.A, (front - s.B.when) * s.speed, t, swell);
+      }
+      for (const J of joints) {
+        const k = ease((front - J.when) * 1 / (S * 0.06));
+        if (k <= 0) continue;
+        const r = J.pool * swell * k * (1 + FLOW * 0.7 * Math.sin(t * 0.9 + J.phase));
+        ctx.beginPath();
+        ctx.arc(J.x, J.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // The flood: every piece pulled in by the same `d` from each of its
+    // cracked sides and the screen's edge, corners rounding more as it goes,
+    // so each shrinks with a clean outline into a bead and is gone. Inside a
+    // joined piece the halves overlap a hair, so it pinches into two beads.
+    function shrunk(piece, d) {
+      const a = piece.at, sites = pieces.sites;
+      let poly = [{ x: d, y: d, e: -1 }, { x: W - d, y: d, e: -1 }, { x: W - d, y: H - d, e: -1 }, { x: d, y: H - d, e: -1 }];
+      for (const j of piece.next) {
+        const b = sites[j], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy), n = [dx / l, dy / l];
+        const pull = pieces[j].group === piece.group ? -1 : d;
+        poly = clip(poly, n, n[0] * (a[0] + b[0]) / 2 + n[1] * (a[1] + b[1]) / 2 - pull, j);
+        if (poly.length < 3) return [];
+      }
+      return poly;
+    }
+    function eat(d) {
+      ctx.fillStyle = INK;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = face; ctx.strokeStyle = face; ctx.lineJoin = 'round';
+      const R = S * 0.02 + d * 0.8;
+      for (const piece of pieces) {
+        if (piece.gone || shrunk(piece, d).length < 3) continue;
+        // pull in a further r, then grow back out by r with round corners:
+        // the largest r that still leaves something, so a small piece ends
+        // as a round bead rather than a point
+        let lo = 0, hi = R;
+        if (shrunk(piece, d + hi).length < 3) {
+          for (let k = 0; k < 7; k++) { const m = (lo + hi) / 2; if (shrunk(piece, d + m).length >= 3) lo = m; else hi = m; }
+          hi = lo;
+        }
+        const poly = shrunk(piece, d + hi);
+        ctx.beginPath();
+        poly.forEach((p, k) => k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        if (hi > 0.2) { ctx.lineWidth = 2 * hi; ctx.stroke(); }
+      }
+    }
+
+    // The percentage, in ink, set in the middle of its face: figures only.
+    function number(pct, alpha) {
+      ctx.save();
+      // as large as fits: the height inside the face, and "100" across it
+      ctx.font = `800 100px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+      const wide = ctx.measureText('100').width * 0.94 / 100;
+      const size = Math.min(label.room * 0.9, label.room * 1.35 / wide);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = INK;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = `800 ${size}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+      if ('letterSpacing' in ctx) ctx.letterSpacing = `${-size * 0.06}px`;
+      ctx.fillText(String(pct), label.x, label.y + size * 0.36);
+      ctx.restore();
+    }
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    // ?state=0, ?state=progress or ?state=done holds one state still, for
+    // taking the frames for the Figma drawings; ?at=12.5 holds any moment, in seconds
+    const HELD = new URLSearchParams(location.search).get('state');
+    const AT = new URLSearchParams(location.search).get('at');
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      const END = START + RUN + HOLD + FLOOD + DARK + FADE;
+      if (s > END) { t0 = now; s = 0; seed++; build(); }
+      if (reduce.matches) s = Math.min(s, START + RUN + HOLD);
+      if (HELD === '0') s = 0;
+      else if (HELD === 'progress') s = START + RUN * 0.42;
+      else if (HELD === 'done') s = START + RUN + HOLD * 0.5;
+      if (AT !== null) s = +AT;
+      const t = reduce.matches ? 0 : now / 1000;
+
+      const p = s < START ? 0 : Math.min(1, fake((s - START) / RUN));
+      const after = s - START - RUN;                     // time since done
+      // past 100% the crack keeps running a little, so every seam fills in
+      const front = p * far + Math.max(0, after) * far * 0.12;
+      const flood = Math.max(0, Math.min(1, (after - HOLD) / FLOOD));
+
+      polish(t);
+      ctx.fillStyle = face;
+      ctx.fillRect(0, 0, W, H);
+      if (flood > 0) eat(ease(flood) ** 1.3 * S * 0.16);
+      if (after < HOLD + FLOOD) crack(front, t, 1);
+      if (label && flood < 0.3) number(Math.round(p * 100), 1 - flood / 0.3);
+      if (flood > 0.85) {                                 // any last sliver at the screen's edge goes under
+        ctx.globalAlpha = (flood - 0.85) / 0.15;
+        ctx.fillStyle = INK; ctx.fillRect(0, 0, W, H);
+        ctx.globalAlpha = 1;
+      }
+      if (after > HOLD + FLOOD) {
+        ctx.fillStyle = INK; ctx.fillRect(0, 0, W, H);
+        const k = (after - HOLD - FLOOD - DARK) / FADE;    // a fresh panel fades in
+        if (k > 0) { ctx.globalAlpha = Math.min(1, k); ctx.fillStyle = face; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+      }
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
