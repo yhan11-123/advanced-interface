@@ -189,6 +189,15 @@ button { font: inherit; color: inherit; }
 .proto figcaption a, .proto figcaption .soon { align-self: flex-end; margin-top: auto; padding-top: 8px; }
 .proto figcaption a { color: var(--accent); }
 
+/* Process: saved versions of a deliverable, in order, each with a line on what changed.
+   <p class="process-label">Kind</p>
+   <div class="process-grid"><figure><img src="images/process/..." alt="..." /><figcaption>...</figcaption></figure>...</div> */
+.process-label { margin: 14px 0 6px; font-size: 13px; font-weight: 600; color: var(--fg); }
+.process-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(180px, (100% - 24px) / 3), 1fr)); gap: 12px; margin: 0 0 18px; }
+.process-grid figure { margin: 0; }
+.prose .process-grid img { width: 100%; margin: 0; }
+.process-grid figcaption { margin-top: 6px; font-size: 12.5px; line-height: 1.45; color: var(--fg-muted); }
+
 /* placeholders: dashed, with the file each is waiting for */
 .frame-art, .proto-art { display: grid; place-items: center; }
 .is-empty .frame-art, .is-empty .proto-art { border-style: dashed; background: transparent; }
