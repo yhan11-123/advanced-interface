@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Bounce loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .status {
+    position: absolute; left: 0; right: 0; bottom: 14px; margin: 0;
+    text-align: center; font-size: 13px; letter-spacing: .02em;
+    color: #fff; mix-blend-mode: difference;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+    <p class="status" aria-hidden="true">Loading</p>
+  </div>
+
+  <script>
+  // Bounce. One ball bouncing in place. It leaves the floor fast, hangs
+  // for a moment at the top, and falls back faster and faster, stretching
+  // a little as it drops and squashing flat for an instant as it lands.
+  // Its shadow on the floor tightens and darkens as it comes down.
+  (() => {
+    const SIZE = 0.05;          // ball radius, share of the short side
+    const HEIGHT = 0.26;        // how high it bounces, share of the short side
+    const PERIOD = 0.9;         // seconds for one bounce
+    const CONTACT = 0.1;        // share of the bounce spent squashed on the floor
+    const SQUASH = 0.32;        // how flat it goes on landing
+    const STRETCH = 0.12;       // how tall it gets at full speed
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, ink = '';
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+    }
+
+    // At phase u of a bounce: height above the floor (0 to 1), how fast
+    // it is moving (0 to 1), and how squashed it is (0 to 1).
+    function bounce(u) {
+      if (u < CONTACT) return { h: 0, speed: 0, squash: Math.sin(u / CONTACT * Math.PI) };
+      const k = (u - CONTACT) / (1 - CONTACT);         // time in the air, 0 to 1
+      return { h: 4 * k * (1 - k), speed: Math.abs(1 - 2 * k), squash: 0 };
+    }
+
+    function frame(now) {
+      const u = reduce.matches ? 0.5 : (now / 1000 / PERIOD) % 1;
+      const { h, speed, squash } = bounce(u);
+      const S = Math.min(W, H), r = SIZE * S;
+      const floor = H / 2 + HEIGHT * S / 2 + r;          // the bounce sits centred on screen
+      const cx = W / 2;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = ink;
+
+      // shadow: tighter and darker the nearer the ball
+      const near = 1 - h;
+      ctx.globalAlpha = 0.08 + 0.14 * near;
+      ctx.beginPath();
+      ctx.ellipse(cx, floor + r * 0.15, r * (0.6 + 0.5 * near), r * (0.14 + 0.08 * near), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // squashed wide on the floor, stretched tall at speed; same volume either way
+      const sy = 1 - SQUASH * squash + STRETCH * speed * speed;
+      const sx = 1 / sy;
+      const cy = floor - h * HEIGHT * S - r * sy;       // the bottom stays on the floor when squashed
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * sx, r * sy, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', layout);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

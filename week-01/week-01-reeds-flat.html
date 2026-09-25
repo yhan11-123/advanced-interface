@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Flat reeds loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Black and white, the same in either scheme, to sit beside Reeds. */
+  :root {
+    --bg: #111111;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* on a plain patch of dark, since stripes would break up the letters */
+  .status {
+    position: absolute; left: 50%; bottom: 14px; margin: 0;
+    transform: translateX(-50%); padding: 2px 10px; border-radius: 4px;
+    font-size: 13px; letter-spacing: .02em;
+    color: #ebebe9; background: #111111;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+    <p class="status" aria-hidden="true">Loading</p>
+  </div>
+
+  <script>
+  // Reeds, flat. The same field pressed into one flat layer. Every line
+  // is split in two, a light part above and a dark part below. Each line
+  // splits at a slightly different height, and together those splits draw
+  // one wavy boundary across the screen, rolling sideways without end.
+  (() => {
+    // ---------- colour ----------
+    const BG = '#111111';
+    const TOP_INK = '#ebebe9';      // each line above its split
+    const BOTTOM_INK = '#7c7c7a';   // each line below its split
+
+    // ---------- layout ----------
+    const BAR = 5;                  // px, each line's width
+    const GAP = 1;                  // px between neighbouring lines
+    const SPLIT_GAP = 4;            // px between a line's two parts
+    const MEET = 0.5;               // where the boundary sits, share of the height
+    const SWING = 0.2;              // how far the boundary rises and falls, share of the height
+    const RAGGED = 0.02;            // lines split a little unevenly, share of the height
+
+    // ---------- waves ----------
+    const WAVES = [                 // [length in px, speed in px per second, weight]
+      [520, -150, 0.6],
+      [210, 90, 0.28],
+      [95, -60, 0.12],
+    ];
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, bars = [];
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bars = [];
+      for (let x = 0; x < W; x += BAR + GAP) bars.push({ x, rag: Math.random() * 2 - 1 });
+    }
+
+    function wave(x, t) {
+      let v = 0;
+      for (const [len, speed, weight] of WAVES) v += weight * Math.sin((x - speed * t) / len * Math.PI * 2);
+      return v;                                            // about -1 to 1
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000;
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, W, H);
+
+      for (const b of bars) {
+        const split = H * (MEET + SWING * wave(b.x + BAR / 2, t) / 2) + H * RAGGED * b.rag;
+        ctx.fillStyle = TOP_INK;
+        ctx.fillRect(b.x, 0, BAR, split - SPLIT_GAP / 2);
+        ctx.fillStyle = BOTTOM_INK;
+        ctx.fillRect(b.x, split + SPLIT_GAP / 2, BAR, H - split - SPLIT_GAP / 2);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

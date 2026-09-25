@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Reeds loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Black and white, and the same in either scheme. */
+  :root {
+    --bg: #111111;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .status {
+    position: absolute; left: 0; right: 0; bottom: 14px; margin: 0;
+    text-align: center; font-size: 13px; letter-spacing: .02em;
+    color: #fff; mix-blend-mode: difference;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+    <p class="status" aria-hidden="true">Loading</p>
+  </div>
+
+  <script>
+  // Reeds. An indeterminate loader made of tall, thin bars standing in rows,
+  // back to front, each row overlapping the one behind so the bars lock
+  // together like a stretched, pixel-sorted field. The tops of the bars
+  // rise and fall on slow waves that roll sideways through every row, a
+  // little out of step, so the whole field ripples.
+  (() => {
+    // ---------- colour ----------
+    const BG = '#111111';
+    // per row, back (hazy, pale) to front (deep): [top, bottom]
+    const BACK = ['#ebebe9', '#8e8e8c'];
+    const FRONT = ['#c2c2c0', '#1e1e1e'];
+
+    // ---------- layout ----------
+    const ROWS = 7;             // rows of bars, back to front
+    const TOP = 0.26;           // where the back row stands, share of the height
+    const GAP = 0.095;          // step down to each nearer row, share of the height
+    const BAR = [2.5, 6];       // bar width in px, back row to front row
+    const TALL = [0.06, 0.3];    // bar height range, share of the height (front row)
+    const RAGGED = 0.22;        // uneven tops, share of the height range
+
+    // ---------- waves ----------
+    const WAVES = [             // [length in px, speed in px per second, weight]
+      [520, -150, 0.6],
+      [210, 90, 0.28],
+      [95, -60, 0.12],
+    ];
+    const ROW_LAG = 0.8;        // each row runs this far behind the one in front, radians
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, rows = [];
+
+    const mix = (a, b, k) => {
+      const p = s => [0, 2, 4].map(i => parseInt(s.slice(1 + i, 3 + i), 16));
+      const A = p(a), B = p(b);
+      return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k))})`;
+    };
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Each row: its baseline, bar width, a colour ramp, and bars with a
+      // fixed ragged offset and shade so the field never looks combed.
+      rows = Array.from({ length: ROWS }, (_, i) => {
+        const k = i / (ROWS - 1);
+        const w = BAR[0] + (BAR[1] - BAR[0]) * k;
+        const base = H * (TOP + GAP * i);
+        const scale = 0.55 + 0.45 * k;                     // nearer rows stand taller
+        const g = ctx.createLinearGradient(0, base - H * TALL[1] * scale * 1.4, 0, H);
+        g.addColorStop(0, mix(BACK[0], FRONT[0], k));
+        g.addColorStop(1, mix(BACK[1], FRONT[1], k));
+        const off = (i * 0.37 % 1) * w;                    // rows sit out of line with each other
+        const bars = [];
+        for (let x = -off; x < W; x += w) {
+          bars.push({ x, rag: Math.random() * 2 - 1, shade: Math.random() * 0.28 });
+        }
+        return { base, w, scale, g, bars, lag: (ROWS - 1 - i) * ROW_LAG };
+      });
+    }
+
+    function wave(x, t, lag) {
+      let v = 0;
+      for (const [len, speed, weight] of WAVES) {
+        v += weight * Math.sin((x - speed * t) / len * Math.PI * 2 - lag);
+      }
+      return 0.5 + 0.5 * v;                                // 0 to 1
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000;
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, W, H);
+
+      // back to front, so nearer rows cover the lower part of farther ones
+      for (const row of rows) {
+        const lo = H * TALL[0] * row.scale, span = H * (TALL[1] - TALL[0]) * row.scale;
+        const tops = row.bars.map(b => {
+          const v = wave(b.x, t, row.lag) + RAGGED * b.rag * 0.5;
+          return row.base - lo - span * Math.max(0, v);
+        });
+        ctx.fillStyle = row.g;
+        row.bars.forEach((b, i) => ctx.fillRect(b.x, tops[i], row.w + 0.5, H - tops[i]));
+        // a little shade on some bars, and a lit tip on each, like light on stems
+        row.bars.forEach((b, i) => {
+          ctx.fillStyle = `rgba(17, 17, 17, ${b.shade})`;
+          ctx.fillRect(b.x, tops[i], row.w + 0.5, H - tops[i]);
+          ctx.fillStyle = 'rgba(250, 250, 248, 0.35)';
+          ctx.fillRect(b.x, tops[i], row.w + 0.5, Math.min(3, row.w * 0.6));
+        });
+      }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
