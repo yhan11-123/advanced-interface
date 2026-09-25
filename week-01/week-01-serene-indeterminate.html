@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 &middot; Serene, indeterminate</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Soft and pale, the same in either scheme. */
+  :root {
+    --bg: #eef4f6;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Serene, indeterminate. The Reeds field, in the same depth: rows of
+  // stems standing one behind another, each nearer row covering the foot of
+  // the one behind. Only the stems' tips and colours have changed: rounded
+  // tips, pale sky blue at the back running to deep teal-blue in front, on
+  // a cool white ground. Slow waves roll sideways through every row, a little out of
+  // step, so the field ripples on for as long as the wait lasts.
+  (() => {
+    // ---------- colour: cool water blues, pale sky at the back, deep at the front ----------
+    const BG = '#eef4f6';
+    const BACK = ['#d6ebf2', '#a3cadc'];    // back row: tip, foot
+    const FRONT = ['#7fcad6', '#1c6c98'];   // front row: tip, foot, teal into blue
+    const SHADE = '18, 62, 96';             // the odd darker stem
+
+    // ---------- the field, as in the Reeds sketch ----------
+    const ROWS = 7;             // rows of stems, back to front
+    const TOP = 0.56;           // where the back row stands, share of the frame's height
+    const GAP = 0.065;          // step down to each nearer row
+    const BAR = [2.5, 6];       // stem width at 1000px wide, back row to front row
+    const TALL = [0.04, 0.18];  // stem height range, share of the frame's height (front row): tips near the middle
+    const RAGGED = 0.22;        // uneven tips
+    const WAVES = [             // [length, speed per second, weight], lengths in 1000ths of the frame's width
+      [520, -150, 0.6],
+      [210, 90, 0.28],
+      [95, -60, 0.12],
+    ];
+    const ROW_LAG = 0.8;        // each row runs this far behind the one in front, radians
+
+    // ---------- the frame ----------
+    const SIZE = window.self === window.top ? 0.45 : 0.9;   // share of the width
+    const RATIO = 0.62;                                     // height / width
+    const ROUND = 10;                                       // corner radius, px
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, box = null, rows = [];
+
+    const mix = (a, b, k) => {
+      const p = s => [0, 2, 4].map(i => parseInt(s.slice(1 + i, 3 + i), 16));
+      const A = p(a), B = p(b);
+      return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k))})`;
+    };
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = Math.min(W * SIZE, H * 0.9 / RATIO), h = w * RATIO;
+      box = { x: (W - w) / 2, y: (H - h) / 2, w, h };
+
+      // Each row: its baseline, stem width, a colour ramp, and stems with a
+      // fixed ragged offset and shade so the field never looks combed.
+      const scalePx = Math.max(0.6, w / 1000);
+      rows = Array.from({ length: ROWS }, (_, i) => {
+        const k = i / (ROWS - 1);
+        const bw = Math.max(1.5, (BAR[0] + (BAR[1] - BAR[0]) * k) * scalePx * 1.6);
+        const base = TOP + GAP * i;                        // share of the frame's height
+        const scale = 0.55 + 0.45 * k;                     // nearer rows stand taller
+        const off = (i * 0.37 % 1) * bw;                   // rows sit out of line with each other
+        const bars = [];
+        for (let x = -off; x < w + bw; x += bw) bars.push({ x, rag: Math.random() * 2 - 1, shade: Math.random() * 0.22 });
+        return { k, base, bw, scale, bars, lag: (ROWS - 1 - i) * ROW_LAG, tip: mix(BACK[0], FRONT[0], k), foot: mix(BACK[1], FRONT[1], k) };
+      });
+    }
+
+    function wave(x, t, lag) {
+      let v = 0;
+      for (const [len, speed, weight] of WAVES) {
+        v += weight * Math.sin((x / box.w * 1000 - speed * t) / len * Math.PI * 2 - lag);
+      }
+      return 0.5 + 0.5 * v;                                // 0 to 1
+    }
+
+    // The field inside the frame, raised by `rise` (0 sunk out of sight below
+    // the frame, 1 standing full height) and faded by `alpha`.
+    function field(t, rise, alpha) {
+      const { x: bx, y: by, w: bw, h: bh } = box;
+      ctx.save();
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, ROUND); ctx.clip();
+      ctx.globalAlpha = alpha;
+      const sink = (1 - rise) * bh;
+      for (const row of rows) {
+        const lo = bh * TALL[0] * row.scale, span = bh * (TALL[1] - TALL[0]) * row.scale;
+        const base = by + row.base * bh + sink;
+        const g = ctx.createLinearGradient(0, base - bh * TALL[1] * row.scale * 1.4, 0, by + bh + sink);
+        g.addColorStop(0, row.tip); g.addColorStop(1, row.foot);
+        const tops = row.bars.map(b => base - lo - span * Math.max(0, wave(b.x, t, row.lag) + RAGGED * b.rag * 0.5));
+        // stems with rounded tips, all of one row in one fill
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        row.bars.forEach((b, i) => ctx.roundRect(bx + b.x, tops[i], row.bw - 0.4, by + bh + sink - tops[i] + 2, [row.bw / 2, row.bw / 2, 0, 0]));
+        ctx.fill();
+        // the odd darker stem
+        row.bars.forEach((b, i) => {
+          if (b.shade <= 0.12) return;
+          ctx.fillStyle = `rgba(${SHADE}, ${b.shade * 0.6})`;
+          ctx.beginPath(); ctx.roundRect(bx + b.x, tops[i], row.bw - 0.4, by + bh + sink - tops[i] + 2, [row.bw / 2, row.bw / 2, 0, 0]); ctx.fill();
+        });
+      }
+      ctx.restore();
+    }
+
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000;
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, W, H);
+      field(t, 1, 1);
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
