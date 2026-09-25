@@ -9,7 +9,7 @@
   /* A prototype page of its own, so its styles stay in this file.
      The scene carries its own muted palette, the same in either scheme. */
   :root {
-    --bg: #dcc69f;
+    --bg: #ece1c8;
     color-scheme: light;
   }
   html, body { margin: 0; height: 100%; }
@@ -40,7 +40,7 @@
   (() => {
     // ---------- palette: faded, somber, warm ----------
     const C = {
-      page: '#dcc69f',                                 // a lighter amber; the paper in it is made below
+      page: '#ece1c8',                                 // a lighter amber; the paper in it is made below
       gap: 'rgba(24, 16, 8, 0.45)',            // each dot's own colour, darker, between the dots
       // outside
       sky: [[214, 196, 150], [226, 208, 160]], // high, near the horizon
@@ -88,7 +88,7 @@
       const w = canvas.width, h = canvas.height;
       paper.width = w; paper.height = h;
       const p = paper.getContext('2d'), img = p.createImageData(w, h), d = img.data;
-      const base = [220, 198, 159];
+      const base = [236, 225, 200];
       let a = 7;
       const rnd = () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
       // the mottle: a coarse grid of random shades, smoothly blended

@@ -208,6 +208,15 @@ button { font: inherit; color: inherit; }
 .frame-art span, .proto-art span { padding: 8px; font-family: var(--mono); font-size: 11px; color: var(--fg-muted); text-align: center; word-break: break-all; }
 .proto figcaption .soon { font-size: 12px; }
 
+/* Sources, gathered small at the very end of a post:
+   <footer class="sources"><h2>Sources</h2><ul><li>…</li></ul></footer> */
+.sources { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; color: var(--fg-muted); }
+.prose .sources h2 { margin: 0 0 6px; padding: 0; border: 0; font-size: 11px; letter-spacing: .08em; }
+.sources ul { margin: 0; padding-left: 16px; }
+.sources li { margin: 2px 0; }
+.sources a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
+.sources a:hover { color: var(--accent); }
+
 .post-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
 .post-nav a { color: var(--fg-muted); }
 .post-nav a:hover { color: var(--accent); }
