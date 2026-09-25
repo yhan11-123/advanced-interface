@@ -155,6 +155,48 @@ button { font: inherit; color: inherit; }
 /* pinned to the bottom right, level across a row of cards */
 .idea figcaption a { align-self: flex-end; margin-top: auto; padding-top: 8px; color: var(--accent); }
 
+/* ---------- deliverables: per tone, Figma drawings then prototypes ----------
+   Drawings, each indicator's states frame by frame:
+   <div class="tone-set">
+     <div class="state-row">
+       <p class="state-label"><b>Determinate</b><span>One line.</span></p>
+       <figure class="frame"><img src="images/tone-kind-0.png" alt="..." /><figcaption>Default</figcaption></figure>
+       ...three frames...
+     </div>
+   </div>
+   A frame not drawn yet: <figure class="frame is-empty"><div class="frame-art"><span>file name</span></div>... */
+.prose h4 { font-size: 14px; font-weight: 600; color: var(--fg-muted); margin: 18px 0 10px; }
+.tone-set { margin: 0 0 8px; }
+.state-row { display: grid; grid-template-columns: 150px repeat(3, 1fr); gap: 12px; align-items: start; margin-bottom: 14px; }
+.state-label { margin: 0; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.state-label b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
+.frame { margin: 0; }
+.prose .frame img, .frame-art { display: block; width: 100%; aspect-ratio: 4 / 3; margin: 0; object-fit: cover; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); }
+.frame figcaption { margin-top: 6px; font-size: 12.5px; color: var(--fg-muted); }
+@media (max-width: 640px) {
+  .state-row { grid-template-columns: repeat(3, 1fr); }
+  .state-label { grid-column: 1 / -1; }
+}
+
+/* Prototypes, a pair per tone. Same card as an ideation sketch, two to a row:
+   <div class="proto-grid"><figure class="proto"><iframe ...></iframe><figcaption>...</figcaption></figure></div>
+   A prototype not built yet: <figure class="proto is-empty"><div class="proto-art"><span>file name</span></div>... */
+.proto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(260px, (100% - 12px) / 2), 1fr)); gap: 12px; margin: 12px 0 24px; }
+.proto { display: flex; flex-direction: column; margin: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.proto iframe, .proto-art { display: block; width: 100%; height: 280px; border: 0; border-bottom: 1px solid var(--line); }
+.proto figcaption { flex: 1; display: flex; flex-direction: column; padding: 10px 12px 12px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.proto figcaption b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
+.proto figcaption a, .proto figcaption .soon { align-self: flex-end; margin-top: auto; padding-top: 8px; }
+.proto figcaption a { color: var(--accent); }
+
+/* placeholders: dashed, with the file each is waiting for */
+.frame-art, .proto-art { display: grid; place-items: center; }
+.is-empty .frame-art, .is-empty .proto-art { border-style: dashed; background: transparent; }
+.proto.is-empty { border-style: dashed; }
+.is-empty .proto-art { border-width: 0 0 1px; }
+.frame-art span, .proto-art span { padding: 8px; font-family: var(--mono); font-size: 11px; color: var(--fg-muted); text-align: center; word-break: break-all; }
+.proto figcaption .soon { font-size: 12px; }
+
 .post-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
 .post-nav a { color: var(--fg-muted); }
 .post-nav a:hover { color: var(--accent); }

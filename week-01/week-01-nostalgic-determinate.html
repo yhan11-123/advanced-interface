@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 &middot; Nostalgic, determinate</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     The scene carries its own muted palette, the same in either scheme. */
+  :root {
+    --bg: #c9a86c;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Nostalgic, determinate. An old steam train above a field of rice, drawn
+  // in dots like a dot-matrix sign. A post marks the start of the line and
+  // a buffer stop the end. The train is the progress bar: it comes out from
+  // the start with its engine in front, and the further the engine gets,
+  // the more of the train shows. At 100% the whole train stands between
+  // the two, its red tail lamp at the start and its engine at the buffers,
+  // and every lamp comes on; then the whole scene fades away, field and
+  // all. The percentage is written into the grass, where low evening light
+  // and the wind keep moving through.
+  //
+  // The scene is painted as tiny pixel art, scaled up, and seen through a
+  // screen of round holes, so every pixel becomes one dot.
+  (() => {
+    // ---------- palette: faded, somber ----------
+    const C = {
+      // late-afternoon amber round the scene, like sun through a carriage window;
+      // inside the scene the gaps between dots are each dot's own colour, only
+      // darker, so the colours hold and the dots still show
+      page: '#c9a86c',
+      gap: 'rgba(24, 16, 8, 0.45)',
+      grass: [[46, 60, 34], [88, 104, 58], [206, 194, 122]],   // deep shade, daylight, low sun
+      number: [226, 214, 170],
+      rail: '#3b3a34', post: '#2c2c28', plate: '#bfb49a',
+      buffer: '#5a3b30', lampOff: '#5f5846', lampOn: '#f1dfa0', tailLamp: '#b0412f',
+      // engine
+      // weathered green-black, light enough to read against the dark
+      boiler: '#4f5a52', boilerHi: '#76807a', band: '#b39a62', smokebox: '#3c423e',
+      cab: '#5d6a61', cabRoof: '#343a36', wheel: '#6a5446', hub: '#c9b98f', rod: '#a8a08e',
+      coal: '#2a2c2a', tender: '#566258',
+      // coaches: faded two-tone
+      coachLow: '#44574d', coachHigh: '#ece2c6', frame: '#8f866c', roof: '#6c6a62', roofHi: '#7f7c73',
+      glass: '#262c2a', glassLit: '#dcb86a', under: '#252623',
+      // coal smoke: sooty as it leaves the chimney, thinning to grey as it spreads
+      smoke: [[70, 64, 57], [150, 142, 128]],
+    };
+
+    // ---------- scene, in dots ----------
+    const GW = 200, GH = 84;
+    const START = 12, END = 186;                 // the tail lamp at 100%, and the engine's nose
+    const RAIL = 36;                             // the row the wheels run on
+    // share of the width the scene fills: 45% on its own, most of the box
+    // when it sits in a preview card on the site
+    const SIZE = window.self === window.top ? 0.45 : 0.94;
+    const DOT = 0.42;                            // dot radius, share of the spacing
+    const LENGTH = END - START;                  // the whole train
+    const ENGINE = 30, TENDER = 14, COACHES = 3;
+    const COACH = Math.floor((LENGTH - ENGINE - TENDER - 2 - COACHES) / COACHES);
+
+    // ---------- timing ----------
+    const EMPTY = 1.2, RUN = 10, HOLD = 2.4, FADE = 0.8;
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const art = document.createElement('canvas');
+    art.width = GW; art.height = GH;
+    const g = art.getContext('2d');
+    const screen = document.createElement('canvas');        // dark sheet with round holes
+    const layer = document.createElement('canvas');         // the scene, dotted, before it goes on the page
+    let W = 0, H = 0, dpr = 1, pitch = 1, ox = 0, oy = 0;
+
+    const hash = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+    const rgb = c => `rgb(${c.map(Math.round)})`;
+    const lerp3 = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
+    const px = (x, y, c) => { if (x < 0 || x >= GW) return; g.fillStyle = c; g.fillRect(x, y, 1, 1); };
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      // 45% of the width, but never taller than most of the height
+      pitch = Math.min(W * SIZE / GW, H * 0.9 / GH);
+      ox = (W - GW * pitch) / 2; oy = (H - GH * pitch) / 2;
+      screen.width = layer.width = canvas.width; screen.height = layer.height = canvas.height;
+      const s = screen.getContext('2d');
+      s.setTransform(dpr, 0, 0, dpr, 0, 0);
+      s.fillStyle = C.gap; s.fillRect(0, 0, W, H);
+      s.globalCompositeOperation = 'destination-out';
+      s.beginPath();
+      const r0 = pitch * DOT;
+      for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+        const cx = ox + (x + 0.5) * pitch, cy = oy + (y + 0.5) * pitch;
+        s.moveTo(cx + r0, cy); s.arc(cx, cy, r0, 0, Math.PI * 2);
+      }
+      s.fill();
+    }
+
+    // ---------- the field's ragged outline ----------
+    // The field doesn't end in a ruled rectangle: each row stops a little
+    // short or runs a little long at the sides, the bottom edge wanders,
+    // and the last few dots before any edge thin out.
+    const wander = (u, k) => 0.5 + 0.3 * Math.sin(u * 0.21 + k) + 0.2 * Math.sin(u * 0.57 + k * 2.3);
+    const leftEdge = y => 1 + Math.round(9 * wander(y, 1) * (0.4 + 0.6 * hash(y, 11)));
+    const rightEdge = y => GW - 2 - Math.round(9 * wander(y, 4) * (0.4 + 0.6 * hash(y, 12)));
+    const bottomEdge = x => GH - 2 - Math.round(7 * wander(x * 0.35, 7) * (0.5 + 0.5 * hash(x, 13)));
+    function inField(x, y) {
+      const d = Math.min(x - leftEdge(y), rightEdge(y) - x, bottomEdge(x) - y);
+      if (d < 0) return false;
+      return d >= 3 || hash(x * 3.1, y * 1.7) < 0.3 + d * 0.23;      // thinning out near the edge
+    }
+
+    // ---------- the field, with a grain of blades ----------
+    function field(t) {
+      const smooth = k => k * k * (3 - 2 * k);
+      const sun = GW * (0.5 + 0.55 * Math.sin(t * 0.11));          // where the light falls, drifting side to side
+      for (let y = RAIL + 1; y < GH; y++) {
+        const depth = (y - RAIL - 1) / (GH - RAIL - 1);             // 0 far, 1 near
+        const bladeH = 2 + Math.round(depth * 3);                   // blades grow taller toward us
+        for (let x = 0; x < GW; x++) {
+          if (!inField(x, y)) continue;
+          const rows = 0.5 + 0.5 * Math.sin(y * (1.5 - depth * 0.8) + hash(0, y) * 2);
+          const gust = 0.5 + 0.5 * Math.sin(x * 0.045 - y * 0.16 - t * 1.4 + Math.sin(x * 0.011 + y * 0.05 + t * 0.35) * 2.2);
+          const ripple = 0.5 + 0.5 * Math.sin(x * 0.13 + y * 0.35 - t * 2.3);
+          // the grain: each column a run of blades, lit at the tip, shadowed at the foot
+          const lift = y + hash(x, 3) * bladeH;
+          const seg = Math.floor(lift / bladeH), inBlade = (lift % bladeH) / bladeH;
+          const blade = (hash(x, seg) > 0.55 ? 0.22 : -0.05) * (1 - inBlade) - (hash(x, seg + 50) > 0.8 ? 0.18 : 0);
+          let k = 0.28 + 0.22 * rows * gust + 0.12 * ripple + blade - depth * 0.1 + (hash(x, y) - 0.5) * 0.12;
+          k = Math.min(1, Math.max(0, k));
+          let c = lerp3(C.grass[0], C.grass[1], smooth(k));
+          const light = Math.exp(-(((x - sun) / (GW * 0.28)) ** 2)) * (0.55 + 0.45 * gust);
+          const warm = Math.min(1, light * smooth(Math.min(1, k * 1.5)) * 1.15);
+          if (warm > 0.04) c = lerp3(c, C.grass[2], warm);
+          px(x, y, rgb(c));
+        }
+      }
+    }
+
+    // grass tips standing up in front of the wheels, swaying
+    function tips(t) {
+      for (let x = 0; x < GW; x++) {
+        if (!inField(x, RAIL + 1)) continue;
+        const h = Math.floor(hash(x, 5) * 3 + 0.8 * Math.sin(x * 0.3 - t * 1.4));
+        for (let y = RAIL + 1 - h; y <= RAIL; y++) px(x, y, rgb(lerp3(C.grass[0], C.grass[1], 0.35 + 0.3 * hash(x, y))));
+      }
+    }
+
+    // ---------- the percentage, written into the grass ----------
+    const FONT = {                                   // 3 x 5 dot figures
+      0: ['111', '101', '101', '101', '111'],
+      1: ['010', '110', '010', '010', '111'],
+      2: ['111', '001', '111', '100', '111'],
+      3: ['111', '001', '011', '001', '111'],
+      4: ['101', '101', '111', '001', '001'],
+      5: ['111', '100', '111', '001', '111'],
+      6: ['111', '100', '111', '101', '111'],
+      7: ['111', '001', '010', '010', '010'],
+      8: ['111', '101', '111', '101', '111'],
+      9: ['111', '101', '111', '001', '111'],
+      '%': ['101', '001', '010', '100', '101'],
+    };
+    function percent(pct, glow, fade) {
+      const text = pct + '%', S = 2, adv = 4 * S;
+      const x0 = Math.round((GW - (text.length * adv - S)) / 2), y0 = RAIL + 19;
+      g.globalAlpha = (0.72 + 0.28 * glow) * fade;
+      [...text].forEach((ch, i) => FONT[ch].forEach((bits, r) => [...bits].forEach((b, c) => {
+        if (b !== '1') return;
+        for (let dy = 0; dy < S; dy++) for (let dx = 0; dx < S; dx++) px(x0 + i * adv + c * S + dx, y0 + r * S + dy, rgb(C.number));
+      })));
+      g.globalAlpha = 1;
+    }
+
+    // ---------- the line: a post at the start, a buffer stop at the end ----------
+    function line(done) {
+      for (let x = START - 3; x <= END + 3; x++) px(x, RAIL, C.rail);
+      for (let y = RAIL - 7; y < RAIL; y++) px(START - 3, y, C.post);
+      for (let x = START - 5; x <= START - 1; x++) { px(x, RAIL - 9, C.plate); px(x, RAIL - 8, C.plate); }
+      for (let y = RAIL - 5; y < RAIL; y++) for (let x = END + 2; x <= END + 4; x++) px(x, y, C.buffer);
+      px(END + 2, RAIL - 4, C.post); px(END + 2, RAIL - 3, C.post);
+      px(END + 3, RAIL - 6, done ? C.lampOn : C.lampOff);
+    }
+
+    // ---------- the train ----------
+    // Every dot of the whole train is placed by d, its distance back from the
+    // engine's nose, so the train is always drawn whole and simply slides
+    // out from the start of the line.
+    const inWheel = (d, y, cx, cy, r) => Math.hypot(d - cx, y - cy) <= r + 0.3;
+
+    function engine(x, d, lit, turn) {
+      const b = RAIL;
+      // cowcatcher, sloping to the rail
+      if (d <= 2) { for (let y = b - 3 + (2 - d); y < b; y++) px(x, y, C.smokebox); return; }
+      // chimney, with a lip at the top
+      if (d >= 4 && d <= 7) for (let y = b - 15; y <= b - 11; y++) px(x, y, C.smokebox);
+      if (d >= 3 && d <= 8) px(x, b - 16, C.boilerHi);
+      // dome
+      if (d >= 12 && d <= 14) { px(x, b - 11, C.band); if (d === 13) px(x, b - 12, C.band); }
+      // boiler, the smokebox front darker, brass bands round it
+      if (d >= 3 && d <= 19) for (let y = b - 10; y <= b - 5; y++) {
+        let c = d <= 4 ? C.smokebox : C.boiler;
+        if (y === b - 10 && d > 4) c = C.boilerHi;
+        if (d === 9 || d === 16) c = C.band;
+        px(x, y, c);
+      }
+      // cab: roof, window, walls
+      if (d >= 19 && d <= 29) {
+        px(x, b - 15, C.cabRoof);
+        for (let y = b - 14; y <= b - 5; y++) {
+          const win = d >= 22 && d <= 26 && y >= b - 13 && y <= b - 10;
+          px(x, y, win ? (lit > 0 ? C.glassLit : C.glass) : C.cab);
+        }
+      }
+      // running board
+      if (d >= 3 && d <= 29) px(x, b - 4, C.boilerHi);
+      // three big driving wheels, and the rod that couples them, rising and falling as they turn
+      for (const wc of [8, 15, 22]) for (let y = b - 4; y < b; y++) {
+        if (inWheel(d, y, wc, b - 2, 2.1)) px(x, y, Math.abs(d - wc) < 0.6 && Math.abs(y - (b - 2)) < 0.6 ? C.hub : C.wheel);
+      }
+      if (d >= 8 && d <= 22) px(x, b - 2 + Math.round(Math.sin(turn)), C.rod);
+      if (d >= 3 && d <= 5) px(x, b - 1, C.wheel);                   // small leading wheel
+    }
+
+    // Coaches and tender sit low on short wheels: body down to the row above
+    // the wheels, wheels only two dots tall, so nothing reads as legs.
+    function tender(x, d) {
+      const b = RAIL, e = d - ENGINE - 1;
+      if (e < 0 || e >= TENDER) return;
+      for (let y = b - 10; y <= b - 3; y++) {
+        let c = C.tender;
+        if (y === b - 10) c = hash(x, 1) > 0.4 ? C.coal : C.tender;       // heaped coal
+        if (y === b - 9 && (e === 0 || e === TENDER - 1)) c = C.boilerHi;
+        px(x, y, c);
+      }
+      for (const wc of [3, 10]) for (let y = b - 2; y < b; y++) if (inWheel(e, y, wc, b - 1.2, 1.1)) px(x, y, C.wheel);
+    }
+
+    function coach(x, d, n, lit, last) {
+      const b = RAIL, e = d - ENGINE - TENDER - 2 - n * (COACH + 1);
+      if (e === COACH && !last) { px(x, b - 4, C.under); return; }        // coupling in the gap
+      if (e < 0 || e >= COACH) return;
+      const endWall = e === 0 || e === COACH - 1;
+      // clerestory roof, raised along the middle
+      if (e >= 5 && e < COACH - 5) px(x, b - 15, C.roofHi);
+      px(x, b - 14, C.roof);
+      for (let y = b - 13; y <= b - 4; y++) {
+        let c = y >= b - 7 ? C.coachLow : C.coachHigh;
+        if (y === b - 7 || endWall) c = C.frame;
+        // big windows, four wide and four tall
+        const slot = (e - 3) % 7;
+        if (!endWall && e >= 3 && e < COACH - 3 && slot <= 3 && y >= b - 12 && y <= b - 9) c = lit > 0 && hash(x, n) < lit ? C.glassLit : C.glass;
+        px(x, y, c);
+      }
+      px(x, b - 3, C.under);
+      // two bogies of small wheels
+      for (const wc of [5, COACH - 6]) for (let y = b - 2; y < b; y++) if (inWheel(e, y, wc - 1.5, b - 1.2, 1.0) || inWheel(e, y, wc + 1.5, b - 1.2, 1.0)) px(x, y, C.wheel);
+      // the red tail lamp on the very end of the train
+      if (last && e === COACH - 1) { px(x, b - 6, C.tailLamp); px(x, b - 5, C.tailLamp); }
+    }
+
+    function train(head, lit, turn) {
+      const nose = Math.round(head);
+      for (let x = START; x <= nose; x++) {
+        const d = nose - x;
+        if (d < ENGINE) engine(x, d, lit, turn);
+        else if (d < ENGINE + 1 + TENDER) tender(x, d);
+        else for (let n = 0; n < COACHES; n++) coach(x, d, n, lit, n === COACHES - 1);
+      }
+      // the head lamp, and its glow once the train has arrived
+      px(nose - 3, RAIL - 11, lit > 0 ? C.lampOn : C.lampOff);
+      if (lit > 0) {
+        g.globalAlpha = 0.5 * lit; px(nose - 2, RAIL - 11, C.lampOn); px(nose - 1, RAIL - 11, C.lampOn);
+        g.globalAlpha = 1;
+      }
+    }
+
+    // ---------- smoke from the chimney ----------
+    const puffs = [];
+    const LIFE = 2.6;                              // seconds a puff lasts
+    function smoke(head, t, dt, making, fade) {
+      if (making && Math.random() < dt * 18) puffs.push({ x: head - 5.5, y: RAIL - 17, age: 0, sway: Math.random() * 6 });
+      for (let i = puffs.length - 1; i >= 0; i--) {
+        const q = puffs[i];
+        q.age += dt;
+        if (q.age > LIFE) { puffs.splice(i, 1); continue; }
+        q.x -= dt * (5 + q.age * 3.5);              // left behind as the train runs on
+        q.y -= dt * (4.5 - q.age * 1.2);
+        const r = 1.2 + q.age * 1.9, k = Math.min(1, q.age / (LIFE * 0.7));
+        g.globalAlpha = Math.max(0, (1 - q.age / LIFE) ** 0.7) * fade;
+        const colour = rgb(lerp3(C.smoke[0], C.smoke[1], k));
+        for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) {
+          if (xx * xx + yy * yy > r * r || hash(Math.round(q.x + xx), Math.round(q.y + yy + q.sway)) < 0.12 + 0.3 * k) continue;
+          const X = Math.round(q.x + xx + Math.sin(t * 2 + q.sway) * 0.5), Y = Math.round(q.y + yy);
+          if (Y >= 0 && Y < RAIL - 2 && X >= START) px(X, Y, colour);
+        }
+      }
+      g.globalAlpha = 1;
+    }
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    // ?state=0, ?state=progress or ?state=done holds one state still, for
+    // taking the frames for the Figma drawings
+    const HELD = { '0': 0, progress: 0.55, done: 1 }[new URLSearchParams(location.search).get('state')];
+
+    let t0 = performance.now(), last = t0, shown = -1, turn = 0, prevHead = START;
+
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      let s = (now - t0) / 1000;
+      if (s > EMPTY + RUN + HOLD + FADE) { t0 = now; s = 0; puffs.length = 0; }
+      const still = reduce.matches;
+      const t = still ? 0 : now / 1000;
+      let p = 0, lit = 0;
+      if (HELD !== undefined) { p = HELD; lit = HELD >= 1 ? 1 : 0; }
+      else if (still) { p = 1; lit = 1; }
+      else if (s < EMPTY) p = 0;
+      else if (s < EMPTY + RUN) p = fake((s - EMPTY) / RUN);
+      else { p = 1; lit = Math.min(1, (s - EMPTY - RUN) / 0.4); }
+      const leaving = HELD === undefined && !still && s >= EMPTY + RUN + HOLD ? (s - EMPTY - RUN - HOLD) / FADE : 0;
+      // once done, the whole scene goes, field and all; it comes back softly for the next run
+      const arriving = HELD === undefined && !still ? Math.min(1, s / 0.6) : 1;
+      const scene = Math.min(arriving, 1 - leaving);
+
+      const head = START + LENGTH * p;
+      turn += (head - prevHead) * 0.9;             // the wheels turn as far as the train moves
+      prevHead = head;
+      const pct = Math.round(p * 100);
+
+      g.clearRect(0, 0, GW, GH);
+      g.globalAlpha = scene;
+      field(t);
+      percent(pct, lit, scene);
+      g.globalAlpha = scene;
+      line(p >= 1 && !leaving);
+      g.globalAlpha = 1;
+      if (p > 0) {
+        if (!still && HELD === undefined) smoke(head, t, dt, p < 1 && s > EMPTY, 1 - leaving);
+        g.globalAlpha = 1 - leaving;
+        train(head, leaving ? 0 : lit, turn);
+        g.globalAlpha = 1;
+      }
+      g.globalAlpha = scene;
+      tips(t);
+      g.globalAlpha = 1;
+
+      // the scene scaled up, then the dark screen laid only over what is drawn,
+      // so the gaps are dark inside the scene and the page shows everywhere else
+      const l = layer.getContext('2d');
+      l.globalCompositeOperation = 'source-over';
+      l.clearRect(0, 0, layer.width, layer.height);
+      l.imageSmoothingEnabled = false;
+      l.drawImage(art, ox * dpr, oy * dpr, GW * pitch * dpr, GH * pitch * dpr);
+      l.globalCompositeOperation = 'source-atop';
+      l.drawImage(screen, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = C.page;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(layer, 0, 0);
+
+      if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
