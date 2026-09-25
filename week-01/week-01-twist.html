@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Twist loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Thin light lines need the dark, so it stays dark in either scheme. */
+  :root {
+    --bg: #000000;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Twist. Thin lines of light wound round an unseen ring, like strands of
+  // a rope. It begins as one wavering loop; strand by strand more join
+  // and the rope grows fatter, until it is a twisted cord, and then it
+  // unwinds back to one loop and starts again. The strands keep flowing
+  // round the ring as it slowly tips and turns, near ones bright, far ones dim.
+  (() => {
+    const BG = '#000000';
+    const INK = '255, 255, 255';
+
+    const RADIUS = 0.3;           // the ring, share of the short side
+    const TUBE = [0.07, 0.3];     // how fat the rope is, share of the ring: one loop, full cord
+    const WINDS = 3;              // turns each strand makes round the ring; whole, so it closes
+    const STRANDS = 8;            // strands in the full cord
+    const CYCLE = 14;             // seconds from one loop to cord and back
+    const FLOW = 0.35;            // how fast strands slide round the tube, turns per second
+    const TILT = 0.42;            // radians the ring leans toward us
+    const SPIN = 0.05;            // turns per second the ring spins in its own plane
+    const STEPS = 420;            // points per strand
+    const LINE = 1.4;             // px
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    const lerp = (a, b, k) => a + (b - a) * k;
+    const ease = k => 0.5 - 0.5 * Math.cos(Math.PI * k);
+
+    // Depth buckets: segments are grouped by how near they are, so each
+    // group is one path with one brightness.
+    const BUCKETS = 8;
+
+    function frame(now) {
+      const t = reduce.matches ? CYCLE * 0.35 : now / 1000;
+      // 0 one loop, 1 full cord, and back
+      const grow = ease(0.5 - 0.5 * Math.cos((t / CYCLE) * Math.PI * 2));
+      const count = lerp(1, STRANDS, grow);
+      const tube = lerp(TUBE[0], TUBE[1], grow);
+
+      const S = Math.min(W, H), R = RADIUS * S, r = tube * R;
+      const cx = W / 2, cy = H / 2, cam = R * 4;
+      const spin = t * SPIN * Math.PI * 2, tilt = TILT + 0.12 * Math.sin(t * 0.3);
+      const ct = Math.cos(tilt), st = Math.sin(tilt);
+
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, W, H);
+      ctx.lineCap = 'round';
+      const paths = Array.from({ length: BUCKETS }, () => new Path2D());
+
+      for (let s = 0; s < Math.ceil(count); s++) {
+        const fadeIn = Math.min(1, count - s);                // the newest strand arrives softly
+        const offset = s / Math.max(1, count) * Math.PI * 2;  // strands spaced evenly round the tube
+        let prev = null;
+        for (let i = 0; i <= STEPS; i++) {
+          const phi = i / STEPS * Math.PI * 2 + spin;
+          const theta = WINDS * (phi - spin) + offset + t * FLOW * Math.PI * 2;
+          // on the ring, then leaned toward us
+          const ring = R + r * Math.cos(theta);
+          const x = ring * Math.cos(phi), y0 = ring * Math.sin(phi), z0 = r * Math.sin(theta);
+          const y = y0 * ct - z0 * st, z = y0 * st + z0 * ct;
+          const k = cam / (cam - z);
+          const px = cx + x * k, py = cy + y * k;
+          const near = (z / (R + r) + 1) / 2;                  // 0 far, 1 near
+          if (prev) {
+            const b = Math.min(BUCKETS - 1, Math.floor(near * fadeIn * BUCKETS));
+            paths[b].moveTo(prev[0], prev[1]);
+            paths[b].lineTo(px, py);
+          }
+          prev = [px, py];
+        }
+      }
+      paths.forEach((p, b) => {
+        const near = (b + 0.5) / BUCKETS;
+        ctx.strokeStyle = `rgba(${INK}, ${0.02 + 0.98 * Math.pow(near, 2.6)})`;
+        ctx.lineWidth = LINE * (0.6 + 0.9 * near);            // near strands a touch thicker
+        ctx.stroke(p);
+      });
+
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

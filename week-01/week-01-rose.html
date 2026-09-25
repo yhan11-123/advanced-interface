@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Rose trail loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); }
+  .stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  svg { width: min(72vmin, 420px); aspect-ratio: 1; overflow: visible; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+      <g id="group">
+        <path id="path" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.1"></path>
+      </g>
+    </svg>
+  </div>
+
+  <script>
+  // Rose trail. After "Original Thinking" in paidax01's math-curve-loaders.
+  // A faint seven-petal rose curve, and a comet of dots running round it,
+  // big and solid at the head, fading to specks down the tail. The petals
+  // breathe deeper and shallower, and the whole figure turns slowly.
+  //
+  //   x(t) = 50 + (7 cos t - 3s cos 7t) * 3.9
+  //   y(t) = 50 + (7 sin t - 3s sin 7t) * 3.9      s = how deep the petals are now
+  (() => {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const COUNT = 64;            // dots in the trail
+    const TRAIL = 0.38;          // trail length, share of the whole curve
+    const LAP = 4600;            // ms for the head to go once round
+    const TURN = 28000;          // ms for the figure to turn once
+    const BREATH = 4200;         // ms for the petals to deepen and ease back
+    const BASE = 7;              // base circle radius
+    const DETAIL = 3;            // petal depth
+    const PETALS = 7;
+    const SCALE = 3.9;
+
+    const group = document.getElementById('group');
+    const path = document.getElementById('path');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    function point(p, s) {
+      const t = p * Math.PI * 2;
+      return {
+        x: 50 + (BASE * Math.cos(t) - DETAIL * s * Math.cos(PETALS * t)) * SCALE,
+        y: 50 + (BASE * Math.sin(t) - DETAIL * s * Math.sin(PETALS * t)) * SCALE,
+      };
+    }
+
+    // petal depth, easing between about half and full
+    const depth = ms => 0.52 + ((Math.sin((ms % BREATH) / BREATH * Math.PI * 2 + 0.55) + 1) / 2) * 0.48;
+
+    function curve(s, steps = 480) {
+      let d = '';
+      for (let i = 0; i <= steps; i++) {
+        const q = point(i / steps, s);
+        d += `${i ? 'L' : 'M'} ${q.x.toFixed(2)} ${q.y.toFixed(2)} `;
+      }
+      return d;
+    }
+
+    const dots = Array.from({ length: COUNT }, () => {
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('fill', 'currentColor');
+      group.appendChild(c);
+      return c;
+    });
+
+    const t0 = performance.now();
+    function frame(now) {
+      const ms = reduce.matches ? LAP * 0.3 : now - t0;
+      const head = (ms % LAP) / LAP, s = depth(ms);
+      group.setAttribute('transform', `rotate(${-(ms % TURN) / TURN * 360} 50 50)`);
+      path.setAttribute('d', curve(s));
+      dots.forEach((c, i) => {
+        const back = i / (COUNT - 1);                    // 0 at the head, 1 at the tail
+        const q = point((((head - back * TRAIL) % 1) + 1) % 1, s);
+        const fade = Math.pow(1 - back, 0.56);
+        c.setAttribute('cx', q.x.toFixed(2));
+        c.setAttribute('cy', q.y.toFixed(2));
+        c.setAttribute('r', (0.9 + fade * 2.7).toFixed(2));
+        c.setAttribute('opacity', (0.04 + fade * 0.96).toFixed(3));
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

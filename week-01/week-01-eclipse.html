@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Eclipse loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     The glow needs the dark, so it stays dark in either scheme. */
+  :root {
+    --bg: #070707;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Eclipse. A dark disc with light spilling round its edge, like the sun
+  // behind the moon. The light comes in two layers, each a wavy shape
+  // filled with a gradient that is brightest at the disc's rim and fades
+  // to nothing outward: a wide, warm outer layer swelling slowly one way,
+  // and a tighter, whiter inner layer wavering quicker the other way. As
+  // the two drift over each other, the halo shimmers.
+  (() => {
+    const BG = '#070707';
+    const RADIUS = 0.24;          // disc radius, share of the short side
+    const DRIFT = 0.05;           // turns per second the colours travel round
+
+    // Each layer: how far it reaches past the rim and how far that wavers
+    // (share of the radius), its waves [lobes, speed], how strong it is,
+    // how soft its edge is (share of the radius), and its colours round the ring.
+    const LAYERS = [
+      {
+        reach: 0.55, wobble: 0.3, waves: [[3, 0.7], [5, -1.1], [8, 1.6]], strength: 1, turn: 1, soft: 0.08,
+        colours: ['#ffd9a8', '#ff9f45', '#ffe6c4', '#f7b36a', '#fff1dc', '#ff9f45', '#ffd9a8'],
+      },
+      {
+        reach: 0.24, wobble: 0.1, waves: [[4, -1.3], [7, 1.9], [11, -2.6]], strength: 1, turn: -1.6, soft: 0.035,
+        colours: ['#ffffff', '#fff3e2', '#8fe0ff', '#ffffff', '#ffe2bd', '#b9eeff', '#ffffff'],
+      },
+    ];
+    const STEPS = 240;            // points round each wavy outline
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const layer = document.createElement('canvas');       // one layer at a time, then softened onto the page
+    const lctx = layer.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, dpr = 1;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = layer.width = Math.round(W * dpr);
+      canvas.height = layer.height = Math.round(H * dpr);
+    }
+
+    // -1 to 1 round the ring, from a few waves at odd rates, so it never repeats cleanly
+    function swell(L, a, t) {
+      let v = 0, w = 0;
+      L.waves.forEach(([lobes, speed], i) => {
+        const weight = 1 / (i + 1);
+        v += weight * Math.sin(lobes * a + t * speed + i * 1.3);
+        w += weight;
+      });
+      return v / w;
+    }
+
+    function drawLayer(L, R, cx, cy, t) {
+      lctx.setTransform(1, 0, 0, 1, 0, 0);
+      lctx.globalCompositeOperation = 'source-over';
+      lctx.clearRect(0, 0, layer.width, layer.height);
+
+      // the wavy shape, filled with its colours drifting round
+      const hue = lctx.createConicGradient(t * DRIFT * L.turn * Math.PI * 2, cx, cy);
+      L.colours.forEach((c, i) => hue.addColorStop(i / (L.colours.length - 1), c));
+      lctx.fillStyle = hue;
+      lctx.beginPath();
+      let far = 0;
+      for (let i = 0; i <= STEPS; i++) {
+        const a = i / STEPS * Math.PI * 2;
+        const r = R * (1 + L.reach * (1 + L.wobble / L.reach * swell(L, a, t)));
+        far = Math.max(far, r);
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+        i ? lctx.lineTo(x, y) : lctx.moveTo(x, y);
+      }
+      lctx.closePath(); lctx.fill();
+
+      // fade it: full at the rim, clear by its farthest reach
+      const fade = lctx.createRadialGradient(cx, cy, R * 0.96, cx, cy, far);
+      fade.addColorStop(0, `rgba(0, 0, 0, ${L.strength})`);
+      fade.addColorStop(0.35, `rgba(0, 0, 0, ${L.strength * 0.45})`);
+      fade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      lctx.globalCompositeOperation = 'destination-in';
+      lctx.fillStyle = fade;
+      lctx.fillRect(0, 0, layer.width, layer.height);
+
+      ctx.filter = `blur(${Math.max(1, L.soft * R)}px)`;
+      ctx.drawImage(layer, 0, 0);
+      ctx.filter = 'none';
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000;
+      const S = Math.min(W, H) * dpr, R = RADIUS * S;
+      const cx = W * dpr / 2, cy = H * dpr / 2;
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // the two layers of light, added together
+      ctx.globalCompositeOperation = 'lighter';
+      LAYERS.forEach(L => drawLayer(L, R, cx, cy, t));
+      ctx.globalCompositeOperation = 'source-over';
+
+      // the disc in front, with a crisp edge
+      ctx.fillStyle = BG;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 0.96, 0, Math.PI * 2); ctx.fill();
+
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
