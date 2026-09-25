@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Halftone loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Black and white, the same in either scheme. */
+  :root {
+    --bg: #ffffff;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Halftone. White paper and a screen of square dots on a checkerboard.
+  // The page is cut into boxes, mostly tall bands of different widths, and
+  // as the work loads each box comes up out of the white to its own shade,
+  // one after another from the right, a little out of turn, each shaded a
+  // touch darker to its right. Light shades are small black dots; past half
+  // they meet and the white shrinks to dots of its own; the darkest is solid.
+  // Near the end every box goes all the way to black, the page is full, and
+  // then it clears back to white for the next load.
+  (() => {
+    const INK = '#000000', PAPER = '#ffffff';
+    const DOT = 0.02;                  // the screen's cell, share of the short side
+    const COLS = [0.05, 0.2];          // band widths, narrowest to widest, share of the width
+    const SPLIT = 0.45;                // chance a band is cut across into two or three boxes
+    const RISE = 0.22;                 // share of the load a box takes to come up
+    const RUN = 8, HOLD = 0.6, CLEAR = 1.4;   // seconds: filling, full, clearing
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0, seed = 3, boxes = [];
+
+    function rng(a) {
+      return () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
+    }
+
+    // Cut the page into boxes: bands across, some split top to bottom; each
+    // with the moment it starts to come up, and the shade it comes up to.
+    function build() {
+      const rnd = rng(seed * 7919 + 1);
+      boxes = [];
+      let x = 0;
+      while (x < W) {
+        const w = Math.min(W - x, W * (COLS[0] + (COLS[1] - COLS[0]) * rnd()));
+        const cuts = rnd() < SPLIT ? 1 + Math.floor(rnd() * 2) : 0;
+        const ys = [0, ...Array.from({ length: cuts }, () => H * (0.2 + 0.6 * rnd())).sort((a, b) => a - b), H];
+        for (let k = 0; k < ys.length - 1; k++) {
+          const cx = (x + w / 2) / W;
+          boxes.push({
+            x, y: ys[k], w, h: ys[k + 1] - ys[k],
+            start: Math.max(0, Math.min(1 - RISE, (1 - cx) * 0.62 + (rnd() - 0.5) * 0.22)),   // right first, a little out of turn
+            shade: 0.3 + 0.6 * cx + (rnd() - 0.5) * 0.16,                                     // darker toward the right
+          });
+        }
+        x += w;
+      }
+    }
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height; S = Math.min(W, H);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
+    }
+
+    const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    // How dark the page is at x, y: its box's shade as far as it has come
+    // up, a touch darker to the box's right, and all of it pushed to black
+    // over the last stretch of the load.
+    function tone(b, x, p, clear) {
+      const up = ease((p - b.start) / RISE);
+      const across = (x - b.x) / b.w;
+      let v = up * Math.min(1, b.shade + 0.1 * (across - 0.5));
+      v += (1 - v) * ease((p - 0.86) / 0.14);                  // the end: everything to black
+      return Math.max(0, Math.min(1, v * (1 - clear)));
+    }
+
+    let t0 = performance.now(), shown = -1;
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD + CLEAR) { t0 = now; s = 0; seed++; build(); }
+      const p = reduce.matches ? 1 : s < RUN ? fake(s / RUN) : 1;
+      const clear = reduce.matches ? 0 : ease((s - RUN - HOLD) / CLEAR);
+
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, W, H);
+      // Each cell of the checkerboard: on the "ink" squares a black dot that
+      // grows with the shade until, at half, it fills its square; past half,
+      // the page goes black around a white dot on the other squares, which
+      // shrinks away. So the black always covers about as much as the shade.
+      const c = S * DOT, ink = new Path2D(), holes = new Path2D();
+      for (const b of boxes) {
+        const i0 = Math.floor(b.x / c), i1 = Math.ceil((b.x + b.w) / c);
+        const j0 = Math.floor(b.y / c), j1 = Math.ceil((b.y + b.h) / c);
+        for (let i = i0; i < i1; i++) {
+          const x = i * c;
+          if (x + c / 2 < b.x || x + c / 2 >= b.x + b.w) continue;          // each cell belongs to one box
+          const v = tone(b, x + c / 2, p, clear);
+          if (v <= 0.002) continue;
+          for (let j = j0; j < j1; j++) {
+            const y = j * c;
+            if (y + c / 2 < b.y || y + c / 2 >= b.y + b.h) continue;
+            const odd = (i + j) & 1;
+            if (v <= 0.5) {
+              if (odd) continue;
+              const d = c * Math.sqrt(2 * v);
+              ink.rect(x + (c - d) / 2, y + (c - d) / 2, d, d);
+            } else {
+              ink.rect(x, y, c, c);
+              if (odd) {
+                const d = c * Math.sqrt(2 * (1 - v));
+                if (d > 0.3) holes.rect(x + (c - d) / 2, y + (c - d) / 2, d, d);
+              }
+            }
+          }
+        }
+      }
+      ctx.fillStyle = INK; ctx.fill(ink);
+      ctx.fillStyle = PAPER; ctx.fill(holes);
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

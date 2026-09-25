@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Phases loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     White on black, the same in either scheme. */
+  :root {
+    --bg: #000000;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Phases. Four white circles on black, set in a diamond. Each goes round
+  // the same four sizes: a small dot swells to a full disc, eases to middle
+  // size, then smaller, then back to a dot. Each size holds a moment before
+  // the next. The four are a quarter turn apart, so all four sizes are
+  // always on show at once. And they go back and forth: on one beat every
+  // circle swings a quarter of the way round to where the next one was, on
+  // the next it swings back, and so on. It never ends.
+  (() => {
+    const WHITE = '#ffffff', BLACK = '#000000';
+    const SIZE = 0.1;                  // a full disc's radius, share of the short side
+    const APART = 1.9;                 // centre to centre across the diamond, in radii
+    const BEAT = 1.1;                  // seconds for one state to turn into the next
+    const HOLD = 0.35;                 // share of each beat spent still
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height; S = Math.min(W, H);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
+    const mix = (a, b, k) => a + (b - a) * k;
+
+    // The four sizes, in radii: dot, full, middle, small.
+    const SIZES = [0.3, 1, 0.66, 0.46];
+    function size(phase) {
+      const i = Math.floor(phase) % 4, k = ease(Math.min(1, (phase % 1) / (1 - HOLD)));
+      return mix(SIZES[i], SIZES[(i + 1) % 4], k);
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000 / BEAT;
+      ctx.fillStyle = BLACK;
+      ctx.fillRect(0, 0, W, H);
+      const R = S * SIZE, d = R * APART / Math.SQRT2 * 1.15;
+      // the swing: out a quarter turn over one beat, back over the next,
+      // moving while the sizes change and resting while they hold
+      const beat = Math.floor(t), k = ease(Math.min(1, (t % 1) / (1 - HOLD)));
+      const swing = (beat % 2 ? 1 - k : k) * Math.PI / 2;
+      [0, 1, 2, 3].forEach(n => {                            // top, right, bottom, left: the way the filling passes round
+        const r = size(t + (4 - n) % 4) * R;                 // each a quarter turn behind the one before
+        const a = -Math.PI / 2 + n * Math.PI / 2 + swing;
+        const x = W / 2 + Math.cos(a) * d, y = H / 2 + Math.sin(a) * d;
+        ctx.fillStyle = WHITE;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      });
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

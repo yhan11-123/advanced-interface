@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Hatch loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Grey and black, the same in either scheme. */
+  :root {
+    --bg: #ababab;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Hatch. The screen is ruled into thin strips on the slant, each strip cut
+  // into short lengths, and every length is a black bar as thick as the
+  // pattern under it asks, in steps, so the edges come out stepped. Two such
+  // layers lie over each other, one bar hung from the top of each strip and
+  // one standing on its bottom, each half see-through: where one covers the
+  // grey it reads dark, where both overlap, black. Broad soft patches drift
+  // through both layers, each its own way, so the grey left open swells and
+  // shrinks and the dark gathers and thins; now and then the whole field
+  // thickens and eases back. It never ends.
+  (() => {
+    const GREY = '#ababab';
+    const BAR = 'rgba(0, 0, 0, 0.74)';   // one layer over the grey: dark; both: black
+    const ANGLE = -0.52;               // the strips' slant, radians (about 30 degrees)
+    const PITCH = 0.024;               // strip spacing, share of the short side
+    const FILL = 0.9;                  // a bar at its thickest leaves a hairline of grey
+    const SEG = 0.07;                  // rough length of a bar, share of the short side
+    const STEPS = 6;                   // how many thicknesses a bar can take, for the stepped edges
+    const PATCH = 1.3;                 // size of the drifting patches, fewer and broader when lower
+    const SPEED = 0.07;                // how quickly the patches drift
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height; S = Math.min(W, H);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // smooth value noise, and a few octaves of it
+    function noise(seed) {
+      const h = (i, j) => { const v = Math.sin(i * 127.1 + j * 311.7 + seed * 74.7) * 43758.5453; return v - Math.floor(v); };
+      return (x, y) => {
+        const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j;
+        const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+        const a = h(i, j), b = h(i + 1, j), c = h(i, j + 1), d = h(i + 1, j + 1);
+        return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+      };
+    }
+    const nA = noise(1), nB = noise(2);
+    const fbm = (n, x, y) => n(x, y) * 0.6 + n(x * 2.1, y * 2.1) * 0.28 + n(x * 4.3, y * 4.3) * 0.12;
+    const hash = i => { const v = Math.sin(i * 91.7 + 13.1) * 43758.5453; return v - Math.floor(v); };
+
+    // How thick a bar is here, 0 to 1, in steps: the patch under it, pushed
+    // by how much the whole field is swelling right now.
+    function thick(n, x, y, t, drift, swell) {
+      const f = fbm(n, x / S * PATCH + drift[0] * t, y / S * PATCH + drift[1] * t);
+      const k = Math.max(0, Math.min(1, (f - 0.4 + swell) / 0.26));
+      return Math.round(k * STEPS) / STEPS;
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000 * SPEED;
+      const swell = 0.07 * Math.sin(t * 5.3) + 0.03 * Math.sin(t * 2.1 + 1);   // the whole field thickens and eases back
+      const dpr = canvas.width / W;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);            // undo last frame's turn
+      ctx.fillStyle = GREY;
+      ctx.fillRect(0, 0, W, H);
+
+      const p = S * PITCH, R = Math.hypot(W, H) / 2 + p * 2;
+      const ca = Math.cos(ANGLE), sa = Math.sin(ANGLE), cx = W / 2, cy = H / 2;
+      const top = new Path2D(), bottom = new Path2D();
+      let i = 0;
+      for (let v = -R; v < R; v += p, i++) {
+        // each strip cut its own way, so the steps never line up down the page
+        const len = S * SEG * (0.75 + 0.5 * hash(i)), shift = hash(i + 500) * len;
+        const len2 = S * SEG * (0.75 + 0.5 * hash(i + 900)), shift2 = hash(i + 1300) * len2;
+        for (let u = -R - shift; u < R; u += len) {
+          const mu = u + len / 2, mv = v + p / 2;
+          const a = thick(nA, cx + mu * ca - mv * sa, cy + mu * sa + mv * ca, t, [1, 0.35], swell);
+          if (a > 0) top.rect(u, v, len - 0.7, a * p * FILL);
+        }
+        for (let u = -R - shift2; u < R; u += len2) {
+          const mu = u + len2 / 2, mv = v + p / 2;
+          const b = thick(nB, cx + mu * ca - mv * sa, cy + mu * sa + mv * ca, t, [-0.55, 0.8], swell);
+          if (b > 0) bottom.rect(u, v + p * FILL * (1 - b), len2 - 0.7, b * p * FILL);
+        }
+      }
+      ctx.translate(cx, cy);
+      ctx.rotate(ANGLE);
+      ctx.fillStyle = BAR;
+      ctx.fill(top);
+      ctx.fill(bottom);
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
