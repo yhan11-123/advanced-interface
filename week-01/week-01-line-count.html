@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Line count loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #111111;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111111;
+      --ink: #ededea;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Line count. A wide field of vertical line fragments, every one a
+  // different length. Each time the count goes up, the fragments in the
+  // columns a figure passes through snap up or down onto it, stretch to
+  // fill it and swell thick, so the lines themselves build the number. The
+  // rest scatter as thin splinters, some twitching to new places now and
+  // then. It counts 1 to 100 as the work loads.
+  (() => {
+    // ---------- layout ----------
+    const LINES = 96;             // columns across the field
+    const WIDTH = 0.82;           // field width, share of the screen width...
+    const HEIGHT = 0.7;           // ...and height, share of the screen height, whichever fits
+    const RATIO = 0.5;            // field height / width: wide
+    const PIECES = 5;             // fragments per column
+    const THICK = 0.82;           // a fragment on the figure, share of the column spacing
+    const THIN = [0.12, 0.34];    // a stray splinter, share of the spacing
+    const STRAY = [0.015, 0.42];  // a stray splinter's length, share of the height (short ones common)
+    const OVERRUN = 0.05;         // fragments on the figure over- or undershoot its edge by up to this
+
+    // ---------- motion ----------
+    const PULL = 320;             // spring stiffness: how hard fragments snap to place
+    const DRAG = 17;              // spring damping: lower overshoots more
+    const SWEEP = 0.16;           // seconds for a change to travel across all the columns
+    const TWITCH = 0.9;           // share of stray splinters that jump somewhere new, per second
+    const RUN = 12;               // seconds from 1 to 100
+    const HOLD = 1.6;             // seconds held at 100
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, ink = '';
+
+    // ---------- where a number is dark, column by column ----------
+    const MAP_W = LINES, MAP_H = 120;
+    const map = document.createElement('canvas');
+    map.width = MAP_W; map.height = MAP_H;
+    const mctx = map.getContext('2d', { willReadFrequently: true });
+    const cache = new Map();
+
+    // For number n: per column, the runs (top, bottom, 0 to 1) the figure covers.
+    function spans(n) {
+      if (cache.has(n)) return cache.get(n);
+      mctx.setTransform(1, 0, 0, 1, 0, 0);
+      mctx.fillStyle = '#fff';
+      mctx.fillRect(0, 0, MAP_W, MAP_H);
+      // squeeze the text sideways to fit the field's wide shape
+      mctx.setTransform(MAP_W / (MAP_H / RATIO), 0, 0, 1, 0, 0);
+      const text = String(n), wide = MAP_H / RATIO;
+      let size = MAP_H * 0.86;
+      const font = s => `800 ${s}px ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif`;
+      mctx.font = font(size);
+      size *= Math.min(1, (wide * 0.8) / mctx.measureText(text).width);
+      mctx.font = font(size);
+      mctx.textAlign = 'center';
+      mctx.textBaseline = 'middle';
+      mctx.fillStyle = '#000';
+      mctx.fillText(text, wide / 2, MAP_H * 0.54);
+      const px = mctx.getImageData(0, 0, MAP_W, MAP_H).data;
+      const cols = [];
+      for (let x = 0; x < MAP_W; x++) {
+        const runs = [];
+        let start = -1;
+        for (let y = 0; y <= MAP_H; y++) {
+          const dark = y < MAP_H && px[(y * MAP_W + x) * 4] < 128;
+          if (dark && start < 0) start = y;
+          if (!dark && start >= 0) { runs.push([start / MAP_H, y / MAP_H]); start = -1; }
+        }
+        cols.push(runs.slice(0, PIECES));
+      }
+      cache.set(n, cols);
+      return cols;
+    }
+
+    // ---------- the fragments ----------
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const strayLength = () => STRAY[0] + (STRAY[1] - STRAY[0]) * Math.random() ** 2.2;
+    function strayTarget() {
+      const len = strayLength(), mid = rand(0, 1);
+      return { t0: Math.max(0, mid - len / 2), t1: Math.min(1, mid + len / 2), tw: rand(THIN[0], THIN[1]) };
+    }
+    const columns = Array.from({ length: LINES }, (_, i) => ({
+      jitter: rand(-0.12, 0.12),
+      pieces: Array.from({ length: PIECES }, () => {
+        // where it is, how fast it moves, where it is headed, and the next
+        // place it will be sent once its column's turn comes
+        const f = { v0: 0, v1: 0, vw: 0, stray: true, next: null, at: 0, ...strayTarget() };
+        f.y0 = f.t0; f.y1 = f.t1; f.w = f.tw;
+        return f;
+      }),
+    }));
+
+    // Give every column its new targets for number n, each column a beat
+    // later than the one to its left.
+    function retarget(n, now) {
+      const cols = spans(n);
+      columns.forEach((c, i) => {
+        const runs = cols[i], at = now + (i / LINES) * SWEEP * 1000 + rand(0, 40);
+        // the nearest fragment takes each run, so they travel as little as they
+        // must, and ones already on the figure keep the job, so the figure
+        // stays thick while the count races
+        const used = new Set();
+        runs.forEach(([a, b]) => {
+          let best = null, dist = Infinity;
+          for (const f of c.pieces) {
+            if (used.has(f)) continue;
+            const d = Math.abs((f.y0 + f.y1) / 2 - (a + b) / 2) + (f.stray ? 0.6 : 0);
+            if (d < dist) { dist = d; best = f; }
+          }
+          used.add(best);
+          best.stray = false; best.at = at;
+          best.next = { t0: Math.max(0, a - rand(0, OVERRUN)), t1: Math.min(1, b + rand(0, OVERRUN)), tw: THICK * rand(0.85, 1.05) };
+        });
+        for (const f of c.pieces) {
+          if (used.has(f)) continue;
+          // strays already loose stay put; ones leaving the figure are flung off
+          if (!f.stray || f.next) { f.next = strayTarget(); f.at = at; }
+          f.stray = true;
+        }
+      });
+    }
+
+    function spring(x, v, target, dt) {
+      v += ((target - x) * PULL - v * DRAG) * dt;
+      return [x + v * dt, v];
+    }
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+    }
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+
+    let t0 = performance.now(), last = t0, shown = 0;
+
+    function frame(now) {
+      const dt = Math.min(0.033, (now - last) / 1000); last = now;
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD) { t0 = now; s = 0; }
+      const p = reduce.matches ? 1 : s < RUN ? fake(s / RUN) : 1;
+      const n = Math.max(1, Math.min(100, Math.ceil(p * 100)));
+      if (n !== shown) {
+        shown = n;
+        retarget(n, now);
+        stage.setAttribute('aria-valuenow', n);
+      }
+
+      const fw = Math.min(W * WIDTH, (H * HEIGHT) / RATIO), fh = fw * RATIO;
+      const ox = (W - fw) / 2, oy = (H - fh) / 2, pitch = fw / LINES;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = ink;
+      ctx.beginPath();
+      columns.forEach((c, i) => {
+        const cx = ox + (i + 0.5 + c.jitter) * pitch;
+        for (const f of c.pieces) {
+          // now and then a stray splinter jumps somewhere new
+          if (f.stray && !f.next && !reduce.matches && Math.random() < TWITCH * dt / PIECES) Object.assign(f, strayTarget());
+          // take up the new place once this column's turn in the sweep comes
+          if (f.next && (now >= f.at || reduce.matches)) { Object.assign(f, f.next); f.next = null; }
+          if (reduce.matches) { f.y0 = f.t0; f.y1 = f.t1; f.w = f.tw; }
+          else {
+            [f.y0, f.v0] = spring(f.y0, f.v0, f.t0, dt);
+            [f.y1, f.v1] = spring(f.y1, f.v1, f.t1, dt);
+            [f.w, f.vw] = spring(f.w, f.vw, f.tw, dt);
+          }
+          const top = Math.min(f.y0, f.y1), bottom = Math.max(f.y0, f.y1);
+          const w = Math.max(0.6, f.w * pitch);
+          if (bottom - top > 0.002) ctx.rect(cx - w / 2, oy + top * fh, w, (bottom - top) * fh);
+        }
+      });
+      ctx.fill();
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', layout);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
