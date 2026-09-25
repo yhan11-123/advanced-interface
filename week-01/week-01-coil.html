@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Coil loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Coil. A circle drawn as a single thin line, standing upright and
+  // slowly tumbling about a diagonal, 45 degree axis. As the work loads,
+  // grains fly in and wind round that line like thread round a hoop, coil after coil, passing behind it and coming back
+  // over the front, working their way round. The share of the hoop that is
+  // wrapped is the progress; once the coil meets its own start, loading is
+  // done. Then the thread loosens and drifts away, and it begins again.
+  (() => {
+    const RING = 0.3;             // the hoop's radius, share of the short side
+    const WRAP = 0.055;           // how far the coil stands off the line, share of the short side
+    const COILS = 34;             // times the thread winds round the line in one full lap
+    const GRAINS = 1100;          // grains in the whole coil
+    const DOT = [0.7, 2.2];       // grain radius in px: far side, near side
+    const STAND = 1.0;            // radians the upright hoop is turned away from facing us
+    const TUMBLE = 0.035;         // turns per second about the 45 degree axis
+    const LAND = 0.5;             // seconds for a grain to fly in and settle
+
+    const RUN = 8;                // seconds of loading
+    const HOLD = 1.2;             // done, held
+    const LOOSEN = 1;             // the thread drifts off before it starts again
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, ink = '';
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+    }
+
+    const drift = Array.from({ length: GRAINS }, () => Math.random() * Math.PI * 2);
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+    const easeOut = u => 1 - (1 - u) ** 3;
+
+    let t0 = performance.now(), shown = -1;
+    const born = new Array(GRAINS).fill(Infinity);
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD + LOOSEN) { t0 = now; s = 0; born.fill(Infinity); }
+      const p = reduce.matches ? 1 : s < RUN ? fake(s / RUN) : 1;
+      const count = Math.round(p * GRAINS);
+      for (let i = 0; i < count; i++) if (born[i] === Infinity) born[i] = s;
+      const gone = reduce.matches ? 0 : Math.max(0, (s - RUN - HOLD) / LOOSEN);
+
+      const S = Math.min(W, H), R = RING * S, cx = W / 2, cy = H / 2, cam = S * 2.2;
+      // Stand the hoop upright, turned a little away so it reads as a tall
+      // oval, then tumble it about an axis running up and right at 45°.
+      const cs = Math.cos(STAND), ss = Math.sin(STAND);
+      const ang = reduce.matches ? 0 : now / 1000 * TUMBLE * Math.PI * 2;
+      const ax = Math.SQRT1_2, ay = -Math.SQRT1_2;             // the axis, screen up-right (y points down)
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      const turn = (x, y, z) => {                              // rotate about (ax, ay, 0) by ang
+        const d = ax * x + ay * y;
+        const cx_ = ay * z, cy_ = -ax * z, cz_ = ax * y - ay * x;   // axis × point
+        return [x * ca + cx_ * sa + ax * d * (1 - ca),
+                y * ca + cy_ * sa + ay * d * (1 - ca),
+                z * ca + cz_ * sa];
+      };
+      // a point in the hoop's own space (x, y in its plane, z out of it), placed and seen in perspective
+      const view = (x, y, z) => {
+        const [X, Y, Z] = turn(x * cs + z * ss, y, -x * ss + z * cs);
+        const k = cam / (cam - Z);
+        return [cx + X * k, cy + Y * k, Z, k];
+      };
+
+      // each grain: round the hoop by phi, round the line by theta
+      const back = [], front = [];
+      for (let i = 0; i < GRAINS; i++) {
+        if (born[i] === Infinity) break;
+        const land = reduce.matches ? 1 : Math.min(1, (s - born[i]) / LAND);
+        const e = easeOut(land);
+        const share = (i + 0.5) / GRAINS;
+        const phi = share * Math.PI * 2 - Math.PI / 2;           // starting at the top
+        const theta = share * COILS * Math.PI * 2;
+        // it swings in from wider out and settles snug against the line
+        const w = S * WRAP * (1 + (1 - e) * 2.2 + gone * 3 * (0.5 + 0.5 * Math.sin(drift[i])));
+        const ring = R + w * Math.cos(theta);
+        const [x, y, z, k] = view(ring * Math.cos(phi), ring * Math.sin(phi), w * Math.sin(theta));
+        // behind the line or in front of it, judged from the line's own depth here
+        const [, , zLine] = view(R * Math.cos(phi), R * Math.sin(phi), 0);
+        const near = Math.max(0, Math.min(1, 0.5 + (z - zLine) / (2 * w)));
+        const g = { x, y, r: (DOT[0] + (DOT[1] - DOT[0]) * near) * k, a: (0.25 + 0.75 * near) * Math.min(1, 0.2 + land) * (1 - gone) };
+        (z < zLine ? back : front).push(g);
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = ctx.strokeStyle = ink;
+      const dots = list => list.forEach(g => {
+        ctx.globalAlpha = g.a;
+        ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.fill();
+      });
+
+      dots(back);
+      // the hoop itself: one thin line
+      ctx.globalAlpha = 1 - gone * 0.6;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (let i = 0; i <= 180; i++) {
+        const a = i / 180 * Math.PI * 2;
+        const [x, y] = view(R * Math.cos(a), R * Math.sin(a), 0);
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.stroke();
+      dots(front);
+      ctx.globalAlpha = 1;
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', layout);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>

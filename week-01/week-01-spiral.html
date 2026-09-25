@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Spiral loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #1a1a1a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c;
+      --ink: #ededea;
+    }
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Spiral. A solid circle in the middle. As the work loads, grains fly in
+  // one by one and settle into a spiral that starts at the circle's edge
+  // and winds outward round it, turn after turn. The share of the spiral
+  // laid down is the progress; when it has wrapped all the way out,
+  // loading is done. Then the grains drift off and it begins again.
+  (() => {
+    const CORE = 0.09;            // the circle, share of the short side
+    const OUTER = 0.38;           // where the spiral ends, share of the short side
+    const TURNS = 5;              // times the spiral winds round
+    const GRAINS = 420;           // grains in the whole spiral
+    const DOT = [2.6, 1.3];       // grain radius in px: inner turn, outer turn
+    const LAND = 0.55;            // seconds for a grain to fly in and settle
+    const SPIN = 0.03;            // turns per second, the whole figure turning slowly
+
+    const RUN = 8;                // seconds of loading
+    const HOLD = 1.2;             // done, held
+    const SCATTER = 1;            // grains drift off before it starts again
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.querySelector('.stage');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, ink = '';
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+    }
+
+    // Grain i's place on the spiral, spaced evenly along its length. With r
+    // growing steadily from q (the start, as a share of the rim) to 1, the
+    // length up to k is about q·k + (1 − q)·k²/2; solve that for k.
+    const q = CORE * 1.35 / OUTER;
+    const spot = Array.from({ length: GRAINS }, (_, i) => {
+      const f = (i + 0.5) / GRAINS * (q + (1 - q) / 2), A = (1 - q) / 2;
+      const k = (-q + Math.sqrt(q * q + 4 * A * f)) / (2 * A);   // 0 at the circle, 1 at the rim
+      return { k, a: k * TURNS * Math.PI * 2, drift: Math.random() * Math.PI * 2 };
+    });
+
+    // quick at first, slower in the middle, a small stall, then the finish
+    function fake(x) {
+      return x < 0.55 ? 0.7 * Math.sin((x / 0.55) * Math.PI / 2)
+           : x < 0.7 ? 0.7 + (x - 0.55) * 0.2
+           : 0.73 + 0.27 * ((x - 0.7) / 0.3) ** 1.4;
+    }
+    const easeOut = u => 1 - (1 - u) ** 3;
+
+    let t0 = performance.now(), shown = -1;
+    const born = new Array(GRAINS).fill(Infinity);           // when each grain set off
+
+    function frame(now) {
+      let s = (now - t0) / 1000;
+      if (s > RUN + HOLD + SCATTER) { t0 = now; s = 0; born.fill(Infinity); }
+      const p = reduce.matches ? 1 : s < RUN ? fake(s / RUN) : 1;
+      const count = Math.round(p * GRAINS);
+      for (let i = 0; i < count; i++) if (born[i] === Infinity) born[i] = s;
+      const gone = reduce.matches ? 0 : Math.max(0, (s - RUN - HOLD) / SCATTER);   // 0 to 1 while scattering
+
+      const S = Math.min(W, H), r0 = CORE * S * 1.35, r1 = OUTER * S;
+      const cx = W / 2, cy = H / 2, turn = reduce.matches ? 0 : s * SPIN * Math.PI * 2;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = ink;
+
+      // the circle, swelling a touch as loading finishes
+      const done = s >= RUN && s < RUN + HOLD ? Math.sin((s - RUN) / HOLD * Math.PI) : 0;
+      ctx.globalAlpha = 1 - gone;
+      ctx.beginPath(); ctx.arc(cx, cy, CORE * S * (1 + 0.08 * done), 0, Math.PI * 2); ctx.fill();
+
+      for (let i = 0; i < GRAINS; i++) {
+        if (born[i] === Infinity) break;
+        const g = spot[i];
+        const land = reduce.matches ? 1 : Math.min(1, (s - born[i]) / LAND);
+        const e = easeOut(land);
+        // each grain sweeps in from further round and further out, then settles
+        const a = g.a + turn - (1 - e) * 1.4;
+        const r = r0 + (r1 - r0) * g.k + (1 - e) * S * 0.12 + gone * S * 0.3 * (0.6 + 0.4 * Math.sin(g.drift));
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+        ctx.globalAlpha = Math.min(1, 0.2 + land) * (1 - gone);
+        ctx.beginPath(); ctx.arc(x, y, DOT[0] + (DOT[1] - DOT[0]) * g.k, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      const pct = Math.round(p * 100);
+      if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', layout);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
