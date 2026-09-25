@@ -9,7 +9,7 @@
   /* A prototype page of its own, so its styles stay in this file.
      The scene carries its own muted palette, the same in either scheme. */
   :root {
-    --bg: #c9a86c;
+    --bg: #dcc69f;
     color-scheme: light;
   }
   html, body { margin: 0; height: 100%; }
@@ -43,7 +43,7 @@
       // late-afternoon amber round the scene, like sun through a carriage window;
       // inside the scene the gaps between dots are each dot's own colour, only
       // darker, so the colours hold and the dots still show
-      page: '#c9a86c',
+      page: '#dcc69f',                                 // a lighter amber; the paper in it is made below
       gap: 'rgba(24, 16, 8, 0.45)',
       grass: [[46, 60, 34], [88, 104, 58], [206, 194, 122]],   // deep shade, daylight, low sun
       number: [226, 214, 170],
@@ -92,12 +92,51 @@
     const lerp3 = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
     const px = (x, y, c) => { if (x < 0 || x >= GW) return; g.fillStyle = c; g.fillRect(x, y, 1, 1); };
 
+    // The page: a lighter amber, with the faintest paper in it, made once
+    // per size. A slow mottle, fine grain, and a scatter of short fibres,
+    // each barely there.
+    const paper = document.createElement('canvas');
+    function makePaper() {
+      const w = canvas.width, h = canvas.height;
+      paper.width = w; paper.height = h;
+      const p = paper.getContext('2d'), img = p.createImageData(w, h), d = img.data;
+      const base = [220, 198, 159];
+      let a = 7;
+      const rnd = () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
+      // the mottle: a coarse grid of random shades, smoothly blended
+      const cell = 90 * dpr, gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
+      const grid = Array.from({ length: gw * gh }, () => rnd() - 0.5);
+      for (let y = 0; y < h; y++) {
+        const gy = y / cell, j = Math.floor(gy), fy = gy - j, vy = fy * fy * (3 - 2 * fy);
+        for (let x = 0; x < w; x++) {
+          const gx = x / cell, i = Math.floor(gx), fx = gx - i, vx = fx * fx * (3 - 2 * fx);
+          const g = (k, l) => grid[l * gw + k];
+          const m = g(i, j) + (g(i + 1, j) - g(i, j)) * vx + (g(i, j + 1) - g(i, j)) * vy + (g(i, j) - g(i + 1, j) - g(i, j + 1) + g(i + 1, j + 1)) * vx * vy;
+          const v = m * 7 + (rnd() - 0.5) * 7;
+          const o = (y * w + x) * 4;
+          d[o] = base[0] + v; d[o + 1] = base[1] + v; d[o + 2] = base[2] + v * 0.8; d[o + 3] = 255;
+        }
+      }
+      p.putImageData(img, 0, 0);
+      // fibres: short, faint, gently bent
+      p.lineCap = 'round';
+      for (let k = 0; k < w * h / (2600 * dpr * dpr); k++) {
+        const x = rnd() * w, y = rnd() * h, l = (4 + rnd() * 14) * dpr, t = rnd() * Math.PI;
+        p.strokeStyle = rnd() < 0.5 ? `rgba(255, 250, 235, ${0.05 + rnd() * 0.06})` : `rgba(90, 64, 30, ${0.03 + rnd() * 0.04})`;
+        p.lineWidth = (0.4 + rnd() * 0.5) * dpr;
+        p.beginPath(); p.moveTo(x, y);
+        p.quadraticCurveTo(x + Math.cos(t + 0.4) * l * 0.5, y + Math.sin(t + 0.4) * l * 0.5, x + Math.cos(t) * l, y + Math.sin(t) * l);
+        p.stroke();
+      }
+    }
+
     function layout() {
       const r = canvas.getBoundingClientRect();
       dpr = window.devicePixelRatio || 1;
       W = r.width; H = r.height;
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
+      makePaper();
       // 45% of the width, but never taller than most of the height
       pitch = Math.min(W * SIZE / GW, H * 0.9 / GH);
       ox = (W - GW * pitch) / 2; oy = (H - GH * pitch) / 2;
@@ -378,8 +417,8 @@
       l.globalCompositeOperation = 'source-atop';
       l.drawImage(screen, 0, 0);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.fillStyle = C.page;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (paper.width === canvas.width && paper.height === canvas.height) ctx.drawImage(paper, 0, 0);
+      else { ctx.fillStyle = C.page; ctx.fillRect(0, 0, canvas.width, canvas.height); }
       ctx.drawImage(layer, 0, 0);
 
       if (pct !== shown) { shown = pct; stage.setAttribute('aria-valuenow', pct); }

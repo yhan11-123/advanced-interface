@@ -6,7 +6,7 @@
   <title>Week 01 &middot; Loading &middot; Advanced Interface</title>
   <meta name="description" content="Six progress indicators are due. Starting with research into how loading gets signalled, and how waiting is actually felt." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../shared/site.css" />
+  <link rel="stylesheet" href="../shared/site.css?v=4" />
 </head>
 <body>
 
@@ -99,8 +99,8 @@
         <!-- height is measured from the demo itself; adjust it when the demo grows -->
         <iframe src="week-01-demo.html" title="Loading pattern survey" loading="lazy" style="height: 965px"></iframe>
         <figcaption>
-          <span>Live demo. Interact with it here or open it on its own.</span>
-          <a href="week-01-demo.html" target="_blank" rel="noopener">Open full screen</a>
+          <span>Live demo. Interact with it here or view it larger.</span>
+          <button type="button" class="viewer-open" data-src="week-01-demo.html">View larger</button>
         </figcaption>
       </figure>
 
@@ -139,240 +139,237 @@
           <iframe src="week-01-ball-chain.html" title="Ball chain loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Ball chain</b>
-            <span>Fifteen chains hang still. A circle sweeps across their lower ends in place of an indeterminate bar, and only the chains it touches sway, then settle.</span>
-            <a href="week-01-ball-chain.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A circle sweeps under fifteen hanging chains; only the ones it touches sway.</span>
+            <button type="button" class="viewer-open" data-src="week-01-ball-chain.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-bar-ball.html" title="Bar and ball loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Bar and ball</b>
-            <span>The plainest version: a circle slides end to end along a thin bar and eases into each turn.</span>
-            <a href="week-01-bar-ball.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A circle slides end to end along a thin bar.</span>
+            <button type="button" class="viewer-open" data-src="week-01-bar-ball.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-star.html" title="Star loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Star</b>
-            <span>Eight rays from one centre. A circle on each runs out and back, one ray after another, so the pulse travels round clockwise.</span>
-            <a href="week-01-star.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Eight rays; a circle runs out and back on each in turn, so the pulse goes round.</span>
+            <button type="button" class="viewer-open" data-src="week-01-star.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-edge.html" title="Edge loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Edge</b>
-            <span>The whole screen edge is the bar. A line fills clockwise just inside the margin, from top centre, while the number in the middle counts the same progress.</span>
-            <a href="week-01-edge.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>The screen edge is the bar, filling clockwise while the number counts.</span>
+            <button type="button" class="viewer-open" data-src="week-01-edge.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-rally.html" title="Rally loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Rally</b>
-            <span>A first-person try at depth with nothing but the ball. Like a tennis rally, it comes straight back to you down the middle, and every shot leaves for the far left, then the far right.</span>
-            <a href="week-01-rally.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A ball rallied at you down the middle, then out to the left and right.</span>
+            <button type="button" class="viewer-open" data-src="week-01-rally.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-glow.html" title="Glow loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Glow</b>
-            <span>Opacity alone. One box sits still in the middle and slowly brightens and fades, like a light breathing on and off.</span>
-            <a href="week-01-glow.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>One box slowly brightens and fades, like a light breathing.</span>
+            <button type="button" class="viewer-open" data-src="week-01-glow.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-hourglass.html" title="Hourglass loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Hourglass</b>
-            <span>An hourglass made only of small grains. The sand in the top and the mound below, narrow on top and wide at the base, never change. Only the flow moves: grains slide out of the top sand into the neck and fall without end, thinning as they go like a thick liquid.</span>
-            <a href="week-01-hourglass.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>An hourglass of grains; only the falling stream moves.</span>
+            <button type="button" class="viewer-open" data-src="week-01-hourglass.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-wash.html" title="Wash loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Wash</b>
-            <span>The whole screen is the bar. Colour washes in from the left behind a soft gradient front, and once the screen has fully changed colour, loading is done.</span>
-            <a href="week-01-wash.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Colour washes across the whole screen from the left.</span>
+            <button type="button" class="viewer-open" data-src="week-01-wash.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-wash-ripple.html" title="Rippling wash loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Wash, rippling</b>
-            <span>Wash developed. Same fill from left to right, same finish, but the soft gradient front sways like water and never holds a straight line.</span>
-            <a href="week-01-wash-ripple.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>The same wash, its front swaying like water.</span>
+            <button type="button" class="viewer-open" data-src="week-01-wash-ripple.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-tap.html" title="Tapping finger loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Tap</b>
-            <span>An open-ended wait. A film still, a hand on a desk beside a telephone, redrawn in grey dots, each sized and shaded by the brightness under it. Only the index finger moves, tapping the desk at a slow, even beat with no end set.</span>
-            <a href="week-01-tap.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A film still in grey dots; only a finger taps, on and on.</span>
+            <button type="button" class="viewer-open" data-src="week-01-tap.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-stairwell.html" title="Stairwell loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Stairwell</b>
-            <span>After In the Mood for Love. A red gap opens in the dark and a woman in a qipao, seen from the waist up, climbs into it, back to us. She turns, walks out behind the left wall in the same dark as the wall, and the empty red floods the screen. Only her motion is step-printed at 10 fps. Open full screen for the controls.</span>
-            <a href="week-01-stairwell.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>After In the Mood for Love: a figure climbs into a red gap, step-printed. View it larger for the controls.</span>
+            <button type="button" class="viewer-open" data-src="week-01-stairwell.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-corridor.html" title="Corridor loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Corridor</b>
-            <span>Depth is the progress. A flat box's back wall slowly draws away and the box deepens into a long hall of plain planes, darker the further in. When the far wall is as far as it goes, loading is done.</span>
-            <a href="week-01-corridor.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A box's back wall draws away into a long hall; its depth is the progress.</span>
+            <button type="button" class="viewer-open" data-src="week-01-corridor.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-gust.html" title="Gust spinner sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Gust</b>
-            <span>A spinner made of a swarm of particles gathered like a gust of wind: a wide, rounded head and a body that thins to nothing, wheeling round. Each grain is born at the head and drifts back along the body, wavering, until it fades at the tail.</span>
-            <a href="week-01-gust.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A spinner of particles shaped like a gust of wind.</span>
+            <button type="button" class="viewer-open" data-src="week-01-gust.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-reeds.html" title="Reeds loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Reeds</b>
-            <span>Tall, thin bars in black and white stand in rows, each row overlapping the one behind so they lock together like a stretched, pixel-sorted field. Their tops rise and fall on slow waves that roll sideways through every row, a little out of step, so the whole field ripples.</span>
-            <a href="week-01-reeds.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Rows of tall bars ripple on slow sideways waves.</span>
+            <button type="button" class="viewer-open" data-src="week-01-reeds.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-reeds-flat.html" title="Flat reeds loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Reeds, flat</b>
-            <span>Reeds pressed into one flat layer. Every line is split in two, light above and dark below, each at a slightly different height. Together the splits draw one wavy boundary that rolls sideways without end.</span>
-            <a href="week-01-reeds-flat.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Reeds pressed flat: split lines draw one rolling wave.</span>
+            <button type="button" class="viewer-open" data-src="week-01-reeds-flat.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-bounce.html" title="Bounce loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Bounce</b>
-            <span>One ball bouncing in place. Fast off the floor, a moment's hang at the top, then quicker and quicker back down, stretching as it falls and squashing flat as it lands, while its shadow tightens beneath it.</span>
-            <a href="week-01-bounce.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>One ball bouncing in place, stretching and squashing.</span>
+            <button type="button" class="viewer-open" data-src="week-01-bounce.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-rose.html" title="Rose trail loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Rose trail</b>
-            <span>After Original Thinking in paidax01's math-curve-loaders. A faint seven-petal rose curve with a comet of dots running round it, solid at the head and fading down the tail, while the petals breathe and the figure slowly turns.</span>
-            <a href="week-01-rose.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A comet of dots runs round a breathing seven-petal rose.</span>
+            <button type="button" class="viewer-open" data-src="week-01-rose.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-ripple-dots.html" title="Ripple dots loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Ripple dots</b>
-            <span>A halftone ring of dots on a honeycomb grid, round with an empty middle. Rings of larger dots keep swelling out of the inner edge and travelling to the outer one, where they shrink away, so the ring breathes outward without end.</span>
-            <a href="week-01-ripple-dots.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A halftone ring whose dots swell outward in waves.</span>
+            <button type="button" class="viewer-open" data-src="week-01-ripple-dots.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-eclipse.html" title="Eclipse loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Eclipse</b>
-            <span>A dark disc with light spilling round its edge in two layers, each a wavy shape filled with a gradient that fades outward from the rim: a wide warm layer swelling slowly one way, a tighter white-blue one wavering quicker the other. As they drift over each other, the halo shimmers.</span>
-            <a href="week-01-eclipse.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A dark disc with a shimmering, two-layer halo.</span>
+            <button type="button" class="viewer-open" data-src="week-01-eclipse.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-twist.html" title="Twist loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Twist</b>
-            <span>Thin lines of light wound round an unseen ring like strands of a rope. It starts as one wavering loop; strand by strand more join and the rope fattens into a twisted cord, then unwinds back to one loop. Near strands bright, far ones dim, all flowing round as the ring slowly tips and turns.</span>
-            <a href="week-01-twist.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Strands of light wind into a rope round a turning ring, then unwind.</span>
+            <button type="button" class="viewer-open" data-src="week-01-twist.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-vortex.html" title="Vortex loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Vortex</b>
-            <span>A black sphere resting on a plane, seen at a slant, with streaks of light circling it like a whirlpool or the disc round a black hole. Near the sphere they crowd in and race, far out they drift; far-side streaks pass behind it, near ones sweep in front.</span>
-            <a href="week-01-vortex.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Streaks of light whirl round a black sphere.</span>
+            <button type="button" class="viewer-open" data-src="week-01-vortex.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-bloom.html" title="Bloom loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Bloom</b>
-            <span>Free particle motion. Thousands of specks of light on the skin of a ball; a slow current pushes the skin out of shape so it crumples and unfolds into loose petals, like cloth or a flower opening, then gathers back, never quite repeating. Near specks bright, far ones faint, each glinting on its own.</span>
-            <a href="week-01-bloom.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Thousands of specks on a ball that crumples and opens like a flower.</span>
+            <button type="button" class="viewer-open" data-src="week-01-bloom.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-line-count.html" title="Line count loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Line count</b>
-            <span>A wide field of vertical line fragments, each a different length. As the count climbs from 1 to 100, the fragments in the columns a figure passes through snap up or down onto it, stretch and swell thick, so the lines themselves build the number; the rest scatter as thin splinters that twitch to new places.</span>
-            <a href="week-01-line-count.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Line fragments snap together to build the count, 1 to 100.</span>
+            <button type="button" class="viewer-open" data-src="week-01-line-count.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-crack.html" title="Crack loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Crack</b>
-            <span>Four pale panels fill the screen, parted by two thin black cracks that pool where they cross, the panels' corners rounding off like a joint in enamel. While loading, the cracks dart about and tilt, each arm swelling and thinning on its own, so every panel keeps changing its width and height. When done, the four panels fly off to the four corners.</span>
-            <a href="week-01-crack.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Four panels parted by two wandering cracks; at the end they fly apart.</span>
+            <button type="button" class="viewer-open" data-src="week-01-crack.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-brush-ring.html" title="Brush ring loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Brush ring</b>
-            <span>A circle dragged in white with a dry brush: broken strokes of every weight round it, heavy and bright on one side, thinning to scratches and flecks on the other. It turns one way, eases to a stop, and turns back the other way, again and again.</span>
-            <a href="week-01-brush-ring.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A dry-brush circle turning one way, then the other.</span>
+            <button type="button" class="viewer-open" data-src="week-01-brush-ring.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-brush-halves.html" title="Brush halves loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Brush halves</b>
-            <span>Two dry-brush circles, each centred on a side edge so only its inner half shows. Both turn together the same way, ease to a stop, and turn back the other way, again and again.</span>
-            <a href="week-01-brush-halves.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Two dry-brush half circles at the edges, turning together.</span>
+            <button type="button" class="viewer-open" data-src="week-01-brush-halves.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-spiral.html" title="Spiral loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Spiral</b>
-            <span>A solid circle in the middle. As the work loads, grains fly in one by one and settle into a spiral that starts at the circle's edge and winds outward round it. The share of the spiral laid down is the progress; when it has wrapped all the way out, loading is done.</span>
-            <a href="week-01-spiral.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Grains settle into a spiral round a circle; the spiral is the progress.</span>
+            <button type="button" class="viewer-open" data-src="week-01-spiral.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="idea">
           <iframe src="week-01-coil.html" title="Coil loader sketch" loading="lazy"></iframe>
           <figcaption>
             <b>Coil</b>
-            <span>A circle drawn as one thin line, standing upright and slowly tumbling about a 45 degree axis. As the work loads, grains fly in and wind round that line like thread round a hoop, passing behind it and back over the front, working their way round. The share of the hoop wrapped is the progress; when the coil meets its own start, loading is done.</span>
-            <a href="week-01-coil.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Grains wind round a tumbling hoop; the wrapped share is the progress.</span>
+            <button type="button" class="viewer-open" data-src="week-01-coil.html">View larger</button>
           </figcaption>
         </figure>
       </div>
 
       <h2>Deliverables</h2>
 
-      <p>Six indicators, a pair for each tone: one indeterminate, one determinate. Each tone shows its Figma drawings first, every indicator in its three states, then the moving prototypes.</p>
+      <p>Six indicators, a pair for each tone: one indeterminate, one determinate. Each tone shows how it got there, then the moving prototypes.</p>
 
-      <!-- Filling a drawing: export the frame to images/ under the name shown,
-           swap <div class="frame-art">…</div> for <img src="images/NAME.png" alt="…" />
-           and drop the is-empty class.
-           Filling a prototype: build it as its own page under the name shown,
+      <!-- Filling a prototype: build it as its own page under the name shown,
            swap <div class="proto-art">…</div> for
            <iframe src="week-01-TONE-KIND.html" title="…" loading="lazy"></iframe>,
-           drop the is-empty class, and turn <span class="soon"> into an
-           <a href="…" target="_blank" rel="noopener">Open full screen</a> link. -->
+           drop the is-empty class, and turn <span class="soon"> into a
+           <button type="button" class="viewer-open" data-src="…">View larger</button>. -->
 
       <h3>Nostalgic</h3>
 
@@ -424,41 +421,6 @@
           </figure>
       </div>
 
-      <h4>Figma drawings</h4>
-
-      <div class="tone-set">
-        <div class="state-row">
-          <p class="state-label"><b>Indeterminate</b><span>No end in sight: it loops or keeps turning.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-indeterminate-0.png</span></div>
-            <figcaption>Default</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-indeterminate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-indeterminate-done.png</span></div>
-            <figcaption>Complete</figcaption>
-          </figure>
-        </div>
-        <div class="state-row">
-          <p class="state-label"><b>Determinate</b><span>Shows how much is done, 0 to 100%.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-determinate-0.png</span></div>
-            <figcaption>Default</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-determinate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>nostalgic-determinate-done.png</span></div>
-            <figcaption>Complete</figcaption>
-          </figure>
-        </div>
-      </div>
-
       <h4>Prototypes</h4>
 
       <div class="proto-grid">
@@ -466,16 +428,16 @@
           <iframe src="week-01-nostalgic-indeterminate.html" title="Nostalgic indeterminate prototype: the view from inside the train" loading="lazy"></iframe>
           <figcaption>
             <b>Indeterminate</b>
-            <span>Inside the same old train, the carriage drawn only in lines: a round-cornered window in a screwed frame with its seal, a sill on brackets, and a luggage rack of tube rails and net above. The field runs past, evening light and wind moving through it, the near grass quicker than the far; now and then a tree goes by, and every so often the view jolts over a rail joint. It rides on for as long as the wait lasts.</span>
-            <a href="week-01-nostalgic-indeterminate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Evening fields passing the window of an old train, jolting now and then.</span>
+            <button type="button" class="viewer-open" data-src="week-01-nostalgic-indeterminate.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="proto">
           <iframe src="week-01-nostalgic-determinate.html" title="Nostalgic determinate prototype: a train across a field" loading="lazy"></iframe>
           <figcaption>
             <b>Determinate</b>
-            <span>An old steam train above a rice field, in dots. A post marks the start and a buffer stop the end; the train comes out from the start, engine first, smoke trailing, and the further it gets the more of it shows. At 100% it stands whole between the two with every lamp lit, then the whole scene, field and all, fades away. The percentage is written into the grass, where evening light and the wind keep moving.</span>
-            <a href="week-01-nostalgic-determinate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>A steam train pulls out along a rice field; how much of it shows is the progress.</span>
+            <button type="button" class="viewer-open" data-src="week-01-nostalgic-determinate.html">View larger</button>
           </figcaption>
         </figure>
       </div>
@@ -530,41 +492,6 @@
           </figure>
       </div>
 
-      <h4>Figma drawings</h4>
-
-      <div class="tone-set">
-        <div class="state-row">
-          <p class="state-label"><b>Indeterminate</b><span>No end in sight: it loops or keeps turning.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-indeterminate-0.png</span></div>
-            <figcaption>Default</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-indeterminate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-indeterminate-done.png</span></div>
-            <figcaption>Complete</figcaption>
-          </figure>
-        </div>
-        <div class="state-row">
-          <p class="state-label"><b>Determinate</b><span>Shows how much is done, 0 to 100%.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-determinate-0.png</span></div>
-            <figcaption>Default</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-determinate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
-          </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>serene-determinate-done.png</span></div>
-            <figcaption>Complete</figcaption>
-          </figure>
-        </div>
-      </div>
-
       <h4>Prototypes</h4>
 
       <div class="proto-grid">
@@ -572,55 +499,92 @@
           <iframe src="week-01-serene-indeterminate.html" title="Serene indeterminate prototype: a rippling field of stems" loading="lazy"></iframe>
           <figcaption>
             <b>Indeterminate</b>
-            <span>The Reeds field in the same depth, rows of stems each covering the foot of the one behind, now with rounded tips and cool colour, pale sky blue at the back into deep teal-blue in front. The field stands low, its tips rippling around the middle of its space as slow waves roll sideways through every row, a little out of step, for as long as the wait lasts.</span>
-            <a href="week-01-serene-indeterminate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>The Reeds field in cool blues, rippling low and endlessly.</span>
+            <button type="button" class="viewer-open" data-src="week-01-serene-indeterminate.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="proto">
           <iframe src="week-01-serene-determinate.html" title="Serene determinate prototype: a field of stems rising to fill its frame" loading="lazy"></iframe>
           <figcaption>
             <b>Determinate</b>
-            <span>The same stems in an unseen frame, growing from its foot as the work loads, so how high they stand shows roughly how much has loaded. Half way the rows and ripples are at their fullest; nearing the end they draw level, and at 100% every stem touches the top.</span>
-            <a href="week-01-serene-determinate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>The same reeds grow up the frame; at 100% every stem reaches the top.</span>
+            <button type="button" class="viewer-open" data-src="week-01-serene-determinate.html">View larger</button>
           </figcaption>
         </figure>
       </div>
 
       <h3>Edgy</h3>
 
-      <h4>Figma drawings</h4>
+      <h4>Process</h4>
 
-      <div class="tone-set">
-        <div class="state-row">
-          <p class="state-label"><b>Indeterminate</b><span>No end in sight: it loops or keeps turning.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-indeterminate-0.png</span></div>
-            <figcaption>Default</figcaption>
+      <p>How the pair got here from the Crack sketch, one saved version at a time.</p>
+
+      <p class="process-label">Determinate</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/edgy-determinate-1.png" alt="Edgy determinate, step 1" loading="lazy" />
+            <figcaption>First try: the crossing driven from corner to corner.</figcaption>
           </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-indeterminate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
+          <figure>
+            <img src="images/process/edgy-determinate-2.png" alt="Edgy determinate, step 2" loading="lazy" />
+            <figcaption>Four jagged arms, cracking one at a time in a jumbled order.</figcaption>
           </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-indeterminate-done.png</span></div>
-            <figcaption>Complete</figcaption>
+          <figure>
+            <img src="images/process/edgy-determinate-3.png" alt="Edgy determinate, step 3" loading="lazy" />
+            <figcaption>The same arms, made sleek.</figcaption>
           </figure>
-        </div>
-        <div class="state-row">
-          <p class="state-label"><b>Determinate</b><span>Shows how much is done, 0 to 100%.</span></p>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-determinate-0.png</span></div>
-            <figcaption>Default</figcaption>
+          <figure>
+            <img src="images/process/edgy-determinate-4.png" alt="Edgy determinate, step 4" loading="lazy" />
+            <figcaption>After a reference: pieces breaking off in rings.</figcaption>
           </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-determinate-progress.png</span></div>
-            <figcaption>In progress</figcaption>
+          <figure>
+            <img src="images/process/edgy-determinate-5.png" alt="Edgy determinate, step 5" loading="lazy" />
+            <figcaption>A crack that spreads from the middle like mercury, the percentage in one face.</figcaption>
           </figure>
-          <figure class="frame is-empty">
-            <div class="frame-art"><span>edgy-determinate-done.png</span></div>
-            <figcaption>Complete</figcaption>
+          <figure>
+            <img src="images/process/edgy-determinate-6.png" alt="Edgy determinate, step 6" loading="lazy" />
+            <figcaption>The panel in brushed metal.</figcaption>
           </figure>
-        </div>
+          <figure>
+            <img src="images/process/edgy-determinate-7.png" alt="Edgy determinate, step 7" loading="lazy" />
+            <figcaption>Plates, each brushed its own way.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-determinate-8.png" alt="Edgy determinate, step 8" loading="lazy" />
+            <figcaption>Inverted: a black panel, metal in the cracks.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-determinate-9.png" alt="Edgy determinate, step 9" loading="lazy" />
+            <figcaption>Liquid chrome after a reference.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-determinate-10.png" alt="Edgy determinate, step 10" loading="lazy" />
+            <figcaption>Metal only in the cracks, made raw.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-determinate-11.png" alt="Edgy determinate, step 11" loading="lazy" />
+            <figcaption>Now: rough yellow streaks along each crack, light figures.</figcaption>
+          </figure>
+      </div>
+
+      <p class="process-label">Indeterminate</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/edgy-indeterminate-1.png" alt="Edgy indeterminate, step 1" loading="lazy" />
+            <figcaption>The Crack sketch as it was: pale panels.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-indeterminate-2.png" alt="Edgy indeterminate, step 2" loading="lazy" />
+            <figcaption>Brushed stainless steel.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-indeterminate-3.png" alt="Edgy indeterminate, step 3" loading="lazy" />
+            <figcaption>Bolder gaps between the panels.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/edgy-indeterminate-4.png" alt="Edgy indeterminate, step 4" loading="lazy" />
+            <figcaption>Now: each crack its own width and lean, so the gap turns tall, wide or rhombic.</figcaption>
+          </figure>
       </div>
 
       <h4>Prototypes</h4>
@@ -630,23 +594,19 @@
           <iframe src="week-01-edgy-indeterminate.html" title="Edgy indeterminate prototype: four panels parted by two wandering cracks" loading="lazy"></iframe>
           <figcaption>
             <b>Indeterminate</b>
-            <span>The Crack sketch as it stands. Four pale panels parted by two thin black cracks that pool where they cross. The cracks dart about and tilt, each arm swelling and thinning on its own, so every panel keeps changing size with no direction to it. When done, the four panels fly off to the four corners.</span>
-            <a href="week-01-edgy-indeterminate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>The Crack sketch in brushed stainless steel: four panels parted by bold, wandering cracks.</span>
+            <button type="button" class="viewer-open" data-src="week-01-edgy-indeterminate.html">View larger</button>
           </figcaption>
         </figure>
         <figure class="proto">
-          <iframe src="week-01-edgy-determinate.html" title="Edgy determinate prototype: a crack spreading from the middle out to the edges" loading="lazy"></iframe>
+          <iframe src="week-01-edgy-determinate.html" title="Edgy determinate prototype: yellow cracks tearing open from the middle out to the edges" loading="lazy"></iframe>
           <figcaption>
             <b>Determinate</b>
-            <span>One brushed-metal panel, a soft highlight drifting across it. A crack starts at the middle and runs outward along the seams of pieces not yet there, branching at every joint. Each tip is a sharp point; behind it the black widens slowly like mercury and swells into round pools where the lines meet. The branches run at different speeds, so the front is never even. How far out it has spread is how much has loaded, and the face nearest the middle carries the percentage; when the cracks reach every edge of the screen it is done. Then the black keeps flowing and swallows the pieces.</span>
-            <a href="week-01-edgy-determinate.html" target="_blank" rel="noopener">Open full screen</a>
+            <span>Rough yellow cracks tear open from the middle; reaching every edge is 100%.</span>
+            <button type="button" class="viewer-open" data-src="week-01-edgy-determinate.html">View larger</button>
           </figcaption>
         </figure>
       </div>
-
-      <h2>Critique</h2>
-
-      <p>Feedback from class goes here.</p>
 
     </article>
 
@@ -661,5 +621,6 @@
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
 
+  <script src="../shared/viewer.js?v=4"></script>
 </body>
 </html>

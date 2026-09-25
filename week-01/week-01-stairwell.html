@@ -22,8 +22,8 @@
   .stage { position: fixed; inset: 0; }
   canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-  /* Experiment controls. Shown only when the sketch is opened on its own,
-     so the Ideation card shows the loader alone. */
+  /* Experiment controls. Shown only when the sketch is opened on its own or
+     in the "View larger" popup, so the Ideation card shows the loader alone. */
   .controls {
     position: fixed; left: 12px; right: 12px; bottom: 12px;
     display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
@@ -347,7 +347,7 @@
 
   const $ = id => document.getElementById(id);
   const controls = document.querySelector('.controls');
-  const alone = window.self === window.top;
+  const alone = window.self === window.top || window.__viewer;   // on its own, or in the "View larger" popup
   controls.hidden = !alone;
 
   function syncUI() {

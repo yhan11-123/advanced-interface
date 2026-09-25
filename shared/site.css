@@ -1,6 +1,8 @@
 /* ---------------------------------------------------------------
    Advanced Interface - shared styles for every page on the site.
    Week demos keep their own styles inside their own demo.html.
+   Pages link it as site.css?v=N (and viewer.js the same way): raise N
+   on every page when either changes, so browsers fetch the new one.
    --------------------------------------------------------------- */
 
 :root {
@@ -137,13 +139,13 @@ button { font: inherit; color: inherit; }
   border-radius: var(--radius); background: var(--bg-elev);
 }
 .demo-frame figcaption { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--fg-muted); margin-top: 8px; }
-.demo-frame figcaption a { color: var(--accent); }
+.demo-frame figcaption a, .demo-frame figcaption .viewer-open { color: var(--accent); }
 
 /* ---------- ideation: small live sketches side by side ----------
    <div class="idea-grid">
      <figure class="idea">
        <iframe src="week-01-sketch.html" title="..." loading="lazy"></iframe>
-       <figcaption><b>Name</b><span>One line on the idea.</span><a href="week-01-sketch.html" target="_blank" rel="noopener">Open</a></figcaption>
+       <figcaption><b>Name</b><span>One line on the idea.</span><button type="button" class="viewer-open" data-src="week-01-sketch.html">View larger</button></figcaption>
      </figure>
    </div> */
 /* at most three to a row; fewer when a card would drop below 220px */
@@ -153,7 +155,7 @@ button { font: inherit; color: inherit; }
 .idea figcaption { flex: 1; display: flex; flex-direction: column; padding: 10px 12px 12px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
 .idea figcaption b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
 /* pinned to the bottom right, level across a row of cards */
-.idea figcaption a { align-self: flex-end; margin-top: auto; padding-top: 8px; color: var(--accent); }
+.idea figcaption a, .idea figcaption .viewer-open { align-self: flex-end; margin-top: auto; padding-top: 8px; color: var(--accent); }
 
 /* ---------- deliverables: per tone, Figma drawings then prototypes ----------
    Drawings, each indicator's states frame by frame:
@@ -186,8 +188,8 @@ button { font: inherit; color: inherit; }
 .proto iframe, .proto-art { display: block; width: 100%; height: 280px; border: 0; border-bottom: 1px solid var(--line); }
 .proto figcaption { flex: 1; display: flex; flex-direction: column; padding: 10px 12px 12px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
 .proto figcaption b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
-.proto figcaption a, .proto figcaption .soon { align-self: flex-end; margin-top: auto; padding-top: 8px; }
-.proto figcaption a { color: var(--accent); }
+.proto figcaption a, .proto figcaption .viewer-open, .proto figcaption .soon { align-self: flex-end; margin-top: auto; padding-top: 8px; }
+.proto figcaption a, .proto figcaption .viewer-open { color: var(--accent); }
 
 /* Process: saved versions of a deliverable, in order, each with a line on what changed.
    <p class="process-label">Kind</p>
@@ -210,3 +212,100 @@ button { font: inherit; color: inherit; }
 .post-nav a { color: var(--fg-muted); }
 .post-nav a:hover { color: var(--accent); }
 .post-nav .next { text-align: right; margin-left: auto; }
+
+/* ---------- "View larger": a sketch in a popup (shared/viewer.js) ----------
+   <button type="button" class="viewer-open" data-src="week-01-sketch.html">View larger</button>
+   The popup is built by the script: the sketch at half the screen's width and
+   height; under it the name and description (2) beside the speed slider (1);
+   a close button floating apart above. */
+.viewer-open {
+  font: inherit; font-size: 13px; line-height: 1.45; color: var(--accent);
+  background: none; border: 0; padding: 0; cursor: pointer;
+}
+.viewer-open:hover { text-decoration: underline; text-underline-offset: 3px; }
+.viewer-open:focus-visible, .viewer button:focus-visible, .viewer input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+.viewer {
+  padding: 0; border: 0; overflow: visible; background: none; color: var(--fg);
+  max-width: none; max-height: none; margin: auto;
+}
+.viewer::backdrop { background: rgb(20 20 20 / .6); backdrop-filter: blur(4px); }
+.viewer[open] { animation: viewer-in .24s cubic-bezier(.2, .8, .2, 1); }
+@keyframes viewer-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) { .viewer[open] { animation: none; } }
+html:has(.viewer[open]) { overflow: hidden; }
+.viewer:focus { outline: none; }
+
+/* every part is its own card, floating on the backdrop */
+.viewer-close, .viewer-stage, .viewer-text, .viewer-speed { background: var(--bg-elev); border-radius: 14px; }
+
+/* the sketch: same shape as the screen, half its size */
+.viewer-stage { overflow: hidden; }
+.viewer-stage iframe { display: block; width: 50vw; height: 50vh; border: 0; background: var(--bg); }
+
+/* under it: name and description (2), speed (1) */
+.viewer-info { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; width: 50vw; margin-top: 12px; }
+.viewer-text { min-width: 0; padding: 16px 22px 20px; min-height: 96px; box-sizing: border-box; }
+.viewer-text h2 { margin: 0 0 8px; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.viewer-about { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--fg-muted); max-height: 16vh; overflow: auto; }
+.viewer-speed { display: flex; align-items: center; gap: 12px; padding: 0 14px 0 18px; height: 52px; }
+
+/* the slider: a thin bar, filled up to the knob, and a round knob cut out
+   of the card by a ring of its colour */
+.viewer-speed input {
+  --fill: 27%;
+  --on: var(--fg); --off: color-mix(in srgb, var(--fg) 16%, transparent);
+  -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: 24px; margin: 0;
+  background: none; cursor: pointer;
+}
+.viewer-speed input::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(to right, var(--on) var(--fill), var(--off) var(--fill));
+}
+.viewer-speed input::-moz-range-track { height: 4px; border-radius: 2px; background: var(--off); }
+.viewer-speed input::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--on); }
+.viewer-speed input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border: 0; border-radius: 50%;
+  background: var(--fg); box-shadow: 0 0 0 3px var(--bg-elev);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.viewer-speed input::-moz-range-thumb {
+  width: 16px; height: 16px; border: 0; border-radius: 50%;
+  background: var(--fg); box-shadow: 0 0 0 3px var(--bg-elev);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.viewer-speed input:hover::-webkit-slider-thumb { transform: scale(1.15); }
+.viewer-speed input:hover::-moz-range-thumb { transform: scale(1.15); }
+.viewer-speed input:active::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--bg-elev), 0 0 0 9px var(--accent-soft); }
+.viewer-speed input:active::-moz-range-thumb { box-shadow: 0 0 0 3px var(--bg-elev), 0 0 0 9px var(--accent-soft); }
+.viewer-speed input:focus-visible { outline: none; }
+.viewer-speed input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--bg-elev), 0 0 0 5px var(--accent); }
+.viewer-speed input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--bg-elev), 0 0 0 5px var(--accent); }
+.viewer-speed input:disabled { opacity: .4; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .viewer-speed input::-webkit-slider-thumb, .viewer-speed input::-moz-range-thumb { transition: none; }
+}
+
+/* the readout; a click puts the speed back to 1x */
+.viewer-rate {
+  flex: none; min-width: 5ch; padding: 3px 6px; border: 0; border-radius: 6px; background: none;
+  font-family: var(--mono); font-size: 12px; color: var(--fg); text-align: right; cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.viewer-rate:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* close: a small square card of its own, above the sketch's right corner */
+.viewer-close {
+  position: absolute; right: 0; bottom: calc(100% + 16px);
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  color: var(--fg); border: 0; cursor: pointer;
+}
+.viewer-close:hover { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .viewer-stage iframe { width: 92vw; height: min(50vh, 92vw * 1.4); }
+  .viewer-info { width: 92vw; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  .viewer-text { padding: 14px 16px 16px; min-height: 0; }
+  .viewer-text h2 { font-size: 18px; }
+  .viewer-about { max-height: 14vh; }
+}

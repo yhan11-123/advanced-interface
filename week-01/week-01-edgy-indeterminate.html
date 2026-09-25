@@ -7,7 +7,7 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <style>
   /* A prototype page of its own, so its styles stay in this file.
-     Pale panels on a black crack, the same in either scheme. */
+     Stainless-steel panels on a black crack, the same in either scheme. */
   :root {
     --bg: #0d0d0d;
     color-scheme: light;
@@ -25,19 +25,24 @@
   </div>
 
   <script>
-  // Edgy, indeterminate: the Crack sketch as it stands. Four pale panels
-  // fill the screen, parted by two thin black cracks that cross somewhere in the middle, where the panels' corners
-  // round off and the crack pools, like a joint in enamel. While loading,
+  // Edgy, indeterminate: the Crack sketch, in stainless steel. Four brushed
+  // steel panels fill the screen, parted by two bold black cracks that cross
+  // somewhere in the middle, where the panels' corners round off and the
+  // crack pools. Each panel catches the light from its own side, its edges
+  // bevelled bright, and a soft highlight drifts across them. While loading,
   // the cracks wander and tilt, and each of their four arms swells and
   // thins on its own, so every panel keeps changing its width and height
   // and the crossing darts about the screen. When loading is done,
   // the four panels fly off to the four corners, then come back to start again.
   (() => {
     const BG = '#0d0d0d';              // the crack
-    const PANEL = '#f3f1ec';
+    const PANEL = '#c4c8cc';           // the steel's mid tone, until its grain is made
+    const SHEEN = 6;                   // seconds for the highlight to cross the screen
 
-    const GAP = [0.004, 0.03];         // crack width, thinnest to widest, share of the short side
-    const ROUND = [0.035, 0.1];        // panel corners at the crossing, share of the short side
+    const GAP = [0.018, 0.055];         // each crack's width, thinnest to widest, share of the short side: bold
+    const TAPER = 0.25;                // how much one arm of a crack differs from the other
+    const ROUND = [0.01, 0.06];        // panel corners at the crossing, near sharp to very round, share of the short side
+    const TILT = 0.9;                  // how far each crack's ends swing apart, share of the short side, so it leans up to about 30 degrees
     const WANDER = 0.24;               // how far the cracks stray from the middle, share of the screen
     const DRIFT = 1.4;                 // how quickly they wander
 
@@ -50,15 +55,64 @@
     const ctx = canvas.getContext('2d');
     const stage = document.querySelector('.stage');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-    let W = 0, H = 0;
+    let W = 0, H = 0, dpr = 1, grain = null;
 
     function layout() {
       const r = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+      dpr = window.devicePixelRatio || 1;
       W = r.width; H = r.height;
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      brush();
+    }
+
+    // Brushed stainless, one tile that wraps without a seam: each row a
+    // little lighter or darker, streaks running slowly along it, fine grain,
+    // cool in tone. Made once per screen density.
+    function brush() {
+      const w = 1024, h = 512, c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const g = c.getContext('2d'), img = g.createImageData(w, h), d = img.data;
+      let a = 12345;
+      const rnd = () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
+      const K = Math.max(2, Math.round(w / (90 * dpr)));    // knots round a row, so it wraps
+      for (let y = 0; y < h; y++) {
+        const row = (rnd() - 0.5) * 22;
+        const knots = Array.from({ length: K }, () => (rnd() - 0.5) * 16);
+        for (let x = 0; x < w; x++) {
+          const u = x / w * K, i = Math.floor(u), f = u - i, e = f * f * (3 - 2 * f);
+          const b = 194 + row + knots[i % K] + (knots[(i + 1) % K] - knots[i % K]) * e + (rnd() - 0.5) * 9;
+          const o = (y * w + x) * 4;
+          d[o] = b - 6; d[o + 1] = b - 2; d[o + 2] = b + 3; d[o + 3] = 255;
+        }
+      }
+      g.putImageData(img, 0, 0);
+      grain = ctx.createPattern(c, 'repeat');
+    }
+
+    // A panel in steel: the brushed grain (carried along as the panel flies,
+    // by dx, dy), a broad band of light from the panel's own side, the
+    // drifting highlight, and a bright bevel just inside its edge.
+    function steel(path, dx, dy, q, sheen) {
+      if (grain) {
+        grain.setTransform(new DOMMatrix().translate(dx, dy).scale(1 / dpr));
+        ctx.fillStyle = grain;
+      } else ctx.fillStyle = PANEL;
+      ctx.fill(path);
+      const a = [-2.3, -0.8, 0.8, 2.3][q], r = Math.hypot(W, H) * 0.5;
+      const cx = W / 2 + dx, cy = H / 2 + dy;
+      const band = ctx.createLinearGradient(cx - Math.cos(a) * r, cy - Math.sin(a) * r, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      band.addColorStop(0, 'rgba(255,255,255,0.32)');
+      band.addColorStop(0.45, 'rgba(255,255,255,0.04)');
+      band.addColorStop(0.6, 'rgba(20,24,30,0.22)');
+      band.addColorStop(1, 'rgba(20,24,30,0.08)');
+      ctx.fillStyle = band; ctx.fill(path);
+      ctx.fillStyle = sheen; ctx.fill(path);
+      ctx.save();
+      ctx.clip(path);
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2.4; ctx.stroke(path);   // half of it shows: the bevel
+      ctx.restore();
     }
 
     // a slow, never-quite-repeating wander, -1 to 1
@@ -74,14 +128,15 @@
 
     // a closed shape through the points, rounding each corner by its own radius
     function rounded(pts, radii) {
-      const n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      const n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], path = new Path2D();
       const start = mid(pts[n - 1], pts[0]);
-      ctx.moveTo(start[0], start[1]);
+      path.moveTo(start[0], start[1]);
       for (let i = 0; i < n; i++) {
         const p = pts[i], q = pts[(i + 1) % n];
-        ctx.arcTo(p[0], p[1], q[0], q[1], radii[i]);
+        path.arcTo(p[0], p[1], q[0], q[1], radii[i]);
       }
-      ctx.closePath();
+      path.closePath();
+      return path;
     }
 
     // quick at first, slower in the middle, a small stall, then the finish
@@ -109,16 +164,31 @@
 
       const S = Math.min(W, H), e = S;   // e: well past the edges
       const range = ([lo, hi], k) => S * (lo + (hi - lo) * (0.5 + 0.5 * wander(t * 1.3, k)));
-      // each arm of each crack its own width, so the cracks are never even
-      const gTop = range(GAP, 5) / 2, gBottom = range(GAP, 6) / 2;
-      const gLeft = range(GAP, 7) / 2, gRight = range(GAP, 8) / 2;
-      // the two cracks: one running top to bottom, one left to right, each tilted
-      const top = [W * (0.5 + WANDER * wander(t, 0)), -e], bottom = [W * (0.5 + WANDER * wander(t, 1)), H + e];
-      const left = [-e, H * (0.5 + WANDER * wander(t, 2))], right = [W + e, H * (0.5 + WANDER * wander(t, 3))];
+      // Each crack its own width, on its own slow rhythm, so where they cross
+      // the gap is sometimes tall, sometimes wide, rarely square; and each
+      // arm a little wider or narrower than the other half of its crack.
+      const vW = S * (GAP[0] + (GAP[1] - GAP[0]) * (0.5 + 0.5 * wander(t * 0.7, 20)) ** 1.3);
+      const hW = S * (GAP[0] + (GAP[1] - GAP[0]) * (0.5 + 0.5 * wander(t * 0.95 + 3, 21)) ** 1.3);
+      const arm = k => 1 + TAPER * wander(t * 1.3, k);
+      const gTop = vW * arm(5) / 2, gBottom = vW * arm(6) / 2;
+      const gLeft = hW * arm(7) / 2, gRight = hW * arm(8) / 2;
+      // The two cracks: one running top to bottom, one left to right. Each
+      // leans as its two ends swing apart, so they cross at a slant and the
+      // gap between them turns from a rectangle to a rhombus and back.
+      const lv = TILT * S * wander(t * 0.6, 30), lh = TILT * S * wander(t * 0.55 + 2, 31);
+      const top = [W * (0.5 + WANDER * wander(t, 0)) + lv, -e], bottom = [W * (0.5 + WANDER * wander(t, 1)) - lv, H + e];
+      const left = [-e, H * (0.5 + WANDER * wander(t, 2)) - lh], right = [W + e, H * (0.5 + WANDER * wander(t, 3)) + lh];
 
       ctx.fillStyle = BG;
       ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = PANEL;
+      // the highlight drifting across, on the slant
+      const k = (((reduce.matches ? 0 : now / 1000) / SHEEN) % 1) * 1.6 - 0.3, x0 = W * k;
+      const sheen = ctx.createLinearGradient(x0 - W * 0.3, 0, x0 + W * 0.3, H * 0.7);
+      sheen.addColorStop(0, 'rgba(255,255,255,0)');
+      sheen.addColorStop(0.47, 'rgba(255,255,255,0.22)');
+      sheen.addColorStop(0.5, 'rgba(255,255,255,0.34)');
+      sheen.addColorStop(0.56, 'rgba(255,255,255,0.06)');
+      sheen.addColorStop(1, 'rgba(255,255,255,0)');
 
       // each panel: its side of both cracks, and the direction it leaves in
       [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy], q) => {
@@ -131,9 +201,7 @@
         const dist = away * Math.hypot(W, H) * 0.75;
         const dx = sx * dist * 0.7071, dy = sy * dist * 0.7071;
         const pts = [j, onV, far, onH].map(([x, y]) => [x + dx, y + dy]);
-        ctx.beginPath();
-        rounded(pts, [range(ROUND, 10 + q), 0, 0, 0]);
-        ctx.fill();
+        steel(rounded(pts, [range(ROUND, 10 + q), 0, 0, 0]), dx, dy, q, sheen);
       });
 
       const pct = Math.round(p * 100);
