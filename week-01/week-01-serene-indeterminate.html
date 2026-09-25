@@ -43,6 +43,7 @@
     const TOP = 0.56;           // where the back row stands, share of the frame's height
     const GAP = 0.065;          // step down to each nearer row
     const BAR = [2.5, 6];       // stem width at 1000px wide, back row to front row
+    const BLUR = 0.26;          // the whole field softened by this share of a middle stem's width, so the stems run together
     const TALL = [0.04, 0.18];  // stem height range, share of the frame's height (front row): tips near the middle
     const RAGGED = 0.22;        // uneven tips
     const WAVES = [             // [length, speed per second, weight], lengths in 1000ths of the frame's width
@@ -81,6 +82,9 @@
       // Each row: its baseline, stem width, a colour ramp, and stems with a
       // fixed ragged offset and shade so the field never looks combed.
       const scalePx = Math.max(0.6, w / 1000);
+      // soften it all, in step with the stems' size, so it reads as one
+      // soft field in motion rather than separate bars
+      canvas.style.filter = `blur(${((BAR[0] + BAR[1]) / 2 * scalePx * 1.6 * BLUR).toFixed(2)}px)`;
       rows = Array.from({ length: ROWS }, (_, i) => {
         const k = i / (ROWS - 1);
         const bw = Math.max(1.5, (BAR[0] + (BAR[1] - BAR[0]) * k) * scalePx * 1.6);

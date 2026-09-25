@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 01 sketch &middot; Ping-pong loader</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Glowing white on black, the same in either scheme. */
+  :root {
+    --bg: #000000;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="progressbar" aria-label="Loading">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <script>
+  // Ping-pong. A row of columns, each a pair of dots, one above and one
+  // below, apart and unjoined. A turn runs along the row and back, like the
+  // block in a ping-pong bar, easing at each end, and it takes three columns
+  // at a time: the one it is on draws its dots in furthest, the two beside
+  // it less, so the dots trace one smooth curve, and all three are joined by
+  // lines grown out from each dot to meet in the middle. As the turn moves
+  // on, the lines draw back and the dots return to their places. Every dot
+  // and line gives off light, soft halos that brighten where they overlap
+  // and glow strongest where the turn is.
+  (() => {
+    const BLACK = '#000000', WHITE = '#ffffff';
+    const COLS = 11;                   // columns in the row
+    const GAP = 0.075;                 // column spacing, share of the short side
+    const DOT = 0.012;                 // dot radius, share of the short side
+    const APART = 0.075;               // each dot's distance from the middle at rest, share of the short side
+    const NEAR = 0.032;                // and on its turn
+    const SPREAD = 0.85;               // how far the turn reaches either side, in columns: about three move together
+    const SWEEP = 1.6;                 // seconds from one end of the row to the other
+
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0;
+
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = r.width; H = r.height; S = Math.min(W, H);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+
+    // A soft halo of light round a point, radius `r`, strength `k`.
+    function halo(x, y, r, k) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(255, 255, 255, ${0.55 * k})`);
+      g.addColorStop(0.25, `rgba(235, 240, 255, ${0.22 * k})`);
+      g.addColorStop(1, 'rgba(235, 240, 255, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+
+    function frame(now) {
+      const t = reduce.matches ? 0 : now / 1000 / SWEEP;
+      // where the turn is: out along the row and back, slowing at each end
+      const leg = Math.floor(t), f = 0.5 - 0.5 * Math.cos((t % 1) * Math.PI);
+      const head = (leg % 2 ? 1 - f : f) * (COLS - 1);
+
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = BLACK;
+      ctx.fillRect(0, 0, W, H);
+      const g = S * GAP, r = S * DOT, x0 = W / 2 - g * (COLS - 1) / 2, cy = H / 2;
+      // each column: how much it is its turn (a bell, so neighbours follow
+      // smoothly and the dots trace a curve), where its dots sit, how far its line has grown
+      const cols = Array.from({ length: COLS }, (_, i) => {
+        const a = Math.exp(-(((i - head) / SPREAD) ** 2) / 2);
+        const off = S * (APART + (NEAR - APART) * a);
+        return { x: x0 + i * g, a, top: cy - off, bottom: cy + off, reach: ease((a - 0.15) / 0.35) * (off - r) };
+      });
+      // the light first, added up so it brightens where halos overlap
+      ctx.globalCompositeOperation = 'lighter';
+      for (const c of cols) {
+        const k = 0.45 + 0.55 * c.a;
+        halo(c.x, c.top, r * 7, k);
+        halo(c.x, c.bottom, r * 7, k);
+        if (c.reach > 0.5) {
+          // a line's light: a faint stroke blurred wide, round at the ends, as one path so the halves meet without a seam
+          ctx.save();
+          ctx.strokeStyle = `rgba(235, 240, 255, ${0.35 * k})`;
+          ctx.shadowColor = `rgba(235, 240, 255, ${0.8 * k})`;
+          ctx.shadowBlur = r * 4;
+          ctx.lineWidth = r * 0.5; ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(c.x, c.top); ctx.lineTo(c.x, c.top + r + c.reach);
+          ctx.moveTo(c.x, c.bottom); ctx.lineTo(c.x, c.bottom - r - c.reach);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+      // then the white itself, with a tight glow of its own
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = WHITE; ctx.strokeStyle = WHITE;
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
+      ctx.shadowBlur = r * 2.2;
+      for (const c of cols) {
+        if (c.reach > 0.5) {
+          ctx.lineWidth = Math.max(1, r * 0.16); ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(c.x, c.top + r); ctx.lineTo(c.x, c.top + r + c.reach);
+          ctx.moveTo(c.x, c.bottom - r); ctx.lineTo(c.x, c.bottom - r - c.reach);
+          ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(c.x, c.top, r, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(c.x, c.bottom, r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    new ResizeObserver(layout).observe(canvas);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+
+</body>
+</html>
