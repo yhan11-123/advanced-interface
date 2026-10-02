@@ -208,6 +208,165 @@ button { font: inherit; color: inherit; }
 .frame-art span, .proto-art span { padding: 8px; font-family: var(--mono); font-size: 11px; color: var(--fg-muted); text-align: center; word-break: break-all; }
 .proto figcaption .soon { font-size: 12px; }
 
+/* ---------- research visuals: research tables drawn as pictures ----------
+   Each keeps every word of the table it replaces; where the numbers matter,
+   the table itself stays one click away in <details class="rv-table">.
+   One accent hue only; marks thin, text in text colours, never the accent. */
+
+/* two subjects side by side, each a small drawing over a list of facts:
+   <div class="rv-pair"><figure class="rv-card"><div class="rv-art"><svg/></div>
+     <figcaption><b>Name</b><dl class="rv-facts"><dt/><dd/></dl></figcaption></figure></div> */
+.rv-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+.rv-card { margin: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.rv-art { display: grid; place-items: center; height: 168px; border-bottom: 1px solid var(--line); color: var(--fg); }
+.rv-art svg { width: 220px; height: auto; overflow: visible; }
+.rv-card figcaption { padding: 12px 14px 14px; }
+.rv-card figcaption > b { display: block; font-size: 15px; margin-bottom: 8px; }
+.rv-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; font-size: 13.5px; line-height: 1.45; }
+.rv-facts dt { color: var(--fg-muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding-top: 2px; }
+.rv-facts dd { margin: 0; }
+.rv-facts code { font-size: .85em; }
+
+/* rules as cards, each with a tiny pictogram:
+   <div class="rv-rules"><div class="rv-rule"><svg class="rv-pict"/><b>Rule</b><p>What it forces</p></div></div> */
+.rv-rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(200px, (100% - 24px) / 3), 1fr)); gap: 12px; margin: 16px 0 24px; }
+.rv-rule { padding: 14px 14px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+.rv-pict { display: block; width: 112px; height: 68px; margin-bottom: 10px; overflow: visible; color: var(--fg); }
+.rv-pict .rv-note { font-size: 7.5px; }
+.rv-pict .rv-on-acc { font-size: 8px; }
+.rv-rule b { display: block; font-size: 14.5px; line-height: 1.35; margin-bottom: 4px; }
+.prose .rv-rule p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+
+/* the shared colour roles inside every drawing */
+.rv-ink { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.rv-mute { fill: none; stroke: var(--fg-muted); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+.rv-hair { fill: none; stroke: var(--line); stroke-width: 1; }
+.rv-acc { fill: var(--accent); }
+.rv-acc-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rv-surface { fill: var(--bg-elev); }
+.rv-label { fill: var(--fg); font: 600 12px/1 var(--font); }
+.rv-note { fill: var(--fg-muted); font: 11px/1 var(--font); }
+.rv-on-acc { fill: var(--bg-elev); font: 700 10px/1 var(--font); }
+
+/* a flow of stages across, with a lane per subject:
+   <div class="rv-flow"> header cells .rv-stage, then per lane .rv-lane + 4 cells </div> */
+.rv-flow { display: grid; grid-template-columns: 76px repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0 24px; font-size: 13px; line-height: 1.45; }
+.rv-flow > div { padding: 10px 12px; border-radius: 8px; background: var(--bg-elev); border: 1px solid var(--line); }
+.rv-flow > .rv-corner { background: none; border: 0; padding: 0; }
+.rv-flow > .rv-stage { position: relative; background: var(--accent-soft); border-color: transparent; font-weight: 600; font-size: 13px; color: var(--fg); }
+.rv-flow > .rv-stage span { display: block; font-weight: 400; font-size: 11.5px; color: var(--fg-muted); }
+.rv-flow > .rv-stage:not(:nth-child(5))::after {
+  content: ""; position: absolute; right: -8px; top: 50%; width: 8px; height: 1px; background: var(--fg-muted);
+}
+.rv-flow > .rv-lane { background: none; border: 0; padding: 10px 0; font-weight: 600; font-size: 12px; color: var(--fg-muted); letter-spacing: .04em; text-transform: uppercase; }
+@media (max-width: 640px) {
+  .rv-flow { grid-template-columns: 1fr 1fr; }
+  .rv-flow > .rv-corner, .rv-flow > .rv-stage { display: none; }
+  .rv-flow > .rv-lane { grid-column: 1 / -1; padding: 8px 0 0; }
+  .rv-flow > div[data-stage]::before { content: attr(data-stage); display: block; font-size: 11px; font-weight: 600; color: var(--fg-muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; }
+}
+
+/* a chart in a frame: <figure class="rv-chart"><svg/><figcaption/></figure> */
+.rv-chart { margin: 16px 0 12px; padding: 16px 16px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+.rv-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rv-chart figcaption { margin-top: 8px; font-size: 12.5px; color: var(--fg-muted); }
+.rv-chart .rv-bar:hover, .rv-chart .rv-hit:hover + .rv-bar { opacity: .8; }
+
+/* easing as small multiples: the curve, and a dot run along it on a loop */
+.rv-curves { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(180px, (100% - 36px) / 4), 1fr)); gap: 12px; margin: 16px 0 24px; }
+.rv-curve { margin: 0; padding: 14px 14px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+.rv-curve svg { display: block; width: 100%; max-width: 150px; height: auto; margin: 0 auto 10px; overflow: visible; }
+.rv-curve figcaption { font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.rv-curve figcaption b { display: block; font-size: 14.5px; color: var(--fg); }
+.rv-curve figcaption code { display: inline-block; margin: 2px 0 4px; font-size: 11px; }
+.rv-run { position: relative; height: 10px; margin: 0 4px 10px; border-radius: 5px; background: var(--line); }
+.rv-run i { position: absolute; top: 0; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg-elev); animation: rv-run 2.4s infinite; }
+@keyframes rv-run { 0%, 15% { left: 0; } 65%, 100% { left: calc(100% - 10px); } }
+@media (prefers-reduced-motion: reduce) { .rv-run i { animation: none; left: calc(100% - 10px); } }
+
+/* levers as a spectrum: the quiet end on the left, the lever in the middle, the loud end on the right:
+   <div class="rv-levers"><div class="rv-levers-head"><span>Quiet</span><span>Lever</span><span>Loud</span></div>
+     <div class="rv-lever"><span class="q">quiet</span><b>Lever</b><span class="l">loud</span></div></div> */
+.rv-levers { margin: 16px 0 24px; }
+.rv-levers-head, .rv-lever { display: grid; grid-template-columns: 1fr 128px 1fr; gap: 16px; align-items: center; }
+.rv-levers-head { padding: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
+.rv-levers-head span:first-child { text-align: right; }
+.rv-levers-head span:first-child::before { content: "\2190  "; }
+.rv-levers-head span:nth-child(2) { text-align: center; }
+.rv-levers-head span:last-child::after { content: "  \2192"; }
+.rv-lever { position: relative; isolation: isolate; padding: 7px 0; font-size: 14px; line-height: 1.4; }
+.rv-lever::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; z-index: -1;
+  background: linear-gradient(to right, transparent, var(--line) 30%, var(--line) 70%, transparent); }
+.rv-lever .q { text-align: right; color: var(--fg-muted); }
+.rv-lever .q, .rv-lever .l { padding: 4px 0; background: var(--bg); }
+.rv-lever .q { justify-self: end; padding-left: 8px; }
+.rv-lever .l { justify-self: start; padding-right: 8px; font-weight: 500; }
+.rv-lever b { justify-self: center; padding: 5px 12px; border-radius: 999px; background: var(--accent-soft); font-size: 13px; white-space: nowrap; }
+@media (max-width: 560px) {
+  .rv-levers-head { display: none; }
+  .rv-lever { grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rv-lever::before { display: none; }
+  .rv-lever b { grid-column: 1 / -1; grid-row: 1; justify-self: start; }
+  .rv-lever .q { text-align: left; justify-self: start; padding: 0; }
+  .rv-lever .q::before { content: "Quiet  "; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .rv-lever .l::before { content: "Loud  "; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); }
+}
+
+/* durations on one shared millisecond scale, as rows of bars over one plot:
+   <div class="rv-time">
+     <div class="rv-time-row is-group"><span class="rv-time-what">Lane</span><span class="rv-time-track"></span></div>
+     <div class="rv-time-row"><span class="rv-time-what"><b>Moment</b><small>Source</small></span>
+       <span class="rv-time-track"><i style="--ms: 200"></i><em style="--ms: 200">200 ms</em></span></div>
+     ... <div class="rv-time-axis"><span></span><span class="rv-time-ticks"><span style="--ms: 0">0</span>...</span></div></div>
+   The rows touch, so the tracks read as one plot: a hairline every 100 ms, a single baseline,
+   and the stretch past 500 ms washed faintly, where motion starts to drag. */
+.rv-time { --max: 600; --zone: color-mix(in srgb, var(--accent) 9%, transparent);
+  margin: 16px 0 12px; padding: 16px 20px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
+  font-size: 13px; line-height: 1.35; }
+.rv-time-row, .rv-time-axis { display: grid; grid-template-columns: minmax(150px, 32%) 1fr; column-gap: 20px; }
+.rv-time-what { padding: 7px 0; }
+.rv-time-what b { display: block; font-weight: 500; }
+.rv-time-what small { display: block; font-size: 11.5px; color: var(--fg-muted); }
+.rv-time-row.is-group .rv-time-what { padding: 12px 0 4px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
+.rv-time-row.is-group:first-child .rv-time-what { padding-top: 2px; }
+.rv-time-track { position: relative;
+  background:
+    linear-gradient(to right, var(--fg-muted) 0 1px, transparent 1px),                                 /* baseline */
+    repeating-linear-gradient(to right, transparent 0 calc(100% / 6 - 1px), var(--line) calc(100% / 6 - 1px) calc(100% / 6)), /* every 100 ms */
+    linear-gradient(to right, transparent calc(500 / var(--max) * 100%), var(--zone) 0);              /* past 500 ms */
+}
+.rv-time-track i { position: absolute; left: 0; top: 50%; height: 10px; margin-top: -5px; width: calc(var(--ms) / var(--max) * 100%);
+  background: var(--accent); border-radius: 0 3px 3px 0; }
+.rv-time-track i.soft { opacity: .4; }
+.rv-time-track em { position: absolute; top: 50%; transform: translateY(-50%); left: calc(var(--ms) / var(--max) * 100% + 8px);
+  font-style: normal; font-size: 11.5px; color: var(--fg-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rv-time-zone { position: absolute; left: calc(500 / var(--max) * 100% + 7px); top: 3px; font-size: 11px; color: var(--fg-muted); line-height: 1.25; white-space: nowrap; }
+.rv-time-ticks { position: relative; height: 22px; border-top: 1px solid var(--line); font-size: 11px; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.rv-time-ticks span { position: absolute; white-space: nowrap; top: 5px; left: calc(var(--ms) / var(--max) * 100%); transform: translateX(-50%); }
+.rv-time-ticks span:first-child { transform: none; }
+.rv-time-ticks span:last-child { transform: translateX(-100%); }
+/* narrow: the name sits inside the plot, over its bar, so the plot stays one piece */
+@media (max-width: 560px) {
+  .rv-time { padding: 14px 14px 10px; }
+  .rv-time-row, .rv-time-axis { grid-template-columns: 1fr; }
+  .rv-time-row > * { grid-area: 1 / 1; }
+  .rv-time-what { position: relative; z-index: 1; padding: 6px 0 26px 10px; }
+  .rv-time-what b { font-size: 12.5px; }
+  .rv-time-what small { font-size: 11px; }
+  .rv-time-track i { top: auto; bottom: 8px; margin-top: 0; }
+  .rv-time-track em { top: auto; bottom: 6px; transform: none; font-size: 11px; }
+  .rv-time-row.is-group .rv-time-what { padding: 10px 0 4px 10px; }
+  .rv-time-zone { display: none; }
+  .rv-time-axis > span:first-child { display: none; }
+}
+
+/* the table a picture replaced, folded away underneath it */
+.rv-table { margin: 0 0 24px; font-size: 13px; color: var(--fg-muted); }
+.rv-table summary { cursor: pointer; width: max-content; }
+.rv-table summary:hover { color: var(--accent); }
+.prose .rv-table table { margin-top: 8px; color: var(--fg); }
+
 /* Sources, gathered small at the very end of a post:
    <footer class="sources"><h2>Sources</h2><ul><li>…</li></ul></footer> */
 .sources { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; color: var(--fg-muted); }
