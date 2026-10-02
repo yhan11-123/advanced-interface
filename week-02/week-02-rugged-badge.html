@@ -182,8 +182,9 @@
 
     async function showDot(my) {
       stopAll();
-      // coming from the count, the count leaves first
-      if (count.getAttribute('visibility') === 'visible' && !(await unwind(my))) return;
+      // every press plays the sweep again from a bare icon: whatever is shown (the count, or the plate
+      // from an earlier press) winds back first
+      if (offset() < len && !(await unwind(my))) return;
       show('plate');
       const from = offset();
       announce('Messages');

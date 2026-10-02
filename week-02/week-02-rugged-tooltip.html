@@ -11,7 +11,11 @@
      yellow. No tooltip box: the same square plate as the badge's dot is swept
      in above the bell, stretches into a bar, and the bar is cut into the word,
      the letters drawn like the badge's digits, square-shouldered plates with
-     only their corners softened. */
+     only their corners softened.
+     Rich tooltip: still no box. A taller plate is swept in and stretched, then
+     carved: the top row into the message, and under it a second plate is cut
+     free to be the button, its word cut out of it in negative, so it reads as
+     a solid slab you can press rather than more lettering. */
   :root {
     --bg: #0b0b0a;
     --ink: #ecebe4;
@@ -35,11 +39,32 @@
   .bell-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  .hint {
-    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
-    font: 700 12px/1.4 "Helvetica Neue", Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
-    color: rgba(236, 235, 228, .4);
+  /* the rich tooltip's live parts, laid over the drawn plate: the group takes the pointer,
+     so it can be hovered, and the button sits exactly on the slab */
+  .rich { position: absolute; }
+  .unmute {
+    position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 3px;
   }
+  /* in a small frame the slab is under 24px tall: the hit area reaches a little past it */
+  .unmute::after { content: ""; position: absolute; inset: -4px -2px; }
+  .unmute:hover { outline: 1.5px solid rgba(236, 235, 228, .35); outline-offset: 3px; }
+  .unmute:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+  .unmute[aria-disabled="true"] { cursor: default; outline: none; }
+
+  /* plain or rich, one chosen: the chosen one is filled, as on the badge page */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 700 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .controls button {
+    height: 32px; padding: 0 14px; border: 1.5px solid rgba(236, 235, 228, .35); border-radius: 3px;
+    background: transparent; color: var(--ink); font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--yellow); }
+  .controls button[aria-pressed="true"] { background: var(--yellow); border-color: var(--yellow); color: var(--bg); }
+  .controls button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
   .back-pill {
     position: fixed; left: 12px; top: 12px; z-index: 9;
     font: 12px/1 system-ui, sans-serif; color: var(--bg); background: rgba(236, 235, 228, .8);
@@ -66,6 +91,20 @@
           <rect x="-12" y="-6" width="48" height="10" fill="#fff"/>
           <path class="cuts" fill="#000"/>
         </mask>
+        <!-- the same three for the rich plate, over a taller area -->
+        <filter id="round-rich" filterUnits="userSpaceOnUse" x="-12" y="-8" width="48" height="16">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=".07" result="blur"/>
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"/>
+        </filter>
+        <mask id="rsweep" maskUnits="userSpaceOnUse" x="-12" y="-8" width="48" height="16">
+          <circle class="wedge rwedge"/>
+        </mask>
+        <!-- black is carved out; the white on top carves back into the button's slot, so its letters are holes -->
+        <mask id="rcut" maskUnits="userSpaceOnUse" x="-12" y="-8" width="48" height="16">
+          <rect x="-12" y="-8" width="48" height="16" fill="#fff"/>
+          <path class="rcuts" fill="#000"/>
+          <path class="rkeep" fill="#fff"/>
+        </mask>
       </defs>
       <!-- the shared bell -->
       <path class="bell" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
@@ -76,12 +115,25 @@
           <g mask="url(#cut)"><rect class="bar"/></g>
         </g>
       </g>
+      <!-- the rich plate: the message row and the button slab, from one piece -->
+      <g filter="url(#round-rich)">
+        <g class="rswept" mask="url(#rsweep)">
+          <g mask="url(#rcut)"><rect class="bar rbar"/></g>
+        </g>
+      </g>
     </svg>
     <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
     <span class="sr" role="tooltip" id="tip">Notifications</span>
+    <div class="rich" id="rich" role="group" aria-label="Notification settings" hidden>
+      <p class="sr rich-msg" aria-live="polite">Muted until 9 AM</p>
+      <button type="button" class="unmute"><span class="sr">Unmute</span></button>
+    </div>
   </div>
 
-  <p class="hint">Hover or focus the bell</p>
+  <div class="controls" role="group" aria-label="Tooltip type">
+    <button type="button" data-type="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-type="rich" aria-pressed="false">Rich</button>
+  </div>
 
   <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
 
@@ -92,6 +144,18 @@
   // notches grow in from the edges, and counters open from a point, the way
   // the "ragged number motion" reference grows new notches out of flat edges.
   // Leave: the cuts close, the bar draws back to a square, the hand winds back.
+  //
+  // Rich tooltip. The same three moves with a bigger plate: a taller square is
+  // swept in and stretched into a slab. Then the slab is carved. A slit opens
+  // across it and its lower half is cut away from the left, which leaves a
+  // second, smaller plate at the right end underneath: the button, where a
+  // tooltip's action row would put it. The top row is carved into
+  // MUTED UNTIL 9 AM, left to right, and a slot is cut into the button and
+  // carved into UNMUTE, so its word is a hole in a solid slab. Press Unmute:
+  // the slab steps down and its slot closes up, solid, done; the top row's cuts
+  // close and it is carved again, into NOTIFICATIONS ON. A moment later it all
+  // closes the way the plain one does. The pointer can move from the bell onto
+  // the plate, and Esc closes it.
   (() => {
     const DELAY = 250;                 // ms of hover before it starts
     const SWEEP = 340;                 // ms for the square to be swept in
@@ -99,6 +163,14 @@
     const CARVE = 520;                 // ms for each letter to be cut
     const STAGGER = 24;                // ms between one letter starting and the next
     const OUT = { carve: 260, stretch: 220, sweep: 200 };   // leaving is quicker
+
+    // rich: a bigger plate takes a little longer, at the same even pace
+    const R_SWEEP = 380, R_STRETCH = 420;
+    const R_CARVE = 1100;              // ms from the first cut to the button's last letter
+    const R_OUT = { carve: 320, stretch: 260, sweep: 220 };
+    const R_LEAVE = 300;               // ms grace after the pointer leaves, so it can cross to the plate
+    const ACK = 1340;                  // ms for the press and the row's recarving
+    const HOLD = 1200;                 // ms the new line is read before it closes by itself
 
     // Letters on a grid 8 high, each with its width and the cuts that make it
     // from a solid block. A cut grows in from one side ('t' top, 'b' bottom,
@@ -111,44 +183,103 @@
       F: { w: 5, cuts: [[[2, 2], [5, 2], [5, 3.2], [2, 3.2]], 'r'], more: [[[2, 5], [5, 5], [5, 8], [2, 8]], 'r'], last: [[[4.2, 3.2], [5, 3.2], [5, 5], [4.2, 5]], 'r'] },
       C: { w: 5.5, cuts: [[[2, 2], [5.5, 2], [5.5, 6], [2, 6]], 'r'], more: [[[0, 6.8], [1.2, 8], [0, 8]], 'l'] },
       A: { w: 6, cuts: [[[0, 0], [1.6, 0], [0, 1.6]], 'l'], more: [[[2, 2], [4, 2], [4, 3.6], [2, 3.6]], 'c'], last: [[[2, 5.4], [4, 5.4], [4, 8], [2, 8]], 'b'] },
-      S: { w: 5.5, cuts: [[[2, 2], [5.5, 2], [5.5, 3], [2, 3]], 'r'], more: [[[0, 5], [3.5, 5], [3.5, 6], [0, 6]], 'l'] }
+      S: { w: 5.5, cuts: [[[2, 2], [5.5, 2], [5.5, 3], [2, 3]], 'r'], more: [[[0, 5], [3.5, 5], [3.5, 6], [0, 6]], 'l'] },
+      // for the rich line and its button, drawn the same way. M is a block a
+      // little wider, a V notched in from the top and a pointed slot from the
+      // bottom; U and D lose their corners on one side or both, like O and C
+      M: { w: 7, cuts: [[[2.2, 0], [4.8, 0], [3.5, 2]], 't'], more: [[[2, 8], [2, 3.4], [3.5, 5.4], [5, 3.4], [5, 8]], 'b'] },
+      U: { w: 6, cuts: [[[2, 0], [4, 0], [4, 6], [2, 6]], 't'], more: [[[6, 6.8], [6, 8], [4.8, 8]], 'r'], last: [[[0, 6.8], [1.2, 8], [0, 8]], 'l'] },
+      E: { w: 5, cuts: [[[2, 2], [5, 2], [5, 3.1], [2, 3.1]], 'r'], more: [[[2, 4.9], [5, 4.9], [5, 6], [2, 6]], 'r'], last: [[[4.2, 3.1], [5, 3.1], [5, 4.9], [4.2, 4.9]], 'r'] },
+      D: { w: 6, cuts: [[[4.6, 0], [6, 0], [6, 1.4]], 'r'], more: [[[2, 2], [4, 2], [4, 6], [2, 6]], 'c'], last: [[[6, 6.6], [6, 8], [4.6, 8]], 'r'] },
+      L: { w: 5, cuts: [[[2, 0], [5, 0], [5, 6], [2, 6]], 'r'] },
+      9: { w: 6, cuts: [[[2, 2], [4, 2], [4, 3.4], [2, 3.4]], 'c'], more: [[[0, 5], [4, 5], [4, 6.2], [0, 6.2]], 'l'] },
+      ' ': { w: 1.8, space: true }      // a space is just a wider gap
     };
     const WORD = 'NOTIFICATIONS';
     const GAP = 1.2;
     const S = .38;                     // grid unit in the bell's drawing units
     const CX = 12, CY = -1.1;          // where the word is centred, above the bell
-
-    // lay the word out on the grid, and list every cut with the letter it belongs to
     const PAD = .5;                    // cuts that meet the block's edge run past it, so the edge cuts clean
-    const cuts = [];
-    let x = 0;
-    for (let i = 0; i < WORD.length; i++) {
-      const g = L[WORD[i]];
-      for (const c of [g.cuts, g.more, g.last]) {
-        if (!c) continue;
-        const pts = c[0].map(([px, py]) => [
-          x + (px === 0 ? -PAD : px === g.w ? g.w + PAD : px),
-          py === 0 ? -PAD : py === 8 ? 8 + PAD : py
-        ]);
-        cuts.push({ i, pts, from: c[1], x0: x - PAD, x1: x + g.w + PAD });
+
+    // lay a line out on the grid, and list every cut with the letter it belongs to;
+    // the gap after a letter opens from its own middle line, and runs on over a space
+    function lay(text) {
+      const cuts = [];
+      let x = 0, gapFrom = null, gapOf = 0;
+      for (let i = 0; i < text.length; i++) {
+        const g = L[text[i]];
+        if (g.space) { x += g.w + GAP; continue; }
+        if (gapFrom !== null) cuts.push({ i: gapOf, pts: [[gapFrom, -PAD], [x, -PAD], [x, 8 + PAD], [gapFrom, 8 + PAD]], from: 'c', gap: true });
+        for (const c of [g.cuts, g.more, g.last]) {
+          if (!c) continue;
+          const pts = c[0].map(([px, py]) => [
+            x + (px === 0 ? -PAD : px === g.w ? g.w + PAD : px),
+            py === 0 ? -PAD : py === 8 ? 8 + PAD : py
+          ]);
+          cuts.push({ i, pts, from: c[1], x0: x - PAD, x1: x + g.w + PAD });
+        }
+        x += g.w;
+        gapFrom = x; gapOf = i;
+        x += GAP;
       }
-      x += g.w;
-      // the gap after this letter opens from its own middle line
-      if (i < WORD.length - 1) cuts.push({ i, pts: [[x, -PAD], [x + GAP, -PAD], [x + GAP, 8 + PAD], [x, 8 + PAD]], from: 'c', gap: true });
-      x += GAP;
+      for (const c of cuts) collapse(c);
+      return { cuts, W: x - GAP };
     }
-    const W = x - GAP;
-    const OX = CX - S * W / 2, OY = CY - S * 4;
     // each cut's collapsed form: squashed flat onto the side it grows from, or onto its middle
-    // (a gap onto its middle line, so the letters part; a counter onto its middle point)
-    for (const c of cuts) {
+    // (a gap onto its middle line, so the letters part; a counter onto its middle point;
+    // 'h', the rich plate's slit, onto its middle line across)
+    function collapse(c) {
       const mx = c.pts.reduce((a, p) => a + p[0], 0) / c.pts.length;
       const my = c.pts.reduce((a, p) => a + p[1], 0) / c.pts.length;
       c.flat = c.pts.map(([px, py]) =>
         c.from === 't' ? [px, -PAD] : c.from === 'b' ? [px, 8 + PAD] :
         c.from === 'l' ? [c.x0, py] : c.from === 'r' ? [c.x1, py] :
+        c.from === 'h' ? [px, my] :
         c.gap ? [mx, py] : [mx, my]);
+      return c;
     }
+    const { cuts, W } = lay(WORD);
+    const OX = CX - S * W / 2, OY = CY - S * 4;
+
+    // ---- the rich plate, on its own grid: x centred on 0, y from the slab's top
+    // rows: the message 0-8, a slit under it (three quarters of a letter high, so the two read
+    // apart), then the button at the plate's right end, with room round its word
+    const RS = .3;                     // a finer grid, so the longer line still fits over the bell
+    const KS = .65;                    // the button's word, a size down from the message
+    const KT = 8 + 6.4;                // the button's top: the slit is 6.4, over 3/4 of the row's 8
+    const KH = 8 * KS + 9;             // the button's height: its word with 4.5 above and below
+    const RH = KT + KH;                // the whole plate
+    const DROP = 1.4;                  // how far the button steps down when pressed
+    const RTOP = 2.0 - RS * RH;        // the slab's top: its foot sits just clear of the bell
+    // move a laid-out line onto the rich grid: shift, scale, and tag it with its place in the carving
+    const place = (line, dx, dy, k, set, at, step, dur) => line.cuts.map(c => ({
+      set, i: c.i, at: at + c.i * step, dur,
+      pts: c.pts.map(([x, y]) => [dx + k * x, dy + k * y]),
+      flat: c.flat.map(([x, y]) => [dx + k * x, dy + k * y])
+    }));
+    const MUTED = lay('MUTED UNTIL 9 AM'), ON = lay('NOTIFICATIONS ON'), KEY = lay('UNMUTE');
+    const KW = KEY.W * KS + 14;        // the button plate: its word with 7 to spare each side
+    // the plate's left edge stays put and both lines start from it; its right edge is wherever
+    // the line ends, and the button is flush with that edge
+    const LEFT = -MUTED.W / 2, RIGHT = LEFT + MUTED.W;
+    const SPAN = Math.max(MUTED.W, ON.W);
+    const HALF = SPAN / 2 + PAD + .5;
+    const kl = RIGHT - KW;             // the button's left edge
+    const kx = kl + (KW - KEY.W * KS) / 2, ky = KT + (KH - 8 * KS) / 2;
+    const frame = [
+      // the slit across under the top row, then the lower half cut away from the left,
+      // leaving the button at the right end
+      { pts: [[-HALF, 8], [HALF, 8], [HALF, KT], [-HALF, KT]], from: 'h', split: true },
+      { pts: [[-HALF, 8], [kl, 8], [kl, RH + 2.5], [-HALF, RH + 2.5]], from: 'l', x0: -HALF, edge: true }
+    ].map(c => Object.assign(collapse(c), { set: 'frame', i: 0, at: 0, dur: 420 }));
+    // the button's slot, opening from its middle line; then carved back into letters, in white
+    const slot = collapse({ pts: [[kx, ky], [kx + KEY.W * KS, ky], [kx + KEY.W * KS, ky + 8 * KS], [kx, ky + 8 * KS]], from: 'h' });
+    Object.assign(slot, { set: 'slot', i: 0, at: 400, dur: 340 });
+    const rich = {
+      black: [...frame, ...place(MUTED, LEFT, 0, 1, 'muted', 240, 20, 480),
+              ...place(ON, LEFT, 0, 1, 'on', 240, 20, 480), slot],
+      white: place(KEY, kx, ky, KS, 'key', 560, 28, 420)
+    };
 
     const svg = document.querySelector('.icon');
     const wrap = document.querySelector('.wrap');
@@ -157,21 +288,65 @@
     const cutPath = document.querySelector('.cuts');
     const swept = document.querySelector('.swept');
     const wedge = document.querySelector('.wedge');
+    const rbar = document.querySelector('.rbar');
+    const rcuts = document.querySelector('.rcuts');
+    const rkeep = document.querySelector('.rkeep');
+    const rswept = document.querySelector('.rswept');
+    const rwedge = document.querySelector('.rwedge');
+    const richEl = document.getElementById('rich');
+    const msg = richEl.querySelector('.rich-msg');
+    const unmute = richEl.querySelector('.unmute');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const R = S * 4 * 1.5;             // a disc that covers the square
-    wedge.setAttribute('cx', CX); wedge.setAttribute('cy', CY);
-    wedge.setAttribute('r', R / 2); wedge.setAttribute('stroke-width', R);
-    wedge.setAttribute('transform', `rotate(-90 ${CX} ${CY})`);
-    const wlen = 2 * Math.PI * R / 2;
-    wedge.setAttribute('stroke-dasharray', wlen);
+    // a disc that covers the square, drawn round like the badge's clock hand
+    function hand(el, cx, cy, side) {
+      const R = side / 2 * 1.5;
+      el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+      el.setAttribute('r', R / 2); el.setAttribute('stroke-width', R);
+      el.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+      const len = 2 * Math.PI * R / 2;
+      el.setAttribute('stroke-dasharray', len);
+      return len;
+    }
+    const wlen = hand(wedge, CX, CY, S * 8);
+    const rlen = hand(rwedge, CX, RTOP + RS * RH / 2, RS * RH);
+
+    // lay the live parts over the drawing: the group over the whole plate, the button on its slab
+    const pct = (v, o) => (v - o) / 36 * 100 + '%';
+    Object.assign(richEl.style, {
+      left: pct(CX + RS * LEFT, -6), top: pct(RTOP, -5),
+      width: pct(RS * SPAN, 0), height: pct(RS * (RH + DROP), 0)
+    });
+    Object.assign(unmute.style, {
+      left: (kl - LEFT) / SPAN * 100 + '%', top: KT / (RH + DROP) * 100 + '%',
+      width: KW / SPAN * 100 + '%', height: KH / (RH + DROP) * 100 + '%'
+    });
 
     const clamp = v => Math.max(0, Math.min(1, v));
     const ease = v => v < .5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2;
     const CARVE_ALL = CARVE + STAGGER * (WORD.length - 1);
 
-    // the whole state is three progress values, so any of it can turn round mid-way
+    // every cut moves from its collapsed form to its full one by k; ox, oy and s put the grid in place
+    function trace(list, kOf, ox, oy, s, shift) {
+      let d = '';
+      for (const c of list) {
+        const k = kOf(c);
+        if (k <= 0) continue;
+        for (let j = 0; j < c.pts.length; j++) {
+          const [dx, dy] = shift ? shift(c, j) : [0, 0];
+          const gx = c.flat[j][0] + dx + (c.pts[j][0] - c.flat[j][0]) * k;
+          const gy = c.flat[j][1] + dy + (c.pts[j][1] - c.flat[j][1]) * k;
+          d += (j ? 'L' : 'M') + (ox + s * gx).toFixed(3) + ' ' + (oy + s * gy).toFixed(3);
+        }
+        d += 'Z';
+      }
+      return d;
+    }
+
+    // the whole state is a few progress values, so any of it can turn round mid-way
     const p = { sweep: 0, stretch: 0, carve: 0 };
+    // rich adds one: ack, the press and the recarving after Unmute
+    const r = { sweep: 0, stretch: 0, carve: 0, ack: 0 };
     function render() {
       wedge.setAttribute('stroke-dashoffset', wlen * (1 - ease(p.sweep)));
       // once the square is fully swept in, the sweep's disc would crop the bar
@@ -179,64 +354,186 @@
       const w = S * (8 + (W - 8) * ease(p.stretch));
       bar.setAttribute('x', CX - w / 2); bar.setAttribute('y', OY);
       bar.setAttribute('width', p.sweep > 0 ? w : 0); bar.setAttribute('height', S * 8);
-      let d = '';
       const ms = p.carve * CARVE_ALL;
-      for (const c of cuts) {
-        const k = ease(clamp((ms - c.i * STAGGER) / CARVE));
-        if (k <= 0) continue;
-        for (let j = 0; j < c.pts.length; j++) {
-          const gx = c.flat[j][0] + (c.pts[j][0] - c.flat[j][0]) * k;
-          const gy = c.flat[j][1] + (c.pts[j][1] - c.flat[j][1]) * k;
-          d += (j ? 'L' : 'M') + (OX + S * gx).toFixed(3) + ' ' + (OY + S * gy).toFixed(3);
-        }
-        d += 'Z';
-      }
-      cutPath.setAttribute('d', d);
+      cutPath.setAttribute('d', trace(cuts, c => ease(clamp((ms - c.i * STAGGER) / CARVE)), OX, OY, S));
+      renderRich();
+    }
+    function renderRich() {
+      rwedge.setAttribute('stroke-dashoffset', rlen * (1 - ease(r.sweep)));
+      if (r.sweep >= 1) rswept.removeAttribute('mask'); else rswept.setAttribute('mask', 'url(#rsweep)');
+      const ms = r.carve * R_CARVE, a = r.ack * ACK;
+      const press = ease(clamp(a / 240));                       // the button steps down, its slot closes
+      const drop = DROP * press;
+      const lineW = MUTED.W + (ON.W - MUTED.W) * ease(clamp((a - 420) / 300));   // the row, while it is solid
+      // the square stretches out to the plate, whose left edge the lines start from
+      const e = ease(r.stretch);
+      const w = RS * (RH + (lineW - RH) * e);
+      const x = CX - RS * RH / 2 + (RS * LEFT + RS * RH / 2) * e;
+      rbar.setAttribute('x', x); rbar.setAttribute('y', RTOP);
+      rbar.setAttribute('width', r.sweep > 0 ? w : 0); rbar.setAttribute('height', RS * (RH + drop));
+      const open = c => ease(clamp((ms - c.at) / c.dur));
+      const kOf = c =>
+        c.set === 'muted' ? open(c) * (1 - ease(clamp((a - 200 - c.i * 10) / 300))) :
+        c.set === 'on' ? open(c) * ease(clamp((a - 600 - c.i * 20) / 440)) :
+        c.set === 'slot' || c.set === 'key' ? open(c) * (1 - press) :
+        open(c);
+      // the button and the slit's lower edge travel down with the press,
+      // and the button keeps flush with the plate's right edge if the new line is shorter
+      const slide = lineW - MUTED.W;
+      const shift = (c, j) =>
+        c.set === 'slot' || c.set === 'key' ? [slide, drop] :
+        c.edge && c.pts[j][0] === kl ? [slide, 0] :
+        c.split && c.pts[j][1] > (8 + KT) / 2 ? [0, drop] : [0, 0];
+      rcuts.setAttribute('d', trace(rich.black, kOf, CX, RTOP, RS, shift));
+      rkeep.setAttribute('d', trace(rich.white, kOf, CX, RTOP, RS, shift));
     }
 
     let token = 0;
-    function to(key, target, ms, my) {
+    function to(o, key, target, ms, my) {
       return new Promise(done => {
-        const from = p[key], span = Math.abs(target - from);
+        const from = o[key], span = Math.abs(target - from);
         if (span === 0) return done(true);
         const dur = ms * span, t0 = performance.now();
         (function f(now) {
           if (my !== token) return done(false);
           const t = clamp((now - t0) / dur);
-          p[key] = from + (target - from) * t;
+          o[key] = from + (target - from) * t;
           render();
           if (t < 1) requestAnimationFrame(f); else done(true);
         })(t0);
       });
     }
+    const wait = (ms, my) => new Promise(done => setTimeout(() => done(my === token), ms));
+    const all = list => Promise.all(list).then(ok => ok.every(Boolean));
 
-    let timer = 0, open = false;
+    let mode = 'plain', timer = 0, leaveTimer = 0, open = false, acked = false, quiet = false;
+    const inside = el => !!el && (el === btn || richEl.contains(el));
+    // give focus back to the bell without it opening the tooltip again
+    function focusBell() { quiet = true; btn.focus(); quiet = false; }
+
     async function show() {
       if (open) return;
       open = true;
       const my = ++token;
+      if (mode === 'rich') return showRich(my);
       if (reduce.matches) { p.sweep = p.stretch = p.carve = 1; render(); return; }
-      if (!(await to('sweep', 1, SWEEP, my))) return;
-      if (!(await to('stretch', 1, STRETCH, my))) return;
-      await to('carve', 1, CARVE_ALL, my);
+      if (!(await to(p, 'sweep', 1, SWEEP, my))) return;
+      if (!(await to(p, 'stretch', 1, STRETCH, my))) return;
+      await to(p, 'carve', 1, CARVE_ALL, my);
     }
     async function hide() {
-      clearTimeout(timer);
+      clearTimeout(timer); clearTimeout(leaveTimer);
       if (!open) return;
       open = false;
       const my = ++token;
+      if (mode === 'rich') return hideRich(my);
       if (reduce.matches) { p.sweep = p.stretch = p.carve = 0; render(); return; }
-      if (!(await to('carve', 0, OUT.carve, my))) return;
-      if (!(await to('stretch', 0, OUT.stretch, my))) return;
-      await to('sweep', 0, OUT.sweep, my);
+      if (!(await to(p, 'carve', 0, OUT.carve, my))) return;
+      if (!(await to(p, 'stretch', 0, OUT.stretch, my))) return;
+      await to(p, 'sweep', 0, OUT.sweep, my);
     }
 
+    async function showRich(my) {
+      richEl.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      if (reduce.matches) { r.sweep = r.stretch = r.carve = 1; r.ack = 0; render(); return; }
+      // caught closing after an Unmute: let the cuts finish closing, and the solid bar ease back
+      // to the muted line's width, then carve as usual
+      if (r.ack > 0) {
+        if (!(await to(r, 'carve', 0, R_OUT.carve, my))) return;
+        if (!(await to(r, 'ack', 0, 700, my))) return;
+      }
+      if (!(await to(r, 'sweep', 1, R_SWEEP, my))) return;
+      if (!(await to(r, 'stretch', 1, R_STRETCH, my))) return;
+      await to(r, 'carve', 1, R_CARVE, my);
+    }
+    function reset() {
+      acked = false;
+      unmute.removeAttribute('aria-disabled');
+      msg.textContent = 'Muted until 9 AM';
+    }
+    async function hideRich(my) {
+      if (inside(document.activeElement) && document.activeElement !== btn) focusBell();
+      richEl.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      reset();
+      if (reduce.matches) { r.sweep = r.stretch = r.carve = r.ack = 0; render(); return; }
+      if (!(await to(r, 'carve', 0, R_OUT.carve, my))) return;
+      if (!(await to(r, 'stretch', 0, R_OUT.stretch, my))) return;
+      if (!(await to(r, 'sweep', 0, R_OUT.sweep, my))) return;
+      r.ack = 0;                       // gone: the next one starts muted
+    }
+
+    // Unmute: the slab steps down and goes solid, the row is recarved, then it closes by itself
+    unmute.addEventListener('click', async () => {
+      if (!open || acked) return;
+      acked = true;
+      unmute.setAttribute('aria-disabled', 'true');
+      msg.textContent = 'Notifications on';
+      clearTimeout(leaveTimer);
+      const my = ++token;
+      if (reduce.matches) { r.sweep = r.stretch = r.carve = r.ack = 1; render(); }
+      else {
+        // pressed before the plate had finished forming: finish it on the way
+        if (!(await to(r, 'sweep', 1, R_SWEEP, my))) return;
+        if (!(await to(r, 'stretch', 1, R_STRETCH, my))) return;
+        if (!(await all([to(r, 'carve', 1, R_CARVE, my), to(r, 'ack', 1, ACK, my)]))) return;
+      }
+      if (await wait(HOLD, my)) hide();
+    });
+
     // hover waits a beat; keyboard focus shows at once; Esc closes
-    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
-    wrap.addEventListener('mouseleave', () => { if (document.activeElement !== btn) hide(); else clearTimeout(timer); });
-    btn.addEventListener('focus', show);
-    btn.addEventListener('blur', hide);
+    wrap.addEventListener('mouseenter', () => {
+      if (mode !== 'plain') return;
+      clearTimeout(timer); timer = setTimeout(show, DELAY);
+    });
+    wrap.addEventListener('mouseleave', () => {
+      if (mode !== 'plain') return;
+      if (document.activeElement !== btn) hide(); else clearTimeout(timer);
+    });
+    // rich: the bell opens it, and leaving starts a short grace that the plate itself cancels,
+    // so the pointer can cross from the bell to the button
+    const leaveSoon = () => {
+      clearTimeout(timer);
+      if (acked || inside(document.activeElement)) return;
+      clearTimeout(leaveTimer); leaveTimer = setTimeout(hide, R_LEAVE);
+    };
+    btn.addEventListener('mouseenter', () => {
+      if (mode !== 'rich') return;
+      clearTimeout(leaveTimer);
+      if (!open) { clearTimeout(timer); timer = setTimeout(show, DELAY); }
+    });
+    btn.addEventListener('mouseleave', () => { if (mode === 'rich') leaveSoon(); });
+    richEl.addEventListener('mouseenter', () => clearTimeout(leaveTimer));
+    richEl.addEventListener('mouseleave', leaveSoon);
+
+    btn.addEventListener('focus', () => { if (!quiet) show(); });
+    btn.addEventListener('blur', () => { if (mode === 'plain') hide(); });
+    // rich stays open while focus is on the bell or inside the plate
+    wrap.addEventListener('focusout', e => { if (mode === 'rich' && !inside(e.relatedTarget)) hide(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    // plain or rich: switching drops whatever is showing at once, and the next hover uses the new one
+    const types = [...document.querySelectorAll('[data-type]')];
+    for (const b of types) b.addEventListener('click', () => {
+      mode = b.dataset.type;
+      for (const o of types) o.setAttribute('aria-pressed', String(o === b));
+      token++;
+      clearTimeout(timer); clearTimeout(leaveTimer);
+      open = false;
+      for (const k in p) p[k] = 0;
+      for (const k in r) r[k] = 0;
+      richEl.hidden = true;
+      reset();
+      if (mode === 'rich') {
+        btn.removeAttribute('aria-describedby');
+        btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'rich');
+      } else {
+        btn.setAttribute('aria-describedby', 'tip');
+        btn.removeAttribute('aria-expanded'); btn.removeAttribute('aria-controls');
+      }
+      render();
+    });
 
     render();
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

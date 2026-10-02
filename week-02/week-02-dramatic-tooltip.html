@@ -7,7 +7,10 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <style>
   /* A prototype page of its own, so its styles stay in this file.
-     Dramatic, matching its badge: black, white and one red. */
+     Dramatic, matching its badge: black, white and one red.
+     Two tooltips share the bell, switched at the bottom: Plain, the name
+     alone, and Rich, a taller box holding "Muted until 9 AM" and a black
+     Unmute button in its bottom right corner. Both open out of the same red line, like a curtain. */
   :root {
     --bg: #000;
     --ink: #fff;
@@ -49,10 +52,61 @@
     transform-origin: 0 50%; transform: scaleX(0);
   }
 
-  .hint {
-    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
-    font: 500 12px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgba(255,255,255,.5);
+  /* Rich: the same red box, opened taller, so the line and a pressable button both fit.
+     The words sit at the top left; the button sits in the bottom right corner, as an action row,
+     as far in from the bottom as from the sides.
+     The padding is .7em on every side as the eye sees it, snug like a playbill's margin: at a line
+     height of 1 the capitals' tops already sit .12em below the line's top, so the top padding is .12em
+     less. The gap leaves about .65em of clear red between the words' baseline and the button. */
+  .rich .box {
+    display: flex; flex-direction: column; align-items: flex-start; gap: .5em;
+    padding: .58em .7em .7em; box-sizing: border-box;     /* border-box, so the width it is held at on Unmute is its own */
   }
+  .rich .unmute { align-self: flex-end; }
+  .rich .msg { display: block; }
+  /* the button: a black slab cut into the red, square like the box, its name in white capitals */
+  .unmute {
+    min-width: 44px; min-height: 44px; padding: 0 1.3em; box-sizing: border-box;
+    border: 0; border-radius: 0; background: #000; color: #fff; cursor: pointer;
+    font: 700 max(13px, .46em)/1 "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+    letter-spacing: .2em; text-transform: uppercase; text-indent: .2em;   /* the indent evens out the tracking's trailing space */
+  }
+  .unmute:hover { background: #fff; color: #000; }
+  /* in a short window (the week page shows this in a card about 280px tall) the rich box keeps its
+     even padding but its type is set a size smaller, it sits closer to the bell, and, in Rich only,
+     the bell drops a little into the room above the controls, so the taller box clears the top edge.
+     The button stays above the 24px minimum. */
+  /* in Rich the bell drops by about half the box's height, so the bell and its taller box sit
+     centred together rather than the box running off the top */
+  .wrap.is-rich { translate: 0 calc(var(--type) * 2.2); }
+  @media (max-height: 420px) {
+    .rich { bottom: calc(100% + 10px); }
+    .rich .box { font-size: calc(var(--type) * .8); }
+    .unmute { min-height: 26px; }
+    .wrap.is-rich { translate: 0 18px; }
+  }
+  .unmute:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  /* after Unmute the rich box settles into the plain one: the plain box's padding, type and place
+     above the bell (written after the short-window rules so it wins there too); the button is gone */
+  .rich.settled { bottom: calc(100% + 18px); }
+  .rich.settled .box { display: block; padding: .38em .8em .42em; font-size: var(--type); }
+  .rich.settled .unmute { display: none; }
+
+  /* Plain / Rich, copied from the badge page's controls */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;
+    padding: 0 12px;
+    font: 500 12px/1 ui-sans-serif, system-ui, -apple-system, sans-serif; color: #fff;
+  }
+  .controls button {
+    height: 30px; padding: 0 14px; box-sizing: border-box; border: 1px solid #fff; border-radius: 999px;
+    background: #000; color: #fff; font: inherit; cursor: pointer;
+  }
+  .controls button:hover { background: #222; }
+  .controls button[aria-pressed="true"] { background: #fff; color: #000; }
+  .controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
   .back-pill {
     position: fixed; left: 12px; top: 12px; z-index: 9;
     font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.16);
@@ -73,9 +127,19 @@
       <span class="box">Notifications</span>
       <span class="line" aria-hidden="true"></span>
     </span>
+    <div class="tip rich" id="rich" role="group" aria-label="Notification settings">
+      <div class="box">
+        <span class="msg" aria-live="polite">Muted until 9 AM</span>
+        <button type="button" class="unmute">Unmute</button>
+      </div>
+      <span class="line" aria-hidden="true"></span>
+    </div>
   </div>
 
-  <p class="hint">Hover or focus the bell</p>
+  <div class="controls" role="group" aria-label="Tooltip type">
+    <button type="button" data-type="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-type="rich" aria-pressed="false">Rich</button>
+  </div>
 
   <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
 
@@ -85,32 +149,79 @@
   // splits open, top and bottom, like a curtain parting, and the name is
   // there inside it, opening a touch too far before it settles. On leaving,
   // it shuts back to the line, and the line draws back from right to left.
+  // Rich tooltip: the same line, drawn as wide as the bigger box, parts into a
+  // taller curtain holding "Muted until 9 AM" and, in its bottom right corner,
+  // a black Unmute slab. It stays while the pointer crosses onto it or focus
+  // is inside it. Pressing Unmute is played as staged beats: the slab snaps
+  // in and slams shut to a black bar; the bar and the old words go dark; the
+  // red box is hauled in, hard, to exactly the plain tooltip's size and place
+  // (the bell rising with it back to its plain place), overshooting a touch
+  // before it lands; and "Notifications on" is cut in. A moment later it
+  // shuts the way the plain tooltip does.
   (() => {
     const DELAY = 180;                 // ms of hover before it starts, so passing over does not set it off
     const DRAW = 420;                  // ms for the line to run left to right
     const OPEN = 520;                  // ms for the line to part into the box, overshoot and settle
     const SHUT = 160;                  // ms to close back to the line
     const UNDRAW = 340;                // ms for the line to draw back, right to left
+    // the rich box is bigger, so it takes a little longer to draw and to part, and still slams shut
+    const RICH = { draw: 480, open: 620, shut: 200, undraw: 360, swell: 1.06 };
+    const PLAIN = { draw: DRAW, open: OPEN, shut: SHUT, undraw: UNDRAW, swell: 1.1 };
+    const LEAVE = 300;                 // ms of grace after the pointer leaves the bell, to cross onto the rich box
+    const SNAP = 70;                   // ms for Unmute to snap in under the press
+    const CUT = 180;                   // ms for the slab to slam shut to a bar
+    const DARK = 90;                   // ms for the bar and the old words to go dark
+    const SETTLE = 600;                // ms for the box to be hauled in to the plain tooltip's size and place
+    const HOLD = 1200;                 // ms "Notifications on" stays up before the curtain shuts
 
     const wrap = document.querySelector('.wrap');
-    const tip = document.querySelector('.tip');
-    const box = tip.querySelector('.box');
-    const line = tip.querySelector('.line');
+    const bell = document.querySelector('.bell');
+    const parts = el => ({ tip: el, box: el.querySelector('.box'), line: el.querySelector('.line') });
+    const plain = parts(document.querySelector('.tip:not(.rich)'));
+    const rich = parts(document.querySelector('.tip.rich'));
+    const msg = rich.tip.querySelector('.msg');
+    const unmute = rich.tip.querySelector('.unmute');
+    const MUTED = msg.textContent;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
     // a hard ease-in-out for the line: it hangs at each end and crosses almost all at once
     const sharp = 'cubic-bezier(.95, 0, .05, 1)';
-    let timer = 0, token = 0, open = false;
+    let timer = 0, leaveTimer = 0, closeTimer = 0, token = 0, open = false;
+    let cur = plain;                   // whichever tooltip the switch has picked
+    let done = false;                  // Unmute has been pressed this time round
+    let settled = false;               // the rich box has become the plain one, so it closes like it
+    let quiet = false;                 // focus is being moved back to the bell by script, so don't reopen
 
     // pin whatever is mid-flight where it is, so a new move starts from there
     function freeze() {
-      for (const el of [box, line]) for (const a of el.getAnimations()) { try { a.commitStyles(); } catch (e) {} a.cancel(); }
+      for (const el of [cur.box, cur.line, cur.tip, wrap]) for (const a of el.getAnimations()) { try { a.commitStyles(); } catch (e) {} a.cancel(); }
+    }
+
+    // the rich box starts every showing as new: muted, with its button, at its own size.
+    // If it had settled into the plain place, the bell, now alone, eases back down to its rich place.
+    function restore(ease) {
+      for (const el of [unmute, msg, rich.tip, wrap]) for (const a of el.getAnimations()) a.cancel();
+      unmute.style.clipPath = ''; unmute.style.transform = ''; unmute.style.visibility = '';
+      unmute.style.color = ''; unmute.style.background = '';
+      rich.box.style.width = ''; rich.box.style.height = '';
+      rich.tip.style.bottom = ''; msg.style.opacity = '';
+      rich.tip.classList.remove('settled');
+      msg.textContent = MUTED;
+      done = false; settled = false;
+      const back = cur === rich && !wrap.classList.contains('is-rich');
+      wrap.style.translate = '';
+      wrap.classList.toggle('is-rich', cur === rich);
+      if (back && ease && !reduce.matches)
+        wrap.animate({ translate: ['0px 0px', getComputedStyle(wrap).translate] }, { duration: 420, easing: 'cubic-bezier(.65, 0, .35, 1)' });
     }
 
     async function show() {
-      const my = ++token;
       if (open) return;
+      const my = ++token;
       open = true;
+      clearTimeout(closeTimer);
       freeze();
+      const { tip, box, line } = cur, t = cur === rich ? RICH : PLAIN;
+      if (cur === rich) { restore(); bell.setAttribute('aria-expanded', 'true'); }
       tip.classList.add('on');
       if (reduce.matches) {
         line.style.transform = 'scaleX(0)';
@@ -120,50 +231,158 @@
       }
       box.style.clipPath = 'inset(50% 0 50% 0)';
       box.style.transform = '';
-      const drawn = line.animate({ transform: ['scaleX(0)', 'scaleX(1)'] }, { duration: DRAW, easing: sharp, fill: 'forwards' });
+      const drawn = line.animate({ transform: ['scaleX(0)', 'scaleX(1)'] }, { duration: t.draw, easing: sharp, fill: 'forwards' });
       try { await drawn.finished; } catch (e) { return; }
       if (my !== token) return;
       // it parts open, swells past its size, dips under, and settles
+      // (the rich box swells a little less: it is bigger, so the same push reads larger)
       box.animate([
         { clipPath: 'inset(50% 0 50% 0)', transform: 'scale(1)', easing: 'cubic-bezier(.16, 1, .3, 1)' },
-        { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(1.1)', offset: .45, easing: 'cubic-bezier(.4, 0, .6, 1)' },
+        { clipPath: 'inset(0% 0 0% 0)', transform: `scale(${t.swell})`, offset: .45, easing: 'cubic-bezier(.4, 0, .6, 1)' },
         { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(.97)', offset: .75, easing: 'cubic-bezier(.4, 0, .6, 1)' },
         { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(1)' }
-      ], { duration: OPEN, fill: 'forwards' });
+      ], { duration: t.open, fill: 'forwards' });
     }
 
     async function hide() {
       const my = ++token;
-      clearTimeout(timer);
+      clearTimeout(timer); clearTimeout(leaveTimer); clearTimeout(closeTimer);
       if (!open) return;
       open = false;
       freeze();
+      const { tip, box, line } = cur, t = cur === rich && !settled ? RICH : PLAIN;
+      if (cur === rich) {
+        bell.setAttribute('aria-expanded', 'false');
+        // if focus was on Unmute, hand it back to the bell before the button disappears
+        if (document.activeElement === unmute) { quiet = true; bell.focus(); quiet = false; }
+      }
       if (reduce.matches) {
         await box.animate({ opacity: [1, 0] }, { duration: 120, fill: 'forwards' }).finished.catch(() => {});
       } else {
         // shut back to the line, then draw the line back, right to left
         await box.animate({ clipPath: [getComputedStyle(box).clipPath, 'inset(50% 0 50% 0)'], transform: [getComputedStyle(box).transform, 'scale(1)'] },
-          { duration: SHUT, easing: 'cubic-bezier(.5, 0, .75, 0)', fill: 'forwards' }).finished.catch(() => {});
+          { duration: t.shut, easing: 'cubic-bezier(.5, 0, .75, 0)', fill: 'forwards' }).finished.catch(() => {});
         if (my !== token) return;
         // start from its current length as a plain scaleX: a matrix can't be eased into a zero scale smoothly
         const from = new DOMMatrix(getComputedStyle(line).transform).a;
         await line.animate({ transform: [`scaleX(${from})`, 'scaleX(0)'] },
-          { duration: UNDRAW, easing: sharp, fill: 'forwards' }).finished.catch(() => {});
+          { duration: t.undraw, easing: sharp, fill: 'forwards' }).finished.catch(() => {});
       }
       if (my !== token) return;
       freeze();
       tip.classList.remove('on');
       box.style.clipPath = ''; box.style.opacity = ''; box.style.transform = '';
       line.style.transform = 'scaleX(0)';
+      if (cur === rich) restore(true);
     }
 
+    // Unmute, as staged beats: the slab snaps in and slams shut to a black bar,
+    // the bar and the words go dark, the box is hauled in to the plain tooltip,
+    // the new words are cut in, a held moment, then the curtain comes down
+    async function press() {
+      if (done || !open) return;
+      done = true;
+      const my = token;
+      clearTimeout(leaveTimer);
+      const { tip, box } = rich;
+      // the button is about to go, so focus waits on the bell (quietly: it is already open)
+      if (document.activeElement === unmute) { quiet = true; bell.focus(); quiet = false; }
+      if (reduce.matches) {
+        tip.classList.add('settled'); wrap.classList.remove('is-rich');
+        msg.textContent = 'Notifications on';
+        settled = true;
+        closeTimer = setTimeout(hide, HOLD);
+        return;
+      }
+      await unmute.animate({ transform: ['scale(1)', 'scale(.9)'] },
+        { duration: SNAP, easing: 'cubic-bezier(.5, 0, .75, 0)', fill: 'forwards' }).finished.catch(() => {});
+      if (my !== token) return;
+      // it shuts top and bottom like the curtain itself, in place in its corner, but stops at a 2px black bar;
+      // its letters go dark first, so the bar is clean
+      unmute.style.color = 'transparent'; unmute.style.background = '#000';
+      await unmute.animate({ clipPath: ['inset(0 0 0 0)', 'inset(calc(50% - 1px) 0 calc(50% - 1px) 0)'], transform: ['scale(.9)', 'scale(.9)'] },
+        { duration: CUT, easing: sharp, fill: 'forwards' }).finished.catch(() => {});
+      if (my !== token) return;
+      // the bar and the old words go dark together, leaving the red box empty
+      unmute.animate({ opacity: [1, 0] }, { duration: DARK, fill: 'forwards' });
+      await msg.animate({ opacity: [1, 0] }, { duration: DARK, fill: 'forwards' }).finished.catch(() => {});
+      if (my !== token) return;
+      msg.style.opacity = '0';
+      // where it starts: the rich box, its place over the bell, and the bell's drop
+      const w0 = box.offsetWidth, h0 = box.offsetHeight;
+      const b0 = getComputedStyle(tip).bottom, t0 = getComputedStyle(wrap).translate;
+      // where it lands: become the plain tooltip holding the new words, and measure it there
+      msg.textContent = 'Notifications on';
+      tip.classList.add('settled'); wrap.classList.remove('is-rich');
+      const w1 = box.offsetWidth, h1 = box.offsetHeight, b1 = getComputedStyle(tip).bottom;
+      // hauled in hard, a touch past its size, and back: the curtain's own overshoot
+      const haul = 'cubic-bezier(.85, 0, .15, 1)';
+      box.animate([
+        { width: w0 + 'px', height: h0 + 'px', easing: haul },
+        { width: w1 * .97 + 'px', height: h1 * .9 + 'px', offset: .8, easing: 'cubic-bezier(.4, 0, .6, 1)' },
+        { width: w1 + 'px', height: h1 + 'px' }
+      ], { duration: SETTLE });
+      tip.animate({ bottom: [b0, b1] }, { duration: SETTLE * .8, easing: haul });
+      // the bell rises back to its plain place in the same move
+      await wrap.animate({ translate: [t0 === 'none' ? '0px 0px' : t0, '0px 0px'] }, { duration: SETTLE * .8, easing: haul })
+        .finished.catch(() => {});
+      await new Promise(r => setTimeout(r, SETTLE * .2));
+      if (my !== token) return;
+      settled = true;
+      // a hard cut, no fade: the new words come up the way a stage light snaps on
+      for (const a of msg.getAnimations()) a.cancel();
+      msg.style.opacity = '';
+      closeTimer = setTimeout(hide, HOLD);
+    }
+    unmute.addEventListener('click', press);
+
     // hover waits a beat; keyboard focus shows at once; the tooltip itself can be hovered
-    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
-    wrap.addEventListener('mouseleave', hide);
-    const bell = document.querySelector('.bell');
-    bell.addEventListener('focus', show);
-    bell.addEventListener('blur', hide);
+    wrap.addEventListener('mouseenter', () => {
+      clearTimeout(timer); clearTimeout(leaveTimer);
+      if (!open) timer = setTimeout(show, DELAY);
+    });
+    wrap.addEventListener('mouseleave', () => {
+      clearTimeout(timer);
+      if (cur === plain) { hide(); return; }
+      // rich: a moment's grace to cross the gap onto the box; it stays if focus is on Unmute,
+      // and once Unmute is pressed it closes on its own (the box moves out from under the pointer)
+      if (document.activeElement === unmute || done) return;
+      leaveTimer = setTimeout(hide, LEAVE);
+    });
+    bell.addEventListener('focus', () => { if (!quiet) show(); });
+    bell.addEventListener('blur', () => { if (cur === plain) hide(); });
+    // rich: it stays while focus is on the bell or inside the box, and while the pointer is on them
+    wrap.addEventListener('focusout', e => {
+      if (cur !== rich || quiet || wrap.contains(e.relatedTarget)) return;
+      if (!wrap.matches(':hover')) hide();
+    });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    // Plain / Rich: switching drops whatever is showing at once, with no motion
+    function reset() {
+      ++token;
+      clearTimeout(timer); clearTimeout(leaveTimer); clearTimeout(closeTimer);
+      open = false;
+      for (const { tip, box, line } of [plain, rich]) {
+        for (const el of [box, line]) for (const a of el.getAnimations()) a.cancel();
+        tip.classList.remove('on');
+        box.style.clipPath = ''; box.style.opacity = ''; box.style.transform = '';
+        line.style.transform = 'scaleX(0)';
+      }
+      restore();
+    }
+    const controls = document.querySelector('.controls');
+    controls.addEventListener('click', e => {
+      const b = e.target.closest('button[data-type]');
+      if (!b) return;
+      for (const x of controls.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b));
+      reset();
+      cur = b.dataset.type === 'rich' ? rich : plain;
+      wrap.classList.toggle('is-rich', cur === rich);
+      // plain is described by its tooltip; rich is a small panel the bell opens
+      if (cur === rich) { bell.removeAttribute('aria-describedby'); bell.setAttribute('aria-expanded', 'false'); bell.setAttribute('aria-controls', 'rich'); }
+      else { bell.setAttribute('aria-describedby', 'tip'); bell.removeAttribute('aria-expanded'); bell.removeAttribute('aria-controls'); }
+    });
 
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
   })();

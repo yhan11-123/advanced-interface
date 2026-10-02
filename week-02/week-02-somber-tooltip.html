@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Somber tooltip</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Somber, matching its badge: a cold dusk, the bell on a plain filled tile.
+     No box arrives: the tile's own face is pushed up from beneath, like cloth
+     over something rising, first a swell in its top edge, then a tab drawn up
+     out of it that lets go and rests just above, and the name surfaces in it.
+     Rich tooltip: the same tab, drawn up taller, as wide as the tile. A line of
+     text surfaces at its top left, and in its bottom-right corner a softer,
+     slightly lighter pill swells up out of the tab's own face, as the badge's
+     hill swells out of its tile: the Unmute button. Pressed, it sinks flat into the face again, and the tab
+     settles, shorter and narrower, into the plain tab, where "Notifications on" surfaces. */
+  :root {
+    --bg: #15181d;
+    --tile: #2a2f37;
+    --ink: #9aa1a9;
+    --text: #c9ced4;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+
+  .wrap { position: relative; width: min(62vmin, 300px); aspect-ratio: 1; }
+  /* the bell and its tile sit in the middle of the page; the raised tab rises above, past the drawing's edge */
+  .icon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .face { fill: var(--tile); }
+  .bell { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .name { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 400; font-size: 2.5px; letter-spacing: .02em; fill: var(--text); }
+  /* the rich tab's button: a pill a shade lighter than the face, with a hairline edge like the controls below */
+  .pill { fill: #363c45; stroke: rgba(154, 161, 169, .3); stroke-width: .12; transition: fill .4s; }
+  .pill-shade { fill: #1b1e23; }
+  .pill-label { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 400; font-size: 2px; letter-spacing: .04em; fill: #d6dade; }
+  /* the rich lines a touch smaller than the plain name, so the taller tab still clears a small card */
+  .msg { font-size: 2.4px; }
+  .wrap:has(.unmute:hover) .pill { fill: #3d434d; }
+
+  /* the hit area over the bell: a real button, so the tooltip works by keyboard too */
+  .bell-btn {
+    position: absolute; left: 13.9%; top: 13.9%; width: 72.2%; height: 72.2%;
+    padding: 0; border: 0; background: none; cursor: pointer; border-radius: 14px;
+  }
+  .bell-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* the rich tab's own hit area, laid over the drawn tab (placed by the script from the same numbers),
+     so the pointer can move from the bell onto it, and the Unmute button laid over the drawn pill */
+  .rich { position: absolute; }
+  .unmute {
+    position: absolute; min-width: 24px; min-height: 24px; transform: translate(-50%, -50%);
+    padding: 0; border: 0; background: none; cursor: pointer; border-radius: 999px;
+  }
+  .unmute:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* the Plain / Rich switch, styled as the badge page's controls */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 400 13px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .04em;
+  }
+  .controls button {
+    height: 32px; padding: 0 16px; border: 1px solid rgba(154, 161, 169, .28); border-radius: 999px;
+    background: transparent; color: var(--ink); font: inherit; letter-spacing: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: rgba(154, 161, 169, .6); }
+  .controls button[aria-pressed="true"] { background: var(--tile); border-color: rgba(154, 161, 169, .5); color: #d6dade; }
+  .controls button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: var(--bg); background: rgba(214, 218, 222, .7);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <svg class="icon" viewBox="-6 -5 36 36" aria-hidden="true">
+      <defs>
+        <!-- the tile is square and centred on the bell (bell centre 12, 13), as the badge's is on the bubble -->
+        <!-- one face: the tile and what rises from it are blurred together and cut back to an edge,
+             so where they meet they join with a soft neck, as one cloth -->
+        <filter id="cloth" filterUnits="userSpaceOnUse" x="-6" y="-20" width="36" height="50">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=".9" result="b"/>
+          <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+        </filter>
+        <!-- the name shows only inside the raised tab, so it can surface from below -->
+        <clipPath id="tab"><rect class="tab-clip" x="1" width="22" height="7"/></clipPath>
+        <filter id="haze" filterUnits="userSpaceOnUse" x="-2" y="-16" width="28" height="20">
+          <feGaussianBlur class="haze-blur" stdDeviation="0"/>
+        </filter>
+        <!-- rich: the same, for the taller tab, its line of text and the pill's label -->
+        <clipPath id="rich-tab"><rect class="rich-clip"/></clipPath>
+        <clipPath id="pill-in"><rect class="pill-clip"/></clipPath>
+        <filter id="haze-msg" filterUnits="userSpaceOnUse" x="-4" y="-20" width="32" height="20">
+          <feGaussianBlur class="haze-blur" stdDeviation="0"/>
+        </filter>
+        <filter id="haze-label" filterUnits="userSpaceOnUse" x="-4" y="-20" width="32" height="20">
+          <feGaussianBlur class="haze-blur" stdDeviation="0"/>
+        </filter>
+        <!-- the pill's edge is soft while it is still low in the face, and firms as it swells -->
+        <filter id="swell" filterUnits="userSpaceOnUse" x="-4" y="-20" width="32" height="20">
+          <feGaussianBlur class="swell-blur" stdDeviation="0"/>
+        </filter>
+        <filter id="shade" filterUnits="userSpaceOnUse" x="-4" y="-20" width="32" height="20">
+          <feGaussianBlur stdDeviation=".35"/>
+        </filter>
+      </defs>
+      <g class="face" filter="url(#cloth)">
+        <rect x="-1" y="0" width="26" height="26" rx="6"/>
+        <!-- what pushes up from beneath: the tab, which lifts clear of the tile once it is up -->
+        <rect class="box" x="1.5" width="21" height="7" rx="3"/>
+      </g>
+      <!-- the shared bell -->
+      <path class="bell" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+      <path class="bell" d="M10 20a2 2 0 0 0 4 0"/>
+      <g clip-path="url(#tab)">
+        <text class="name" x="12" text-anchor="middle" dominant-baseline="central" filter="url(#haze)" opacity="0">Notifications</text>
+      </g>
+      <!-- rich: its line at the top left and the pill in the bottom-right corner; "Notifications on" later surfaces in the plain name -->
+      <g clip-path="url(#rich-tab)">
+        <text class="name msg" text-anchor="start" filter="url(#haze-msg)" opacity="0">Muted until 9 AM</text>
+        <rect class="pill-shade" filter="url(#shade)" opacity="0"/>
+        <rect class="pill" filter="url(#swell)" opacity="0"/>
+        <g clip-path="url(#pill-in)">
+          <text class="pill-label" text-anchor="middle" filter="url(#haze-label)" opacity="0">Unmute</text>
+        </g>
+      </g>
+    </svg>
+    <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
+    <span class="sr" role="tooltip" id="tip">Notifications</span>
+    <div class="rich" id="rich" role="group" aria-label="Notification settings" hidden>
+      <p class="sr" aria-live="polite">Muted until 9 AM</p>
+      <button type="button" class="unmute"><span class="sr">Unmute</span></button>
+    </div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Tooltip type">
+    <button type="button" data-mode="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-mode="rich" aria-pressed="false">Rich</button>
+  </div>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Somber tooltip, plain. Hover the bell: nothing appears from outside.
+  // Something seems to rise beneath the tile, as under a cloth: first the
+  // top edge swells, as on the badge, then it is drawn up into a tab that
+  // pulls free of the tile and rests just above it. Once it is up, the name
+  // surfaces in it from below, clearing as it comes. Leave: the name sinks
+  // away and the tab sinks back, rejoins the tile and is drawn down into it.
+  //
+  // Rich tooltip. The same cloth, more of it: the tab is drawn up taller and
+  // as wide as the tile, a little more slowly, and rests a touch closer above.
+  // "Muted until 9 AM" surfaces at its top left, then in the bottom-right
+  // corner, as a rich tooltip's action row, a pill a shade lighter swells up
+  // out of the tab's own face, its edge firming as it comes,
+  // and "Unmute" surfaces in the pill. Press it: the pill sinks flat back into
+  // the face and the line sinks away; then the tab settles, gently narrowing
+  // and sinking a little, into the plain tab's size and place, and
+  // "Notifications on" surfaces in it, centred, as the plain name does.
+  // A moment later it sinks back into the tile exactly as the plain one does.
+  // The rich tab can be hovered and tabbed into; Esc lets it go.
+  (() => {
+    const DELAY = 300;                 // ms of hover before it starts
+    const RISE = 1300;                 // ms for the tab to be pushed up
+    const SURFACE = 700;               // ms for the name to come up in it
+    const OVERLAP = .35;               // how far before the tab is fully up the name starts
+    const OUT = { name: 350, sink: 800 };
+    const BOX = { from: 4, to: -10.5 };   // the tab's top: hidden inside the tile, and fully raised
+    const BOX_H = 7;
+    const DROP = 2.2;                  // how far below its place the name surfaces from
+    const PLAIN = { x: 1.5, w: 21, h: BOX_H, rx: 3, from: BOX.from, to: BOX.to };
+
+    // rich: the tab is the tile's width and nearly twice as tall; its top rises a little higher
+    const RICH = { x: -1, w: 26, h: 12.7, rx: 3.6, from: 4, to: -14.9 };
+    // spacing, in drawing units: the padding is about the line's font size (2.4) on every side,
+    // measured to the ink (the tops of the capitals, cap height .714 em) and to the cloth's soft edge
+    const PAD = 2.4;
+    const CAP = 2.4 * .714, LABEL_CAP = 2 * .714;
+    // both lines start at the left padding, as a rich tooltip reads (less the capitals' own side bearing, ~.08 em)
+    const MSG_X = RICH.x + PAD - .2;
+    const MSG_Y = RICH.to + PAD + CAP; // the lines' baseline, so the capitals' tops sit one padding down
+    // the button sits in the bottom-right corner, inset by the same padding, as an action row
+    // the label keeps half its size clear above and below and its full size at each end; the line above keeps
+    // a little more than three quarters of a padding clear
+    const PILL = { w: 11.8, h: 4.3, bottom: RICH.to + RICH.h - PAD };
+    PILL.cx = RICH.x + RICH.w - PAD - PILL.w / 2;
+    const RICH_T = { rise: 1500, surface: 700, swell: 650, label: 500, out: 350, sink: 900 };
+    const PRESS = { sink: 450, settle: 800, hold: 1200 };     // ms: the pill sinking, the tab settling into the plain one, the wait before closing
+    const AFTER = 'Notifications on';
+    const GRACE = 300;                 // ms the rich tab waits after the pointer leaves, so it can be reached
+
+    const wrap = document.querySelector('.wrap');
+    const btn = document.querySelector('.bell-btn');
+    const box = document.querySelector('.box');
+    const name = document.querySelector('.name');
+    const haze = document.querySelector('#haze .haze-blur');
+    const clip = document.querySelector('.tab-clip');
+
+    const rich = document.querySelector('#rich');
+    const live = rich.querySelector('p');
+    const unmute = rich.querySelector('.unmute');
+    const msgs = [...document.querySelectorAll('.msg')];
+    const msgHaze = [document.querySelector('#haze-msg .haze-blur')];
+    const richClip = document.querySelector('.rich-clip');
+    const pill = document.querySelector('.pill');
+    const shade = document.querySelector('.pill-shade');
+    const swellBlur = document.querySelector('.swell-blur');
+    const pillClip = document.querySelector('.pill-clip');
+    const label = document.querySelector('.pill-label');
+    const labelHaze = document.querySelector('#haze-label .haze-blur');
+    const switches = [...document.querySelectorAll('.controls button')];
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const easeInOut = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+    const set = (el, attrs) => { for (const k in attrs) el.setAttribute(k, attrs[k]); };
+
+    // r: how far up the tab is (0 hidden in the tile, 1 raised); n: how far the name has surfaced
+    // rich only: m how far "Muted until 9 AM" has surfaced, p how far the pill has swelled up out of
+    // the face, l how far its label has surfaced, k how far the tab has settled into the plain one
+    const s = { r: 0, n: 0, m: 0, p: 0, l: 0, k: 0 };
+    const mix = (a, b, e) => { const o = {}; for (const key in a) o[key] = a[key] + (b[key] - a[key]) * e; return o; };
+    let mode = 'plain';
+    function render() {
+      // after Unmute the rich tab settles into the plain one: every measure eases from one to the other
+      const g = mode === 'rich' ? mix(RICH, PLAIN, easeInOut(s.k)) : PLAIN;
+      const top = g.from + (g.to - g.from) * easeInOut(s.r);
+      set(box, { x: g.x, width: g.w, height: g.h, rx: g.rx, y: top });
+      // the name is kept to the raised tab (inset a little from its edge), and comes up from below it
+      const cy = BOX.to + BOX_H / 2;
+      clip.setAttribute('y', top + .4); clip.setAttribute('height', g.h - .8);
+      const n = easeInOut(s.n);
+      name.setAttribute('y', cy + DROP * (1 - n));
+      name.setAttribute('opacity', n);
+      haze.setAttribute('stdDeviation', .5 * (1 - n));
+
+      // rich: the same surfacing for its lines, kept to the taller tab
+      set(richClip, { x: g.x + .4, width: g.w - .8, y: top + .4, height: g.h - .8 });
+      [s.m].forEach((v, i) => {
+        const e = easeInOut(v);
+        msgs[i].setAttribute('x', MSG_X);
+        msgs[i].setAttribute('y', MSG_Y + DROP * (1 - e));
+        msgs[i].setAttribute('opacity', e);
+        msgHaze[i].setAttribute('stdDeviation', .5 * (1 - e));
+      });
+      // the pill swells upward from its foot, widening a little as it comes, its edge soft until it is up;
+      // a faint shade gathers under it, so it reads as raised from the face rather than laid on it
+      const p = easeInOut(s.p);
+      const h = Math.max(.2, PILL.h * p), w = PILL.w * (.82 + .18 * p);
+      const pillBox = { x: PILL.cx - w / 2, y: PILL.bottom - h, width: w, height: h, rx: h / 2 };
+      set(pill, { ...pillBox, opacity: p });
+      set(shade, { ...pillBox, y: pillBox.y + .35, opacity: .55 * p });
+      swellBlur.setAttribute('stdDeviation', .45 * (1 - p));
+      set(pillClip, pillBox);
+      const l = easeInOut(s.l);
+      label.setAttribute('x', PILL.cx);
+      label.setAttribute('y', PILL.bottom - PILL.h / 2 + LABEL_CAP / 2 + 1.6 * (1 - l));
+      label.setAttribute('opacity', l);
+      labelHaze.setAttribute('stdDeviation', .4 * (1 - l));
+    }
+
+    // the rich tab's hit area and the Unmute button are laid over the drawing, in the drawing's own units
+    const pct = (x, y) => ({ left: (x + 6) / 36 * 100 + '%', top: (y + 5) / 36 * 100 + '%' });
+    // (once the tab has settled into the plain one, the hit area follows it)
+    function place(g) {
+      const a = pct(g.x, g.to);
+      Object.assign(rich.style, { left: a.left, top: a.top,
+        width: g.w / 36 * 100 + '%', height: g.h / 36 * 100 + '%' });
+    }
+    place(RICH);
+    (() => {
+      // relative to the tab: the pill's centre (bottom right), and a hit area a little larger than the drawn pill
+      Object.assign(unmute.style, { left: (PILL.cx - RICH.x) / RICH.w * 100 + '%', top: (PILL.bottom - PILL.h / 2 - RICH.to) / RICH.h * 100 + '%',
+        width: (PILL.w + 1) / RICH.w * 100 + '%', height: (PILL.h + 1) / RICH.h * 100 + '%' });
+    })();
+
+    let token = 0;
+    function to(key, target, ms, my) {
+      return new Promise(done => {
+        const from = s[key], span = Math.abs(target - from);
+        if (!span) return done(true);
+        const dur = ms * span, t0 = performance.now();
+        (function f(now) {
+          if (my !== token) return done(false);
+          const t = clamp((now - t0) / dur);
+          s[key] = from + (target - from) * t;
+          render();
+          if (t < 1) requestAnimationFrame(f); else done(true);
+        })(t0);
+      });
+    }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    let timer = 0, open = false, pressed = false, quiet = false;
+    function reset() {
+      pressed = false;
+      live.textContent = 'Muted until 9 AM';
+      name.textContent = 'Notifications';
+      unmute.hidden = false;
+      s.k = 0;
+      place(RICH);
+      render();
+    }
+    async function show() {
+      if (open) return;
+      open = true;
+      const my = ++token;
+      if (mode === 'rich') return showRich(my);
+      if (reduce.matches) { s.r = s.n = 1; render(); return; }
+      // the name starts to surface a little before the tab has finished rising
+      const rising = to('r', 1, RISE, my);
+      await wait(RISE * (1 - s.r) * (1 - OVERLAP));
+      if (my !== token) return;
+      await Promise.all([rising, to('n', 1, SURFACE, my)]);
+    }
+    async function showRich(my) {
+      rich.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      if (reduce.matches) { s.r = s.m = s.p = s.l = 1; render(); return; }
+      // the line surfaces a little before the tab is fully up; the pill swells once the line is on its way,
+      // and its label comes up in it when the pill is half risen
+      const rising = to('r', 1, RICH_T.rise, my);
+      await wait(RICH_T.rise * (1 - s.r) * (1 - OVERLAP));
+      if (my !== token) return;
+      const line = to('m', 1, RICH_T.surface, my);
+      await wait(250);
+      if (my !== token) return;
+      const swelling = to('p', 1, RICH_T.swell, my);
+      await wait(RICH_T.swell * .5);
+      if (my !== token) return;
+      await Promise.all([rising, line, swelling, to('l', 1, RICH_T.label, my)]);
+    }
+    async function hide() {
+      clearTimeout(timer);
+      if (!open) return;
+      open = false;
+      const my = ++token;
+      if (mode === 'rich') return hideRich(my);
+      if (reduce.matches) { s.r = s.n = 0; render(); return; }
+      if (!(await to('n', 0, OUT.name, my))) return;
+      await to('r', 0, OUT.sink, my);
+    }
+    async function hideRich(my) {
+      // if focus was on Unmute, hand it back to the bell without opening the tab again
+      if (rich.contains(document.activeElement)) { quiet = true; btn.focus(); quiet = false; }
+      rich.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      if (reduce.matches) { s.r = s.m = s.n = s.p = s.l = 0; render(); reset(); return; }
+      // everything in the tab sinks first, together, then the tab sinks back into the tile;
+      // once it has settled into the plain tab, it goes exactly as the plain one does
+      const settled = s.k > 0;
+      const out = await Promise.all(['m', 'n', 'l', 'p'].map(k => to(k, 0, settled ? OUT.name : RICH_T.out, my)));
+      if (out.includes(false)) return;
+      if (await to('r', 0, settled ? OUT.sink : RICH_T.sink, my)) reset();
+    }
+
+    // Unmute: the pill presses back down into the face and the line sinks; the tab then settles into
+    // the plain tab, "Notifications on" surfaces in it, and after a moment it lets go by itself
+    unmute.addEventListener('click', async () => {
+      if (pressed || !open) return;
+      pressed = true;
+      live.textContent = AFTER;
+      const my = token;
+      // the button is gone once the pill has sunk: focus goes back to the bell, quietly, and the hit area shrinks with the tab
+      const settle = () => {
+        if (rich.contains(document.activeElement)) { quiet = true; btn.focus(); quiet = false; }
+        unmute.hidden = true;
+        name.textContent = AFTER;
+        place(PLAIN);
+      };
+      if (reduce.matches) { s.p = s.l = s.m = 0; s.k = s.n = 1; settle(); render(); }
+      else {
+        to('l', 0, PRESS.sink * .6, my);
+        const sinking = to('p', 0, PRESS.sink, my);
+        await wait(150);
+        if (my !== token) return;
+        await Promise.all([sinking, to('m', 0, OUT.name, my)]);
+        if (my !== token) return;
+        settle();
+        // the tab narrows and sinks to the plain tab's place; the words start to surface as it arrives
+        const settling = to('k', 1, PRESS.settle, my);
+        await wait(PRESS.settle * .6);
+        if (my !== token) return;
+        if (!(await Promise.all([settling, to('n', 1, SURFACE, my)])).every(Boolean)) return;
+      }
+      await wait(PRESS.hold);
+      if (my === token) hide();
+    });
+
+    // hover waits a beat; keyboard focus shows at once; Esc closes
+    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
+    wrap.addEventListener('mouseleave', () => {
+      clearTimeout(timer);
+      if (mode === 'rich') {
+        // the rich tab waits a moment, so the pointer can cross onto it; focus inside keeps it open
+        if (!wrap.contains(document.activeElement)) timer = setTimeout(hide, GRACE);
+      } else if (document.activeElement !== btn) hide();
+    });
+    btn.addEventListener('focus', () => { if (!quiet) show(); });
+    btn.addEventListener('blur', e => {
+      if (mode === 'rich' && (rich.contains(e.relatedTarget) || wrap.matches(':hover'))) return;
+      hide();
+    });
+    unmute.addEventListener('blur', e => {
+      if (e.relatedTarget === btn || wrap.matches(':hover')) return;
+      hide();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    // Plain / Rich: switching lets go of anything open at once, with no motion, and starts clean
+    switches.forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.mode === mode) return;
+      ++token;
+      clearTimeout(timer);
+      open = false;
+      for (const k in s) s[k] = 0;
+      mode = b.dataset.mode;
+      switches.forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+      rich.hidden = true;
+      reset();
+      if (mode === 'rich') { btn.removeAttribute('aria-describedby'); btn.setAttribute('aria-expanded', 'false'); }
+      else { btn.setAttribute('aria-describedby', 'tip'); btn.removeAttribute('aria-expanded'); }
+      render();
+    }));
+
+    render();
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

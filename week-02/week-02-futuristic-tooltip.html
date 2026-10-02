@@ -10,7 +10,10 @@
      Futuristic, matching its badge: Obsidian's graph view. The bell is a
      network of notes on springs; hovering it does what hovering a note in the
      graph does: it and its links light up in violet and the rest fall back.
-     Then notes stream out of its crown and link up into a box round its name. */
+     Then notes stream out of its crown and link up into a box round its name.
+     Rich tooltip: more notes make a bigger box, holding a line of text and an
+     Unmute button that is itself a little ring of notes linked into the box.
+     After Unmute, the box re-forms as the plain box, holding "Notifications on". */
   :root {
     --bg: #1b1b1d;
     --node: #a7a7ad;
@@ -21,7 +24,7 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
   body { display: grid; place-items: center; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
 
-  .wrap { position: relative; width: min(70vmin, 340px); aspect-ratio: 1; }
+  .wrap { position: relative; width: min(70vmin, 340px); aspect-ratio: 1; container-type: inline-size; }
   .graph { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .links line { stroke: var(--link); stroke-width: .14; transition: stroke .25s, opacity .25s; }
   .links line.chord { stroke: rgba(170, 170, 178, .14); stroke-width: .1; }
@@ -35,6 +38,17 @@
   .links line.stem { stroke: rgba(127, 176, 255, .6); stroke-width: .12; }
   .nodes circle.box { fill: var(--accent); }
   .fill { fill: #18202c; }
+  /* the rich box's button: a smaller ring of notes, a pill, linked into the box */
+  .links line.pill { stroke: rgba(127, 176, 255, .9); stroke-width: .12; }
+  .links line.tie { stroke: rgba(127, 176, 255, .4); stroke-width: .08; }
+  .nodes circle.pill { fill: #b9d3ff; transition: fill .15s; }
+  .pill-fill { fill: #1f2b40; transition: fill .15s; }
+  .wrap:has(.rich-btn:hover:not([aria-disabled])) .pill-fill { fill: #283a58; }
+  .wrap:has(.rich-btn:hover:not([aria-disabled])) .links line.pill { stroke: #cfe0ff; }
+  /* pressed: the pill's notes flash white as they snap, and the one note they gather into glows */
+  .hit .nodes circle.pill { fill: #f2f6ff; }
+  .hit .links line.pill, .hit .links line.tie { stroke: rgba(207, 224, 255, .95); }
+  .pill-glow { fill: var(--accent); }
   .tip-text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; font-size: 2.1px; font-weight: 500; fill: #e2ecff; }
 
   /* the hit area over the bell: a real button, so the tooltip works by keyboard too */
@@ -43,12 +57,48 @@
     padding: 0; border: 0; background: none; cursor: pointer; border-radius: 10px;
   }
   .bell-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  /* the rich box's text and button are HTML laid over the drawn box: real text and a real button.
+     1 unit of the drawing is 100cqw / 36, so they scale with the bell */
+  .rich { position: absolute; margin: 0; }
+  .rich[hidden] { display: none; }
+  .rich-text {
+    position: absolute; left: 0; margin: 0;
+    text-align: left; white-space: nowrap; line-height: 1;
+    font-size: calc(100cqw * 2.1 / 36); font-weight: 500; color: #e2ecff;
+    opacity: 0; transition: opacity .2s;
+  }
+  .rich-btn {
+    position: absolute; padding: 0; border: 0; background: none; cursor: pointer;
+    font: 600 calc(100cqw * 1.9 / 36)/1 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    letter-spacing: .02em; color: #e2ecff; opacity: 0; transition: opacity .2s;
+  }
+  /* on a small screen the drawn pill can shrink under 24 px; its hit area never goes under 32 */
+  .rich-btn span { display: inline-block; }
+  .rich-btn::before { content: ""; position: absolute; left: 0; right: 0; top: min(0px, (100% - 32px) / 2); bottom: min(0px, (100% - 32px) / 2); }
+  .rich.shown .rich-text, .rich.shown .rich-btn { opacity: 1; }
+  .rich.shown .rich-text.swap { opacity: 0; transition-duration: .09s; }
+  .rich.shown .rich-btn[aria-disabled="true"] { opacity: 0; cursor: default; transition-duration: .12s; }
+  /* settled into the plain box: the rich line and button stay in place for screen readers and focus, unseen */
+  .rich.settled .rich-text, .rich.settled .rich-btn { opacity: 0; transition: none; }
+  .rich-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .rich-btn[aria-disabled="true"]:focus-visible { outline-color: transparent; }
+
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  .hint {
-    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
-    font: 500 12px/1.4 Inter, ui-sans-serif, system-ui, sans-serif; color: rgba(255,255,255,.45);
+  /* Plain or Rich, styled like the badge page's controls */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 500 12px/1 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
+  .controls button {
+    height: 30px; padding: 0 14px; border: 1px solid #3a3a40; border-radius: 6px;
+    background: #26262a; color: #dcdcdc; font: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--accent); }
+  .controls button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #12161f; }
+  .controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   .back-pill {
     position: fixed; left: 12px; top: 12px; z-index: 9;
     font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12);
@@ -64,15 +114,24 @@
       <path class="body" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z" fill="none" stroke="none"/>
       <path class="clapper" d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="none"/>
       <rect class="fill" rx=".5" opacity="0"/>
+      <rect class="pill-fill" opacity="0"/>
+      <circle class="pill-glow" r="1.2" opacity="0"/>
       <g class="links"></g>
       <g class="nodes"></g>
       <text class="tip-text" text-anchor="middle" dominant-baseline="central" opacity="0">Notifications</text>
     </svg>
     <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
     <span class="sr" role="tooltip" id="tip">Notifications</span>
+    <div class="rich" id="rich" role="group" aria-label="Notification settings" hidden>
+      <p class="rich-text" aria-live="polite">Muted until 9 AM</p>
+      <button type="button" class="rich-btn"><span>Unmute</span></button>
+    </div>
   </div>
 
-  <p class="hint">Hover or focus the bell</p>
+  <div class="controls" role="group" aria-label="Tooltip type">
+    <button type="button" data-type="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-type="rich" aria-pressed="false">Rich</button>
+  </div>
 
   <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
 
@@ -84,6 +143,18 @@
   // and linking to its neighbours, the box tied to the bell by a few irregular links; as the box closes, the name appears inside.
   // The bell takes every tug and settles. On leaving, the name goes and the
   // notes are drawn back into the crown, last out first in.
+  // Rich tooltip: the same stream, but longer, so more notes make a taller,
+  // wider box, its text set at the top left. After the box, a last run of notes
+  // forms a smaller ring in its lower right corner, a pill, tied into the box by
+  // a few links of its own, like the action row of a rich tooltip: that pill is the
+  // Unmute button. Pressing it plucks the graph: the pill pinches in and
+  // springs back, the box's links tighten and ripple, and the pill's notes
+  // gather into one bright note, still linked in, as the bell gives a ring.
+  // Then the box settles into the plain one: the ring re-forms on its springs to
+  // the plain box's size and place, its surplus notes and the bright note drawn
+  // back into the crown, and "Notifications on" appears in it the way the name
+  // does. After a moment it closes exactly as plain closes.
+  // The rich box can be hovered and tabbed into; it waits a moment before closing.
   (() => {
     const NS = 'http://www.w3.org/2000/svg';
     const K_HOME = 40, K_LINK = 60, DAMP = 7;
@@ -93,6 +164,23 @@
     const RETURN = 10;                     // ms between notes going back
     const PAD_X = 2.8, BOX_H = 5.6;        // box padding round the name, and its height: room to breathe
     const GAP = 3.4;                       // from the bell's crown up to the box's lower edge
+    // the rich box: half again as many notes round a box twice as tall, the text at its top left
+    // and the pill in its lower right corner
+    const RICH_N = 46;                     // notes round the rich box
+    // All rich spacing is measured the way the eye sees it: from the ink of the letters
+    // to the inner edge of the ring's dots, not from CSS line boxes or the links' centre lines.
+    const RICH_GAP = 3;                    // a touch closer to the crown, so the taller box stays in view
+    const TEXT_H = 2.1;                    // the text's size
+    const RICH_PAD = 2.2;                  // padding inside the box, every side: about the text's size
+    const ROW_GAP = 2.2;                   // from the text's lowest ink down to the pill's edge: a full padding
+    const BOX_R = .26, PILL_R = .22;       // the box's and the pill's dots: their radius is part of the edge
+    const BTN_H = 1.9;                     // "Unmute"'s size
+    const BTN_PAD_Y = .6, BTN_PAD_X = 1.2; // the pill's padding round its label's ink, in label sizes
+    const PILL_N = 20;                     // notes round the pill
+    const RICH_LAUNCH = 12, RICH_RETURN = 7;   // a longer stream, so each note follows the last a little sooner
+    const HIDE_DELAY = 300;                // ms the rich box waits after the pointer leaves, so it can be reached
+    const SETTLE = 650;                    // ms for the rich box to re-form as the plain box after Unmute
+    const HOLD = 1200;                     // ms "Notifications on" is shown before the box goes back
 
     const wrap = document.querySelector('.wrap');
     const svg = document.querySelector('.graph');
@@ -100,7 +188,13 @@
     const gNodes = svg.querySelector('.nodes');
     const fill = svg.querySelector('.fill');
     const label = svg.querySelector('.tip-text');
+    const pillFill = svg.querySelector('.pill-fill');
+    const glow = svg.querySelector('.pill-glow');
     const btn = document.querySelector('.bell-btn');
+    const rich = document.getElementById('rich');
+    const richText = rich.querySelector('.rich-text');
+    const unmute = rich.querySelector('.rich-btn');
+    const unmuteLabel = unmute.querySelector('span');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
     // ---- a graph of notes on springs
@@ -145,9 +239,8 @@
 
     // ---- the box: its corners and the points round it, starting from the bottom middle,
     // so the stream fills it outward both ways from where it arrives
-    function boxPoints() {
-      const w = label.getComputedTextLength() + PAD_X * 2;
-      const cx = crown.hx, bottom = crown.hy - GAP, top = bottom - BOX_H;
+    function boxPoints(w = label.getComputedTextLength() + PAD_X * 2, h = BOX_H, gap = GAP, count = BOX_N) {
+      const cx = crown.hx, bottom = crown.hy - gap, top = bottom - h;
       const L = cx - w / 2, R = cx + w / 2;
       // the perimeter as one path, walked from the bottom middle round anticlockwise on screen
       const corners = [[cx, bottom], [R, bottom], [R, top], [L, top], [L, bottom], [cx, bottom]];
@@ -158,14 +251,65 @@
         seg.push([x1, y1, x2, y2, d]); total += d;
       }
       const pts = [];
-      for (let i = 0; i < BOX_N; i++) {
-        let s = total * i / BOX_N;
+      for (let i = 0; i < count; i++) {
+        let s = total * i / count;
         for (const [x1, y1, x2, y2, d] of seg) {
           if (s <= d) { pts.push({ x: x1 + (x2 - x1) * s / d, y: y1 + (y2 - y1) * s / d }); break; }
           s -= d;
         }
       }
-      return { pts, cx, top, bottom, w };
+      return { pts, cx, top, bottom, w, h };
+    }
+
+    // ---- the pill: a stadium round "Unmute", walked the same way, from its bottom middle
+    // the ink of a line of text, in ems: how far it reaches above and below its baseline and to
+    // each side, and where the baseline sits in a line box of line-height 1. Measured at the size
+    // it is drawn, since the system font is cut wider at small sizes
+    const pen = document.createElement('canvas').getContext('2d');
+    function ink(str, weight, size) {
+      const px = size * wrap.clientWidth / 36;
+      pen.font = `${weight} ${px}px ${getComputedStyle(richText).fontFamily}`;
+      const m = pen.measureText(str), u = v => v / px;
+      return { a: u(m.actualBoundingBoxAscent), d: Math.max(0, u(m.actualBoundingBoxDescent)),
+               l: u(m.actualBoundingBoxLeft), r: u(m.actualBoundingBoxRight), adv: u(m.width),
+               base: (1 - u(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + u(m.fontBoundingBoxAscent) };
+    }
+    function pillPoints(px, py, pw, ph) {
+      const r = ph / 2, a = (pw - ph) / 2, arc = Math.PI * r;
+      const total = 4 * a + 2 * arc, pts = [];
+      for (let i = 0; i < PILL_N; i++) {
+        let s = total * i / PILL_N, t;
+        if (s <= a) pts.push({ x: px + s, y: py + r });
+        else if ((s -= a) <= arc) { t = s / r; pts.push({ x: px + a + r * Math.sin(t), y: py + r * Math.cos(t) }); }
+        else if ((s -= arc) <= 2 * a) pts.push({ x: px + a - s, y: py - r });
+        else if ((s -= 2 * a) <= arc) { t = s / r; pts.push({ x: px - a - r * Math.sin(t), y: py - r * Math.cos(t) }); }
+        else pts.push({ x: px - a + (s - arc), y: py + r });
+      }
+      return pts;
+    }
+    // the rich layout: the text line at the top left, the pill on a row of its own below it,
+    // set into the lower right corner as far from the right edge as from the bottom.
+    // Every gap runs from ink to the dots' inner edge: the capitals sit RICH_PAD below the top ring,
+    // the longer line ends RICH_PAD from the right ring, and the pill's outer edge is RICH_PAD
+    // from the right and bottom rings; the box is just big enough for that
+    function richLayout() {
+      const m1 = ink('Muted until 9 AM', 500, TEXT_H), m2 = ink('Notifications on', 500, TEXT_H), mb = ink('Unmute', 600, BTN_H);
+      const textW = Math.max(m1.l + m1.r, m2.l + m2.r) * TEXT_H;
+      const textA = Math.max(m1.a, m2.a) * TEXT_H, textD = Math.max(m1.d, m2.d) * TEXT_H;
+      // the pill, measured to its dots' outer edge: the label's ink plus its padding
+      const outH = (mb.a + mb.d + BTN_PAD_Y * 2) * BTN_H, outW = (mb.l + mb.r + BTN_PAD_X * 2) * BTN_H;
+      const ph = outH - PILL_R * 2, pw = outW - PILL_R * 2;     // its ring's centre line
+      const edge = BOX_R + RICH_PAD;                          // from the ring's centre line to the ink
+      const h = edge + textA + textD + ROW_GAP + outH + edge;
+      const box = boxPoints(Math.max(textW, outW) + edge * 2, h, RICH_GAP, RICH_N);
+      const capTop = box.top + edge;
+      const px = box.cx + box.w / 2 - edge - outW / 2, py = box.bottom - edge - outH / 2;
+      // where the HTML goes: the text's line box so its capitals land on capTop; the label
+      // nudged so its ink, not its line box, is centred in the pill
+      const textTop = capTop + textA - m1.base * TEXT_H, textLeft = edge + m1.l * TEXT_H;
+      const nudgeY = (.5 - (mb.base - mb.a / 2 + mb.d / 2)) * BTN_H;
+      const nudgeX = (mb.adv / 2 - (mb.r - mb.l) / 2) * BTN_H;
+      return { ...box, textTop, textLeft, px, py, pw, ph, nudgeX, nudgeY, pill: pillPoints(px, py, pw, ph) };
     }
 
     // ---- the simulation
@@ -201,17 +345,57 @@
     }
 
     // ---- show and hide
-    let boxNodes = [], boxLinks = [], token = 0, timer = 0, open = false;
+    let boxNodes = [], boxLinks = [], pillNodes = [], pillLinks = [], tieLinks = [], spare = [];
+    let token = 0, timer = 0, open = false, mode = 'plain', quiet = false, settled = false;
     const wait = ms => new Promise(r => setTimeout(r, ms));
     function fade(el, to, ms) { el.animate({ opacity: [el.getAttribute('opacity') ?? 1, to] }, { duration: ms, fill: 'forwards' }); el.setAttribute('opacity', to); }
+    // the stream's order fans out from the bottom middle, both ways round at once; going back, the reverse
+    const fan = (list, back) => list.map((n, i) => ({ n, k: Math.min(i, list.length - i) })).sort((a, b) => back ? b.k - a.k : a.k - b.k);
+    // drawing units to CSS, for laying the HTML text and button over the drawing
+    const cq = v => v * 100 / 36 + 'cqw';
+
+    // irregular links tie the bell to the box (the box's notes must be in boxNodes, with homes)
+    function tieToBell({ cx, top, bottom, w }, isRich) {
+      const L = cx - w / 2, R = cx + w / 2;
+      // irregular links tie the bell to the box, as links in a graph run where they like:
+      // two to its lower edge, one to its left side, two over to its top
+      const upper = body.filter(n => n.hy < crown.hy + 6).sort((a, c) => a.hx - c.hx);   // the dome, left to right
+      const bell = f => upper[Math.round(f * (upper.length - 1))];
+      const sideOf = (pred, key) => boxNodes.filter(pred).sort((a, c) => a.home[key] - c.home[key]);
+      const lowerEdge = sideOf(n => Math.abs(n.home.y - bottom) < .01, 'x');
+      const topEdge = sideOf(n => Math.abs(n.home.y - top) < .01, 'x');
+      const leftEdge = sideOf(n => Math.abs(n.home.x - L) < .01, 'y');
+      const at = (list, f) => list[Math.round(f * (list.length - 1))];
+      const rightEdge = sideOf(n => Math.abs(n.home.x - R) < .01, 'y');
+      const ties = isRich ? [
+        // the rich box has text to keep clear, so none cross over to the top: they reach its
+        // lower edge and its sides, low down, where there is no ink
+        [bell(.38), at(lowerEdge, .3)],      // lower edge, leaning left
+        [bell(.78), at(lowerEdge, .82)],     // lower edge, from the right shoulder
+        [bell(.6), at(lowerEdge, .55)],      // lower edge, crossing the first
+        [bell(.05), at(leftEdge, .62)],      // the left side, from the far left of the dome
+        [bell(.95), at(rightEdge, .88)]      // the right side, just under the pill
+      ] : [
+        [bell(.38), at(lowerEdge, .3)],      // lower edge, leaning left
+        [bell(.78), at(lowerEdge, .82)],     // lower edge, from the right shoulder
+        [bell(.05), at(leftEdge, .5)],       // the left side, from the far left of the dome
+        [bell(.6), at(topEdge, .2)],         // over the box to its top, crossing left
+        [bell(.18), at(topEdge, .74)]        // and one crossing right
+      ];
+      for (const [d, b] of ties) if (d && b) boxLinks.push(link(d, b, 'stem', Math.hypot(b.home.x - d.hx, b.home.y - d.hy)));
+      return { lowerEdge, leftEdge, rightEdge, at };
+    }
 
     async function showTip() {
+      if (open) return;
       const my = ++token;
-      if (open) return; open = true;
+      open = true;
       wrap.classList.add('on');
-      const { pts, cx, top, bottom, w } = boxPoints();
+      const isRich = mode === 'rich';
+      const lay = isRich ? richLayout() : boxPoints();
+      const { pts, cx, top, bottom, w, h } = lay;
       fill.setAttribute('x', cx - w / 2); fill.setAttribute('y', top);
-      fill.setAttribute('width', w); fill.setAttribute('height', BOX_H);
+      fill.setAttribute('width', w); fill.setAttribute('height', h);
       label.setAttribute('x', cx); label.setAttribute('y', (top + bottom) / 2);
 
       // every note starts in the crown and is let go one after another
@@ -226,41 +410,63 @@
         const a = boxNodes[i], b = boxNodes[(i + 1) % boxNodes.length];
         boxLinks.push(link(a, b, 'box', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
       }
-      // irregular links tie the bell to the box, as links in a graph run where they like:
-      // two to its lower edge, one to its left side, two over to its top
-      const upper = body.filter(n => n.hy < crown.hy + 6).sort((a, c) => a.hx - c.hx);   // the dome, left to right
-      const bell = f => upper[Math.round(f * (upper.length - 1))];
+      // irregular links tie the bell to the box
+      const { lowerEdge, leftEdge, rightEdge, at } = tieToBell(lay, isRich);
       const L = cx - w / 2;
-      const sideOf = (pred, key) => boxNodes.filter(pred).sort((a, c) => a.home[key] - c.home[key]);
-      const lowerEdge = sideOf(n => Math.abs(n.home.y - bottom) < .01, 'x');
-      const topEdge = sideOf(n => Math.abs(n.home.y - top) < .01, 'x');
-      const leftEdge = sideOf(n => Math.abs(n.home.x - L) < .01, 'y');
-      const at = (list, f) => list[Math.round(f * (list.length - 1))];
-      const ties = [
-        [bell(.38), at(lowerEdge, .3)],      // lower edge, leaning left
-        [bell(.78), at(lowerEdge, .82)],     // lower edge, from the right shoulder
-        [bell(.05), at(leftEdge, .5)],       // the left side, from the far left of the dome
-        [bell(.6), at(topEdge, .2)],         // over the box to its top, crossing left
-        [bell(.18), at(topEdge, .74)]        // and one crossing right
-      ];
-      for (const [d, b] of ties) if (d && b) boxLinks.push(link(d, b, 'stem', Math.hypot(b.home.x - d.hx, b.home.y - d.hy)));
+
+      if (isRich) {
+        // the pill: its own ring of notes, then three links into the box, none quite square:
+        // its left end down to the box's lower edge, its right end up to the right side above it,
+        // and its upper left a long way over, under the text, to the left side
+        for (const p of lay.pill) {
+          const n = node(crown.x, crown.y, PILL_R, 'pill');
+          n.home = p; n.hx = crown.hx; n.hy = crown.hy;
+          pillNodes.push(n);
+        }
+        for (let i = 0; i < pillNodes.length; i++) {
+          const a = pillNodes[i], b = pillNodes[(i + 1) % pillNodes.length];
+          pillLinks.push(link(a, b, 'pill', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
+        }
+        const byX = [...pillNodes].sort((a, c) => a.home.x - c.home.x);
+        const pillTop = pillNodes.filter(n => n.home.y < lay.py - lay.ph / 2 + .01).sort((a, c) => a.home.x - c.home.x);
+        for (const [a, b] of [[byX[0], at(lowerEdge, .4)], [byX[byX.length - 1], at(rightEdge, .45)], [at(pillTop, .15), at(leftEdge, .78)]])
+          tieLinks.push(link(a, b, 'tie', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
+        pillFill.setAttribute('x', lay.px - lay.pw / 2); pillFill.setAttribute('y', lay.py - lay.ph / 2);
+        pillFill.setAttribute('width', lay.pw); pillFill.setAttribute('height', lay.ph);
+        pillFill.setAttribute('rx', lay.ph / 2);
+        glow.setAttribute('cx', lay.px); glow.setAttribute('cy', lay.py);
+        // the HTML laid over it: the group over the box, the text on its line, the button over the pill
+        Object.assign(rich.style, { left: cq(L + 6), top: cq(top + 8), width: cq(w), height: cq(h) });
+        richText.style.top = cq(lay.textTop - top); richText.style.left = cq(lay.textLeft);
+        const oh = lay.ph + PILL_R * 2, ow = lay.pw + PILL_R * 2;     // the button covers the pill to its dots' outer edge
+        Object.assign(unmute.style, { left: cq(lay.px - ow / 2 - L), top: cq(lay.py - oh / 2 - top), width: cq(ow), height: cq(oh), borderRadius: cq(oh / 2) });
+        unmuteLabel.style.transform = `translate(${cq(lay.nudgeX)}, ${cq(lay.nudgeY)})`;
+        rich.hidden = false;                                    // reachable by Tab from the start
+        btn.setAttribute('aria-expanded', 'true');
+      }
 
       if (reduce.matches) {
-        for (const n of boxNodes) { n.hx = n.x = n.home.x; n.hy = n.y = n.home.y; }
-        render(); fill.setAttribute('opacity', .92); label.setAttribute('opacity', 1); return;
+        for (const n of [...boxNodes, ...pillNodes]) { n.hx = n.x = n.home.x; n.hy = n.y = n.home.y; }
+        render(); fill.setAttribute('opacity', .92);
+        if (isRich) { pillFill.setAttribute('opacity', 1); rich.classList.add('shown'); }
+        else label.setAttribute('opacity', 1);
+        return;
       }
       busy = true; kick();
-      // the stream: the order fans out from the bottom middle, both ways round at once
-      const order = boxNodes.map((n, i) => ({ n, k: Math.min(i, boxNodes.length - i) })).sort((a, b) => a.k - b.k);
+      // the stream: the order fans out from the bottom middle, both ways round at once;
+      // in the rich box, the pill's notes come last, filling in the middle of the box
+      const order = [...fan(boxNodes), ...fan(pillNodes)];
       for (const { n } of order) {
         if (my !== token) return;
         n.hx = n.home.x; n.hy = n.home.y;
         n.vx = (n.home.x - n.x) * 2; n.vy = (n.home.y - n.y) * 2 - 4;    // flung out of the crown
-        await wait(LAUNCH);
+        await wait(isRich ? RICH_LAUNCH : LAUNCH);
       }
-      await wait(220);                                               // the box closes
+      await wait(isRich ? 260 : 220);                                // the box closes
       if (my !== token) return;
-      fade(fill, .92, 200); fade(label, 1, 220);                     // and the name is there inside it
+      fade(fill, .92, 200);
+      if (isRich) { fade(pillFill, 1, 200); rich.classList.add('shown'); }   // the text and the button are there
+      else fade(label, 1, 220);                                      // and the name is there inside it
       busy = false;
     }
 
@@ -269,16 +475,20 @@
       clearTimeout(timer);
       if (!open) return; open = false;
       fade(label, 0, 100); fade(fill, 0, 140);
+      if (mode === 'rich') {
+        rich.classList.remove('shown'); fade(pillFill, 0, 120); fade(glow, 0, 120);
+        btn.setAttribute('aria-expanded', 'false');
+      }
       if (!reduce.matches) {
         busy = true; kick();
-        // drawn back into the crown, the last out going first
-        const order = boxNodes.map((n, i) => ({ n, k: Math.min(i, boxNodes.length - i) })).sort((a, b) => b.k - a.k);
+        // drawn back into the crown, the last out going first (in the rich box, the pill before the box)
+        const order = [...fan(pillNodes, true), ...fan(boxNodes, true)];
         for (const { n } of order) {
           if (my !== token) return;
           n.hx = crown.hx; n.hy = crown.hy;
-          await wait(RETURN);
+          await wait(mode === 'rich' && !settled ? RICH_RETURN : RETURN);   // once settled, it closes as plain does
         }
-        for (const l of boxLinks) l.rest = 0;
+        for (const l of [...boxLinks, ...pillLinks, ...tieLinks]) l.rest = 0;
         await wait(320);
         if (my !== token) return;
         busy = false;
@@ -288,17 +498,195 @@
       render(); kick();
     }
     function clearBox() {
-      for (const l of boxLinks) unlink(l);
-      for (const n of boxNodes) drop(n);
-      boxLinks = []; boxNodes = [];
+      for (const l of [...boxLinks, ...pillLinks, ...tieLinks]) unlink(l);
+      for (const n of [...boxNodes, ...pillNodes, ...spare]) drop(n);
+      boxLinks = []; boxNodes = []; pillLinks = []; pillNodes = []; tieLinks = []; spare = [];
+      settled = false; label.textContent = 'Notifications';
+      // the rich box starts afresh each time: muted again, the button back
+      rich.hidden = true; rich.classList.remove('shown', 'settled');
+      richText.textContent = 'Muted until 9 AM'; richText.classList.remove('swap');
+      unmute.removeAttribute('aria-disabled');
+      wrap.classList.remove('hit');
+      glow.setAttribute('opacity', 0);
     }
 
-    // hover waits a beat; keyboard focus shows at once; Esc closes
-    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(showTip, DELAY); });
-    wrap.addEventListener('mouseleave', hideTip);
-    btn.addEventListener('focus', showTip);
-    btn.addEventListener('blur', hideTip);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') hideTip(); });
+    // ---- Unmute: pressing the pill plucks the graph, then the box settles to the plain one
+    // an attribute tween on a frame clock, eased in and out, for the box's fill as the ring re-forms
+    function morph(el, to, ms, my) {
+      const from = {}, t0 = performance.now();
+      for (const k in to) from[k] = +el.getAttribute(k);
+      return new Promise(done => {
+        const step = now => {
+          if (my !== token) return done();
+          const t = Math.min(1, (now - t0) / ms), e = t < .5 ? 2 * t * t : 1 - (2 - 2 * t) ** 2 / 2;
+          for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+          t < 1 ? requestAnimationFrame(step) : done();
+        };
+        requestAnimationFrame(step);
+      });
+    }
+    // the rich box becomes the plain box round "Notifications on": the plain number of notes
+    // keep their places in the ring, spread evenly, and are given the plain box's places; the
+    // rest, and the gathered pill note, are drawn back into the crown. The ring is linked anew,
+    // and the bell's links run as the plain box's do. The notes travel on their springs
+    async function settle(my) {
+      label.textContent = 'Notifications on';
+      const lay = boxPoints();
+      const { pts, cx, top, bottom, w, h } = lay;
+      label.setAttribute('x', cx); label.setAttribute('y', (top + bottom) / 2);
+      const keep = pts.map((p, j) => {
+        const n = boxNodes[Math.round(j * boxNodes.length / pts.length) % boxNodes.length];
+        n.home = p; n.hx = p.x; n.hy = p.y;
+        return n;
+      });
+      const extra = boxNodes.filter(n => !keep.includes(n));
+      for (const l of [...boxLinks, ...pillLinks, ...tieLinks]) unlink(l);
+      boxLinks = []; pillLinks = []; tieLinks = [];
+      boxNodes = keep;
+      for (let i = 0; i < boxNodes.length; i++) {
+        const a = boxNodes[i], b = boxNodes[(i + 1) % boxNodes.length];
+        boxLinks.push(link(a, b, 'box', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
+      }
+      tieToBell(lay, false);
+      spare.push(...pillNodes, ...extra); pillNodes = [];
+      settled = true;
+      rich.classList.add('settled');
+      Object.assign(rich.style, { left: cq(cx - w / 2 + 6), top: cq(top + 8), width: cq(w), height: cq(h) });   // the hover area follows
+      const rect = { x: cx - w / 2, y: top, width: w, height: h };
+      if (reduce.matches) {
+        for (const n of boxNodes) { n.x = n.hx; n.y = n.hy; }
+        for (const n of spare) drop(n);
+        spare = [];
+        for (const k in rect) fill.setAttribute(k, rect[k]);
+        glow.setAttribute('opacity', 0); label.setAttribute('opacity', 1); render();
+        return;
+      }
+      busy = true; kick();
+      fade(glow, 0, 160);
+      const fillMove = morph(fill, rect, SETTLE, my);
+      // the gathered note goes first, then the surplus notes one after another, as in a close
+      (async () => {
+        for (const n of spare.slice()) {
+          if (my !== token) return;
+          n.hx = crown.hx; n.hy = crown.hy;
+          await wait(RICH_RETURN);
+        }
+      })();
+      await fillMove;
+      if (my !== token) return;
+      fade(label, 1, 220);                                     // and the name is there, as in plain
+      await wait(260);
+      if (my !== token) return;
+      for (const n of spare) drop(n);
+      spare = [];
+      busy = false;
+    }
+
+    async function unmuteNow() {
+      if (!open || unmute.hasAttribute('aria-disabled')) return;
+      const my = token;
+      unmute.setAttribute('aria-disabled', 'true');
+      const px = +glow.getAttribute('cx'), py = +glow.getAttribute('cy');   // the pill's middle
+      // the rich line fades out and stays out; it still says "Notifications on" to a screen reader,
+      // while the settled box shows it the plain way
+      const swapText = async () => {
+        richText.classList.add('swap'); await wait(90);
+        if (my !== token) return;
+        richText.textContent = 'Notifications on';
+      };
+      fade(pillFill, 0, 140);
+      if (reduce.matches) {
+        swapText();
+        settle(my);
+      } else {
+        busy = true; kick();
+        wrap.classList.add('hit');
+        // the press: the pill pinches in toward its middle and its links pull tight,
+        // and the box's links tighten a little too, so the whole box twitches
+        for (const n of pillNodes) { n.hx = px + (n.home.x - px) * .8; n.hy = py + (n.home.y - py) * .7; }
+        for (const l of pillLinks) { l.rest0 = l.rest; l.rest *= .8; }
+        for (const l of boxLinks) { l.rest0 = l.rest; l.rest *= .96; }
+        await wait(130);
+        if (my !== token) return;
+        // let go: the pill springs back out past its place, a ripple runs out through the box,
+        // the box's links go back to length, and the bell rings, free to again
+        for (const n of pillNodes) { n.hx = n.home.x; n.hy = n.home.y; n.vx += (n.home.x - px) * 3; n.vy += (n.home.y - py) * 3; }
+        for (const l of pillLinks) l.rest = l.rest0;
+        for (const l of boxLinks) l.rest = l.rest0;
+        for (const n of boxNodes) {
+          const dx = n.home.x - px, dy = n.home.y - py, d = Math.hypot(dx, dy) || 1;
+          n.vx += dx / d * 14 / (1 + d * .25); n.vy += dy / d * 14 / (1 + d * .25);
+        }
+        for (const n of clap) n.vx += 10;
+        for (const n of body) n.vx += (n.hy - crown.hy) * .5;
+        swapText();
+        await wait(220);
+        if (my !== token) return;
+        // the pill's notes gather into one bright note where the button was, still linked into the box,
+        // for a beat
+        wrap.classList.remove('hit');
+        for (const n of pillNodes) { n.hx = px; n.hy = py; }
+        for (const l of pillLinks) l.rest = 0;
+        for (const l of tieLinks) {
+          const far = boxNodes.includes(l.a) ? l.a : l.b;
+          l.rest = Math.hypot(far.home.x - px, far.home.y - py);
+        }
+        fade(glow, .3, 200);
+        await wait(250);
+        if (my !== token) return;
+        await settle(my);
+        if (my !== token) return;
+      }
+      await wait(HOLD);
+      if (my !== token) return;
+      if (document.activeElement === unmute) { quiet = true; btn.focus(); quiet = false; }
+      hideTip();
+    }
+    unmute.addEventListener('click', unmuteNow);
+
+    // ---- switching Plain and Rich: whatever is open goes at once, and the next hover uses the new one
+    function resetTip() {
+      ++token;
+      clearTimeout(timer);
+      open = false; busy = false;
+      for (const el of [fill, label, pillFill, glow]) { el.getAnimations().forEach(a => a.cancel()); el.setAttribute('opacity', 0); }
+      clearBox();
+      wrap.classList.remove('on');
+      render(); kick();
+    }
+    const typeBtns = document.querySelectorAll('.controls button');
+    for (const b of typeBtns) b.addEventListener('click', () => {
+      if (b.dataset.type === mode) return;
+      resetTip();
+      mode = b.dataset.type;
+      for (const o of typeBtns) o.setAttribute('aria-pressed', o === b);
+      if (mode === 'rich') { btn.removeAttribute('aria-describedby'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'rich'); }
+      else { btn.setAttribute('aria-describedby', 'tip'); btn.removeAttribute('aria-expanded'); btn.removeAttribute('aria-controls'); }
+    });
+
+    // hover waits a beat; keyboard focus shows at once; Esc closes.
+    // Rich: leaving waits HIDE_DELAY so the pointer can reach the box (which sits inside .wrap,
+    // so moving onto it never counts as leaving), and focus may move on to Unmute and stay open
+    wrap.addEventListener('mouseenter', () => {
+      clearTimeout(timer);
+      if (!open) timer = setTimeout(showTip, DELAY);
+    });
+    wrap.addEventListener('mouseleave', () => {
+      if (mode !== 'rich') return hideTip();
+      clearTimeout(timer);
+      if (document.activeElement === unmute) return;              // a keyboard user is still inside
+      timer = setTimeout(hideTip, HIDE_DELAY);
+    });
+    btn.addEventListener('focus', () => { if (!quiet) showTip(); });
+    wrap.addEventListener('focusout', e => {
+      if (mode !== 'rich') { if (e.target === btn) hideTip(); return; }
+      if (!wrap.contains(e.relatedTarget)) hideTip();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (document.activeElement === unmute) { quiet = true; btn.focus(); quiet = false; }
+      hideTip();
+    });
 
     // on load, the bell falls into shape from a loose scatter
     if (!reduce.matches) {

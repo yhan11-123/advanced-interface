@@ -10,7 +10,12 @@
      Intimate, matching its badge: warm paper, a brown bell, and terracotta
      liquid. On hover a thick, slow drop of it draws up out of the bell,
      stretching on a neck that thins and lets go, and spreads into a soft box
-     floating free above; the name is written inside, a letter at a time. */
+     floating free above; the name is written inside, a letter at a time.
+     Rich tooltip: the same drop draws up more liquid and spreads into a larger
+     soft box, writes "Muted until 9 AM" in from the left, and a cream bead wells
+     up in its lower right corner to become the Unmute button. Pressing it, the bead is absorbed back into the
+     box, the liquid draws in slowly to the plain tooltip's box, in its place, and
+     "Notifications on" is written there; then it sinks back into the bell. */
   :root {
     --bg: #f5ece3;
     --ink: #5a3a2e;
@@ -25,7 +30,12 @@
   .bell { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .liquid { fill: var(--warm); }
   .stream { fill: none; stroke: var(--warm); stroke-linecap: round; }
-  .name { font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif; font-style: italic; font-weight: 600; font-size: 3.1px; fill: #fff8f1; }
+  .name, .rline { font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif; font-style: italic; font-weight: 600; font-size: 3.1px; fill: #fff8f1; }
+  /* the rich box's line, a touch smaller than the plain name, so the larger box still fits a small frame */
+  .rline { font-size: 2.9px; }
+  /* the rich box's button: a bead of cream welling up in the terracotta, its word in the bell's brown */
+  .bead { fill: #fff8f1; }
+  .label { font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif; font-style: italic; font-weight: 600; font-size: 2.6px; fill: var(--ink); }
 
   /* the hit area over the bell: a real button, so the tooltip works by keyboard too */
   .bell-btn {
@@ -33,12 +43,32 @@
     padding: 0; border: 0; background: none; cursor: pointer; border-radius: 12px;
   }
   .bell-btn:focus-visible { outline: 2px solid var(--warm); outline-offset: 4px; }
+  /* the rich box's real controls, laid over the drawing: a group the pointer can rest on, and the Unmute
+     button over the cream bead (the bead and its word are drawn in the SVG, so its own text stays clear) */
+  .rich { position: absolute; }
+  .rich[hidden] { display: none; }
+  .unmute {
+    position: absolute; padding: 0; border: 0; background: none; color: transparent;
+    font: italic 600 13px/1 "Iowan Old Style", Palatino, Georgia, serif; cursor: pointer; border-radius: 999px;
+  }
+  .unmute:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .unmute[aria-disabled="true"] { cursor: default; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  .hint {
-    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
-    font: italic 13px/1.4 "Iowan Old Style", Palatino, Georgia, serif; color: rgba(90, 58, 46, .55);
+  /* Plain / Rich, the same soft pills as the badge's controls */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 500 13px/1 "Iowan Old Style", Palatino, Georgia, serif;
   }
+  .controls button {
+    height: 32px; padding: 0 16px; border: 1px solid rgba(90, 58, 46, .35); border-radius: 999px;
+    background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--warm); }
+  .controls button[aria-pressed="true"] { background: var(--warm); border-color: var(--warm); color: #fff8f1; }
+  .controls button:focus-visible { outline: 2px solid var(--warm); outline-offset: 2px; }
+
   .back-pill {
     position: fixed; left: 12px; top: 12px; z-index: 9;
     font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(90, 58, 46, .6);
@@ -65,13 +95,26 @@
         <path class="stream"/>
         <rect class="liquid pool"/>
       </g>
+      <!-- the rich box's bead, the button, welling up inside it (crisp, outside the merge, so it reads as its own drop) -->
+      <rect class="bead"/>
       <text class="name" text-anchor="middle" dominant-baseline="central"></text>
+      <!-- the rich box's line, and the line written once unmuted (set as the plain name is, in the plain box) -->
+      <text class="rline rline-muted" text-anchor="start" dominant-baseline="central"></text>
+      <text class="name rline-on" text-anchor="middle" dominant-baseline="central"></text>
+      <text class="label" text-anchor="middle" dominant-baseline="central">Unmute</text>
     </svg>
     <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
     <span class="sr" role="tooltip" id="tip">Notifications</span>
+    <div class="rich" id="rich" role="group" aria-label="Notification settings" hidden>
+      <p class="sr status" aria-live="polite">Muted until 9 AM</p>
+      <button type="button" class="unmute">Unmute</button>
+    </div>
   </div>
 
-  <p class="hint">Hover or focus the bell</p>
+  <div class="controls" role="group" aria-label="Tooltip type">
+    <button type="button" data-type="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-type="rich" aria-pressed="false">Rich</button>
+  </div>
 
   <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
 
@@ -84,6 +127,17 @@
   // written inside it, a letter at a time.
   // On leaving, the letters fade, the box gathers back into a drop, and the
   // drop sinks back down into the bell.
+  // Rich tooltip: the same drop, a little slower, draws up more liquid and
+  // spreads into a larger soft box, its corners settling from round to gently
+  // rounded. "Muted until 9 AM" is written in from the left, and as the writing
+  // goes a bead of cream wells up in the box's lower right corner, round at
+  // first, then spreading into a pill: the Unmute button, as an action row. The box can be hovered and tabbed into, and stays while the
+  // pointer or focus is on it. Pressing Unmute, the bead draws back into a drop
+  // and is absorbed into the box where it sits, and the old line fades. Then the
+  // liquid draws in, slowly, to the plain tooltip's box: its size, its place
+  // above the bell, its fully round ends; and "Notifications on" is written there,
+  // centred as the plain name is. A moment later it closes exactly as the plain
+  // one does: the words fade, it gathers, and sinks.
   (() => {
     const NAME = 'Notifications';
     const CROWN = { x: 12, y: 4 };          // the top of the bell
@@ -97,41 +151,116 @@
     const LETTER = 240, STAGGER = 65;       // ms for one letter to appear, and between letters
     const FADE = 220, GATHER = 500, SINK = 520;   // ms to leave: letters, box, drop
 
+    // the rich box: two rows (the line, then the bead) with its bottom the same small gap above the crown.
+    // Its spacing is measured from the ink of the letters, not their line boxes: one padding P all round
+    // (the line's ink P in from the top and left, the bead P in from the right and bottom), a clear gap
+    // under the line, and the word inside the bead given room of its own. The sizes are worked out below.
+    const MUTED = 'Muted until 9 AM', ON = 'Notifications on';
+    const R_BOTTOM = 2.1;                   // the rich box's lower edge, just clear of the crown
+    const R_FONT = 2.9, L_FONT = 2.6;       // the line's and the bead's type sizes (as in the CSS)
+    const R_PAD = R_FONT;                   // P: the box's padding, all four sides, one type size
+    const R_GAP = R_PAD * .9;               // clear space from the line's ink down to the bead
+    const R_RADIUS = 3;                     // its corners once spread: soft, not a full pill (the ink stays clear of them)
+    const BEAD_MIN = 4.8;                   // the bead is never shorter than this (24px+ even in a small frame)
+    const R_RISE = 1100, R_SPREAD = 1100;   // ms: a little slower than plain, there is more liquid to draw up
+    const BEAD = 800, LABEL = 420;          // ms for the bead to well up and spread, and for its word to show
+    const ABSORB = 650;                     // ms for the bead to be absorbed and the line to fade
+    const SETTLE = 900;                     // ms for the liquid to draw in, slowly, to the plain box
+    const LINGER = 1200;                    // ms the "on" line rests before it closes by itself
+    const R_GATHER = 600, R_SINK = 620;     // ms to leave the rich box (the fade is shared)
+    const LEAVE = 300;                      // ms of grace after the pointer leaves, so it can cross onto the box
+
     const wrap = document.querySelector('.wrap');
     const neck = document.querySelector('.stream');
     const blob = document.querySelector('.pool');
     const name = document.querySelector('.name');
     const btn = document.querySelector('.bell-btn');
+    const bead = document.querySelector('.bead');
+    const label = document.querySelector('.label');
+    const group = document.querySelector('.rich');
+    const unmuteBtn = document.querySelector('.unmute');
+    const status = document.querySelector('.status');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-
-    // the name, letter by letter, so each can be written in on its own
-    const letters = [...NAME].map(ch => {
-      const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-      t.textContent = ch; t.setAttribute('opacity', 0);
-      name.appendChild(t); return t;
-    });
-    const boxW = name.getComputedTextLength() + PAD * 2;
-    // the name sits in the box's true middle: measured from its own ink, not its baseline
-    name.setAttribute('x', CROWN.x); name.setAttribute('y', BOX_CY);
-    letters.forEach(l => l.setAttribute('opacity', 1));
-    const bb = name.getBBox();
-    name.setAttribute('y', BOX_CY + (BOX_CY - (bb.y + bb.height / 2)));
-    letters.forEach(l => l.setAttribute('opacity', 0));
 
     const clamp = x => Math.max(0, Math.min(1, x));
     const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     const easeOut = x => 1 - Math.pow(1 - x, 3);
     const smooth = x => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // the scene: the drop's centre and size (it becomes the box), the neck's thickness and how
-    // far down from the drop it has let go (0 joined, 1 gone), and the writing
-    const REST = { y: CROWN.y, w: 0, h: 0, neck: 0, gone: 1, write: 0, ink: 1 };
+    // a line split into letters, so each can be written in on its own; centred on cy by its own ink,
+    // not its baseline. Returns the letters and the line's width.
+    function writeable(el, text, cy) {
+      const ls = [...text].map(ch => {
+        const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        t.textContent = ch; t.setAttribute('opacity', 0);
+        el.appendChild(t); return t;
+      });
+      const width = el.getComputedTextLength();
+      el.setAttribute('x', CROWN.x); el.setAttribute('y', cy);
+      ls.forEach(l => l.setAttribute('opacity', 1));
+      const bb = el.getBBox();
+      el.setAttribute('y', cy + (cy - (bb.y + bb.height / 2)));
+      ls.forEach(l => l.setAttribute('opacity', 0));
+      return { el, ls, width };
+    }
+    const plain = writeable(name, NAME, BOX_CY);
+    const letters = plain.ls;
+    const boxW = plain.width + PAD * 2;
+
+    // the rich lines, the bead and its word, all measured by their ink so the box fits them with even room
+    const meter = document.createElement('canvas').getContext('2d');
+    function ink(text, size) {                 // how far the ink reaches from the pen: left, right, up, down
+      meter.font = `italic 600 100px "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif`;
+      const m = meter.measureText(text), k = size / 100;
+      return { l: m.actualBoundingBoxLeft * k, r: m.actualBoundingBoxRight * k,
+               up: m.actualBoundingBoxAscent * k, down: m.actualBoundingBoxDescent * k,
+               get w() { return this.l + this.r; }, get h() { return this.up + this.down; } };
+    }
+    const mInk = ink(MUTED, R_FONT), lInk = ink('Unmute', L_FONT);
+    // the bead: its word half a type size clear above and below, a full type size clear of each end
+    const BEAD_H = Math.max(BEAD_MIN, lInk.h + L_FONT * 1.1);
+    const BEAD_W = lInk.w + L_FONT * 2.1;
+    const R_W = Math.max(mInk.w, BEAD_W) + R_PAD * 2;
+    const R_H = R_PAD + mInk.h + R_GAP + BEAD_H + R_PAD;
+    const R_TOP = R_BOTTOM - R_H, R_CY = R_BOTTOM - R_H / 2;
+    const BEAD_CY = R_BOTTOM - R_PAD - BEAD_H / 2;                  // in the lower right corner, like an action row
+    const BEAD_CX = CROWN.x + R_W / 2 - R_PAD - BEAD_W / 2;
+    const muted = writeable(document.querySelector('.rline-muted'), MUTED, 0);
+    // once unmuted, the box becomes the plain one: its height, its place, its full round ends, its padding,
+    // and "Notifications on" centred in it just as the plain name is
+    const on = writeable(document.querySelector('.rline-on'), ON, BOX_CY);
+    const ON_W = on.width + PAD * 2;
+    // set on their baselines, so each line's ink starts exactly P in from the box's left and top
+    muted.el.setAttribute('dominant-baseline', 'alphabetic');
+    muted.el.setAttribute('x', CROWN.x - R_W / 2 + R_PAD + mInk.l); muted.el.setAttribute('y', R_TOP + R_PAD + mInk.up);
+    // the bead's word, its ink centred in the bead both ways
+    label.setAttribute('text-anchor', 'start'); label.setAttribute('dominant-baseline', 'alphabetic');
+    label.setAttribute('x', BEAD_CX - lInk.w / 2 + lInk.l);
+    label.setAttribute('y', BEAD_CY + (lInk.up - lInk.down) / 2);
+
+    // lay the real controls over the drawing (the SVG's viewBox is 36 units square from -6, -5)
+    const at = (el, x, y, w, h, ox = 0, oy = 0) => {
+      el.style.left = (x - ox) / 36 * 100 + '%'; el.style.top = (y - oy) / 36 * 100 + '%';
+      el.style.width = w / 36 * 100 + '%'; el.style.height = h / 36 * 100 + '%';
+    };
+    at(group, CROWN.x - R_W / 2, R_BOTTOM - R_H, R_W, R_H, -6, -5);
+    // the button, inside the group, as a share of the group's own size
+    unmuteBtn.style.left = (R_W - R_PAD - BEAD_W) / R_W * 100 + '%';
+    unmuteBtn.style.top = (BEAD_CY - BEAD_H / 2 - (R_BOTTOM - R_H)) / R_H * 100 + '%';
+    unmuteBtn.style.width = BEAD_W / R_W * 100 + '%';
+    unmuteBtn.style.height = BEAD_H / R_H * 100 + '%';
+
+    // the scene: the drop's centre and size (it becomes the box), how round its corners may be,
+    // the neck's thickness and how far down from the drop it has let go (0 joined, 1 gone), and the writing.
+    // For rich also: the two lines, the bead (0 none, 1 a full pill) and how much of it is left, and its word.
+    const REST = { y: CROWN.y, w: 0, h: 0, rcap: 99, neck: 0, gone: 1, write: 0, ink: 1,
+                   line: 0, lineInk: 1, next: 0, bead: 0, beadOp: 1, label: 0 };
     let st = { ...REST };
     function draw() {
       const w = Math.max(0, st.w), h = Math.max(0, st.h);
       blob.setAttribute('x', CROWN.x - w / 2); blob.setAttribute('y', st.y - h / 2);
       blob.setAttribute('width', w); blob.setAttribute('height', h);
-      blob.setAttribute('rx', Math.min(w, h) / 2);
+      blob.setAttribute('rx', Math.min(Math.min(w, h) / 2, st.rcap));
       blob.setAttribute('visibility', w < .15 || h < .15 ? 'hidden' : 'visible');   // nothing left as a speck
       // the neck runs from the crown up to the drop; as it lets go, its top slides down to the crown
       const top = st.y + h / 2 - .4, len = CROWN.y - top;
@@ -142,9 +271,22 @@
         neck.setAttribute('stroke-width', st.neck);
       } else neck.setAttribute('d', '');
       letters.forEach((l, i) => l.setAttribute('opacity', clamp((st.write - i * STAGGER) / LETTER) * st.ink));
+      muted.ls.forEach((l, i) => l.setAttribute('opacity', clamp((st.line - i * STAGGER) / LETTER) * st.ink * st.lineInk));
+      on.ls.forEach((l, i) => l.setAttribute('opacity', clamp((st.next - i * STAGGER) / LETTER) * st.ink));
+      // the bead: a round drop welling up from a little below, in the lower right, then spreading sideways into a pill
+      const a = smooth(st.bead / .45), b = smooth((st.bead - .35) / .65);
+      const d = BEAD_H * .8 * a;
+      const bw = d + (BEAD_W - d) * b, bh = d + (BEAD_H - d) * b;
+      const by = BEAD_CY + 1.2 * (1 - a);
+      bead.setAttribute('x', BEAD_CX - bw / 2); bead.setAttribute('y', by - bh / 2);
+      bead.setAttribute('width', bw); bead.setAttribute('height', bh); bead.setAttribute('rx', bh / 2);
+      bead.setAttribute('opacity', st.beadOp);
+      bead.setAttribute('visibility', bw < .15 ? 'hidden' : 'visible');
+      label.setAttribute('opacity', st.label * st.ink);
     }
 
-    let token = 0, timer = 0, open = false;
+    let token = 0, timer = 0, leaveTimer = 0, open = false;
+    let rich = false, pressed = false, hovering = false, quiet = false;
     function run(ms, fn, my) {
       return new Promise(done => {
         const t0 = performance.now();
@@ -156,11 +298,14 @@
         })(t0);
       });
     }
+    const wait = (ms, my) => new Promise(done => setTimeout(() => done(my === token), ms));
 
     async function show() {
+      clearTimeout(leaveTimer);
+      if (open) return; open = true;          // (already open: leave the motion in flight alone)
       const my = ++token;
-      if (open) return; open = true;
-      const end = { y: BOX_CY, w: boxW, h: BOX_H, neck: 0, gone: 1, write: 1e6, ink: 1 };
+      if (rich) return showRich(my);
+      const end = { ...REST, y: BOX_CY, w: boxW, h: BOX_H, neck: 0, gone: 1, write: 1e6, ink: 1 };
       if (reduce.matches) { st = { ...end }; draw(); return; }
       // one long, slow move: the drop draws up on its neck, spreads into the box, the neck lets go, the name is written
       const total = RISE + SPREAD * .55 + LETGO * .3 + letters.length * STAGGER + LETTER;
@@ -185,34 +330,153 @@
       }, my);
     }
 
+    // rich: the same rise, with more liquid, into the larger box; then the line, then the bead
+    async function showRich(my) {
+      pressed = false; unmuteBtn.removeAttribute('aria-disabled'); status.textContent = MUTED;
+      group.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      const end = { ...REST, y: R_CY, w: R_W, h: R_H, rcap: R_RADIUS, line: 1e6, bead: 1, label: 1 };
+      if (reduce.matches) { st = { ...end }; draw(); return; }
+      st = { ...REST };
+      const writeAt = R_RISE * .55 + R_SPREAD * .8;
+      const beadAt = writeAt + 300;           // the bead wells up while the line is still being written
+      const total = Math.max(writeAt + muted.ls.length * STAGGER + LETTER, beadAt + BEAD + LABEL);
+      await run(total, (t, ms) => {
+        const r = easeInOut(clamp(ms / R_RISE));
+        st.y = CROWN.y - 1 + (R_CY - (CROWN.y - 1)) * r;
+        const s = smooth((ms - R_RISE * .55) / R_SPREAD);
+        const grow = easeOut(clamp(ms / (R_RISE * .6)));
+        const dropW = 3 * grow, dropH = (3 + 2.2 * Math.sin(Math.PI * r)) * grow;     // a fuller drop, more to carry
+        st.w = dropW + (R_W - dropW) * s;
+        st.h = dropH + (R_H - dropH) * s;
+        // the corners: fully round while it is a drop, settling to soft corners as it spreads
+        st.rcap = Math.min(st.w, st.h) / 2 * (1 - s) + R_RADIUS * s;
+        const g = smooth((ms - (R_RISE * .55 + R_SPREAD * .55)) / LETGO);
+        st.neck = 2.8 * (1 - .4 * r) * (1 - g);
+        st.gone = g;
+        st.line = Math.max(0, ms - writeAt);
+        st.bead = clamp((ms - beadAt) / BEAD);
+        st.label = smooth((ms - beadAt - BEAD * .7) / LABEL);
+      }, my);
+    }
+
+    // Unmute: the bead is drawn back into the box and the line fades; then the liquid draws in, slowly, to the
+    // plain box (its size, its place above the bell, its round ends), and "Notifications on" is written there
+    async function unmute() {
+      if (!rich || !open || pressed) return;
+      pressed = true; unmuteBtn.setAttribute('aria-disabled', 'true'); status.textContent = ON;
+      clearTimeout(leaveTimer);
+      const my = ++token;                     // (also settles an opening still in flight)
+      const f = { ...st };
+      const settled = { ...f, y: BOX_CY, w: ON_W, h: BOX_H, rcap: 99, neck: 0, gone: 1, lineInk: 0, next: 1e6, bead: 0, label: 0 };
+      if (reduce.matches) { st = settled; draw(); }
+      else {
+        const from = ABSORB * .85;            // the box starts to move as the last of the bead is taken in
+        const writeAt = from + SETTLE * .75;  // the new line is written once the box has all but arrived
+        const total = writeAt + on.ls.length * STAGGER + LETTER;
+        if (!(await run(total, (t, ms) => {
+          st.label = f.label * (1 - smooth(ms / (ABSORB * .35)));           // its word goes first
+          st.bead = f.bead * (1 - smooth(ms / ABSORB));                     // the pill narrows to a drop and is taken in
+          st.beadOp = 1 - smooth((ms - ABSORB * .25) / (ABSORB * .75));     // its cream melting into the terracotta
+          st.lineInk = 1 - smooth(ms / (ABSORB * .5));                      // the old line is gone before the box moves
+          // the liquid draws in: height, width and place together, its corners flowing to the plain box's round ends
+          const k = easeInOut(clamp((ms - from) / SETTLE));
+          st.y = f.y + (BOX_CY - f.y) * k; st.w = f.w + (ON_W - f.w) * k; st.h = f.h + (BOX_H - f.h) * k;
+          st.rcap = k < 1 ? f.rcap + (BOX_H / 2 - f.rcap) * k : 99;
+          st.neck = f.neck * (1 - k); st.gone = f.gone + (1 - f.gone) * k;
+          st.next = Math.max(0, ms - writeAt);
+        }, my))) return;
+      }
+      if (!(await wait(LINGER, my))) return;
+      // close by itself; if focus was on Unmute, hand it back to the bell without reopening
+      const inside = group.contains(document.activeElement);
+      hide();
+      if (inside) quietFocus();
+    }
+
     async function hide() {
       const my = ++token;
-      clearTimeout(timer);
+      clearTimeout(timer); clearTimeout(leaveTimer);
       if (!open) return; open = false;
+      if (rich) { group.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
       if (!reduce.matches) {
+        // (once unmuted it is the plain box, so it leaves exactly as plain does)
+        const asPlain = !rich || pressed;
+        const gather = asPlain ? GATHER : R_GATHER, sink = asPlain ? SINK : R_SINK;
         const f = { ...st };
-        if (!(await run(FADE, t => { st.ink = f.ink * (1 - t); }, my))) return;
+        // (the bead, if there is one, is taken back in as the words fade)
+        if (!(await run(FADE, t => { st.ink = f.ink * (1 - t); st.bead = f.bead * (1 - smooth(t)); }, my))) return;
         // the box gathers back into a drop; any neck still showing (if it is left mid-way) thins away with it
-        if (!(await run(GATHER, t => {
+        if (!(await run(gather, t => {
           const k = easeInOut(t);
           st.w = f.w + (Math.min(f.w, 2.6) - f.w) * k; st.h = f.h + (Math.min(f.h, 3) - f.h) * k;
+          st.rcap = f.rcap + (99 - f.rcap) * k;
           st.neck = f.neck * (1 - k); st.gone = f.gone + (1 - f.gone) * k; st.write = 0;
         }, my))) return;
         // and the drop sinks back down into the bell from wherever it is, shrinking to nothing as it goes
         const g = { ...st };
-        if (!(await run(SINK, t => { const k = easeInOut(t); st.y = g.y + (CROWN.y - g.y) * k; st.w = g.w * (1 - k); st.h = g.h * (1 - k); }, my))) return;
+        if (!(await run(sink, t => { const k = easeInOut(t); st.y = g.y + (CROWN.y - g.y) * k; st.w = g.w * (1 - k); st.h = g.h * (1 - k); }, my))) return;
       }
       st = { ...REST }; draw();
     }
 
-    // hover waits a beat; keyboard focus shows at once; Esc closes
-    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
-    wrap.addEventListener('mouseleave', hide);
-    btn.addEventListener('focus', show);
-    btn.addEventListener('blur', hide);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+    // switching type, or anything that must stop at once: no motion, everything back at rest
+    function reset() {
+      ++token; clearTimeout(timer); clearTimeout(leaveTimer);
+      open = false; pressed = false;
+      group.hidden = true; unmuteBtn.removeAttribute('aria-disabled'); status.textContent = MUTED;
+      st = { ...REST }; draw();
+      if (rich) {
+        btn.removeAttribute('aria-describedby');
+        btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'rich');
+      } else {
+        btn.setAttribute('aria-describedby', 'tip');
+        btn.removeAttribute('aria-expanded'); btn.removeAttribute('aria-controls');
+      }
+    }
 
-    draw();
+    function quietFocus() { quiet = true; btn.focus(); quiet = false; }
+    // rich stays while the pointer is over the bell or the box, or keyboard focus is inside either
+    function keyboardInside() {
+      const a = document.activeElement;
+      return wrap.contains(a) && a.matches(':focus-visible');
+    }
+    function maybeHide() { if (!hovering && !keyboardInside()) hide(); }
+
+    // hover waits a beat; keyboard focus shows at once; Esc closes
+    wrap.addEventListener('mouseenter', () => {
+      hovering = true; clearTimeout(leaveTimer);
+      if (open) return;
+      clearTimeout(timer); timer = setTimeout(show, DELAY);
+    });
+    wrap.addEventListener('mouseleave', () => {
+      hovering = false;
+      if (!rich) return hide();
+      clearTimeout(timer); clearTimeout(leaveTimer);
+      leaveTimer = setTimeout(maybeHide, LEAVE);   // a short grace, so the pointer can cross onto the box
+    });
+    btn.addEventListener('focus', () => { if (!quiet) show(); });
+    btn.addEventListener('blur', () => { if (!rich) hide(); });
+    wrap.addEventListener('focusout', () => {
+      if (!rich) return;
+      setTimeout(() => { if (rich && open && !wrap.contains(document.activeElement) && !hovering) hide(); }, 0);
+    });
+    unmuteBtn.addEventListener('click', unmute);
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const inside = rich && group.contains(document.activeElement);
+      hide();
+      if (inside) quietFocus();
+    });
+
+    // Plain / Rich
+    const types = [...document.querySelectorAll('.controls button')];
+    types.forEach(b => b.addEventListener('click', () => {
+      for (const o of types) o.setAttribute('aria-pressed', String(o === b));
+      rich = b.dataset.type === 'rich';
+      reset();
+    }));
+
+    reset();
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
   })();
   </script>
