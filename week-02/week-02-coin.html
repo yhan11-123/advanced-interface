@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 sketch &middot; Coin spin badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #f4f3ef;
+    --ink: #1a1a1a;
+    --dot: #e5392f;
+    --dot-edge: #a3241d;  /* the chip's rim, seen only when it turns edge on */
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); display: grid; place-items: center; }
+
+  /* the icon and the dot share one box; the dot is placed in the icon's own 24-unit grid */
+  .stage { position: relative; width: min(46vmin, 220px); aspect-ratio: 1; }
+  .icon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .icon path { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* dot centre (20.4, 4.2), radius 2.3, in a 24-unit box */
+  .slot { position: absolute; left: calc(18.1 / 24 * 100%); top: calc(1.9 / 24 * 100%); width: calc(4.6 / 24 * 100%); aspect-ratio: 1; perspective: 160px; }
+  .coin { position: absolute; inset: 0; transform-style: preserve-3d; opacity: 0; }
+  /* a thin flat chip: two flat faces a hair apart, and a rim between them */
+  .face { position: absolute; inset: 0; border-radius: 50%; background: var(--dot); }
+  .front { transform: translateZ(0.6px); }
+  .back { transform: translateZ(-0.6px); }
+  .rim { position: absolute; top: 0; bottom: 0; left: 50%; width: 1.2px; margin-left: -0.6px; border-radius: 1px;
+    background: var(--dot-edge); transform: rotateY(90deg); }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="img" aria-label="Messages">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+    </svg>
+    <div class="slot" aria-hidden="true">
+      <div class="coin"><div class="face back"></div><div class="rim"></div><div class="face front"></div></div>
+    </div>
+  </div>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Coin spin. The dot is a thin flat chip. It appears on the upper right
+  // corner face on and turns once about its upright axis, narrowing to its
+  // thin rim and opening back out, to rest as a whole dot.
+  (() => {
+    const SPIN = 760;                  // ms for the one turn: face on, edge on, face on
+    const HOLD = 1800;                 // ms the dot stays before clearing
+    const REST = 900;                  // ms of bare icon between loops
+
+    const stage = document.querySelector('.stage');
+    const coin = document.querySelector('.coin');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function loop() {
+      for (;;) {
+        await wait(REST);
+        if (reduce.matches) {
+          await coin.animate({ opacity: [0, 1] }, { duration: 200, fill: 'forwards' }).finished;
+        } else {
+          // (   )  ( )  |  ( )  (   ): it shows up face on, narrows to its rim, and opens back to a whole dot
+          await coin.animate(
+            [
+              { opacity: 0, transform: 'rotateY(0deg)' },
+              { opacity: 1, offset: 0.08 },
+              { opacity: 1, transform: 'rotateY(180deg)' }
+            ],
+            { duration: SPIN, easing: 'cubic-bezier(.45, 0, .25, 1)', fill: 'forwards' }
+          ).finished;
+        }
+        stage.setAttribute('aria-label', 'Messages, something new');
+        await wait(HOLD);
+        coin.getAnimations().forEach(a => a.cancel());
+        coin.style.opacity = 1;
+        await coin.animate({ opacity: [1, 0] }, { duration: 260, fill: 'forwards' }).finished;
+        coin.getAnimations().forEach(a => a.cancel());
+        coin.style.opacity = '';
+        stage.setAttribute('aria-label', 'Messages');
+      }
+    }
+    loop();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

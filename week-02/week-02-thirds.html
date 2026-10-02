@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 sketch &middot; Thirds badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #f4f3ef;
+    --ink: #1a1a1a;
+    --dot: #e5392f;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); display: grid; place-items: center; }
+
+  /* the old icon, and the new one cut into three upright strips that come in one after another */
+  .stage { position: relative; width: min(46vmin, 220px); aspect-ratio: 1; }
+  .layer { position: absolute; inset: 0; }
+  .layer svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .layer path { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .dot { fill: var(--dot); stroke: var(--bg); stroke-width: 1.2; }
+  .new { opacity: 0; }
+  /* each strip runs a hair past its neighbour, so no seam shows where they meet */
+  .third-1 { clip-path: inset(-10% 66.4% -10% -10%); }
+  .third-2 { clip-path: inset(-10% 33.1% -10% 33.1%); }
+  .third-3 { clip-path: inset(-10% -10% -10% 66.4%); }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="img" aria-label="Messages">
+    <div class="layer old" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+    </div>
+    <div class="layer new third-1" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+        <circle class="dot" cx="20.4" cy="4.2" r="2.3"/>
+      </svg>
+    </div>
+    <div class="layer new third-2" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+        <circle class="dot" cx="20.4" cy="4.2" r="2.3"/>
+      </svg>
+    </div>
+    <div class="layer new third-3" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+        <circle class="dot" cx="20.4" cy="4.2" r="2.3"/>
+      </svg>
+    </div>
+  </div>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Thirds. Refresh in three steps: when something new arrives, the old
+  // bubble clears and the new one comes back a third at a time, left, middle,
+  // right, each strip popping in on its own beat. The dot lives in the right
+  // third, so it lands with the last step. Then the dot clears and it waits.
+  (() => {
+    const CLEAR = 160;                 // ms for the old icon to go
+    const STEP = 220;                  // ms between one third and the next
+    const POP = 120;                   // ms for a third to come in
+    const HOLD = 1800;                 // ms the dot stays before clearing
+    const REST = 1000;                 // ms of plain icon between loops
+
+    const stage = document.querySelector('.stage');
+    const old = document.querySelector('.old');
+    const thirds = [...document.querySelectorAll('.new')];
+    const dot = thirds[2].querySelector('.dot');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const settle = el => el.getAnimations().forEach(a => a.cancel());
+
+    async function loop() {
+      for (;;) {
+        await wait(REST);
+        if (reduce.matches) {
+          // no sweep: the icon with its dot simply fades in over the old one
+          await Promise.all(thirds.map(t => t.animate({ opacity: [0, 1] }, { duration: 240, fill: 'forwards' }).finished));
+        } else {
+          await old.animate({ opacity: [1, 0] }, { duration: CLEAR, easing: 'ease-in', fill: 'forwards' }).finished;
+          for (const t of thirds) {
+            t.animate({ opacity: [0, 1] }, { duration: POP, easing: 'ease-out', fill: 'forwards' });
+            await wait(STEP);
+          }
+        }
+        stage.setAttribute('aria-label', 'Messages, something new');
+        await wait(HOLD);
+        await dot.animate({ opacity: [1, 0] }, { duration: 260, fill: 'forwards' }).finished;
+        // back to the plain icon, ready for the next one
+        settle(old); thirds.forEach(settle); settle(dot);
+        stage.setAttribute('aria-label', 'Messages');
+      }
+    }
+    loop();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

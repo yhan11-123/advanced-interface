@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 sketch &middot; Swell badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #f4f3ef;
+    --ink: #1a1a1a;
+    --dot: #e5392f;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); display: grid; place-items: center; }
+  .icon { width: min(46vmin, 220px); height: auto; overflow: visible; }
+  .icon path { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .dot { fill: var(--dot); stroke: var(--bg); stroke-width: 1.2; }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <svg class="icon" viewBox="0 0 24 24" role="img" aria-label="Messages">
+    <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+    <circle class="dot" cx="20.4" cy="4.2" r="0" opacity="0"/>
+  </svg>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Swell. The dot is born in the middle of the bubble and swells until it
+  // covers the whole icon, then shrinks as it travels to its place on the
+  // upper right corner, where it settles at badge size. Then it clears and
+  // goes again.
+  (() => {
+    const GROW = 460;                  // ms to swell over the icon
+    const PAUSE = 120;                 // ms held at full size
+    const GO = 640;                    // ms to shrink and travel to the corner
+    const HOLD = 1800;                 // ms the dot stays before clearing
+    const REST = 900;                  // ms of bare icon between loops
+    const MID = { x: 12, y: 11.5, r: 12.6 };   // big enough to hide the bubble, tail and all
+    const END = { x: 20.4, y: 4.2, r: 2.3 };   // the badge spot
+
+    const svg = document.querySelector('.icon');
+    const dot = document.querySelector('.dot');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
+    const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const mix = (a, b, k) => a + (b - a) * k;
+
+    function set(x, y, r, o) {
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      dot.setAttribute('r', Math.max(0, r)); dot.setAttribute('opacity', o);
+    }
+    function tween(ms, fn) {
+      return new Promise(done => {
+        const t0 = performance.now();
+        (function frame(now) {
+          const t = Math.max(0, Math.min(1, (now - t0) / ms));
+          fn(t);
+          if (t < 1) requestAnimationFrame(frame); else done();
+        })(t0);
+      });
+    }
+
+    async function loop() {
+      for (;;) {
+        set(END.x, END.y, END.r, 0);
+        await wait(REST);
+        if (reduce.matches) {
+          // no swelling or travel: the dot fades in at its spot
+          await tween(200, t => set(END.x, END.y, END.r, t));
+        } else {
+          await tween(GROW, t => { const k = easeOut(t); set(MID.x, MID.y, MID.r * k, 1); });
+          await wait(PAUSE);
+          await tween(GO, t => {
+            const k = easeInOut(t);
+            set(mix(MID.x, END.x, k), mix(MID.y, END.y, k), mix(MID.r, END.r, k), 1);
+          });
+        }
+        svg.setAttribute('aria-label', 'Messages, something new');
+        await wait(HOLD);
+        await tween(260, t => set(END.x, END.y, END.r, 1 - t));
+        svg.setAttribute('aria-label', 'Messages');
+      }
+    }
+    loop();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

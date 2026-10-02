@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Dramatic badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Dramatic: black, white and one red. A red circle swells out of the
+     bubble and stays as its frame; inside it the bubble's outline and the
+     badge are cut through, showing the screen's own black. */
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  .stage { position: fixed; inset: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* three states, one chosen: the chosen one is filled */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;
+    padding: 0 12px;
+    font: 500 12px/1 ui-sans-serif, system-ui, -apple-system, sans-serif; color: #fff;
+  }
+  .controls button {
+    height: 30px; padding: 0 14px; box-sizing: border-box; border: 1px solid #fff; border-radius: 999px;
+    background: #000; color: #fff; font: inherit; cursor: pointer;
+  }
+  .controls button:hover { background: #222; }
+  .controls button[aria-pressed="true"] { background: #fff; color: #000; }
+  .controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.16);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="img" aria-label="Messages">
+    <canvas aria-hidden="true"></canvas>
+  </div>
+
+  <div class="controls" role="group" aria-label="Badge state">
+    <button type="button" data-state="none" aria-pressed="true">None</button>
+    <button type="button" data-state="dot" aria-pressed="false">Dot</button>
+    <button type="button" data-state="content" aria-pressed="false">With content</button>
+  </div>
+  <p class="sr" id="status" aria-live="polite"></p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Dramatic badge, after the Swell sketch, in two acts.
+  // First the frame: a red circle is born in the middle of the bubble and
+  // swells until it holds the whole icon, and there it stays, as the icon's
+  // frame. Inside it the bubble's outline is cut through, so it reads in the
+  // screen's black.
+  // Then the dot, right on the frame's heels: just as the red settles, a
+  // black hole opens at the very point the red was born and heads straight
+  // for the upper right corner, swelling as it leaves and shrinking as it
+  // arrives, where it settles as the badge, a window onto the black behind.
+  // With content starts already in place, frame and badge showing 2; then the
+  // whole badge spins like a flicked coin and comes to rest showing 3. None closes the badge,
+  // then folds the frame away.
+  (() => {
+    const RED = '#e3241b';
+    const BUBBLE = new Path2D('M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z');
+    const MID = { x: 12, y: 11.5 };    // the bubble's middle
+    const FRAME_R = 15;                // the frame: holds the bubble, its tail, and a count badge with its ring
+    const SPOT = { x: 20.4, y: 4.2 };  // the badge's centre, in the icon's 24-unit grid
+    const DOT_R = 2.3;                 // a dot's radius
+    const NUM_H = 6.4;                 // a count badge's height (it widens for more digits)
+    const GAP = .6;                    // red kept round the badge, so it never runs into the outline
+    const FONT = '700 4.2px "Bodoni 72", Didot, "Bodoni MT", Georgia, serif';
+    const HOLE_PEAK = 4.6;             // how big the hole swells before it travels
+    const FRAME_IN = 560;              // ms for the frame to swell out
+    const LEAD = 0.5;                  // the hole sets off just as the frame settles (its curve has all but arrived by now)
+    const GO = 760;                    // ms for the hole to appear, swell, shrink and reach the corner, in one move
+    const FLIP = 1400;                 // ms for the badge to spin like a flicked coin
+    const TURNS = 1.5;                 // turns it makes: past edge on three times, landing on its other face
+    const RIM = .35;                   // the badge's thickness, seen edge on
+    const CLOSE = 240;                 // ms for the badge to close
+    const FRAME_OUT = 420;             // ms for the frame to fold away
+    const FIRST = { text: '2', label: '2' };   // "With content" arrives showing 2,
+    const NEXT = { text: '3', label: '3' };    // then turns to 3
+    const BEAT = 600;                  // ms the 2 is shown before it turns
+
+    const stage = document.querySelector('.stage');
+    const canvas = document.querySelector('canvas');
+    const controls = document.querySelector('.controls');
+    const status = document.getElementById('status');
+    const ctx = canvas.getContext('2d');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let W = 0, H = 0, S = 0, top = 0;
+
+    function layout() {
+      const dpr = window.devicePixelRatio || 1;
+      W = innerWidth; H = innerHeight;
+      const room = H - controls.offsetHeight - 28;               // keep the frame clear of the controls
+      S = Math.min(W * .46, room * .56, 220);
+      top = Math.max(0, (room - S) / 2 + 6);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    }
+
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const mix = (a, b, k) => a + (b - a) * k;
+    const easeOutQuint = x => 1 - Math.pow(1 - x, 5);
+    const easeInQuint = x => Math.pow(x, 5);
+    const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+    const smoothstep = x => x * x * (3 - 2 * x);
+    const easeInOutQuint = x => x < .5 ? 16 * Math.pow(x, 5) : 1 - Math.pow(-2 * x + 2, 5) / 2;
+
+    // a badge's settled size: a dot, or a pill wide enough for its count
+    function size(badge) {
+      if (badge.text == null) return { w: DOT_R * 2, h: DOT_R * 2 };
+      ctx.font = FONT;
+      return { w: Math.max(NUM_H, ctx.measureText(badge.text).width + 3), h: NUM_H };
+    }
+    function pill(cx, cy, w, h) {
+      const r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - w / 2 + r, cy - r);
+      ctx.lineTo(cx + w / 2 - r, cy - r);
+      ctx.arc(cx + w / 2 - r, cy, r, -Math.PI / 2, Math.PI / 2);
+      ctx.lineTo(cx - w / 2 + r, cy + r);
+      ctx.arc(cx - w / 2 + r, cy, r, Math.PI / 2, Math.PI * 1.5);
+      ctx.closePath();
+    }
+
+    // the scene: frame radius, and the hole (x, y, w, h, text, ring) or null
+    const scene = { frame: 0, hole: null };
+    function draw() {
+      const dpr = canvas.width / W;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // from here on, draw in the icon's own 24-unit grid
+      ctx.setTransform(dpr * S / 24, 0, 0, dpr * S / 24, dpr * (W - S) / 2, dpr * top);
+      ctx.lineWidth = 1.7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+      // outside the frame, the bubble is drawn as usual: white on black
+      ctx.strokeStyle = '#fff';
+      ctx.stroke(BUBBLE);
+
+      // inside the frame: red, with the outline cut through to black
+      if (scene.frame > 0) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(MID.x, MID.y, scene.frame, 0, 2 * Math.PI); ctx.clip();
+        ctx.fillStyle = RED; ctx.fillRect(-10, -10, 44, 44);
+        ctx.strokeStyle = '#000'; ctx.stroke(BUBBLE);
+
+        // the badge: a hole through the red, kept apart from the outline by a ring of red
+        const h = scene.hole;
+        if (h && h.h > 0) {
+          // flip: how wide the whole badge shows as it turns like a coin (1 face on, 0 edge on);
+          // edge on, a thin rim of it is still there, as a real chip would be
+          const fx = h.flip ?? 1;
+          ctx.save();
+          ctx.translate(h.x, h.y);
+          if (h.ring) {
+            ctx.save(); ctx.scale(fx, 1);
+            ctx.fillStyle = RED; pill(0, 0, h.w + GAP * 2, h.h + GAP * 2); ctx.fill();
+            ctx.restore();
+          }
+          ctx.save(); ctx.scale(Math.max(fx, RIM / h.w), 1);
+          ctx.fillStyle = '#000'; pill(0, 0, h.w, h.h); ctx.fill();
+          ctx.restore();
+          ctx.restore();
+          if (h.text) {
+            // the count reads in the frame's red, inside the hole, turning with it
+            ctx.save();
+            ctx.translate(h.x, h.y + .15);
+            ctx.scale(h.h / NUM_H * fx, h.h / NUM_H);
+            ctx.fillStyle = RED; ctx.font = FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(h.text, 0, 0);
+            ctx.restore();
+          }
+        }
+        ctx.restore();
+      }
+    }
+    const settled = badge => { const s = size(badge); return { x: SPOT.x, y: SPOT.y, w: s.w, h: s.h, text: badge.text, ring: true }; };
+
+    function run(ms, fn, token) {
+      return new Promise(done => {
+        const t0 = performance.now();
+        (function frame(now) {
+          if (token !== current) return done(false);           // a newer request took over
+          // the first frame's timestamp can fall just before t0, so keep t inside 0..1
+          const t = clamp((now - t0) / ms);
+          fn(t); draw();
+          if (t < 1) requestAnimationFrame(frame); else done(true);
+        })(t0);
+      });
+    }
+    const wait = (ms, token) => new Promise(r => setTimeout(() => r(token === current), ms));
+
+    // only the latest request plays; starting a new one stops the old
+    let current = 0, shown = null;
+
+    function announce(badge) {
+      const label = !badge ? 'Messages' : badge.text == null ? 'Messages, something new' : `Messages, ${badge.label} unread`;
+      stage.setAttribute('aria-label', label);
+      status.textContent = label;
+    }
+
+    // act one, if the frame is not there yet: swell it out from the middle.
+    // Returns the frame's own animation, so the hole can start before it ends.
+    function openFrame(token) {
+      if (scene.frame >= FRAME_R) return null;
+      const from = scene.frame;
+      if (reduce.matches) { scene.frame = FRAME_R; return null; }
+      return run(FRAME_IN, t => { scene.frame = mix(from, FRAME_R, easeOutQuint(t)); }, token);
+    }
+
+    // close whatever badge is showing
+    async function closeHole(token) {
+      const h = scene.hole;
+      if (!h) return true;
+      const ok = await run(reduce.matches ? 1 : CLOSE, t => {
+        const k = 1 - easeOutQuint(t);
+        scene.hole = { ...h, w: h.w * k, h: h.h * k, ring: k > .3 };
+      }, token);
+      if (ok) scene.hole = null;
+      return ok;
+    }
+
+    // act two: a hole opens where the frame was born, in the same way, close behind it,
+    // swells, then shrinks into the corner as the badge
+    async function arrive(badge) {
+      const token = ++current;
+      // every press plays the whole arrival again, from a bare icon
+      scene.frame = 0; scene.hole = null; draw();
+      shown = null; announce(null);
+      const framing = openFrame(token);
+      if (framing && !(await wait(FRAME_IN * LEAD, token))) return false;
+      const end = settled(badge);
+      if (reduce.matches) {
+        scene.hole = end;
+      } else {
+        // no waiting in the middle: it leaves for the corner the moment it appears,
+        // swelling on the way out and shrinking as it arrives
+        const peak = HOLE_PEAK * 2;
+        const ok = await run(GO, t => {
+          const k = easeOutCubic(t);                                  // sets off at once, settles gently
+          const swell = t < .3 ? easeOutQuint(t / .3) : 1;            // up to its peak in the first stretch
+          const d = mix(0, peak, swell);
+          const w = mix(d, end.w, smoothstep(t)), h = mix(d, end.h, smoothstep(t));
+          scene.hole = {
+            x: mix(MID.x, end.x, k), y: mix(MID.y, end.y, k), w, h,
+            text: t > .85 ? end.text : null, ring: t > .6
+          };
+        }, token);
+        if (!ok) return false;
+      }
+      if (framing && !(await framing)) return false;
+      scene.hole = end; draw();
+      shown = badge;
+      announce(badge);
+      return true;
+    }
+
+    // a count change: the whole badge spins in place like a flicked coin, a 2 on
+    // one face and a 3 on the other, fast at first and slowing, a turn and a half,
+    // until it comes to rest on the 3. (2) | (3) | (2) | (3)
+    async function change(from, to) {
+      const token = ++current;
+      const a = settled(from), b = settled(to);
+      if (!reduce.matches) {
+        const ok = await run(FLIP, t => {
+          // a gentle slowing (sine), so each turn can be seen: about 0.14 s for the first half turn,
+          // and the last edge-on passes about two thirds of the way through
+          const turn = Math.sin(t * Math.PI / 2) * TURNS * 2 * Math.PI;   // about the upright axis
+          const face = Math.floor((turn + Math.PI / 2) / Math.PI) % 2; // 0 the 2's side, 1 the 3's side
+          scene.hole = { ...(face ? b : a), flip: Math.abs(Math.cos(turn)) };
+        }, token);
+        if (!ok) return false;
+      }
+      scene.hole = b; draw();
+      shown = to;
+      announce(to);
+      return true;
+    }
+
+    // None: close the badge, then fold the frame back into the middle
+    async function leave() {
+      const token = ++current;
+      if (!(await closeHole(token))) return;
+      if (scene.frame > 0) {
+        const from = scene.frame;
+        if (!(await run(reduce.matches ? 1 : FRAME_OUT, t => { scene.frame = from * (1 - easeInQuint(t)); }, token))) return;
+      }
+      scene.frame = 0; scene.hole = null; draw();
+      shown = null;
+      announce(null);
+    }
+
+    // With content starts already there: the frame and a badge showing 2, no arrival.
+    // After a beat, the 2 turns over into a 3.
+    async function showContent() {
+      const token = ++current;
+      scene.frame = FRAME_R;
+      scene.hole = settled(FIRST);
+      draw();
+      shown = FIRST;
+      announce(FIRST);
+      if (await wait(BEAT, token)) change(FIRST, NEXT);
+    }
+
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    let state = 'none';
+    for (const b of buttons) b.addEventListener('click', () => {
+      const next = b.dataset.state;
+      // pressing a state again replays its motion (None has nothing to close if nothing is shown)
+      state = next;
+      for (const o of buttons) o.setAttribute('aria-pressed', String(o === b));
+      if (next === 'none') leave();
+      else if (next === 'dot') arrive({ text: null });
+      else showContent();
+    });
+
+    addEventListener('resize', () => { layout(); draw(); });
+    layout();
+    draw();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

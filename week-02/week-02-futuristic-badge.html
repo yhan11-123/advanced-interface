@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Futuristic badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Futuristic, after Obsidian's graph view: the bubble is a network of
+     notes (nodes) joined by thin links on a dark ground. Nothing is drawn
+     solid; everything is points and lines, and it all hangs on springs. */
+  :root {
+    --bg: #1b1b1d;
+    --node: #a7a7ad;
+    --link: rgba(170, 170, 178, .32);
+    --accent: #7fb0ff;                         /* a cool, icy blue, as in its tooltip */
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+  .graph { width: min(70vmin, 340px); height: auto; overflow: visible; margin-bottom: 6vmin; }
+  .links line { stroke: var(--link); stroke-width: .14; }
+  .links line.chord { stroke: rgba(170, 170, 178, .14); stroke-width: .1; }
+  .links line.hot { stroke: rgba(127, 176, 255, .75); stroke-width: .18; }
+  .nodes circle { fill: var(--node); }
+  .nodes circle.lit { fill: var(--accent); }
+  .badge-node { fill: var(--accent); }
+  .badge-glow { fill: var(--accent); opacity: .35; }
+  .sat { fill: #b9d4ff; }
+  .count { font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; font-weight: 600; fill: #1b1b1d; }
+
+  /* three states, one chosen: the chosen one is filled */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 500 12px/1 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  .controls button {
+    height: 30px; padding: 0 14px; border: 1px solid #3a3a40; border-radius: 6px;
+    background: #26262a; color: #dcdcdc; font: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--accent); }
+  .controls button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #12161f; }
+  .controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <svg class="graph" viewBox="-6 -8 36 36" role="img" aria-label="Messages">
+    <path class="outline" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="none"/>
+    <g class="links"></g>
+    <g class="nodes"></g>
+    <g class="badge" opacity="0">
+      <circle class="badge-glow"/>
+      <circle class="badge-node"/>
+      <text class="count" text-anchor="middle" dominant-baseline="central"></text>
+    </g>
+  </svg>
+
+  <div class="controls" role="group" aria-label="Badge state">
+    <button type="button" data-state="none" aria-pressed="true">None</button>
+    <button type="button" data-state="dot" aria-pressed="false">Dot</button>
+    <button type="button" data-state="content" aria-pressed="false">With content</button>
+  </div>
+  <p class="sr" id="status" aria-live="polite"></p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Futuristic badge, after Obsidian's graph view.
+  // The bubble is a ring of notes along its outline, each linked to the next,
+  // with fainter links across. Every node hangs on a spring to its place, and
+  // every link is a spring too, so a tug anywhere ripples through the graph
+  // and settles, the way the graph view does.
+  // Dot: a new blue note is born in the middle of the bubble and is pulled
+  // out to the upper right corner on two links; the corner's notes are tugged
+  // after it, wobble, and settle.
+  // With content: the badge is a bigger note with its linked notes round it,
+  // and its count is how many are linked. It starts at 2; a third note flies
+  // in, links up, and the count turns to 3.
+  (() => {
+    const NS = 'http://www.w3.org/2000/svg';
+    const SPOT = { x: 20.4, y: 4.2 };    // the badge's place, in the icon's 24-unit grid
+    const MID = { x: 12, y: 10.5 };      // the bubble's middle, where a new note is born
+    const RING = 30;                     // notes along the outline
+    const DOT_R = 1.5, NUM_R = 2.5;      // the badge note's radius, as a dot and with a count
+    const SAT_R = .5, SAT_D = 4.6;       // a linked note's radius and its distance from the badge
+    const FIRST = 2, NEXT = 3;           // With content starts at 2 and turns to 3
+    const BEAT = 600;                    // ms the 2 is shown before the third note arrives
+    const K_HOME = 40, K_LINK = 60, DAMP = 7;   // spring stiffness and damping (per second)
+
+    const svg = document.querySelector('.graph');
+    const outline = svg.querySelector('.outline');
+    const gLinks = svg.querySelector('.links');
+    const gNodes = svg.querySelector('.nodes');
+    const gBadge = svg.querySelector('.badge');
+    const glow = gBadge.querySelector('.badge-glow');
+    const core = gBadge.querySelector('.badge-node');
+    const count = gBadge.querySelector('.count');
+    const status = document.getElementById('status');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    // ---- the graph: nodes on springs to their homes, links as springs between nodes
+    const nodes = [], links = [];
+    function node(x, y, r, el) {
+      const n = { x, y, vx: 0, vy: 0, hx: x, hy: y, r, el };
+      nodes.push(n); return n;
+    }
+    function link(a, b, cls, rest) {
+      const el = document.createElementNS(NS, 'line');
+      if (cls) el.setAttribute('class', cls);
+      gLinks.appendChild(el);
+      const l = { a, b, el, rest: rest ?? Math.hypot(a.hx - b.hx, a.hy - b.hy), k: cls === 'chord' ? .3 : 1 };
+      links.push(l); return l;
+    }
+    function unlink(l) { l.el.remove(); links.splice(links.indexOf(l), 1); }
+    function drop(n) { n.el.remove(); nodes.splice(nodes.indexOf(n), 1); }
+    function dotEl(r, cls) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', r); if (cls) c.setAttribute('class', cls);
+      gNodes.appendChild(c); return c;
+    }
+
+    // the ring of notes along the bubble's outline
+    const len = outline.getTotalLength();
+    const ring = [];
+    for (let i = 0; i < RING; i++) {
+      const p = outline.getPointAtLength(len * i / RING);
+      const r = .32 + ((i * 7) % 5) * .05;               // a little variety, as better-linked notes are drawn bigger
+      ring.push(node(p.x, p.y, r, dotEl(r)));
+    }
+    for (let i = 0; i < RING; i++) link(ring[i], ring[(i + 1) % RING]);
+    // fainter links across, between notes that sit near each other
+    for (let i = 0; i < RING; i += 3) for (let j = i + 4; j < i + 9; j += 2) {
+      const a = ring[i], b = ring[j % RING];
+      if (Math.hypot(a.hx - b.hx, a.hy - b.hy) < 8) link(a, b, 'chord');
+    }
+    // the notes the badge links to: the two nearest its corner
+    const anchors = [...ring].sort((a, b) => Math.hypot(a.hx - SPOT.x, a.hy - SPOT.y) - Math.hypot(b.hx - SPOT.x, b.hy - SPOT.y)).slice(0, 2);
+
+    // ---- the badge: a note of its own, linked to the corner, with linked notes round it
+    let badge = null, badgeLinks = [], sats = [];
+    let grow = 0, growing = false;
+
+    // ---- the simulation: springs and damping, stepped at a fixed rate
+    let running = false, last = 0;
+    function kick() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(tick); } }
+    function tick(now) {
+      let dt = Math.min(.05, Math.max(0, now - last) / 1000); last = now;
+      const STEP = 1 / 120;
+      while (dt > 0) {
+        const h = Math.min(STEP, dt); dt -= h;
+        for (const n of nodes) { n.ax = K_HOME * (n.hx - n.x); n.ay = K_HOME * (n.hy - n.y); }
+        for (const l of links) {
+          const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y, d = Math.hypot(dx, dy) || 1e-6;
+          const f = K_LINK * l.k * (d - l.rest) / d;
+          l.a.ax += f * dx * .5; l.a.ay += f * dy * .5;
+          l.b.ax -= f * dx * .5; l.b.ay -= f * dy * .5;
+        }
+        for (const n of nodes) {
+          n.vx += (n.ax - DAMP * n.vx) * h; n.vy += (n.ay - DAMP * n.vy) * h;
+          n.x += n.vx * h; n.y += n.vy * h;
+        }
+      }
+      let energy = 0;
+      for (const n of nodes) energy += n.vx * n.vx + n.vy * n.vy + (n.x - n.hx) ** 2 + (n.y - n.hy) ** 2;
+      render();
+      if (energy > 1e-4 || growing) requestAnimationFrame(tick);
+      else { for (const n of nodes) { n.x = n.hx; n.y = n.hy; n.vx = n.vy = 0; } render(); running = false; }
+    }
+    function render() {
+      for (const n of nodes) { if (n.el) { n.el.setAttribute('cx', n.x); n.el.setAttribute('cy', n.y); } }
+      for (const l of links) {
+        l.el.setAttribute('x1', l.a.x); l.el.setAttribute('y1', l.a.y);
+        l.el.setAttribute('x2', l.b.x); l.el.setAttribute('y2', l.b.y);
+      }
+      if (badge) {
+        for (const c of [glow, core]) { c.setAttribute('cx', badge.x); c.setAttribute('cy', badge.y); }
+        core.setAttribute('r', badge.r * grow); glow.setAttribute('r', badge.r * grow * 1.9);
+        count.setAttribute('x', badge.x); count.setAttribute('y', badge.y + .1);
+        count.setAttribute('font-size', 3.1 * grow);
+      }
+    }
+
+    // a size that eases in or out on its own clock, for notes being born or going
+    function growTo(target, ms) {
+      return new Promise(done => {
+        const from = grow, t0 = performance.now();
+        growing = true; kick();
+        (function f(now) {
+          const t = Math.min(1, Math.max(0, (now - t0) / ms));
+          grow = from + (target - from) * (1 - Math.pow(1 - t, 3));
+          if (t < 1) requestAnimationFrame(f); else { growing = false; done(); }
+        })(t0);
+      });
+    }
+
+    function clearBadge() {
+      for (const l of badgeLinks) unlink(l);
+      for (const s of sats) { for (const l of s.links) unlink(l); drop(s.n); }
+      if (badge) nodes.splice(nodes.indexOf(badge), 1);
+      badge = null; badgeLinks = []; sats = []; grow = 0;
+      for (const a of anchors) a.el.removeAttribute('class');
+      gBadge.setAttribute('opacity', 0); count.textContent = '';
+    }
+    function makeBadge(r, fromX, fromY) {
+      badge = { x: fromX, y: fromY, vx: 0, vy: 0, hx: SPOT.x, hy: SPOT.y, r, el: null };
+      nodes.push(badge);
+      badgeLinks = anchors.map(a => link(badge, a, 'hot'));
+      for (const a of anchors) a.el.setAttribute('class', 'lit');     // the notes it links to light up, as in the graph
+      gBadge.setAttribute('opacity', 1);
+    }
+    // where n linked notes sit round the badge, fanned out away from the bubble
+    const fan = n => n === 2 ? [-80, -5] : n === 3 ? [-100, -45, 10] : [];
+    function placeSats(n) {
+      const angles = fan(n);
+      sats.forEach((s, i) => {
+        const a = angles[i] * Math.PI / 180;
+        s.n.hx = SPOT.x + Math.cos(a) * SAT_D; s.n.hy = SPOT.y + Math.sin(a) * SAT_D;
+      });
+    }
+    function addSat(x, y) {
+      const n = node(x, y, SAT_R, dotEl(SAT_R, 'sat'));
+      sats.push({ n, links: [link(n, badge, 'hot', SAT_D)] });
+    }
+
+    function announce(label) { svg.setAttribute('aria-label', label); status.textContent = label; }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function showDot(my) {
+      clearBadge();
+      if (reduce.matches) { makeBadge(DOT_R, SPOT.x, SPOT.y); grow = 1; render(); announce('Messages, something new'); return; }
+      // born in the middle of the bubble, then pulled out to the corner by its links
+      makeBadge(DOT_R, MID.x, MID.y);
+      badge.vx = 6; badge.vy = -6;
+      kick();
+      await growTo(1, 420);
+      if (my !== token) return;
+      announce('Messages, something new');
+    }
+
+    async function showContent(my) {
+      clearBadge();
+      // already in place: the bigger note, its two linked notes, and the count
+      makeBadge(NUM_R, SPOT.x, SPOT.y);
+      addSat(SPOT.x, SPOT.y); addSat(SPOT.x, SPOT.y);
+      placeSats(2);
+      for (const s of sats) { s.n.x = s.n.hx; s.n.y = s.n.hy; }
+      grow = 1; count.textContent = FIRST; render();
+      announce(`Messages, ${FIRST} unread`);
+      await wait(BEAT);
+      if (my !== token) return;
+      // a third note flies in from outside, links up, and the others make room for it
+      addSat(SPOT.x + 11, SPOT.y - 9);
+      placeSats(3);
+      if (reduce.matches) { for (const s of sats) { s.n.x = s.n.hx; s.n.y = s.n.hy; } render(); }
+      else kick();
+      await wait(reduce.matches ? 0 : 260);      // the count turns as the link snaps tight
+      if (my !== token) return;
+      count.textContent = NEXT;
+      if (!reduce.matches) { badge.vx += 2.5; badge.vy -= 2.5; kick(); }   // and the badge takes the jolt
+      announce(`Messages, ${NEXT} unread`);
+    }
+
+    async function showNone(my) {
+      if (badge && !reduce.matches) {
+        badge.hx = MID.x; badge.hy = MID.y; kick();      // drawn back into the bubble as it shrinks away
+        await growTo(0, 260);
+        if (my !== token) return;
+      }
+      clearBadge(); render(); kick();
+      announce('Messages');
+    }
+
+    let token = 0;
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    for (const b of buttons) b.addEventListener('click', () => {
+      const next = b.dataset.state, my = ++token;
+      for (const o of buttons) o.setAttribute('aria-pressed', String(o === b));
+      if (next === 'none') showNone(my);
+      else if (next === 'dot') showDot(my);
+      else showContent(my);
+    });
+
+    // on load, the graph falls into shape from a loose scatter, as Obsidian's does when opened
+    if (!reduce.matches) {
+      let seed = 7;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - .5;
+      for (const n of nodes) { n.x += rnd() * 6; n.y += rnd() * 6; }
+    }
+    render(); kick();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

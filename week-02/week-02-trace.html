@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 sketch &middot; Trace badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #f4f3ef;
+    --base: #d6d4cc;      /* the icon at rest */
+    --ink: #1a1a1a;       /* the line that traces round it */
+    --dot: #e5392f;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); display: grid; place-items: center; }
+  .icon { width: min(46vmin, 220px); height: auto; overflow: visible; }
+  .icon path { fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .base { stroke: var(--base); }
+  .trace { stroke: var(--ink); }
+  .dot { fill: var(--dot); stroke: var(--bg); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <svg class="icon" viewBox="0 0 24 24" role="img" aria-label="Messages">
+    <!-- the shared speech bubble at rest, then the same outline again, redrawn to start
+         at the middle of its upper right corner and run clockwise -->
+    <path class="base" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+    <path class="trace" d="M20.414 4.586A2 2 0 0 1 21 6V15A2 2 0 0 1 19 17H10l-5 4v-4A2 2 0 0 1 3 15V6A2 2 0 0 1 5 4H19A2 2 0 0 1 20.414 4.586z"/>
+    <circle class="dot" cx="20.4" cy="4.2" r="2.3"/>
+  </svg>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Trace. A line runs clockwise round the bubble's outline, starting and
+  // ending at the upper right corner. Where it closes, a dot appears: the
+  // badge lands on the spot the trace came back to. Then it all clears and
+  // goes again.
+  (() => {
+    const TRACE = 1200;                // ms for one lap of the outline
+    const HOLD = 1800;                 // ms the dot stays before clearing
+    const REST = 900;                  // ms of plain icon between loops
+
+    const svg = document.querySelector('.icon');
+    const trace = document.querySelector('.trace');
+    const dot = document.querySelector('.dot');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const len = trace.getTotalLength();
+    trace.style.strokeDasharray = len;
+    trace.style.strokeDashoffset = len;
+    dot.style.opacity = 0;
+
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function loop() {
+      for (;;) {
+        await wait(REST);
+        if (reduce.matches) {
+          // no travelling line: the outline darkens in place, then the dot fades in
+          trace.style.strokeDashoffset = 0;
+          await trace.animate({ opacity: [0, 1] }, { duration: 300, fill: 'forwards' }).finished;
+          await dot.animate({ opacity: [0, 1] }, { duration: 200, fill: 'forwards' }).finished;
+        } else {
+          trace.style.opacity = 1;
+          await trace.animate(
+            { strokeDashoffset: [len, 0] },
+            { duration: TRACE, easing: 'cubic-bezier(.65, 0, .35, 1)', fill: 'forwards' }
+          ).finished;
+          await dot.animate(
+            { opacity: [0, 1, 1], transform: ['scale(0)', 'scale(1.3)', 'scale(1)'] },
+            { duration: 320, easing: 'cubic-bezier(.2, .8, .3, 1)', fill: 'forwards' }
+          ).finished;
+        }
+        svg.setAttribute('aria-label', 'Messages, something new');
+        await wait(HOLD);
+        await Promise.all([
+          trace.animate({ opacity: [1, 0] }, { duration: 260, fill: 'forwards' }).finished,
+          dot.animate({ opacity: [1, 0] }, { duration: 260, fill: 'forwards' }).finished
+        ]);
+        trace.getAnimations().forEach(a => a.cancel());
+        dot.getAnimations().forEach(a => a.cancel());
+        trace.style.strokeDashoffset = len;
+        dot.style.opacity = 0;
+        svg.setAttribute('aria-label', 'Messages');
+      }
+    }
+    loop();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Rugged badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Rugged, after the Sweep sketch and the "Ragged" references: black ground,
+     a flat hard yellow, and shapes cut like plates, square-shouldered with only
+     the corners softened. The count is not set in a font: each digit is one
+     such plate, and a change of number is the plate reshaping itself. */
+  :root {
+    --bg: #0b0b0a;
+    --ink: #ecebe4;                              /* the bubble: off-white on black */
+    --yellow: #f4f150;                           /* from the reference */
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+  .icon { width: min(60vmin, 290px); height: auto; overflow: visible; margin-bottom: 6vmin; }
+  .bubble { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .plate { fill: var(--yellow); stroke: var(--bg); stroke-width: 1.3; paint-order: stroke; }
+  /* the digit: a thin yellow stroke with round joins is what softens its corners;
+     a block of the ground colour beneath it cuts the bubble's line away, so the
+     notches read as notches (it is the same black as the page, so no box shows) */
+  .digit-rim { fill: var(--bg); }
+  .digit { fill: var(--yellow); stroke: var(--yellow); stroke-width: .35; stroke-linejoin: round; }
+  .badge { transform-box: fill-box; transform-origin: center; }
+  /* the reveal: a circle of radius R/2 drawn with an R-wide stroke covers a disc of radius R;
+     drawing that stroke along its length paints the disc in clockwise, like a clock hand */
+  .wedge { fill: none; stroke: #fff; }
+
+  /* three states, one chosen: the chosen one is filled */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 700 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .controls button {
+    height: 32px; padding: 0 14px; border: 1.5px solid rgba(236, 235, 228, .35); border-radius: 3px;
+    background: transparent; color: var(--ink); font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--yellow); }
+  .controls button[aria-pressed="true"] { background: var(--yellow); border-color: var(--yellow); color: var(--bg); }
+  .controls button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: var(--bg); background: rgba(236, 235, 228, .8);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <svg class="icon" viewBox="-6 -6 36 36" role="img" aria-label="Messages">
+    <defs>
+      <mask id="sweep" maskUnits="userSpaceOnUse" x="10" y="-6" width="20" height="20">
+        <!-- turned back a quarter so the sweep starts at twelve; a circle's stroke runs clockwise on screen -->
+        <circle class="wedge" cx="20.6" cy="3.8" r="2.7" stroke-width="5.4" transform="rotate(-90 20.6 3.8)"/>
+      </mask>
+    </defs>
+
+    <!-- the shared bubble, still -->
+    <path class="bubble" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+
+    <!-- the badge on the bubble's upper right corner: the plate (dot) or the digit (count), one at a time -->
+    <g class="badge" mask="url(#sweep)">
+      <rect class="plate" x="17.8" y="1" width="5.6" height="5.6" rx=".75"/>
+      <g class="count" visibility="hidden">
+        <rect class="digit-rim" x="17.6" y="0.2" width="6" height="7.2" rx=".6"/>
+        <path class="digit"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="controls" role="group" aria-label="Badge state">
+    <button type="button" data-state="none" aria-pressed="true">None</button>
+    <button type="button" data-state="dot" aria-pressed="false">Dot</button>
+    <button type="button" data-state="content" aria-pressed="false">With content</button>
+  </div>
+  <p class="sr" id="status" aria-live="polite"></p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Rugged badge, after the Sweep sketch.
+  // Dot: the yellow plate is revealed clockwise from twelve, like a clock hand
+  // going once round, easing in and out, and settles with a small soft give.
+  // With content: no plate, only the count, already there as 2. After a beat
+  // the 2 reshapes itself into a 3, the way the "ragged number motion"
+  // reference does it: the outline's corners travel to their new places, new
+  // notches grow out of flat edges, and the shape is one solid piece throughout.
+  // None: the hand winds back the other way and the badge is gone.
+  (() => {
+    const SWEEP = 760;                 // ms for the hand to go all the way round
+    const SETTLE = 320;                // ms for the soft give at the end of the sweep
+    const UNWIND = 420;                // ms for the hand to wind back
+    const BEAT = 600;                  // ms the 2 is shown before it changes
+    const MORPH = 560;                 // ms for the 2 to reshape into the 3
+
+    // Digits drawn on a 6 x 8 grid, clockwise from the top left. Both have the
+    // same number of corners, matched one to one, so the morph is corners moving.
+    // Where a corner has no partner shape, it waits on an edge (or doubled on a
+    // point) in the other digit, so in the move it grows out of that edge.
+    const DIGITS = {
+      2: [
+        [0, 0], [6, 0], [6, 3.6], [2.8, 5.9], [6, 5.9], [6, 8], [0, 8],
+        [0, 5.6], [1.2, 4.77], [1.2, 4.77], [2.4, 3.93], [2.4, 3.93], [3.6, 3.1], [3.6, 2.2], [0, 2.2]
+      ],
+      3: [
+        [0, 0], [4.8, 0], [6, 1.3], [6, 4.4], [6, 6.6], [6, 8], [0, 8],
+        [0, 6.3], [3.7, 6.3], [3.7, 4.6], [1.5, 4.6], [1.5, 3.4], [3.7, 3.4], [3.7, 1.7], [0, 1.7]
+      ]
+    };
+    const S = .8, OX = 20.6 - 3 * S, OY = 3.8 - 4 * S;   // the grid scaled and centred on the badge spot
+
+    const svg = document.querySelector('.icon');
+    const wedge = document.querySelector('.wedge');
+    const badge = document.querySelector('.badge');
+    const plate = document.querySelector('.plate');
+    const count = document.querySelector('.count');
+    const digitPaths = count.querySelectorAll('.digit');
+    const status = document.getElementById('status');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const len = 2 * Math.PI * 2.7;
+    wedge.style.strokeDasharray = len;
+    wedge.style.strokeDashoffset = len;
+
+    const announce = label => { svg.setAttribute('aria-label', label); status.textContent = label; };
+    const offset = () => parseFloat(getComputedStyle(wedge).strokeDashoffset) || 0;
+    const stopAll = () => { for (const el of [wedge, badge]) for (const a of el.getAnimations()) { a.commitStyles?.(); a.cancel(); } };
+    const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+    function drawDigit(a, b = a, t = 0) {
+      let d = '';
+      for (let i = 0; i < a.length; i++) {
+        const x = OX + S * (a[i][0] + (b[i][0] - a[i][0]) * t);
+        const y = OY + S * (a[i][1] + (b[i][1] - a[i][1]) * t);
+        d += (i ? 'L' : 'M') + x.toFixed(3) + ' ' + y.toFixed(3);
+      }
+      d += 'Z';
+      for (const p of digitPaths) p.setAttribute('d', d);
+    }
+    function show(which) {
+      plate.setAttribute('visibility', which === 'plate' ? 'visible' : 'hidden');
+      count.setAttribute('visibility', which === 'count' ? 'visible' : 'hidden');
+    }
+
+    let token = 0;
+    function run(ms, fn, my) {
+      return new Promise(done => {
+        const t0 = performance.now();
+        (function f(now) {
+          if (my !== token) return done(false);
+          const t = Math.min(1, (now - t0) / ms);
+          fn(t);
+          if (t < 1) requestAnimationFrame(f); else done(true);
+        })(t0);
+      });
+    }
+    const wait = (ms, my) => new Promise(r => setTimeout(() => r(my === token), ms));
+
+    // wind the hand back from wherever it is
+    async function unwind(my) {
+      const from = offset();
+      if (!reduce.matches && from < len) {
+        const back = wedge.animate(
+          { strokeDashoffset: [from, len] },
+          { duration: UNWIND * (1 - from / len), easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' }
+        );
+        try { await back.finished; } catch { return false; }
+        if (my !== token) return false;
+        back.commitStyles(); back.cancel();
+      }
+      wedge.style.strokeDashoffset = len;
+      return true;
+    }
+
+    async function showDot(my) {
+      stopAll();
+      // coming from the count, the count leaves first
+      if (count.getAttribute('visibility') === 'visible' && !(await unwind(my))) return;
+      show('plate');
+      const from = offset();
+      announce('Messages');
+      if (reduce.matches) { wedge.style.strokeDashoffset = 0; announce('Messages, something new'); return; }
+      // an even sweep: eases in, eases out into place
+      const sweep = wedge.animate(
+        { strokeDashoffset: [from, 0] },
+        { duration: SWEEP * (from / len), easing: 'cubic-bezier(.45, 0, .25, 1)', fill: 'forwards' }
+      );
+      try { await sweep.finished; } catch { return; }
+      if (my !== token) return;
+      sweep.commitStyles(); sweep.cancel();
+      // a small soft give as it arrives
+      badge.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.06)', offset: .4 }, { transform: 'scale(1)' }],
+        { duration: SETTLE, easing: 'cubic-bezier(.33, 0, .25, 1)' }
+      );
+      announce('Messages, something new');
+    }
+
+    async function showContent(my) {
+      stopAll();
+      // already there: the 2, no plate behind it
+      show('count'); drawDigit(DIGITS[2]);
+      wedge.style.strokeDashoffset = 0;
+      announce('Messages, 2 unread');
+      if (!(await wait(BEAT, my))) return;
+      if (!reduce.matches && !(await run(MORPH, t => drawDigit(DIGITS[2], DIGITS[3], easeInOut(t)), my))) return;
+      drawDigit(DIGITS[3]);
+      announce('Messages, 3 unread');
+    }
+
+    async function showNone(my) {
+      stopAll();
+      if (!(await unwind(my))) return;
+      announce('Messages');
+    }
+
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    for (const b of buttons) b.addEventListener('click', () => {
+      const next = b.dataset.state, my = ++token;
+      for (const o of buttons) o.setAttribute('aria-pressed', String(o === b));
+      if (next === 'none') showNone(my);
+      else if (next === 'dot') showDot(my);
+      else showContent(my);
+    });
+
+    show('plate');
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

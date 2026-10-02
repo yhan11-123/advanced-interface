@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Intimate badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Intimate, after the Frame trace sketch: warm paper, a soft frame drawn
+     round the bubble, and the badge not set on the frame but swelling out of
+     it, one fluid body with the line, like a drop gathering on a thread. */
+  :root {
+    --bg: #f5ece3;
+    --ink: #5a3a2e;
+    --warm: #c8664f;                           /* terracotta: the frame and its drop */
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+  .icon { width: min(60vmin, 290px); height: auto; overflow: visible; margin-bottom: 6vmin; }
+  .bubble { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .frame { fill: none; stroke: var(--warm); stroke-width: 1.4; stroke-linecap: round; }
+  /* the badge: a shape that follows the frame's corner, fullest in the middle and thinning to each end */
+  .drop { fill: var(--warm); }
+  .count { font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif; font-style: italic; font-weight: 600; fill: #fff8f1; }
+
+  /* three states, one chosen: the chosen one is filled */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 14px; z-index: 5;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 12px;
+    font: 500 13px/1 "Iowan Old Style", Palatino, Georgia, serif;
+  }
+  .controls button {
+    height: 32px; padding: 0 16px; border: 1px solid rgba(90, 58, 46, .35); border-radius: 999px;
+    background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--warm); }
+  .controls button[aria-pressed="true"] { background: var(--warm); border-color: var(--warm); color: #fff8f1; }
+  .controls button:focus-visible { outline: 2px solid var(--warm); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(90, 58, 46, .6);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <svg class="icon" viewBox="-6 -6 36 36" role="img" aria-label="Messages">
+    <defs>
+      <!-- the fluid merge: blur everything in the group together, then cut it back to a crisp edge,
+           so where the drop meets the line they flow into one shape with a soft neck -->
+      <filter id="goo" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation=".75" result="blur"/>
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/>
+      </filter>
+      <!-- the fluid's level: everything below this wavy surface is filled -->
+      <clipPath id="level" clipPathUnits="userSpaceOnUse"><path class="surface"/></clipPath>
+    </defs>
+
+    <!-- the shared bubble, still -->
+    <path class="bubble" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+
+    <!-- the frame and its drop, drawn as one fluid -->
+    <g filter="url(#goo)">
+      <!-- a rounded box round the bubble, starting and ending at its upper right corner, drawn clockwise -->
+      <path class="frame" d="M24.95 -0.95A7 7 0 0 1 27 4V20A7 7 0 0 1 20 27H4A7 7 0 0 1 -3 20V4A7 7 0 0 1 4 -3H20A7 7 0 0 1 24.95 -0.95z"/>
+      <path class="drop" clip-path="url(#level)"/>
+    </g>
+    <!-- two counts, so the old one can fade out while the new one fades in over it -->
+    <text class="count" text-anchor="middle" dominant-baseline="central" opacity="0"></text>
+    <text class="count count-next" text-anchor="middle" dominant-baseline="central" opacity="0"></text>
+  </svg>
+
+  <div class="controls" role="group" aria-label="Badge state">
+    <button type="button" data-state="none" aria-pressed="true">None</button>
+    <button type="button" data-state="dot" aria-pressed="false">Dot</button>
+    <button type="button" data-state="content" aria-pressed="false">With content</button>
+  </div>
+  <p class="sr" id="status" aria-live="polite"></p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Intimate badge, after the Frame trace sketch.
+  // Dot: a soft frame draws itself clockwise round the bubble from its upper
+  // right corner, and as the line comes back round to where it started, a drop
+  // fills there like liquid poured into it: a long soft sleeve wrapped round
+  // the corner, rising from its lowest point to its top, its surface gently
+  // rippling, one body with the line.
+  // With content: the frame and a larger drop are already there, showing 2;
+  // the drop takes a slow breath in and out, and on the breath the 2 turns to 3.
+  // None: the drop is drawn back into the line, and the line unwinds.
+  (() => {
+    // the frame's upper right corner is an arc round (20, 4), radius 7; the badge wraps it
+    const CORNER = { x: 20, y: 4, r: 7 };
+    const MIDA = -Math.PI / 4;                // the middle of the corner, where the line starts and closes
+    const DOT = { half: 32, thick: 5.6 };     // the sleeve: degrees either side of the middle, and its thickness at the middle
+    const NUM = { half: 40, thick: 8 };       // a fuller sleeve, with room round its count
+    const SPOT = { x: CORNER.x + CORNER.r * Math.cos(MIDA), y: CORNER.y + CORNER.r * Math.sin(MIDA) };
+    const TRACE = 1300;                      // ms for the frame to draw itself
+    const GATHER = .82;                      // how far round the line has come when the fluid starts to rise
+    const FILL = 1100;                       // ms for the fluid to rise from the sleeve's foot to its top
+    const LOW = 5.2, HIGH = -8;              // the level when empty, and when full (past the top of even the count sleeve)
+    const BREATH = 900;                      // ms for the drop's breath when the count changes
+    const BEAT = 600;                        // ms the 2 is shown before it turns
+    const DRAIN = 700, UNTRACE = 700;        // ms for the fluid to drain away, and to unwind the line
+
+    const svg = document.querySelector('.icon');
+    const frame = document.querySelector('.frame');
+    const drop = document.querySelector('.drop');
+    const count = document.querySelector('.count');
+    const countNext = document.querySelector('.count-next');
+    const status = document.getElementById('status');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const len = frame.getTotalLength();
+    frame.setAttribute('stroke-dasharray', len);
+
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    // a soft spring: up a little past full, back, and still
+    // the surface: a level line with a soft ripple, flattening as it reaches the top
+    const surface = document.querySelector('.surface');
+    function setLevel(y, wave = 0, phase = 0) {
+      let d = '';
+      for (let x = 14; x <= 32; x += .5) {
+        const yy = y + wave * Math.sin(x * 1.3 + phase) * .45 + wave * Math.sin(x * .55 - phase * .7) * .25;
+        d += (d ? 'L' : 'M') + x + ' ' + yy;
+      }
+      surface.setAttribute('d', d + 'L32 12L14 12Z');
+    }
+
+    function setFrame(k) { frame.setAttribute('stroke-dashoffset', len * (1 - k)); }
+    // k: how far grown (1 settled, a little over while it gives); shape: DOT or NUM
+    let dropK = 0;
+    // the sleeve's outline: along the outside of the corner and back along the inside
+    function sleevePoints(shape, k, swell) {
+      const half = shape.half * Math.min(k, 1.08) * Math.PI / 180;
+      const N = 36, outer = [], inner = [];
+      for (let i = 0; i <= N; i++) {
+        const u = i / N, a = MIDA - half + 2 * half * u;
+        // thickness along it: full at the middle, easing to a thin end (a rounded spindle, not a tube)
+        const w = shape.thick * k * swell * (.28 + .72 * Math.pow(Math.sin(Math.PI * u), .8)) / 2;
+        outer.push([CORNER.x + (CORNER.r + w) * Math.cos(a), CORNER.y + (CORNER.r + w) * Math.sin(a)]);
+        inner.push([CORNER.x + (CORNER.r - w) * Math.cos(a), CORNER.y + (CORNER.r - w) * Math.sin(a)]);
+      }
+      return outer.concat(inner.reverse());
+    }
+    function setDrop(k, shape = DOT, swell = 1) {
+      dropK = Math.max(0, k);
+      if (dropK <= .001) { drop.setAttribute('d', ''); return; }
+      const pts = sleevePoints(shape, dropK, swell);
+      drop.setAttribute('d', 'M' + pts.map(p => p.join(' ')).join('L') + 'Z');
+    }
+    // the count sits at the centre of the drawn shape: the area centroid of the full count sleeve
+    let centre = null;
+    function shapeCentre() {
+      if (centre) return centre;
+      const pts = sleevePoints(NUM, 1, 1);
+      let A = 0, cx = 0, cy = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+        const c = x1 * y2 - x2 * y1;
+        A += c; cx += (x1 + x2) * c; cy += (y1 + y2) * c;
+      }
+      // nudged a touch outward, toward the round of the bulge, which is where the eye puts its middle
+      return centre = { x: cx / (3 * A) + .4 * Math.cos(MIDA), y: cy / (3 * A) + .4 * Math.sin(MIDA) };
+    }
+    function place(el, text, o) {
+      const c = shapeCentre();
+      el.textContent = text ?? '';
+      el.setAttribute('x', c.x); el.setAttribute('y', c.y + .1);
+      el.setAttribute('font-size', 4.4);
+      el.setAttribute('opacity', o);
+    }
+    function setCount(text, o) { place(count, text, o); place(countNext, '', 0); }
+    function announce(label) { svg.setAttribute('aria-label', label); status.textContent = label; }
+
+    let token = 0;
+    function run(ms, fn, my) {
+      return new Promise(done => {
+        const t0 = performance.now();
+        (function f(now) {
+          if (my !== token) return done(false);
+          const t = clamp((now - t0) / ms);
+          fn(t);
+          if (t < 1) requestAnimationFrame(f); else done(true);
+        })(t0);
+      });
+    }
+    const wait = (ms, my) => new Promise(r => setTimeout(() => r(my === token), ms));
+
+    async function showDot(my) {
+      setFrame(0); setDrop(0); setCount(null, 0); setLevel(LOW);
+      announce('Messages');
+      if (reduce.matches) { setFrame(1); setDrop(1); setLevel(HIGH); announce('Messages, something new'); return; }
+      // the line draws round; near the end the drop begins to gather where the line will close
+      setDrop(1);
+      const total = TRACE * GATHER + FILL;
+      const ok = await run(total, t => {
+        const ms = t * total;
+        setFrame(easeInOut(clamp(ms / TRACE)));
+        // the fluid rises slowly at first, then steadily, and eases as it brims; its surface ripples as it climbs
+        const f = clamp((ms - TRACE * GATHER) / FILL);
+        const k = f * f * (3 - 2 * f);
+        setLevel(LOW + (HIGH - LOW) * k, Math.sin(Math.PI * f), ms / 140);
+      }, my);
+      if (!ok) return;
+      setFrame(1); setDrop(1); setLevel(HIGH);
+      announce('Messages, something new');
+    }
+
+    async function showContent(my) {
+      // already there: the frame, the larger drop, and the 2
+      setFrame(1); setDrop(1, NUM); setLevel(HIGH); setCount('2', 1);
+      announce('Messages, 2 unread');
+      if (!(await wait(BEAT, my))) return;
+      if (reduce.matches) { setCount('3', 1); announce('Messages, 3 unread'); return; }
+      // a slow breath: the drop swells and eases back; the count turns at the top of it
+      let turned = false;
+      const ok = await run(BREATH, t => {
+        const b = Math.sin(Math.PI * t);                       // in, then out
+        setDrop(1, NUM, 1 + .2 * b);
+        // a crossfade: the 2 fades out as the breath fills, the 3 fades in over it as it empties, overlapping
+        const sm = x => { x = clamp(x); return x * x * (3 - 2 * x); };
+        place(count, '2', 1 - sm((t - .15) / .5));
+        place(countNext, '3', sm((t - .35) / .5));
+      }, my);
+      if (!ok) return;
+      setDrop(1, NUM); setCount('3', 1);
+      announce('Messages, 3 unread');
+    }
+
+    async function showNone(my) {
+      const hadCount = !!count.textContent;
+      setCount(null, 0);
+      if (!reduce.matches) {
+        const k0 = dropK, shape = hadCount ? NUM : DOT, f0 = 1 - (+frame.getAttribute('stroke-dashoffset') || 0) / len;
+        // the fluid drains back down and out of the sleeve, the surface rippling as it goes
+        if (k0 > 0 && !(await run(DRAIN, t => setLevel(HIGH + (LOW - HIGH) * easeInOut(t), Math.sin(Math.PI * t), t * DRAIN / 140), my))) return;
+        if (f0 > 0 && !(await run(UNTRACE, t => setFrame(f0 * (1 - easeInOut(t))), my))) return;
+      }
+      setDrop(0); setFrame(0);
+      announce('Messages');
+    }
+
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    for (const b of buttons) b.addEventListener('click', () => {
+      const next = b.dataset.state, my = ++token;
+      for (const o of buttons) o.setAttribute('aria-pressed', String(o === b));
+      if (next === 'none') showNone(my);
+      else if (next === 'dot') showDot(my);
+      else showContent(my);
+    });
+
+    setFrame(0); setDrop(0); setLevel(LOW);
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

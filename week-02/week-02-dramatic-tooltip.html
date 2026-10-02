@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Dramatic tooltip</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Dramatic, matching its badge: black, white and one red. */
+  :root {
+    --bg: #000;
+    --ink: #fff;
+    --red: #e3241b;
+    --size: clamp(80px, 34vmin, 200px);        /* the bell's drawn size */
+    --type: clamp(18px, 7vmin, 34px);          /* the tooltip's type size */
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+  body { display: grid; place-items: center; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif; }
+
+  /* the bell sits dead centre; the tooltip opens above it */
+  .wrap { position: relative; display: grid; place-items: center; }
+  .bell {
+    width: var(--size); height: var(--size); display: grid; place-items: center;
+    padding: 0; border: 0; border-radius: 16px; background: none; color: var(--ink); cursor: pointer;
+  }
+  .bell:focus-visible { outline: 2px solid var(--red); outline-offset: 6px; }
+  .bell svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* the tooltip sits above the bell; its line and its box share one width */
+  .tip {
+    position: absolute; bottom: calc(100% + 18px); left: 50%; transform: translateX(-50%);
+    visibility: hidden; pointer-events: none;
+  }
+  .tip.on { visibility: visible; pointer-events: auto; }
+  .box {
+    position: relative; z-index: 1;            /* in front of the line, so once open the line never crosses the name */
+    display: block; padding: .38em .8em .42em; white-space: nowrap;
+    font-size: var(--type); font-weight: 700; letter-spacing: .02em; line-height: 1;
+    background: var(--red); color: #000;
+    clip-path: inset(50% 0 50% 0);              /* shut: nothing but its middle */
+  }
+  /* the thin line the box opens out of, drawn left to right across the box's full width */
+  /* a red hairline */
+  .line {
+    position: absolute; left: 0; right: 0; top: 50%; height: 1px; margin-top: -.5px;
+    background: var(--red);
+    transform-origin: 0 50%; transform: scaleX(0);
+  }
+
+  .hint {
+    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
+    font: 500 12px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgba(255,255,255,.5);
+  }
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.16);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <button type="button" class="bell" aria-label="Notifications" aria-describedby="tip">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+        <path d="M10 20a2 2 0 0 0 4 0"/>
+      </svg>
+    </button>
+    <span class="tip" role="tooltip" id="tip">
+      <span class="box">Notifications</span>
+      <span class="line" aria-hidden="true"></span>
+    </span>
+  </div>
+
+  <p class="hint">Hover or focus the bell</p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Dramatic tooltip, plain. Hover the bell: a thin red line is drawn above it,
+  // left to right, exactly as wide as the tooltip will be. Then the line
+  // splits open, top and bottom, like a curtain parting, and the name is
+  // there inside it, opening a touch too far before it settles. On leaving,
+  // it shuts back to the line, and the line draws back from right to left.
+  (() => {
+    const DELAY = 180;                 // ms of hover before it starts, so passing over does not set it off
+    const DRAW = 420;                  // ms for the line to run left to right
+    const OPEN = 520;                  // ms for the line to part into the box, overshoot and settle
+    const SHUT = 160;                  // ms to close back to the line
+    const UNDRAW = 340;                // ms for the line to draw back, right to left
+
+    const wrap = document.querySelector('.wrap');
+    const tip = document.querySelector('.tip');
+    const box = tip.querySelector('.box');
+    const line = tip.querySelector('.line');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    // a hard ease-in-out for the line: it hangs at each end and crosses almost all at once
+    const sharp = 'cubic-bezier(.95, 0, .05, 1)';
+    let timer = 0, token = 0, open = false;
+
+    // pin whatever is mid-flight where it is, so a new move starts from there
+    function freeze() {
+      for (const el of [box, line]) for (const a of el.getAnimations()) { try { a.commitStyles(); } catch (e) {} a.cancel(); }
+    }
+
+    async function show() {
+      const my = ++token;
+      if (open) return;
+      open = true;
+      freeze();
+      tip.classList.add('on');
+      if (reduce.matches) {
+        line.style.transform = 'scaleX(0)';
+        box.style.clipPath = 'inset(0 0 0 0)';
+        await box.animate({ opacity: [0, 1] }, { duration: 160, fill: 'both' }).finished.catch(() => {});
+        return;
+      }
+      box.style.clipPath = 'inset(50% 0 50% 0)';
+      box.style.transform = '';
+      const drawn = line.animate({ transform: ['scaleX(0)', 'scaleX(1)'] }, { duration: DRAW, easing: sharp, fill: 'forwards' });
+      try { await drawn.finished; } catch (e) { return; }
+      if (my !== token) return;
+      // it parts open, swells past its size, dips under, and settles
+      box.animate([
+        { clipPath: 'inset(50% 0 50% 0)', transform: 'scale(1)', easing: 'cubic-bezier(.16, 1, .3, 1)' },
+        { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(1.1)', offset: .45, easing: 'cubic-bezier(.4, 0, .6, 1)' },
+        { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(.97)', offset: .75, easing: 'cubic-bezier(.4, 0, .6, 1)' },
+        { clipPath: 'inset(0% 0 0% 0)', transform: 'scale(1)' }
+      ], { duration: OPEN, fill: 'forwards' });
+    }
+
+    async function hide() {
+      const my = ++token;
+      clearTimeout(timer);
+      if (!open) return;
+      open = false;
+      freeze();
+      if (reduce.matches) {
+        await box.animate({ opacity: [1, 0] }, { duration: 120, fill: 'forwards' }).finished.catch(() => {});
+      } else {
+        // shut back to the line, then draw the line back, right to left
+        await box.animate({ clipPath: [getComputedStyle(box).clipPath, 'inset(50% 0 50% 0)'], transform: [getComputedStyle(box).transform, 'scale(1)'] },
+          { duration: SHUT, easing: 'cubic-bezier(.5, 0, .75, 0)', fill: 'forwards' }).finished.catch(() => {});
+        if (my !== token) return;
+        // start from its current length as a plain scaleX: a matrix can't be eased into a zero scale smoothly
+        const from = new DOMMatrix(getComputedStyle(line).transform).a;
+        await line.animate({ transform: [`scaleX(${from})`, 'scaleX(0)'] },
+          { duration: UNDRAW, easing: sharp, fill: 'forwards' }).finished.catch(() => {});
+      }
+      if (my !== token) return;
+      freeze();
+      tip.classList.remove('on');
+      box.style.clipPath = ''; box.style.opacity = ''; box.style.transform = '';
+      line.style.transform = 'scaleX(0)';
+    }
+
+    // hover waits a beat; keyboard focus shows at once; the tooltip itself can be hovered
+    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
+    wrap.addEventListener('mouseleave', hide);
+    const bell = document.querySelector('.bell');
+    bell.addEventListener('focus', show);
+    bell.addEventListener('blur', hide);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

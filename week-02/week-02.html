@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Badges &amp; Tooltips &middot; Advanced Interface</title>
+  <meta name="description" content="Ten components are due: five sets of one badge and one tooltip, each set carrying a tone. Starting with what each one is for, and how micro motion carries tone." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=5" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 02</div>
+      <h1>Badges &amp; Tooltips</h1>
+      <div class="meta">
+        <span>Sep 28, 2026</span>
+        <span class="tag">badges</span>
+        <span class="tag">tooltips</span>
+        <span class="tag">research</span>
+        <span class="tag">micro-motion</span>
+        <span class="tag">tone</span>
+        <span class="tag">dramatic</span>
+        <span class="tag">futuristic</span>
+        <span class="tag">intimate</span>
+        <span class="tag">rugged</span>
+        <span class="tag">somber</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Ten components: five sets, each one badge and one tooltip, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a working prototype, with the versions tried along the way shown as its process.</p>
+
+      <p>Both need an anchor, a placeholder element to attach to. The brief's badges sit on a bottom bar (Mail, Chat, Rooms, Meet). Its tooltips float free, but a prototype needs something to hover, so every tooltip here gets an anchor too.</p>
+
+      <h3>What each prototype has to show</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Anchor</th><th>Must show</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Badge</td><td>An icon, like Mail, where the badge appears and disappears</td><td>No badge &harr; dot badge, with no content<br />No badge &harr; badge with content: a number, text or icon</td></tr>
+          <tr><td>Tooltip</td><td>A hoverable anchor</td><td>A plain tooltip: text only, no action<br />A rich tooltip with a clickable action</td></tr>
+        </tbody>
+      </table>
+
+      <p>Five sets, one badge and one tooltip each, every set with a tone. Tones can repeat across sets.</p>
+
+      <h2>Research</h2>
+
+      <p>Both are small messages attached to something else. The difference is who starts the conversation.</p>
+
+      <h3>Badge or tooltip</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Badge</th><th>Tooltip</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Speaks</td><td>Unprompted, always visible</td><td>Only when the anchor is hovered or focused</td></tr>
+          <tr><td>Says</td><td>Status or amount: new, how many, live</td><td>What the anchor is, or what it will do</td></tr>
+          <tr><td>Sits</td><td>On the anchor's corner, never over its centre</td><td>Beside the anchor, never covering it</td></tr>
+          <tr><td>Must</td><td>Hide at zero, cap big numbers</td><td>Show on keyboard focus too, dismiss with Esc</td></tr>
+          <tr><td>Screen reader</td><td>Folded into the anchor's name: &ldquo;Mail, 3 unread&rdquo;</td><td><code>role="tooltip"</code>, linked with <code>aria-describedby</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <table>
+        <thead>
+          <tr><th>Rule</th><th>What it forces</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claim only what is known</td><td>A dot says &ldquo;new&rdquo;, a count says &ldquo;how many&rdquo;. Pick the one the system can back up</td></tr>
+          <tr><td>Stay smaller than the anchor</td><td>Overflow caps at 99+, so the badge never swallows the icon</td></tr>
+          <tr><td>Never colour alone</td><td>A badge needs a number, a word or a shape, not only red</td></tr>
+          <tr><td>Dismissible, hoverable, persistent</td><td>WCAG 1.4.13: Esc closes it, the pointer can move onto it, it stays until you leave</td></tr>
+          <tr><td>Supplementary, not essential</td><td>If the task fails without the tooltip, the text belongs on the page</td></tr>
+          <tr><td>Wait a beat</td><td>A short hover delay stops tooltips flashing as the pointer passes</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Pattern survey</h3>
+
+      <p>The brief's bottom bar with live badges, four badge forms, and four tooltips. Change the count and the delay, then hover or tab through the anchors.</p>
+
+      <figure class="demo-frame">
+        <!-- height is measured from the demo itself; adjust it when the demo grows -->
+        <iframe src="week-02-demo.html" title="Badge and tooltip pattern survey" loading="lazy" style="height: 910px"></iframe>
+        <figcaption>
+          <span>Live demo. Interact with it here or view it larger.</span>
+          <button type="button" class="viewer-open" data-src="week-02-demo.html">View larger</button>
+        </figcaption>
+      </figure>
+
+      <h3>Micro motion</h3>
+
+      <p>A badge is about 16 pixels and a tooltip is a few words, so neither has much room to carry a tone. How it moves is one of the few places left. Dan Saffer's four parts of a microinteraction map neatly onto both.</p>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Badge</th><th>Tooltip</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Trigger</td><td>The system: a message arrives</td><td>The person: hover or keyboard focus</td></tr>
+          <tr><td>Rules</td><td>Hide at 0, cap at 99+, clear when opened</td><td>Wait before showing, stay while hovered, Esc closes</td></tr>
+          <tr><td>Feedback</td><td>Arriving, and changing count</td><td>Entering, and leaving</td></tr>
+          <tr><td>Loops and modes</td><td>Does it move again, or rest once it has spoken?</td><td>Warm mode: once one is open, neighbours open faster</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Timing</h3>
+
+      <table>
+        <thead>
+          <tr><th>Moment</th><th>Duration</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Small feedback, a state change</td><td>About 100 ms</td><td>NN/g</td></tr>
+          <tr><td>A small component entering</td><td>200 ms</td><td>Material 3, <code>short4</code></td></tr>
+          <tr><td>Leaving</td><td>Shorter than the entrance</td><td>NN/g</td></tr>
+          <tr><td>Anything UI</td><td>Past 500 ms it starts to drag</td><td>NN/g</td></tr>
+          <tr><td>Tooltip, first hover</td><td>500 ms wait</td><td>Windows default</td></tr>
+          <tr><td>Tooltip, next anchor over</td><td>100 ms wait</td><td>Windows default</td></tr>
+        </tbody>
+      </table>
+
+      <p>Windows also hides a tooltip after 5 seconds by default. WCAG 1.4.13 says the opposite: it should stay until the pointer leaves or Esc is pressed. Here WCAG wins.</p>
+
+      <h3>Easing</h3>
+
+      <table>
+        <thead>
+          <tr><th>Curve</th><th>Use</th><th>Reads as</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ease-out, <code>cubic-bezier(0.05, 0.7, 0.1, 1)</code></td><td>Entering</td><td>Arrives fast, settles gently</td></tr>
+          <tr><td>Ease-in, <code>cubic-bezier(0.3, 0, 0.8, 0.15)</code></td><td>Leaving</td><td>Gathers speed and goes</td></tr>
+          <tr><td>Overshoot, a spring</td><td>Entering, with character</td><td>Playful, physical, a little loud</td></tr>
+          <tr><td>Linear</td><td>Almost never</td><td>Mechanical. Useful only when mechanical is the tone</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Motion costs attention</h3>
+
+      <p>Motion is the strongest signal a badge has. In Bartram, Ware and Calvert's study, icons with simple motion were often detected better than colour or shape codes, especially at the edge of vision. The same study measured how much each kind of motion distracts. A badge that moves is louder than one that is red, so motion should be spent at the moment of change, then stop.</p>
+
+      <table>
+        <thead>
+          <tr><th>Rule</th><th>What it forces</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Move once, then rest</td><td>A badge that keeps pulsing turns into noise. Past 5 seconds, looping motion needs a way to stop it (WCAG 2.2.2)</td></tr>
+          <tr><td>One thing at a time</td><td>Several things moving at once cancel each other out</td></tr>
+          <tr><td>Reduced motion</td><td>With <code>prefers-reduced-motion</code>, swap movement for a fade or a cut (WCAG 2.3.3). The meaning has to survive without the motion</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Where tone lives in the motion</h3>
+
+      <table>
+        <thead>
+          <tr><th>Lever</th><th>Quiet</th><th>Loud</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Duration</td><td>Short, 100 to 200 ms</td><td>Long enough to watch, up to 500 ms</td></tr>
+          <tr><td>Curve</td><td>Ease-out, no overshoot</td><td>Spring, bounce, shake</td></tr>
+          <tr><td>Distance</td><td>In place: fade, a few pixels</td><td>Travels: drops in, flies out</td></tr>
+          <tr><td>Count change</td><td>Swap in place</td><td>Roll, pulse, shake</td></tr>
+          <tr><td>Repetition</td><td>Once</td><td>Again on every new item</td></tr>
+          <tr><td>Origin</td><td>From nowhere, a fade</td><td>From the anchor, grows out of the thing it describes</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Motion study</h3>
+
+      <p>One badge and one tooltip, changed only in how they move. Each badge card replays on its own, tooltips open on hover, a slow-mo slider stretches everything up to ten times so the curves can be read, and each card notes what it falls back to under reduced motion.</p>
+
+      <figure class="demo-frame">
+        <!-- height is measured from the demo itself; adjust it when the demo grows -->
+        <iframe src="week-02-motion.html" title="Micro motion study for badges and tooltips" loading="lazy" style="height: 1610px"></iframe>
+        <figcaption>
+          <span>Live demo. Press &#9654; on a badge, hover the tooltips, drag slow-mo up.</span>
+          <button type="button" class="viewer-open" data-src="week-02-motion.html">View larger</button>
+        </figcaption>
+      </figure>
+
+      <h3>Into the designs</h3>
+
+      <ul>
+        <li>The anchor is part of the design. A badge has no tone without the thing it sits on.</li>
+        <li>A badge is about 16 pixels. Tone has to live in its shape, its colour and how it arrives, not in detail.</li>
+        <li>A tooltip's tone lives in timing, entrance and the voice of its words.</li>
+        <li>Each set picks its motion on the levers above: duration, curve, distance, count change, repetition and origin. A quiet tone and a loud tone should differ on at least two.</li>
+        <li>Every prototype also has to work under reduced motion, so the tone cannot live in motion alone.</li>
+        <li>A set shares a tone, not a shape. The badge and tooltip can share an anchor, or each have their own.</li>
+      </ul>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-02-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-02-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-02-NAME.html">View larger</button>
+          </figcaption>
+        </figure>
+      -->
+      <div class="idea-grid">
+        <figure class="idea">
+          <iframe src="week-02-trace.html" title="Trace badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Trace</b>
+            <span>A line runs clockwise round the bubble's outline from its upper right corner; where it closes, a dot appears.</span>
+            <button type="button" class="viewer-open" data-src="week-02-trace.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-frame-trace.html" title="Frame trace badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Frame trace</b>
+            <span>The bubble stays still while a rounded frame draws itself clockwise round it from its upper right corner; where the frame closes, a dot appears.</span>
+            <button type="button" class="viewer-open" data-src="week-02-frame-trace.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-spin.html" title="Spin badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Spin</b>
+            <span>The dot spins onto the upper right corner, circling its spot on a tightening ring as it grows.</span>
+            <button type="button" class="viewer-open" data-src="week-02-spin.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-coin.html" title="Coin spin badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Coin spin</b>
+            <span>The dot is a thin flat chip: it appears on the upper right corner and turns once in place, narrowing to its rim and opening back to a whole dot.</span>
+            <button type="button" class="viewer-open" data-src="week-02-coin.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-refresh.html" title="Refresh badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Refresh</b>
+            <span>The whole icon is written in again, left to right, and the dot at its far right comes in last.</span>
+            <button type="button" class="viewer-open" data-src="week-02-refresh.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-thirds.html" title="Thirds badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Thirds</b>
+            <span>Refresh in three steps: the icon comes back a third at a time, left, middle, right, and the dot lands with the last.</span>
+            <button type="button" class="viewer-open" data-src="week-02-thirds.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-sweep.html" title="Sweep badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Sweep</b>
+            <span>The dot is revealed clockwise from twelve o'clock, a wedge widening like a clock hand going once round.</span>
+            <button type="button" class="viewer-open" data-src="week-02-sweep.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-book.html" title="Book badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Book</b>
+            <span>The dot opens from its centre like a book: two halves folded shut on the centre line swing open to lie flat.</span>
+            <button type="button" class="viewer-open" data-src="week-02-book.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-swell.html" title="Swell badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Swell</b>
+            <span>The dot swells from the bubble's middle until it hides the whole icon, then shrinks on its way to the upper right corner.</span>
+            <button type="button" class="viewer-open" data-src="week-02-swell.html">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h2>Deliverables</h2>
+
+      <p>Ten components, five sets of one badge and one tooltip. Each set shows how it got there, then the moving prototypes.</p>
+
+      <p>Every set uses the same two anchors: a Message icon for the badge and a Notification bell for the tooltip. Holding the icons still is the control: whatever differs between the five tones comes from motion and styling alone. The shapes stay fixed; only how they are rendered (stroke, colour, texture) follows the tone.</p>
+
+      <figure class="shot">
+        <!-- the base anchors, also saved as images/message-icon.svg and images/notification-icon.svg -->
+        <div class="anchor-pair" style="display: flex; gap: 40px;">
+          <svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Message icon: a speech bubble with its tail at the lower left">
+            <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+          </svg>
+          <svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Notification icon: a bell">
+            <path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+            <path d="M10 20a2 2 0 0 0 4 0"/>
+          </svg>
+        </div>
+        <figcaption>Left, the badge anchor: a speech bubble, tail at the lower left, so the upper right corner stays clear for the badge. Right, the tooltip anchor: an upright bell, a silhouette that never reads as the bubble.</figcaption>
+      </figure>
+
+      <!-- Process: save a frame of each tried version to images/process/TONE-KIND-N.png
+           and add it to the set's process-grid with a line on what changed.
+           Filling a prototype: build it as its own page, week-02-TONE-KIND.html,
+           swap <div class="proto-art">…</div> for <iframe src="…" title="…" loading="lazy"></iframe>,
+           drop the is-empty class, and turn <span class="soon"> into a
+           <button type="button" class="viewer-open" data-src="…">View larger</button>. -->
+
+      <h3>Set 1 &middot; Dramatic</h3>
+
+      <h4>Process</h4>
+
+      <p>How the pair got here, one tried version at a time.</p>
+
+      <p class="process-label">Badge</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/dramatic-badge-1.png" alt="Dramatic badge, step 1" loading="lazy" />
+            <figcaption>First pass, from the storyboard: a red dot sweeps clockwise round the bubble's left side, swelling on the way, and lands on the upper right corner.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-2.png" alt="Dramatic badge, step 2" loading="lazy" />
+            <figcaption>The dot as a light source on a dark stage: amber glow, the outline lit wherever it passes, rays on landing.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-3.png" alt="Dramatic badge, step 3" loading="lazy" />
+            <figcaption>Darker, the background streaks gone, a night-blue light, and a steeper ease-in-out.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-4.png" alt="Dramatic badge, step 4" loading="lazy" />
+            <figcaption>The landing rays gone; the path left as a smeared mark, like a long exposure. It read as a cloud.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-5.png" alt="Dramatic badge, step 5" loading="lazy" />
+            <figcaption>The mark as strobe copies of the dot instead, one per frame, fading fast.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-6.png" alt="Dramatic badge, step 6" loading="lazy" />
+            <figcaption>Started over in black and white: a vortex of twisted bands that inverts the icon and tightens into the dot.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-7.png" alt="Dramatic badge, step 7" loading="lazy" />
+            <figcaption>After the Swell sketch: a white circle swells over the icon, the outline cut through it, then shrinks into the corner.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-8.png" alt="Dramatic badge, step 8" loading="lazy" />
+            <figcaption>Now: the circle turned red and stays as the icon's frame, and a black hole travels into the corner as the badge.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-badge-9.png" alt="Dramatic badge, step 9" loading="lazy" />
+            <figcaption>Now, with content: the whole badge spins like a flicked coin, a 2 on one face and a 3 on the other.</figcaption>
+          </figure>
+      </div>
+
+      <p class="process-label">Tooltip</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/dramatic-tooltip-1.png" alt="Dramatic tooltip, step 1" loading="lazy" />
+            <figcaption>First pass: a 2px red line drawn left to right, as wide as the tooltip, about to part into the box.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-tooltip-2.png" alt="Dramatic tooltip, step 2" loading="lazy" />
+            <figcaption>A hairline with a white point at its tip, quicker and sharper. The white went: one red only.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-tooltip-3.png" alt="Dramatic tooltip, step 3" loading="lazy" />
+            <figcaption>All red, everything bigger, the bell centred, the name revealed.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/dramatic-tooltip-4.png" alt="Dramatic tooltip, step 4" loading="lazy" />
+            <figcaption>Now: the box overshoots as it opens; on leaving, it shuts and the line draws back right to left.</figcaption>
+          </figure>
+      </div>
+
+      <h4>Prototypes</h4>
+
+      <div class="proto-grid">
+        <figure class="proto">
+          <iframe src="week-02-dramatic-badge.html" title="Dramatic badge prototype: a red frame swells out, then a hole travels into the corner as the badge" loading="lazy"></iframe>
+          <figcaption>
+            <b>Badge</b>
+            <span>After Swell, in two acts. A red circle swells from the bubble's middle and stays as its frame, the outline cut through it in black; then a black hole opens in the middle, swells, and shrinks into the upper right corner as the badge. With content starts in place showing 2, then the whole badge spins like a flicked coin and lands on 3; None closes the badge and folds the frame away.</span>
+            <button type="button" class="viewer-open" data-src="week-02-dramatic-badge.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="proto">
+          <iframe src="week-02-dramatic-tooltip.html" title="Dramatic tooltip prototype: a red line drawn above the bell parts open into the name" loading="lazy"></iframe>
+          <figcaption>
+            <b>Tooltip</b>
+            <span>Hover the bell: a thin red line is drawn left to right, as wide as the tooltip, then parts top and bottom to reveal the name. Rich tooltip to come.</span>
+            <button type="button" class="viewer-open" data-src="week-02-dramatic-tooltip.html">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Set 2 &middot; Futuristic</h3>
+
+      <h4>Process</h4>
+
+      <p>How the pair got here, one tried version at a time.</p>
+
+      <p class="process-label">Badge</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/futuristic-badge-1.png" alt="Futuristic badge, step 1" loading="lazy" />
+            <figcaption>First pass, after a glowing glass reference: the bubble as a tube of violet glass with glints and a reflection, the dot a rounded square of the same glass.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-2.png" alt="Futuristic badge, step 2" loading="lazy" />
+            <figcaption>The reflection reduced to the light it casts; the dot built from small cubes that spread from the middle, each flipping into place.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-3.png" alt="Futuristic badge, step 3" loading="lazy" />
+            <figcaption>No outline on the badge; the cubes sweep from its lower left to its upper right, and the count is broken down and rebuilt to change.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-4.png" alt="Futuristic badge, step 4" loading="lazy" />
+            <figcaption>The count drawn as tubes of deep violet glass instead of flat type.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-5.png" alt="Futuristic badge, step 5" loading="lazy" />
+            <figcaption>Restyled after Obsidian's graph view: the bubble as linked notes on springs, the dot a new note pulled out to the corner.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-6.png" alt="Futuristic badge, step 6" loading="lazy" />
+            <figcaption>A denser graph, with notes inside the bubble and strays round about. Taken back out again.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-badge-7.png" alt="Futuristic badge, step 7" loading="lazy" />
+            <figcaption>Now: the cooler blue of its tooltip; with content, the count is how many notes are linked, and a third flies in to make 3.</figcaption>
+          </figure>
+      </div>
+
+      <p class="process-label">Tooltip</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/futuristic-tooltip-1.png" alt="Futuristic tooltip, step 1" loading="lazy" />
+            <figcaption>First pass: hovering lights the bell's notes, and one note rides out on a link with the name beside it.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-tooltip-2.png" alt="Futuristic tooltip, step 2" loading="lazy" />
+            <figcaption>Many notes instead of one: they stream out of the crown and link up into a box round the name.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-tooltip-3.png" alt="Futuristic tooltip, step 3" loading="lazy" />
+            <figcaption>More room round the name, and a cooler blue in place of violet.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-tooltip-4.png" alt="Futuristic tooltip, step 4" loading="lazy" />
+            <figcaption>The box tied to the bell by seven parallel links.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/futuristic-tooltip-5.png" alt="Futuristic tooltip, step 5" loading="lazy" />
+            <figcaption>Now: a few irregular links instead, two to the box's lower edge, one to its side, two over to its top.</figcaption>
+          </figure>
+      </div>
+
+      <h4>Prototypes</h4>
+
+      <div class="proto-grid">
+        <figure class="proto">
+          <iframe src="week-02-futuristic-badge.html" title="Futuristic badge prototype: the bubble as a graph of linked notes, the badge a new note pulled into its corner" loading="lazy"></iframe>
+          <figcaption>
+            <b>Badge</b>
+            <span>After Obsidian's graph view: the bubble is a ring of notes joined by thin links, all on springs. Dot: a blue note is born in the middle and pulled out to the corner on two links, tugging the graph, which wobbles and settles. With content: the badge counts its linked notes; it starts with two, a third flies in and links up, and the count turns to 3.</span>
+            <button type="button" class="viewer-open" data-src="week-02-futuristic-badge.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="proto">
+          <iframe src="week-02-futuristic-tooltip.html" title="Futuristic tooltip prototype: the bell as a graph of notes; hovering streams notes out into a box round its name" loading="lazy"></iframe>
+          <figcaption>
+            <b>Tooltip</b>
+            <span>The bell as a graph of notes. Hover it, as you would a note in Obsidian's graph: its notes and links light up blue, then a stream of notes pours out of its crown and links up into a box above it, with the name inside. Rich tooltip to come.</span>
+            <button type="button" class="viewer-open" data-src="week-02-futuristic-tooltip.html">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Set 3 &middot; Intimate</h3>
+
+      <h4>Process</h4>
+
+      <p>How the pair got here, one tried version at a time.</p>
+
+      <p class="process-label">Badge</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/intimate-badge-1.png" alt="Intimate badge, step 1" loading="lazy" />
+            <figcaption>First pass, after the Frame trace sketch: a terracotta frame drawn round the bubble, and where it closes a drop swells out of the line, one fluid body with it.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-badge-2.png" alt="Intimate badge, step 2" loading="lazy" />
+            <figcaption>The drop made long: a sleeve of liquid wrapped round the frame's corner.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-badge-3.png" alt="Intimate badge, step 3" loading="lazy" />
+            <figcaption>Thicker, so a count sits in it without looking cramped.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-badge-4.png" alt="Intimate badge, step 4" loading="lazy" />
+            <figcaption>No more spring: the badge fills like liquid, rising from its foot to its top with a rippling surface.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-badge-5.png" alt="Intimate badge, step 5" loading="lazy" />
+            <figcaption>Fullest in the middle, thinning into the line at each end.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-badge-6.png" alt="Intimate badge, step 6" loading="lazy" />
+            <figcaption>Now: the count placed at the true middle of the shape, and 2 crossfading into 3 on a slow breath.</figcaption>
+          </figure>
+      </div>
+
+      <p class="process-label">Tooltip</p>
+      <div class="process-grid">
+          <figure>
+            <img src="images/process/intimate-tooltip-1.png" alt="Intimate tooltip, step 1" loading="lazy" />
+            <figcaption>First pass: a thread of liquid rises from the bell and pools into a box, still joined to it; the name is written in a letter at a time.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-tooltip-2.png" alt="Intimate tooltip, step 2" loading="lazy" />
+            <figcaption>A thick, slow drop instead, drawn up on a neck that thins as it pulls away.</figcaption>
+          </figure>
+          <figure>
+            <img src="images/process/intimate-tooltip-3.png" alt="Intimate tooltip, step 3" loading="lazy" />
+            <figcaption>Now: the neck lets go, so the box floats free above the centred bell, the name set in its true middle, and nothing left behind.</figcaption>
+          </figure>
+      </div>
+
+      <h4>Prototypes</h4>
+
+      <div class="proto-grid">
+        <figure class="proto">
+          <iframe src="week-02-intimate-badge.html" title="Intimate badge prototype: a soft frame drawn round the bubble, the badge swelling out of it like a drop" loading="lazy"></iframe>
+          <figcaption>
+            <b>Badge</b>
+            <span>After the Frame trace sketch, on warm paper. A terracotta frame draws itself round the bubble, and where it closes the badge fills in like liquid, rising from its foot to its top with a rippling surface: a soft shape wrapped round the corner, fullest in the middle and thinning into the line at each end, one fluid body with the line rather than a dot set on top. With content starts at 2; the sleeve takes a slow breath and the 2 turns to 3.</span>
+            <button type="button" class="viewer-open" data-src="week-02-intimate-badge.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="proto">
+          <iframe src="week-02-intimate-tooltip.html" title="Intimate tooltip prototype: a viscous drop draws up from the bell, spreads into a box and lets go, and the name is written inside" loading="lazy"></iframe>
+          <figcaption>
+            <b>Tooltip</b>
+            <span>Hover the bell: a thick, slow drop of terracotta liquid draws up out of its crown on a neck of liquid, spreads into a soft rounded box, and the neck thins and lets go, so the box floats free; the name is written inside, a letter at a time. Rich tooltip to come.</span>
+            <button type="button" class="viewer-open" data-src="week-02-intimate-tooltip.html">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Set 4 &middot; Rugged</h3>
+
+      <h4>Prototypes</h4>
+
+      <div class="proto-grid">
+        <figure class="proto">
+          <iframe src="week-02-rugged-badge.html" title="Rugged badge prototype: a yellow square plate is swept in clockwise; the count is a ragged yellow shape that reshapes from 2 to 3" loading="lazy"></iframe>
+          <figcaption>
+            <b>Badge</b>
+            <span>Dot: on black, a flat yellow square plate with just-softened corners is swept in clockwise from twelve, easing in and out, and settles with a small give. With content: no plate, only the count, drawn as a ragged yellow shape rather than set in a font; the 2 reshapes itself into a 3, its corners travelling and new notches growing out of its edges.</span>
+            <button type="button" class="viewer-open" data-src="week-02-rugged-badge.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="proto">
+          <iframe src="week-02-rugged-tooltip.html" title="Rugged tooltip prototype: a yellow plate is swept in above the bell, stretches into a bar and is carved into the word Notifications" loading="lazy"></iframe>
+          <figcaption>
+            <b>Tooltip</b>
+            <span>Hover the bell: no box. The badge's yellow square plate is swept in above the bell, stretches into a bar, and the bar is carved into NOTIFICATIONS left to right, gaps parting the letters and notches growing in from the edges, the letters drawn like the badge's digits. Rich tooltip to come.</span>
+            <button type="button" class="viewer-open" data-src="week-02-rugged-tooltip.html">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Set 5 &middot; Somber</h3>
+
+      <h4>Prototypes</h4>
+
+      <div class="proto-grid">
+        <figure class="proto is-empty">
+          <div class="proto-art"><span>week-02-somber-badge.html</span></div>
+          <figcaption>
+            <b>Badge</b>
+            <span>No badge &harr; dot, and no badge &harr; badge with content, on the Message icon.</span>
+            <span class="soon">Not built yet</span>
+          </figcaption>
+        </figure>
+        <figure class="proto is-empty">
+          <div class="proto-art"><span>week-02-somber-tooltip.html</span></div>
+          <figcaption>
+            <b>Tooltip</b>
+            <span>Hover or focus the bell: a plain tooltip, and a rich one with a clickable action.</span>
+            <span class="soon">Not built yet</span>
+          </figcaption>
+        </figure>
+      </div>
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://m3.material.io/components/badges/guidelines">Badges</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/components/tooltips/guidelines">Tooltips</a>, Material Design 3</li>
+          <li><a href="https://www.nngroup.com/articles/tooltip-guidelines/">Tooltip Guidelines</a>, Nielsen Norman Group</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html">Understanding SC 1.4.13: Content on Hover or Focus</a>, W3C</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/">Tooltip pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+          <li><a href="https://www.oreilly.com/library/view/microinteractions/9781449342760/">Microinteractions: Designing with Details</a>, Dan Saffer, O'Reilly, 2013</li>
+          <li><a href="https://www.nngroup.com/articles/animation-duration/">Executing UX Animations: Duration and Motion Characteristics</a>, NN/g</li>
+          <li><a href="https://www.nngroup.com/articles/animation-purpose-ux/">The Role of Animation and Motion in UX</a>, NN/g</li>
+          <li><a href="https://m3.material.io/styles/motion/easing-and-duration/tokens-specs">Easing and duration</a>, Material Design 3</li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/win32/controls/ttm-setdelaytime">TTM_SETDELAYTIME</a>, Win32 tooltip delays, Microsoft</li>
+          <li><a href="https://doi.org/10.1016/S1071-5819(03)00021-1">Moticons: detection, distraction and task</a>, Bartram, Ware and Calvert, International Journal of Human-Computer Studies, 2003</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html">Understanding SC 2.2.2: Pause, Stop, Hide</a>, W3C</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">Understanding SC 2.3.3: Animation from Interactions</a>, W3C</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-01/week-01.html">&larr; Week 01: Loading</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=5"></script>
+</body>
+</html>

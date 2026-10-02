@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 demo &middot; Badge and tooltip survey</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* This demo is a whole page of its own, so its styles stay in this file
+     and can never reach another week. */
+  html, body { margin: 0; min-height: 100%; }
+  body { background: #f2f0ea; }
+
+  .sheet {
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --line: #dcdad2;
+    --surface: #fbfaf7;
+    --accent: #2b47ff;
+    --alert: #e5392f;
+    --tip: #26251f;
+    box-sizing: border-box;
+    width: min(1040px, 100% - 32px);
+    margin: 0 auto;
+    padding: 40px 0 56px;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    color: var(--ink);
+  }
+  .sheet *, .sheet *::before, .sheet *::after { box-sizing: border-box; }
+
+  .head h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .lede { margin: 0 0 20px; max-width: 60ch; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .ctrl { display: flex; align-items: center; gap: 6px; }
+  .ctrl-label { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-right: 2px; }
+  .controls button {
+    font: 500 12.5px/1 ui-sans-serif, system-ui, sans-serif; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 12px; cursor: pointer;
+    transition: background .14s, border-color .14s, color .14s;
+  }
+  .controls button:hover { border-color: var(--accent); }
+  .controls button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .group { margin-top: 34px; }
+  .group h2 {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .09em;
+    margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .group h2 span { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); font-size: 12.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .spec { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  .stage { height: 110px; display: grid; place-items: center; padding: 0 16px; }
+  .spec figcaption { border-top: 1px solid var(--line); padding: 9px 12px 11px; }
+  .spec figcaption b { display: block; font-size: 13px; font-weight: 600; }
+  .spec figcaption span { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+
+  /* anchors ---------------------------------------------------------------- */
+  .anchor {
+    position: relative; display: inline-grid; place-items: center;
+    width: 44px; height: 44px; border-radius: 12px;
+    background: transparent; border: 0; color: var(--ink); cursor: pointer;
+  }
+  .anchor:hover { background: #ebe9e2; }
+  .anchor:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .anchor svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* badges: pinned to the anchor's top right corner, never covering its centre */
+  .badge {
+    position: absolute; top: 4px; left: 26px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    display: grid; place-items: center;
+    font: 600 10.5px/1 ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #fff;
+    background: var(--alert); border-radius: 999px;
+    box-shadow: 0 0 0 2px var(--surface);
+    transition: transform .18s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .badge.dot { top: 8px; left: 28px; min-width: 8px; width: 8px; height: 8px; padding: 0; }
+  .badge.label { background: var(--accent); letter-spacing: .02em; text-transform: uppercase; font-size: 9px; }
+  .badge[hidden] { display: grid; transform: scale(0); visibility: hidden; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* the bottom bar the assignment brief shows */
+  .phone { display: flex; justify-content: center; }
+  .bar {
+    display: flex; gap: 6px; width: min(420px, 100%);
+    padding: 10px 12px 12px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 18px;
+  }
+  .bar .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--muted); }
+  .bar .anchor { width: 56px; height: 32px; border-radius: 999px; }
+  .bar .badge { top: 0; left: 30px; }
+  .bar .badge.dot { top: 4px; left: 34px; }
+
+  /* tooltips --------------------------------------------------------------- */
+  /* the tooltip sits beside its anchor, not inside it, so a rich one can hold a link */
+  .tip-wrap { position: relative; display: inline-grid; }
+  .tip {
+    position: absolute; z-index: 5; pointer-events: none;
+    width: max-content; max-width: 200px; padding: 5px 8px;
+    font: 500 12px/1.35 ui-sans-serif, system-ui, sans-serif; color: #fff; background: var(--tip); border-radius: 6px;
+    opacity: 0; transform: translate(var(--tx, -50%), var(--ty, 0)) scale(.96);
+    transition: opacity .12s, transform .12s;
+  }
+  .tip.show { opacity: 1; transform: translate(var(--tx, -50%), var(--ty, 0)); }
+  .tip[data-side="top"]    { bottom: calc(100% + 8px); left: 50%; }
+  .tip[data-side="bottom"] { top: calc(100% + 8px); left: 50%; }
+  .tip[data-side="left"]   { right: calc(100% + 8px); top: 50%; --tx: 0; --ty: -50%; }
+  .tip[data-side="right"]  { left: calc(100% + 8px); top: 50%; --tx: 0; --ty: -50%; }
+  /* a rich tooltip can be hovered and holds a link, so it takes the pointer */
+  .tip.rich { max-width: 240px; padding: 10px 12px; text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.1); pointer-events: auto; }
+  /* the rich one is wide, so it hangs from the anchor's right edge instead of centring */
+  .tip.rich[data-side="top"] { left: auto; right: 0; --tx: 0; }
+  .tip.rich b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .tip.rich span { display: block; color: var(--muted); font-weight: 400; }
+  .tip.rich a { display: inline-block; margin-top: 6px; color: var(--accent); font-weight: 600; text-decoration: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge, .tip { transition: none; }
+  }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9999;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  .back-pill:hover { background: rgba(0,0,0,.85); }
+  </style>
+</head>
+<body>
+
+<div class="sheet" id="sheet">
+
+  <header class="head">
+    <h1>Badges and tooltips</h1>
+    <p class="lede">Both are small messages pinned to something else. A badge speaks without being asked; a tooltip waits until the anchor is hovered or focused. Change the count, then hover or tab through the anchors.</p>
+    <div class="controls">
+      <div class="ctrl">
+        <span class="ctrl-label">Unread</span>
+        <button type="button" data-count="0">0</button>
+        <button type="button" data-count="3" class="on">3</button>
+        <button type="button" data-count="42">42</button>
+        <button type="button" data-count="250">250</button>
+      </div>
+      <div class="ctrl">
+        <span class="ctrl-label">Tooltip delay</span>
+        <button type="button" data-delay="0">None</button>
+        <button type="button" data-delay="500" class="on">500 ms</button>
+        <button type="button" data-delay="1200">1.2 s</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="group">
+    <h2>Badges in place <span>the brief's bottom bar: Mail, Chat, Rooms, Meet</span></h2>
+    <div class="phone">
+      <nav class="bar" aria-label="Sections">
+        <div class="tab">
+          <button type="button" class="anchor" aria-describedby="b-mail">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg>
+            <span class="badge count" id="b-mail"></span>
+          </button>
+          Mail
+        </div>
+        <div class="tab">
+          <button type="button" class="anchor" aria-describedby="b-chat">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
+            <span class="badge dot" id="b-chat"><span class="sr">New messages</span></span>
+          </button>
+          Chat
+        </div>
+        <div class="tab">
+          <button type="button" class="anchor" aria-describedby="b-rooms">
+            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+            <span class="badge count" id="b-rooms" data-scale="7"></span>
+          </button>
+          Rooms
+        </div>
+        <div class="tab">
+          <button type="button" class="anchor" aria-describedby="b-meet">
+            <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg>
+            <span class="badge label" id="b-meet">Live</span>
+          </button>
+          Meet
+        </div>
+      </nav>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Badge forms <span>how much each one claims</span></h2>
+    <div class="grid">
+      <figure class="spec">
+        <div class="stage"><span class="anchor" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20h4"/></svg><span class="badge dot"></span></span></div>
+        <figcaption><b>Dot</b><span>Something is new. No amount.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage"><span class="anchor" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20h4"/></svg><span class="badge">7</span></span></div>
+        <figcaption><b>Count</b><span>How many, while the number is still worth reading.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage"><span class="anchor" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20h4"/></svg><span class="badge">99+</span></span></div>
+        <figcaption><b>Overflow</b><span>Capped, so the badge never outgrows its anchor.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage"><span class="anchor" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg><span class="badge label">Live</span></span></div>
+        <figcaption><b>Status label</b><span>A word, not a number. Colour alone is never the message.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>Tooltips <span>hover or focus the anchor; Esc dismisses</span></h2>
+    <div class="grid">
+      <figure class="spec">
+        <div class="stage">
+          <button type="button" class="anchor" data-tip="top" aria-label="Archive">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/></svg>
+          </button>
+        </div>
+        <figcaption><b>Plain, above</b><span>Names an icon that has no label of its own.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage">
+          <button type="button" class="anchor" data-tip="bottom" aria-label="Share">
+            <svg viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></svg>
+          </button>
+        </div>
+        <figcaption><b>Plain, below</b><span>Flips when there is no room above.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage">
+          <button type="button" class="anchor" data-tip="right" data-text="Pin to top" aria-label="Pin">
+            <svg viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7"/></svg>
+          </button>
+        </div>
+        <figcaption><b>Plain, beside</b><span>Short enough to read in one glance, never a sentence.</span></figcaption>
+      </figure>
+      <figure class="spec">
+        <div class="stage">
+          <button type="button" class="anchor" data-tip="top" data-rich aria-label="Sync status">
+            <svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 0 1-12 5M5 12a7 7 0 0 1 12-5"/><path d="M17 3v4h-4M7 21v-4h4"/></svg>
+          </button>
+          <div class="tip-rich-content" hidden>
+            <b>Synced 2 minutes ago</b>
+            <span>Changes on this device reach your other devices within a minute.</span>
+            <a href="#sheet">Sync settings</a>
+          </div>
+        </div>
+        <figcaption><b>Rich</b><span>Title, text and a link. It can be hovered, and stays until you leave it.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+</div>
+
+<a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+<script>
+(function () {
+  var sheet = document.getElementById('sheet');
+  var delay = 500;
+
+  // ---- badges: the count drives Mail and Rooms; zero hides them ----------
+  function setCount(n) {
+    [].forEach.call(sheet.querySelectorAll('.badge.count'), function (badge) {
+      var value = n * Number(badge.getAttribute('data-scale') || 1);
+      badge.hidden = value === 0;
+      badge.textContent = value > 99 ? '99+' : String(value);
+      badge.setAttribute('aria-label', value === 0 ? '' : value + ' unread');
+    });
+    document.getElementById('b-chat').hidden = n === 0;
+  }
+
+  function wire(attr, onPick) {
+    var buttons = [].slice.call(sheet.querySelectorAll('[' + attr + ']'));
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        onPick(Number(button.getAttribute(attr)));
+        buttons.forEach(function (sib) { sib.classList.toggle('on', sib === button); });
+      });
+    });
+  }
+  wire('data-count', setCount);
+  wire('data-delay', function (value) { delay = value; });
+
+  // ---- tooltips: show after the delay on hover, at once on focus ---------
+  var open = null;
+
+  [].forEach.call(sheet.querySelectorAll('[data-tip]'), function (anchor, i) {
+    var tip = document.createElement('div');
+    tip.className = 'tip';
+    tip.id = 'tip-' + i;
+    tip.setAttribute('role', 'tooltip');
+    tip.setAttribute('data-side', anchor.getAttribute('data-tip'));
+    if (anchor.hasAttribute('data-rich')) {
+      tip.classList.add('rich');
+      tip.innerHTML = anchor.parentNode.querySelector('.tip-rich-content').innerHTML;
+    } else {
+      tip.textContent = anchor.getAttribute('data-text') || anchor.getAttribute('aria-label');
+    }
+    var wrap = document.createElement('span');
+    wrap.className = 'tip-wrap';
+    anchor.parentNode.insertBefore(wrap, anchor);
+    wrap.appendChild(anchor);
+    wrap.appendChild(tip);
+    anchor.setAttribute('aria-describedby', tip.id);
+
+    var timer = null;
+    function show(now) {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        if (open && open !== tip) open.classList.remove('show');
+        tip.classList.add('show');
+        open = tip;
+      }, now ? 0 : delay);
+    }
+    function hide() {
+      clearTimeout(timer);
+      // a short grace period lets the pointer cross into a rich tooltip
+      timer = setTimeout(function () { tip.classList.remove('show'); }, 120);
+    }
+
+    wrap.addEventListener('mouseenter', function () { show(false); });
+    wrap.addEventListener('mouseleave', hide);
+    wrap.addEventListener('focusin', function () { show(true); });
+    wrap.addEventListener('focusout', function (e) {
+      if (!wrap.contains(e.relatedTarget)) hide();
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && open) open.classList.remove('show');
+  });
+
+  // Only offer the back link when the demo is open on its own, not in the post.
+  if (window.self === window.top) {
+    document.querySelector('.back-pill').removeAttribute('hidden');
+  }
+
+  setCount(3);
+}());
+</script>
+
+</body>
+</html>

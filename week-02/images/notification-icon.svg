@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96" fill="none" stroke="#1a1a1a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Week 02 shared tooltip anchor: a notification bell, upright and symmetric,
+       so its silhouette never reads as the speech bubble. Same grid, stroke and
+       corner treatment as message-icon.svg. Shape fixed across all five tones. -->
+  <path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+  <path d="M10 20a2 2 0 0 0 4 0"/>
+</svg>

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Rugged tooltip</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Rugged, matching its badge: black ground, an off-white bell, flat hard
+     yellow. No tooltip box: the same square plate as the badge's dot is swept
+     in above the bell, stretches into a bar, and the bar is cut into the word,
+     the letters drawn like the badge's digits, square-shouldered plates with
+     only their corners softened. */
+  :root {
+    --bg: #0b0b0a;
+    --ink: #ecebe4;
+    --yellow: #f4f150;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+
+  .wrap { position: relative; width: min(66vmin, 320px); aspect-ratio: 1; }
+  .icon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .bell { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bar { fill: var(--yellow); }
+  .wedge { fill: none; stroke: #fff; }
+
+  /* the hit area over the bell: a real button, so the tooltip works by keyboard too */
+  .bell-btn {
+    position: absolute; left: 33%; top: 25%; width: 34%; height: 50%;
+    padding: 0; border: 0; background: none; cursor: pointer; border-radius: 6px;
+  }
+  .bell-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .hint {
+    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
+    font: 700 12px/1.4 "Helvetica Neue", Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(236, 235, 228, .4);
+  }
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: var(--bg); background: rgba(236, 235, 228, .8);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <svg class="icon" viewBox="-6 -5 36 36" aria-hidden="true">
+      <defs>
+        <!-- softens every corner a little, inside and out: blur, then cut back to a crisp edge -->
+        <filter id="round" filterUnits="userSpaceOnUse" x="-12" y="-6" width="48" height="10">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=".07" result="blur"/>
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"/>
+        </filter>
+        <!-- the sweep that brings the square in, as on the badge's dot -->
+        <mask id="sweep" maskUnits="userSpaceOnUse" x="-12" y="-6" width="48" height="10">
+          <circle class="wedge"/>
+        </mask>
+        <!-- the cuts: everything black here is carved out of the bar -->
+        <mask id="cut" maskUnits="userSpaceOnUse" x="-12" y="-6" width="48" height="10">
+          <rect x="-12" y="-6" width="48" height="10" fill="#fff"/>
+          <path class="cuts" fill="#000"/>
+        </mask>
+      </defs>
+      <!-- the shared bell -->
+      <path class="bell" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+      <path class="bell" d="M10 20a2 2 0 0 0 4 0"/>
+      <!-- the plate that becomes the word -->
+      <g filter="url(#round)">
+        <g class="swept" mask="url(#sweep)">
+          <g mask="url(#cut)"><rect class="bar"/></g>
+        </g>
+      </g>
+    </svg>
+    <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
+    <span class="sr" role="tooltip" id="tip">Notifications</span>
+  </div>
+
+  <p class="hint">Hover or focus the bell</p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Rugged tooltip, plain. Hover the bell: the badge's square plate is swept
+  // in clockwise above it, then stretches sideways into a bar, then the bar is
+  // carved into NOTIFICATIONS, left to right: gaps open between the letters,
+  // notches grow in from the edges, and counters open from a point, the way
+  // the "ragged number motion" reference grows new notches out of flat edges.
+  // Leave: the cuts close, the bar draws back to a square, the hand winds back.
+  (() => {
+    const DELAY = 250;                 // ms of hover before it starts
+    const SWEEP = 340;                 // ms for the square to be swept in
+    const STRETCH = 400;               // ms for the square to stretch into the bar
+    const CARVE = 520;                 // ms for each letter to be cut
+    const STAGGER = 24;                // ms between one letter starting and the next
+    const OUT = { carve: 260, stretch: 220, sweep: 200 };   // leaving is quicker
+
+    // Letters on a grid 8 high, each with its width and the cuts that make it
+    // from a solid block. A cut grows in from one side ('t' top, 'b' bottom,
+    // 'l' left, 'r' right) or opens from its own middle ('c').
+    const L = {
+      N: { w: 6, cuts: [[[2, 0], [4, 0], [4, 4.2]], 't'], more: [[[2, 3.8], [4, 8], [2, 8]], 'b'] },
+      O: { w: 6, cuts: [[[4.8, 0], [6, 0], [6, 1.2]], 'r'], more: [[[2, 2], [4, 2], [4, 6], [2, 6]], 'c'] },
+      T: { w: 6, cuts: [[[0, 2], [2, 2], [2, 8], [0, 8]], 'b'], more: [[[4, 2], [6, 2], [6, 8], [4, 8]], 'b'] },
+      I: { w: 2 },
+      F: { w: 5, cuts: [[[2, 2], [5, 2], [5, 3.2], [2, 3.2]], 'r'], more: [[[2, 5], [5, 5], [5, 8], [2, 8]], 'r'], last: [[[4.2, 3.2], [5, 3.2], [5, 5], [4.2, 5]], 'r'] },
+      C: { w: 5.5, cuts: [[[2, 2], [5.5, 2], [5.5, 6], [2, 6]], 'r'], more: [[[0, 6.8], [1.2, 8], [0, 8]], 'l'] },
+      A: { w: 6, cuts: [[[0, 0], [1.6, 0], [0, 1.6]], 'l'], more: [[[2, 2], [4, 2], [4, 3.6], [2, 3.6]], 'c'], last: [[[2, 5.4], [4, 5.4], [4, 8], [2, 8]], 'b'] },
+      S: { w: 5.5, cuts: [[[2, 2], [5.5, 2], [5.5, 3], [2, 3]], 'r'], more: [[[0, 5], [3.5, 5], [3.5, 6], [0, 6]], 'l'] }
+    };
+    const WORD = 'NOTIFICATIONS';
+    const GAP = 1.2;
+    const S = .38;                     // grid unit in the bell's drawing units
+    const CX = 12, CY = -1.1;          // where the word is centred, above the bell
+
+    // lay the word out on the grid, and list every cut with the letter it belongs to
+    const PAD = .5;                    // cuts that meet the block's edge run past it, so the edge cuts clean
+    const cuts = [];
+    let x = 0;
+    for (let i = 0; i < WORD.length; i++) {
+      const g = L[WORD[i]];
+      for (const c of [g.cuts, g.more, g.last]) {
+        if (!c) continue;
+        const pts = c[0].map(([px, py]) => [
+          x + (px === 0 ? -PAD : px === g.w ? g.w + PAD : px),
+          py === 0 ? -PAD : py === 8 ? 8 + PAD : py
+        ]);
+        cuts.push({ i, pts, from: c[1], x0: x - PAD, x1: x + g.w + PAD });
+      }
+      x += g.w;
+      // the gap after this letter opens from its own middle line
+      if (i < WORD.length - 1) cuts.push({ i, pts: [[x, -PAD], [x + GAP, -PAD], [x + GAP, 8 + PAD], [x, 8 + PAD]], from: 'c', gap: true });
+      x += GAP;
+    }
+    const W = x - GAP;
+    const OX = CX - S * W / 2, OY = CY - S * 4;
+    // each cut's collapsed form: squashed flat onto the side it grows from, or onto its middle
+    // (a gap onto its middle line, so the letters part; a counter onto its middle point)
+    for (const c of cuts) {
+      const mx = c.pts.reduce((a, p) => a + p[0], 0) / c.pts.length;
+      const my = c.pts.reduce((a, p) => a + p[1], 0) / c.pts.length;
+      c.flat = c.pts.map(([px, py]) =>
+        c.from === 't' ? [px, -PAD] : c.from === 'b' ? [px, 8 + PAD] :
+        c.from === 'l' ? [c.x0, py] : c.from === 'r' ? [c.x1, py] :
+        c.gap ? [mx, py] : [mx, my]);
+    }
+
+    const svg = document.querySelector('.icon');
+    const wrap = document.querySelector('.wrap');
+    const btn = document.querySelector('.bell-btn');
+    const bar = document.querySelector('.bar');
+    const cutPath = document.querySelector('.cuts');
+    const swept = document.querySelector('.swept');
+    const wedge = document.querySelector('.wedge');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const R = S * 4 * 1.5;             // a disc that covers the square
+    wedge.setAttribute('cx', CX); wedge.setAttribute('cy', CY);
+    wedge.setAttribute('r', R / 2); wedge.setAttribute('stroke-width', R);
+    wedge.setAttribute('transform', `rotate(-90 ${CX} ${CY})`);
+    const wlen = 2 * Math.PI * R / 2;
+    wedge.setAttribute('stroke-dasharray', wlen);
+
+    const clamp = v => Math.max(0, Math.min(1, v));
+    const ease = v => v < .5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2;
+    const CARVE_ALL = CARVE + STAGGER * (WORD.length - 1);
+
+    // the whole state is three progress values, so any of it can turn round mid-way
+    const p = { sweep: 0, stretch: 0, carve: 0 };
+    function render() {
+      wedge.setAttribute('stroke-dashoffset', wlen * (1 - ease(p.sweep)));
+      // once the square is fully swept in, the sweep's disc would crop the bar
+      if (p.sweep >= 1) swept.removeAttribute('mask'); else swept.setAttribute('mask', 'url(#sweep)');
+      const w = S * (8 + (W - 8) * ease(p.stretch));
+      bar.setAttribute('x', CX - w / 2); bar.setAttribute('y', OY);
+      bar.setAttribute('width', p.sweep > 0 ? w : 0); bar.setAttribute('height', S * 8);
+      let d = '';
+      const ms = p.carve * CARVE_ALL;
+      for (const c of cuts) {
+        const k = ease(clamp((ms - c.i * STAGGER) / CARVE));
+        if (k <= 0) continue;
+        for (let j = 0; j < c.pts.length; j++) {
+          const gx = c.flat[j][0] + (c.pts[j][0] - c.flat[j][0]) * k;
+          const gy = c.flat[j][1] + (c.pts[j][1] - c.flat[j][1]) * k;
+          d += (j ? 'L' : 'M') + (OX + S * gx).toFixed(3) + ' ' + (OY + S * gy).toFixed(3);
+        }
+        d += 'Z';
+      }
+      cutPath.setAttribute('d', d);
+    }
+
+    let token = 0;
+    function to(key, target, ms, my) {
+      return new Promise(done => {
+        const from = p[key], span = Math.abs(target - from);
+        if (span === 0) return done(true);
+        const dur = ms * span, t0 = performance.now();
+        (function f(now) {
+          if (my !== token) return done(false);
+          const t = clamp((now - t0) / dur);
+          p[key] = from + (target - from) * t;
+          render();
+          if (t < 1) requestAnimationFrame(f); else done(true);
+        })(t0);
+      });
+    }
+
+    let timer = 0, open = false;
+    async function show() {
+      if (open) return;
+      open = true;
+      const my = ++token;
+      if (reduce.matches) { p.sweep = p.stretch = p.carve = 1; render(); return; }
+      if (!(await to('sweep', 1, SWEEP, my))) return;
+      if (!(await to('stretch', 1, STRETCH, my))) return;
+      await to('carve', 1, CARVE_ALL, my);
+    }
+    async function hide() {
+      clearTimeout(timer);
+      if (!open) return;
+      open = false;
+      const my = ++token;
+      if (reduce.matches) { p.sweep = p.stretch = p.carve = 0; render(); return; }
+      if (!(await to('carve', 0, OUT.carve, my))) return;
+      if (!(await to('stretch', 0, OUT.stretch, my))) return;
+      await to('sweep', 0, OUT.sweep, my);
+    }
+
+    // hover waits a beat; keyboard focus shows at once; Esc closes
+    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
+    wrap.addEventListener('mouseleave', () => { if (document.activeElement !== btn) hide(); else clearTimeout(timer); });
+    btn.addEventListener('focus', show);
+    btn.addEventListener('blur', hide);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    render();
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

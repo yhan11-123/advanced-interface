@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Micro motion study</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* This demo is a whole page of its own, so its styles stay in this file
+     and can never reach another week. */
+  html, body { margin: 0; min-height: 100%; }
+  body { background: #f2f0ea; }
+
+  .sheet {
+    --ink: #1a1a1a;
+    --muted: #77756e;
+    --line: #dcdad2;
+    --surface: #fbfaf7;
+    --accent: #2b47ff;
+    --alert: #e5392f;
+    --tip: #26251f;
+    --slow: 1;                                    /* duration multiplier, set by the slow-mo slider */
+    --out: cubic-bezier(0.05, 0.7, 0.1, 1);       /* M3 emphasized decelerate */
+    --in: cubic-bezier(0.3, 0, 0.8, 0.15);        /* M3 emphasized accelerate */
+    --spring: cubic-bezier(0.34, 1.8, 0.5, 1);    /* overshoots, then settles */
+    box-sizing: border-box;
+    width: min(1040px, 100% - 32px);
+    margin: 0 auto;
+    padding: 40px 0 56px;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    color: var(--ink);
+  }
+  .sheet *, .sheet *::before, .sheet *::after { box-sizing: border-box; }
+
+  .head h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .lede { margin: 0 0 20px; max-width: 62ch; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .ctrl-label { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-right: 2px; }
+  .controls button {
+    font: 500 12.5px/1 ui-sans-serif, system-ui, sans-serif; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 12px; cursor: pointer;
+    transition: background .14s, border-color .14s, color .14s;
+  }
+  .controls button:hover { border-color: var(--accent); }
+  .controls button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .speed { display: flex; align-items: center; gap: 8px; }
+  .speed input[type="range"] { width: 200px; accent-color: var(--accent); }
+  .speed output { min-width: 44px; font: 600 12.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .speed-note { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--muted); }
+
+  .group { margin-top: 34px; }
+  .group h2 {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .09em;
+    margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .group h2 span { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); font-size: 12.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .spec { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  .stage { position: relative; height: 104px; display: grid; place-items: center; }
+  /* each card replays on its own */
+  .play {
+    position: absolute; top: 8px; right: 8px;
+    width: 26px; height: 26px; display: grid; place-items: center;
+    background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 50%; cursor: pointer;
+    transition: color .14s, border-color .14s, background .14s;
+  }
+  .play:hover { color: #fff; background: var(--ink); border-color: var(--ink); }
+  .play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .play svg { width: 10px; height: 10px; margin-left: 2px; fill: currentColor; }
+  .spec figcaption { border-top: 1px solid var(--line); padding: 9px 12px 11px; }
+  .spec figcaption b { display: block; font-size: 13px; font-weight: 600; }
+  .spec figcaption span { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+  .spec figcaption code { font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+  /* what the card falls back to under the OS reduced-motion setting */
+  .spec figcaption .reduced { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 11.5px; color: var(--muted); }
+  .spec figcaption .reduced em { font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+  .spec figcaption .reduced i { font-style: normal; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: #fff; }
+
+  /* anchors ---------------------------------------------------------------- */
+  .anchor {
+    position: relative; display: inline-grid; place-items: center;
+    width: 44px; height: 44px; border-radius: 12px;
+    background: transparent; border: 0; color: var(--ink); padding: 0;
+  }
+  button.anchor { cursor: pointer; }
+  button.anchor:hover { background: #ebe9e2; }
+  .anchor:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .anchor svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .badge {
+    position: absolute; top: 4px; left: 26px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    display: grid; place-items: center; overflow: hidden;
+    font: 600 10.5px/1 ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #fff;
+    background: var(--alert); border-radius: 999px;
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+  .badge.off { visibility: hidden; }
+
+  /* 1. arrival: each card plays its own keyframes when .go is added */
+  .go.a-fade   { animation: a-fade   calc(200ms * var(--slow)) var(--out) both; }
+  .go.a-scale  { animation: a-scale  calc(200ms * var(--slow)) var(--out) both; }
+  .go.a-spring { animation: a-scale  calc(420ms * var(--slow)) var(--spring) both; }
+  .go.a-drop   { animation: a-drop   calc(360ms * var(--slow)) var(--spring) both; }
+  @keyframes a-fade  { from { opacity: 0; } }
+  @keyframes a-scale { from { transform: scale(0); } }
+  @keyframes a-drop  { from { transform: translateY(-14px); opacity: 0; } }
+
+  /* 2. count change: the old number and the new one stacked in one slot */
+  .digits { position: relative; display: grid; }
+  .digits > i { grid-area: 1 / 1; font-style: normal; }
+  .go.c-roll .old { animation: roll-out calc(240ms * var(--slow)) var(--in) both; }
+  .go.c-roll .new { animation: roll-in  calc(240ms * var(--slow)) var(--out) both; }
+  /* travel a full badge height (16px), so the number clears the badge's clipped edge */
+  @keyframes roll-out { to { transform: translateY(-16px); opacity: 0; } }
+  @keyframes roll-in  { from { transform: translateY(16px); } }
+  .go.c-pulse { animation: pulse calc(320ms * var(--slow)) var(--spring) both; }
+  @keyframes pulse { 40% { transform: scale(1.35); } }
+  .go.c-shake { animation: shake calc(360ms * var(--slow)) linear both; }
+  @keyframes shake { 20%, 60% { transform: translateX(-2px) rotate(-6deg); } 40%, 80% { transform: translateX(2px) rotate(6deg); } }
+  .c-swap .old, .c-pulse .old, .c-shake .old { display: none; }
+  .c-roll.go .old { display: block; }
+  .c-roll:not(.go) .old { display: none; }
+
+  /* 3. tooltips: every card uses one tooltip, only the entrance differs */
+  /* the anchor sits low in a taller stage, so the tooltip opens inside the card */
+  #tips .stage { height: 132px; place-items: end center; padding-bottom: 18px; }
+  .tip-wrap { position: relative; display: inline-grid; }
+  .tip {
+    position: absolute; bottom: calc(100% + 8px); left: 50%; z-index: 5; pointer-events: none;
+    width: max-content; max-width: 180px; padding: 5px 8px;
+    font: 500 12px/1.35 ui-sans-serif, system-ui, sans-serif; color: #fff; background: var(--tip); border-radius: 6px;
+    transform: translateX(-50%); transform-origin: 50% 100%;
+    visibility: hidden;
+  }
+  .tip.show { visibility: visible; }
+  .tip.show.t-fade   { animation: t-fade   calc(150ms * var(--slow)) var(--out) both; }
+  .tip.show.t-grow   { animation: t-grow   calc(200ms * var(--slow)) var(--out) both; }
+  .tip.show.t-rise   { animation: t-rise   calc(200ms * var(--slow)) var(--out) both; }
+  .tip.show.t-spring { animation: t-grow   calc(380ms * var(--slow)) var(--spring) both; }
+  @keyframes t-fade { from { opacity: 0; } }
+  @keyframes t-grow { from { opacity: 0; transform: translateX(-50%) scale(.6); } }
+  @keyframes t-rise { from { opacity: 0; transform: translateX(-50%) translateY(6px); } }
+  .tip.leaving { visibility: visible; animation: t-fade calc(100ms * var(--slow)) var(--in) reverse both; }
+
+  /* 4. warm-up row */
+  .rows { display: grid; gap: 12px; }
+  .row { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .row b { display: block; font-size: 13px; }
+  .row span { display: block; font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .row > * { min-width: 0; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 30px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+
+  /* reduced motion: movement is swapped for a plain fade or a cut,
+     as each card's "Reduced" line says */
+  @media (prefers-reduced-motion: reduce) {
+    .go, .go .new, .tip.show, .tip.leaving { animation-name: a-fade !important; animation-timing-function: linear !important; }
+    .go .old { display: none !important; }
+  }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9999;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  .back-pill:hover { background: rgba(0,0,0,.85); }
+  </style>
+</head>
+<body>
+
+<div class="sheet" id="sheet">
+
+  <header class="head">
+    <h1>Micro motion</h1>
+    <p class="lede">The same badge and tooltip, changed only in how they move. Press &#9654; on a badge card to replay just that one; tooltips open on hover or focus. Slow-mo stretches every animation up to ten times so the curves can be read. Hover delays stay real, since they are timing, not motion. Each card also says what it turns into for people who ask their device for reduced motion.</p>
+    <div class="controls">
+      <div class="ctrl">
+        <span class="ctrl-label">Slow-mo</span>
+        <div class="speed">
+          <input type="range" id="speed" min="1" max="10" step="0.5" value="1" aria-label="Slow motion, 1 to 10 times" />
+          <output id="speed-out" for="speed">&times;1</output>
+        </div>
+      </div>
+      <p class="speed-note" id="speed-note">Real time. A 200 ms entrance takes 200 ms.</p>
+    </div>
+  </header>
+
+  <section class="group">
+    <h2>Badge arrival <span>the moment something new happens</span></h2>
+    <div class="grid" id="arrive"></div>
+  </section>
+
+  <section class="group">
+    <h2>Count change <span>3 becomes 4</span></h2>
+    <div class="grid" id="count"></div>
+  </section>
+
+  <section class="group">
+    <h2>Tooltip entrance <span>hover or focus; the exit is always quicker than the entrance</span></h2>
+    <div class="grid" id="tips"></div>
+  </section>
+
+  <section class="group">
+    <h2>Warm-up <span>glide across each toolbar</span></h2>
+    <div class="rows">
+      <div class="row">
+        <div><b>Cold every time</b><span>Every tooltip waits 500 ms.</span></div>
+        <div class="toolbar" data-warm="0"></div>
+      </div>
+      <div class="row">
+        <div><b>Warm after the first</b><span>First waits 500 ms, neighbours open in 100 ms. The Windows defaults.</span></div>
+        <div class="toolbar" data-warm="1"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+<script>
+(function () {
+  var sheet = document.getElementById('sheet');
+  var BELL = '<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20h4"/></svg>';
+  var ICONS = [
+    ['Bold', '<svg viewBox="0 0 24 24"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg>'],
+    ['Italic', '<svg viewBox="0 0 24 24"><path d="M10 5h8M6 19h8M14 5l-4 14"/></svg>'],
+    ['Link', '<svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'],
+    ['List', '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>'],
+    ['Quote', '<svg viewBox="0 0 24 24"><path d="M6 17c-1.5-2-1-7 3-9M14 17c-1.5-2-1-7 3-9"/></svg>'],
+    ['Code', '<svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4"/></svg>']
+  ];
+
+  var PLAY = '<svg viewBox="0 0 10 10"><path d="M1 0.5v9l8-4.5z"/></svg>';
+
+  // reduced: what the motion becomes with reduced motion on, e.g. 'Fade'
+  function card(parent, stage, name, line, spec, reduced, onPlay) {
+    var fig = document.createElement('figure');
+    fig.className = 'spec';
+    var fallback = '<span class="reduced"><em>Reduced</em><i>' + reduced + '</i></span>';
+    fig.innerHTML = '<div class="stage">' + stage + '</div><figcaption><b>' + name + '</b><span>' + line + '</span><code>' + spec + '</code>' + fallback + '</figcaption>';
+    if (onPlay) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'play';
+      btn.setAttribute('aria-label', 'Play ' + name);
+      btn.innerHTML = PLAY;
+      btn.addEventListener('click', onPlay);
+      fig.querySelector('.stage').appendChild(btn);
+    }
+    parent.appendChild(fig);
+    return fig;
+  }
+  function restart(el) { el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); }
+
+  // ---- 1. arrival -------------------------------------------------------
+  var arrivals = [
+    ['', 'Cut', 'Just there. Honest, easy to miss.', '0 ms', 'Cut'],
+    ['a-fade', 'Fade', 'Appears without moving.', '200 ms &middot; ease-out', 'Fade'],
+    ['a-scale', 'Grow', 'Grows from its own centre.', '200 ms &middot; ease-out', 'Fade'],
+    ['a-spring', 'Spring', 'Overshoots, then settles. Character.', '420 ms &middot; overshoot', 'Fade'],
+    ['a-drop', 'Drop in', 'Falls onto the corner and bounces.', '360 ms &middot; overshoot', 'Fade']
+  ];
+  // replay: the badge goes away for a beat, then arrives again
+  arrivals.forEach(function (a) {
+    var badge;
+    var fig = card(document.getElementById('arrive'),
+      '<span class="anchor" aria-hidden="true">' + BELL + '<span class="badge ' + a[0] + '">1</span></span>', a[1], a[2], a[3], a[4],
+      function () {
+        badge.classList.remove('go');
+        badge.classList.add('off');
+        clearTimeout(badge.timer);
+        badge.timer = setTimeout(function () { badge.classList.remove('off'); restart(badge); }, 300);
+      });
+    badge = fig.querySelector('.badge');
+  });
+
+  // ---- 2. count change --------------------------------------------------
+  var counts = [
+    ['c-swap', 'Swap', 'The number changes in place.', '0 ms', 'Swap'],
+    ['c-roll', 'Roll', 'The old number leaves up, the new one arrives from below.', '240 ms &middot; in, then out', 'Fade'],
+    ['c-pulse', 'Pulse', 'Swells once to say &ldquo;changed&rdquo;.', '320 ms &middot; overshoot', 'Fade'],
+    ['c-shake', 'Shake', 'Rattles the badge. Loud, urgent.', '360 ms &middot; linear', 'Fade']
+  ];
+  // replay: this card's count goes up by one, wrapping 9 back to 3
+  counts.forEach(function (c) {
+    var badge, n = 3;
+    var fig = card(document.getElementById('count'),
+      '<span class="anchor" aria-hidden="true">' + BELL + '<span class="badge ' + c[0] + '"><span class="digits"><i class="old">3</i><i class="new">3</i></span></span></span>', c[1], c[2], c[3], c[4],
+      function () {
+        var next = n >= 9 ? 3 : n + 1;
+        badge.querySelector('.old').textContent = n;
+        badge.querySelector('.new').textContent = next;
+        restart(badge);
+        n = next;
+      });
+    badge = fig.querySelector('.badge');
+  });
+
+  // ---- 3. tooltips ------------------------------------------------------
+  var tipKinds = [
+    ['', 'Cut', 'Appears at once.', '0 ms', 'Cut'],
+    ['t-fade', 'Fade', 'The quietest move.', '150 ms &middot; ease-out', 'Fade'],
+    ['t-grow', 'Grow from anchor', 'Scales out of the thing it describes.', '200 ms &middot; ease-out', 'Fade'],
+    ['t-rise', 'Rise', 'Lifts 6 px as it fades in.', '200 ms &middot; ease-out', 'Fade'],
+    ['t-spring', 'Spring', 'Pops out and settles.', '380 ms &middot; overshoot', 'Fade']
+  ];
+  var uid = 0;
+  function makeTip(wrapParent, label, icon, kind) {
+    var wrap = document.createElement('span');
+    wrap.className = 'tip-wrap';
+    var id = 'tip-' + (uid++);
+    wrap.innerHTML = '<button type="button" class="anchor" aria-label="' + label + '" aria-describedby="' + id + '">' + icon + '</button>' +
+      '<span class="tip ' + kind + '" role="tooltip" id="' + id + '">' + label + '</span>';
+    wrapParent.appendChild(wrap);
+    return wrap;
+  }
+  var slow = 1;                                  // every duration is multiplied by this
+  function speed() { return slow; }
+
+  var open = null;
+  function showTip(tip) {
+    if (open && open !== tip) hideTip(open, true);
+    tip.classList.remove('leaving');
+    tip.classList.add('show');
+    open = tip;
+  }
+  function hideTip(tip, instant) {
+    if (!tip.classList.contains('show')) return;
+    tip.classList.remove('show');
+    if (open === tip) open = null;
+    if (instant) return;
+    tip.classList.add('leaving');
+    setTimeout(function () { tip.classList.remove('leaving'); }, 100 * speed());
+  }
+
+  tipKinds.forEach(function (t) {
+    // no play button: a tooltip is triggered by the person, so hover or focus is the replay
+    var fig = card(document.getElementById('tips'), '', t[1], t[2], t[3], t[4]);
+    var wrap = makeTip(fig.querySelector('.stage'), 'Notifications', BELL, t[0]);
+    var tip = wrap.querySelector('.tip');
+    var timer;
+    wrap.addEventListener('mouseenter', function () { clearTimeout(timer); timer = setTimeout(function () { showTip(tip); }, 300); });
+    wrap.addEventListener('mouseleave', function () { clearTimeout(timer); hideTip(tip); });
+    wrap.addEventListener('focusin', function () { showTip(tip); });
+    wrap.addEventListener('focusout', function () { hideTip(tip); });
+  });
+
+  // ---- 4. warm-up -------------------------------------------------------
+  [].forEach.call(sheet.querySelectorAll('[data-warm]'), function (bar) {
+    var warmable = bar.getAttribute('data-warm') === '1';
+    var warmUntil = 0;
+    ICONS.forEach(function (ic) {
+      var wrap = makeTip(bar, ic[0], ic[1], 't-fade');
+      var tip = wrap.querySelector('.tip');
+      var timer;
+      wrap.addEventListener('mouseenter', function () {
+        clearTimeout(timer);
+        var wait = warmable && performance.now() < warmUntil ? 100 : 500;
+        timer = setTimeout(function () { showTip(tip); }, wait);
+      });
+      wrap.addEventListener('mouseleave', function () {
+        clearTimeout(timer);
+        // warm stays on briefly, so the next anchor opens quickly
+        if (tip.classList.contains('show')) warmUntil = performance.now() + 500;
+        hideTip(tip, true);
+      });
+      wrap.addEventListener('focusin', function () { showTip(tip); });
+      wrap.addEventListener('focusout', function () { hideTip(tip, true); });
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && open) hideTip(open);
+  });
+
+  var slider = document.getElementById('speed');
+  var readout = document.getElementById('speed-out');
+  var note = document.getElementById('speed-note');
+  function setSlow(v) {
+    slow = Number(v);
+    sheet.style.setProperty('--slow', String(slow));
+    readout.textContent = '\u00d7' + slow;
+    note.textContent = slow === 1
+      ? 'Real time. A 200 ms entrance takes 200 ms.'
+      : 'A 200 ms entrance now takes ' + Math.round(200 * slow) + ' ms, ' + slow + ' times slower.';
+  }
+  slider.addEventListener('input', function () { setSlow(slider.value); });
+  // Only offer the back link when the demo is open on its own, not in the post.
+  if (window.self === window.top) {
+    document.querySelector('.back-pill').removeAttribute('hidden');
+  }
+}());
+</script>
+
+</body>
+</html>

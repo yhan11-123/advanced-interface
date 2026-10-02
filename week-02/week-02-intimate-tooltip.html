@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 &middot; Intimate tooltip</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A prototype page of its own, so its styles stay in this file.
+     Intimate, matching its badge: warm paper, a brown bell, and terracotta
+     liquid. On hover a thick, slow drop of it draws up out of the bell,
+     stretching on a neck that thins and lets go, and spreads into a soft box
+     floating free above; the name is written inside, a letter at a time. */
+  :root {
+    --bg: #f5ece3;
+    --ink: #5a3a2e;
+    --warm: #c8664f;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { display: grid; place-items: center; }
+
+  .wrap { position: relative; width: min(66vmin, 320px); aspect-ratio: 1; }
+  .icon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .bell { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .liquid { fill: var(--warm); }
+  .stream { fill: none; stroke: var(--warm); stroke-linecap: round; }
+  .name { font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif; font-style: italic; font-weight: 600; font-size: 3.1px; fill: #fff8f1; }
+
+  /* the hit area over the bell: a real button, so the tooltip works by keyboard too */
+  .bell-btn {
+    position: absolute; left: 33%; top: 25%; width: 34%; height: 50%;
+    padding: 0; border: 0; background: none; cursor: pointer; border-radius: 12px;
+  }
+  .bell-btn:focus-visible { outline: 2px solid var(--warm); outline-offset: 4px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .hint {
+    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center;
+    font: italic 13px/1.4 "Iowan Old Style", Palatino, Georgia, serif; color: rgba(90, 58, 46, .55);
+  }
+  .back-pill {
+    position: fixed; left: 12px; top: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(90, 58, 46, .6);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <svg class="icon" viewBox="-6 -5 36 36" aria-hidden="true">
+      <defs>
+        <!-- the fluid merge, as on the badge: blur together, then cut back to a crisp edge -->
+        <filter id="goo" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation=".7" result="blur"/>
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/>
+        </filter>
+      </defs>
+      <!-- the shared bell -->
+      <path class="bell" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+      <path class="bell" d="M10 20a2 2 0 0 0 4 0"/>
+      <!-- the liquid: one thread up from the crown, and the pool it spreads into -->
+      <g filter="url(#goo)">
+        <path class="stream"/>
+        <rect class="liquid pool"/>
+      </g>
+      <text class="name" text-anchor="middle" dominant-baseline="central"></text>
+    </svg>
+    <button type="button" class="bell-btn" aria-label="Notifications" aria-describedby="tip"></button>
+    <span class="sr" role="tooltip" id="tip">Notifications</span>
+  </div>
+
+  <p class="hint">Hover or focus the bell</p>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Intimate tooltip, plain. Hover the bell: a thick drop of viscous liquid
+  // draws up out of its crown, slowly, stretched long as it climbs, on a neck
+  // of liquid that thins as it pulls away. Above the bell the drop spreads
+  // out sideways into a soft rounded box; the neck thins to nothing and lets
+  // go, falling back into the bell, so the box floats free. Then the name is
+  // written inside it, a letter at a time.
+  // On leaving, the letters fade, the box gathers back into a drop, and the
+  // drop sinks back down into the bell.
+  (() => {
+    const NAME = 'Notifications';
+    const CROWN = { x: 12, y: 4 };          // the top of the bell
+    const BOX_H = 5.4;                      // the box's height (its ends fully round)
+    const PAD = 3.8;                        // room either side of the name, past the round ends
+    const BOX_CY = -2.2;                    // the box's centre, floating well clear above the bell
+    const DELAY = 180;                      // ms of hover before it starts
+    const RISE = 900;                       // ms for the drop to draw up out of the bell
+    const SPREAD = 900;                     // ms for it to spread into the box (overlapping the rise)
+    const LETGO = 700;                      // ms for the neck to thin and let go
+    const LETTER = 240, STAGGER = 65;       // ms for one letter to appear, and between letters
+    const FADE = 220, GATHER = 500, SINK = 520;   // ms to leave: letters, box, drop
+
+    const wrap = document.querySelector('.wrap');
+    const neck = document.querySelector('.stream');
+    const blob = document.querySelector('.pool');
+    const name = document.querySelector('.name');
+    const btn = document.querySelector('.bell-btn');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    // the name, letter by letter, so each can be written in on its own
+    const letters = [...NAME].map(ch => {
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+      t.textContent = ch; t.setAttribute('opacity', 0);
+      name.appendChild(t); return t;
+    });
+    const boxW = name.getComputedTextLength() + PAD * 2;
+    // the name sits in the box's true middle: measured from its own ink, not its baseline
+    name.setAttribute('x', CROWN.x); name.setAttribute('y', BOX_CY);
+    letters.forEach(l => l.setAttribute('opacity', 1));
+    const bb = name.getBBox();
+    name.setAttribute('y', BOX_CY + (BOX_CY - (bb.y + bb.height / 2)));
+    letters.forEach(l => l.setAttribute('opacity', 0));
+
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    const easeOut = x => 1 - Math.pow(1 - x, 3);
+    const smooth = x => { x = clamp(x); return x * x * (3 - 2 * x); };
+
+    // the scene: the drop's centre and size (it becomes the box), the neck's thickness and how
+    // far down from the drop it has let go (0 joined, 1 gone), and the writing
+    const REST = { y: CROWN.y, w: 0, h: 0, neck: 0, gone: 1, write: 0, ink: 1 };
+    let st = { ...REST };
+    function draw() {
+      const w = Math.max(0, st.w), h = Math.max(0, st.h);
+      blob.setAttribute('x', CROWN.x - w / 2); blob.setAttribute('y', st.y - h / 2);
+      blob.setAttribute('width', w); blob.setAttribute('height', h);
+      blob.setAttribute('rx', Math.min(w, h) / 2);
+      blob.setAttribute('visibility', w < .15 || h < .15 ? 'hidden' : 'visible');   // nothing left as a speck
+      // the neck runs from the crown up to the drop; as it lets go, its top slides down to the crown
+      const top = st.y + h / 2 - .4, len = CROWN.y - top;
+      const upper = top + len * st.gone;
+      // (hidden well before it is fully gone, so no round end is ever left behind as a speck on the crown)
+      if (st.neck > .12 && st.gone < .85 && len > .2) {
+        neck.setAttribute('d', `M${CROWN.x} ${CROWN.y}L${CROWN.x} ${upper}`);
+        neck.setAttribute('stroke-width', st.neck);
+      } else neck.setAttribute('d', '');
+      letters.forEach((l, i) => l.setAttribute('opacity', clamp((st.write - i * STAGGER) / LETTER) * st.ink));
+    }
+
+    let token = 0, timer = 0, open = false;
+    function run(ms, fn, my) {
+      return new Promise(done => {
+        const t0 = performance.now();
+        (function f(now) {
+          if (my !== token) return done(false);
+          const t = clamp((now - t0) / ms);
+          fn(t, t * ms); draw();
+          if (t < 1) requestAnimationFrame(f); else done(true);
+        })(t0);
+      });
+    }
+
+    async function show() {
+      const my = ++token;
+      if (open) return; open = true;
+      const end = { y: BOX_CY, w: boxW, h: BOX_H, neck: 0, gone: 1, write: 1e6, ink: 1 };
+      if (reduce.matches) { st = { ...end }; draw(); return; }
+      // one long, slow move: the drop draws up on its neck, spreads into the box, the neck lets go, the name is written
+      const total = RISE + SPREAD * .55 + LETGO * .3 + letters.length * STAGGER + LETTER;
+      await run(total, (t, ms) => {
+        // rising: slow to leave the bell, as thick liquid is
+        const r = easeInOut(clamp(ms / RISE));
+        const y = CROWN.y - 1 + (BOX_CY - (CROWN.y - 1)) * r;
+        // the drop: small and stretched tall while it climbs, then spreading wide and settling
+        const s = smooth((ms - RISE * .55) / SPREAD);
+        const grow = easeOut(clamp(ms / (RISE * .6)));
+        const dropW = 2.6 * grow, dropH = (2.6 + 1.8 * Math.sin(Math.PI * r)) * grow;   // stretched on the way up
+        st.y = y;
+        st.w = dropW + (boxW - dropW) * s;
+        st.h = dropH + (BOX_H - dropH) * s;
+        // the neck: thick at first, thinning as the drop pulls away, then letting go from the top down
+        const g = smooth((ms - (RISE * .55 + SPREAD * .55)) / LETGO);
+        st.neck = 2.4 * (1 - .4 * r) * (1 - g);           // thins all the way to nothing as it lets go
+        st.gone = g;
+        // the name is written once the box has spread
+        st.write = Math.max(0, ms - (RISE * .55 + SPREAD * .8));
+        st.ink = 1;
+      }, my);
+    }
+
+    async function hide() {
+      const my = ++token;
+      clearTimeout(timer);
+      if (!open) return; open = false;
+      if (!reduce.matches) {
+        const f = { ...st };
+        if (!(await run(FADE, t => { st.ink = f.ink * (1 - t); }, my))) return;
+        // the box gathers back into a drop; any neck still showing (if it is left mid-way) thins away with it
+        if (!(await run(GATHER, t => {
+          const k = easeInOut(t);
+          st.w = f.w + (Math.min(f.w, 2.6) - f.w) * k; st.h = f.h + (Math.min(f.h, 3) - f.h) * k;
+          st.neck = f.neck * (1 - k); st.gone = f.gone + (1 - f.gone) * k; st.write = 0;
+        }, my))) return;
+        // and the drop sinks back down into the bell from wherever it is, shrinking to nothing as it goes
+        const g = { ...st };
+        if (!(await run(SINK, t => { const k = easeInOut(t); st.y = g.y + (CROWN.y - g.y) * k; st.w = g.w * (1 - k); st.h = g.h * (1 - k); }, my))) return;
+      }
+      st = { ...REST }; draw();
+    }
+
+    // hover waits a beat; keyboard focus shows at once; Esc closes
+    wrap.addEventListener('mouseenter', () => { clearTimeout(timer); timer = setTimeout(show, DELAY); });
+    wrap.addEventListener('mouseleave', hide);
+    btn.addEventListener('focus', show);
+    btn.addEventListener('blur', hide);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+    draw();
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>

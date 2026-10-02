@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 02 sketch &middot; Book badge</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #f4f3ef;
+    --ink: #1a1a1a;
+    --dot: #e5392f;
+    color-scheme: light;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); display: grid; place-items: center; }
+
+  /* the icon and the dot share one box; the dot is placed in the icon's own 24-unit grid */
+  .stage { position: relative; width: min(46vmin, 220px); aspect-ratio: 1; }
+  .icon { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .icon path { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* dot centre (20.4, 4.2), radius 2.3, in a 24-unit box */
+  .slot { position: absolute; left: calc(18.1 / 24 * 100%); top: calc(1.9 / 24 * 100%); width: calc(4.6 / 24 * 100%); aspect-ratio: 1; perspective: 55px; }  /* close perspective, so each half reads as a page tilting, not the dot squashing */
+  /* two halves of the dot hinged on its upright centre line, like the two pages of a book */
+  .page { position: absolute; inset: 0; border-radius: 50%; background: var(--dot); transform-origin: 50% 50%; opacity: 0; }
+  .left { clip-path: inset(-1px 50% -1px -1px); }
+  .right { clip-path: inset(-1px -1px -1px 50%); }
+
+  .back-pill {
+    position: fixed; left: 12px; bottom: 12px; z-index: 9;
+    font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.65);
+    padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="stage" role="img" aria-label="Messages">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+    </svg>
+    <div class="slot" aria-hidden="true">
+      <div class="page left"></div>
+      <div class="page right"></div>
+    </div>
+  </div>
+
+  <a class="back-pill" href="week-02.html" hidden>&larr; Week 02</a>
+
+  <script>
+  // Book. The dot opens from its centre like a book: its two halves start
+  // folded shut along the upright centre line, edge on, then swing open
+  // outward, one to each side, until they lie flat as a whole dot.
+  (() => {
+    const OPEN = 620;                  // ms for the halves to swing flat
+    const HOLD = 1800;                 // ms the dot stays before clearing
+    const REST = 900;                  // ms of bare icon between loops
+
+    const stage = document.querySelector('.stage');
+    const left = document.querySelector('.left');
+    const right = document.querySelector('.right');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const settle = el => el.getAnimations().forEach(a => a.cancel());
+    const ease = 'cubic-bezier(.2, .7, .2, 1)';
+
+    async function loop() {
+      for (;;) {
+        await wait(REST);
+        if (reduce.matches) {
+          // no swing: the whole dot fades in
+          await Promise.all([left, right].map(p => p.animate({ opacity: [0, 1] }, { duration: 200, fill: 'forwards' }).finished));
+        } else {
+          // each half starts standing on the spine, turned away, and unfolds toward flat
+          await Promise.all([
+            left.animate([
+              { opacity: 1, transform: 'rotateY(-90deg)' },
+              { opacity: 1, transform: 'rotateY(0deg)' }
+            ], { duration: OPEN, easing: ease, fill: 'forwards' }).finished,
+            right.animate([
+              { opacity: 1, transform: 'rotateY(90deg)' },
+              { opacity: 1, transform: 'rotateY(0deg)' }
+            ], { duration: OPEN, easing: ease, fill: 'forwards' }).finished
+          ]);
+        }
+        stage.setAttribute('aria-label', 'Messages, something new');
+        await wait(HOLD);
+        await Promise.all([left, right].map(p => p.animate({ opacity: [1, 0] }, { duration: 260, fill: 'forwards' }).finished));
+        settle(left); settle(right);
+        stage.setAttribute('aria-label', 'Messages');
+      }
+    }
+    loop();
+
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  })();
+  </script>
+
+</body>
+</html>
