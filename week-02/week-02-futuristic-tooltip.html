@@ -159,25 +159,25 @@
     const NS = 'http://www.w3.org/2000/svg';
     const K_HOME = 40, K_LINK = 60, DAMP = 7;
     const DELAY = 180;                     // ms of hover before it starts
-    const BOX_N = 30;                      // notes round the box
-    const LAUNCH = 16;                     // ms between one note leaving the crown and the next
-    const RETURN = 10;                     // ms between notes going back
+    const BOX_N = 16;                      // notes round the box: sparse, as a graph's notes are
+    const LAUNCH = 30;                     // ms between one note leaving the crown and the next
+    const RETURN = 18;                     // ms between notes going back
     const PAD_X = 2.8, BOX_H = 5.6;        // box padding round the name, and its height: room to breathe
     const GAP = 3.4;                       // from the bell's crown up to the box's lower edge
     // the rich box: half again as many notes round a box twice as tall, the text at its top left
     // and the pill in its lower right corner
-    const RICH_N = 46;                     // notes round the rich box
+    const RICH_N = 24;                     // notes round the rich box
     // All rich spacing is measured the way the eye sees it: from the ink of the letters
     // to the inner edge of the ring's dots, not from CSS line boxes or the links' centre lines.
     const RICH_GAP = 3;                    // a touch closer to the crown, so the taller box stays in view
     const TEXT_H = 2.1;                    // the text's size
     const RICH_PAD = 2.2;                  // padding inside the box, every side: about the text's size
     const ROW_GAP = 2.2;                   // from the text's lowest ink down to the pill's edge: a full padding
-    const BOX_R = .26, PILL_R = .22;       // the box's and the pill's dots: their radius is part of the edge
+    const BOX_R = .3, PILL_R = .24;        // the box's and the pill's largest dots: their radius is part of the edge
     const BTN_H = 1.9;                     // "Unmute"'s size
     const BTN_PAD_Y = .6, BTN_PAD_X = 1.2; // the pill's padding round its label's ink, in label sizes
-    const PILL_N = 20;                     // notes round the pill
-    const RICH_LAUNCH = 12, RICH_RETURN = 7;   // a longer stream, so each note follows the last a little sooner
+    const PILL_N = 12;                     // notes round the pill
+    const RICH_LAUNCH = 22, RICH_RETURN = 13;  // a longer stream, so each note follows the last a little sooner
     const HIDE_DELAY = 300;                // ms the rich box waits after the pointer leaves, so it can be reached
     const SETTLE = 650;                    // ms for the rich box to re-form as the plain box after Unmute
     const HOLD = 1200;                     // ms "Notifications on" is shown before the box goes back
@@ -229,37 +229,50 @@
     }
     const body = sample(svg.querySelector('.body'), 30, true);
     const clap = sample(svg.querySelector('.clapper'), 6, false);
+    // no link ever crosses another: a link across the bell is only made if it crosses none
+    // already there (two links that share a note don't count as crossing)
+    function crosses(a, b, c, d) {
+      if (a === c || a === d || b === c || b === d) return false;
+      const side = (o, p, q) => Math.sign((p.hx - o.hx) * (q.hy - o.hy) - (p.hy - o.hy) * (q.hx - o.hx));
+      return side(c, d, a) * side(c, d, b) < 0 && side(a, b, c) * side(a, b, d) < 0;
+    }
+    const clear = (a, b) => links.every(l => !crosses(a, b, l.a, l.b));
     for (let i = 0; i < body.length; i += 3) for (let j = i + 5; j < i + 11; j += 3) {
       const a = body[i], b = body[j % body.length];
-      if (Math.hypot(a.hx - b.hx, a.hy - b.hy) < 8) link(a, b, 'chord');
+      if (Math.hypot(a.hx - b.hx, a.hy - b.hy) < 8 && clear(a, b)) link(a, b, 'chord');
     }
-    const nearestOf = (p, pool) => pool.reduce((m, n) => Math.hypot(n.hx - p.hx, n.hy - p.hy) < Math.hypot(m.hx - p.hx, m.hy - p.hy) ? n : m);
-    link(clap[0], nearestOf(clap[0], body), 'chord'); link(clap[clap.length - 1], nearestOf(clap[clap.length - 1], body), 'chord');
+    // the clapper hangs from the nearest notes of the bell it can reach without crossing a link
+    const nearestFree = p => [...body].sort((m, n) => Math.hypot(m.hx - p.hx, m.hy - p.hy) - Math.hypot(n.hx - p.hx, n.hy - p.hy)).find(n => clear(p, n));
+    link(clap[0], nearestFree(clap[0]), 'chord'); link(clap[clap.length - 1], nearestFree(clap[clap.length - 1]), 'chord');
     const crown = body.reduce((m, n) => n.hy < m.hy || (n.hy === m.hy && Math.abs(n.hx - 12) < Math.abs(m.hx - 12)) ? n : m);
 
     // ---- the box: its corners and the points round it, starting from the bottom middle,
-    // so the stream fills it outward both ways from where it arrives
+    // so the stream fills it outward both ways from where it arrives. A note sits on each corner,
+    // so the corners read as corners, and each side is shared out evenly between the rest
     function boxPoints(w = label.getComputedTextLength() + PAD_X * 2, h = BOX_H, gap = GAP, count = BOX_N) {
       const cx = crown.hx, bottom = crown.hy - gap, top = bottom - h;
       const L = cx - w / 2, R = cx + w / 2;
-      // the perimeter as one path, walked from the bottom middle round anticlockwise on screen
-      const corners = [[cx, bottom], [R, bottom], [R, top], [L, top], [L, bottom], [cx, bottom]];
-      const seg = [], lens = [];
-      let total = 0;
-      for (let i = 0; i < corners.length - 1; i++) {
-        const [x1, y1] = corners[i], [x2, y2] = corners[i + 1], d = Math.hypot(x2 - x1, y2 - y1);
-        seg.push([x1, y1, x2, y2, d]); total += d;
-      }
-      const pts = [];
-      for (let i = 0; i < count; i++) {
-        let s = total * i / count;
-        for (const [x1, y1, x2, y2, d] of seg) {
-          if (s <= d) { pts.push({ x: x1 + (x2 - x1) * s / d, y: y1 + (y2 - y1) * s / d }); break; }
-          s -= d;
-        }
-      }
+      const step = 2 * (w + h) / count;
+      const nh = Math.max(1, Math.round(h / step)), nw = count / 2 - nh;   // gaps along a side, and along the top or bottom
+      // the ring walked anticlockwise on screen: along the bottom to the right, up the right side,
+      // back along the top, down the left side
+      // Each note but the corners is nudged a little along its side, the same way every time,
+      // so some sit closer and some further apart, as notes do in a real graph; no gap falls
+      // under about half or over about one and a half of the even spacing
+      const ring = [];
+      const along = (k, n, side) => (k === 0 ? 0 : k + jitter(side * 31 + k) * .44) / n;
+      for (let k = 0; k < nw; k++) ring.push({ x: L + w * along(k, nw, 1), y: bottom });
+      for (let j = 0; j < nh; j++) ring.push({ x: R, y: bottom - h * along(j, nh, 2) });
+      for (let k = 0; k < nw; k++) ring.push({ x: R - w * along(k, nw, 3), y: top });
+      for (let j = 0; j < nh; j++) ring.push({ x: L, y: top + h * along(j, nh, 4) });
+      ring.forEach((p, i) => { p.r = BOX_R - ((i * 7) % 5) * .03; });   // sizes vary as the bell's do
+      const start = Math.round(nw / 2);                      // the note at the bottom middle goes first
+      const pts = ring.slice(start).concat(ring.slice(0, start));
       return { pts, cx, top, bottom, w, h };
     }
+
+    // a fixed, even-looking scatter in -0.5..0.5: the same for the same n, every time
+    const jitter = n => { const v = Math.sin(n * 12.9898 + 4.1) * 43758.5453; return v - Math.floor(v) - .5; };
 
     // ---- the pill: a stadium round "Unmute", walked the same way, from its bottom middle
     // the ink of a line of text, in ems: how far it reaches above and below its baseline and to
@@ -278,7 +291,7 @@
       const r = ph / 2, a = (pw - ph) / 2, arc = Math.PI * r;
       const total = 4 * a + 2 * arc, pts = [];
       for (let i = 0; i < PILL_N; i++) {
-        let s = total * i / PILL_N, t;
+        let s = total * (i + (i ? jitter(90 + i) * .24 : 0)) / PILL_N, t;   // gently uneven, too
         if (s <= a) pts.push({ x: px + s, y: py + r });
         else if ((s -= a) <= arc) { t = s / r; pts.push({ x: px + a + r * Math.sin(t), y: py + r * Math.cos(t) }); }
         else if ((s -= arc) <= 2 * a) pts.push({ x: px + a - s, y: py - r });
@@ -309,7 +322,8 @@
       const textTop = capTop + textA - m1.base * TEXT_H, textLeft = edge + m1.l * TEXT_H;
       const nudgeY = (.5 - (mb.base - mb.a / 2 + mb.d / 2)) * BTN_H;
       const nudgeX = (mb.adv / 2 - (mb.r - mb.l) / 2) * BTN_H;
-      return { ...box, textTop, textLeft, px, py, pw, ph, nudgeX, nudgeY, pill: pillPoints(px, py, pw, ph) };
+      const textBottom = capTop + textA + textD;
+      return { ...box, textTop, textLeft, textBottom, px, py, pw, ph, nudgeX, nudgeY, pill: pillPoints(px, py, pw, ph) };
     }
 
     // ---- the simulation
@@ -355,35 +369,27 @@
     const cq = v => v * 100 / 36 + 'cqw';
 
     // irregular links tie the bell to the box (the box's notes must be in boxNodes, with homes)
-    function tieToBell({ cx, top, bottom, w }, isRich) {
+    function tieToBell({ cx, top, bottom, w }) {
       const L = cx - w / 2, R = cx + w / 2;
-      // irregular links tie the bell to the box, as links in a graph run where they like:
-      // two to its lower edge, one to its left side, two over to its top
+      // irregular links tie the bell to the box, as links in a graph run where they like, but
+      // only ever to its lower edge, so none crosses the box or its text, and in order, left to
+      // right at both ends, so none crosses another: from the far left and far right of the dome
+      // out to the corners, and three in between, spaced unevenly at both ends, so each leans its own way
       const upper = body.filter(n => n.hy < crown.hy + 6).sort((a, c) => a.hx - c.hx);   // the dome, left to right
       const bell = f => upper[Math.round(f * (upper.length - 1))];
       const sideOf = (pred, key) => boxNodes.filter(pred).sort((a, c) => a.home[key] - c.home[key]);
       const lowerEdge = sideOf(n => Math.abs(n.home.y - bottom) < .01, 'x');
-      const topEdge = sideOf(n => Math.abs(n.home.y - top) < .01, 'x');
-      const leftEdge = sideOf(n => Math.abs(n.home.x - L) < .01, 'y');
-      const at = (list, f) => list[Math.round(f * (list.length - 1))];
       const rightEdge = sideOf(n => Math.abs(n.home.x - R) < .01, 'y');
-      const ties = isRich ? [
-        // the rich box has text to keep clear, so none cross over to the top: they reach its
-        // lower edge and its sides, low down, where there is no ink
-        [bell(.38), at(lowerEdge, .3)],      // lower edge, leaning left
-        [bell(.78), at(lowerEdge, .82)],     // lower edge, from the right shoulder
-        [bell(.6), at(lowerEdge, .55)],      // lower edge, crossing the first
-        [bell(.05), at(leftEdge, .62)],      // the left side, from the far left of the dome
-        [bell(.95), at(rightEdge, .88)]      // the right side, just under the pill
-      ] : [
-        [bell(.38), at(lowerEdge, .3)],      // lower edge, leaning left
-        [bell(.78), at(lowerEdge, .82)],     // lower edge, from the right shoulder
-        [bell(.05), at(leftEdge, .5)],       // the left side, from the far left of the dome
-        [bell(.6), at(topEdge, .2)],         // over the box to its top, crossing left
-        [bell(.18), at(topEdge, .74)]        // and one crossing right
+      const at = (list, f) => list[Math.round(f * (list.length - 1))];
+      const ties = [
+        [bell(.03), at(lowerEdge, 0)],       // the far left of the dome, out to the left corner
+        [bell(.24), at(lowerEdge, .2)],      // a short one, leaning left
+        [bell(.47), at(lowerEdge, .55)],     // up from the crown, leaning right
+        [bell(.76), at(lowerEdge, .78)],     // nearly straight up from the right shoulder
+        [bell(.97), at(lowerEdge, 1)]        // and out to the right corner
       ];
       for (const [d, b] of ties) if (d && b) boxLinks.push(link(d, b, 'stem', Math.hypot(b.home.x - d.hx, b.home.y - d.hy)));
-      return { lowerEdge, leftEdge, rightEdge, at };
+      return { lowerEdge, rightEdge, at };
     }
 
     async function showTip() {
@@ -401,7 +407,7 @@
       // every note starts in the crown and is let go one after another
       clearBox();
       for (const p of pts) {
-        const n = node(crown.x, crown.y, .26, 'box');
+        const n = node(crown.x, crown.y, p.r, 'box');
         n.home = p; n.hx = crown.hx; n.hy = crown.hy;         // held at the crown until its turn
         boxNodes.push(n);
       }
@@ -411,15 +417,15 @@
         boxLinks.push(link(a, b, 'box', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
       }
       // irregular links tie the bell to the box
-      const { lowerEdge, leftEdge, rightEdge, at } = tieToBell(lay, isRich);
-      const L = cx - w / 2;
+      const { lowerEdge, rightEdge, at } = tieToBell(lay);
+      const L = cx - w / 2, R = cx + w / 2;
 
       if (isRich) {
-        // the pill: its own ring of notes, then three links into the box, none quite square:
-        // its left end down to the box's lower edge, its right end up to the right side above it,
-        // and its upper left a long way over, under the text, to the left side
+        // the pill: its own ring of notes, then three links into the box, none quite square and
+        // none crossing: its left end down and left to the box's lower edge, a note on its
+        // underside down and right to the lower edge, and its right end out to the right side
         for (const p of lay.pill) {
-          const n = node(crown.x, crown.y, PILL_R, 'pill');
+          const n = node(crown.x, crown.y, PILL_R - (pillNodes.length * 7 % 5) * .02, 'pill');
           n.home = p; n.hx = crown.hx; n.hy = crown.hy;
           pillNodes.push(n);
         }
@@ -428,8 +434,13 @@
           pillLinks.push(link(a, b, 'pill', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
         }
         const byX = [...pillNodes].sort((a, c) => a.home.x - c.home.x);
-        const pillTop = pillNodes.filter(n => n.home.y < lay.py - lay.ph / 2 + .01).sort((a, c) => a.home.x - c.home.x);
-        for (const [a, b] of [[byX[0], at(lowerEdge, .4)], [byX[byX.length - 1], at(rightEdge, .45)], [at(pillTop, .15), at(leftEdge, .78)]])
+        const under = pillNodes.filter(n => n.home.y > lay.py + lay.ph / 2 - .01).sort((a, c) => a.home.x - c.home.x);
+        const nearest = (list, x) => list.reduce((m, n) => Math.abs(n.home.x - x) < Math.abs(m.home.x - x) ? n : m);
+        // the side note it reaches is the first one below the text, so no link passes over it
+        const below = side => side.find(n => n.home.y > lay.textBottom + .5) || side[side.length - 1];
+        const low = at(under, .75);
+        const edge = lowerEdge.filter(n => n.home.x < R - .01);                // the lower edge, short of the corner
+        for (const [a, b] of [[byX[0], nearest(edge, byX[0].home.x - 2.4)], [low, nearest(edge, low.home.x + 1)], [byX[byX.length - 1], below(rightEdge)]])
           tieLinks.push(link(a, b, 'tie', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
         pillFill.setAttribute('x', lay.px - lay.pw / 2); pillFill.setAttribute('y', lay.py - lay.ph / 2);
         pillFill.setAttribute('width', lay.pw); pillFill.setAttribute('height', lay.ph);
@@ -536,7 +547,7 @@
       label.setAttribute('x', cx); label.setAttribute('y', (top + bottom) / 2);
       const keep = pts.map((p, j) => {
         const n = boxNodes[Math.round(j * boxNodes.length / pts.length) % boxNodes.length];
-        n.home = p; n.hx = p.x; n.hy = p.y;
+        n.home = p; n.hx = p.x; n.hy = p.y; n.el.setAttribute('r', p.r);   // and the size of that place
         return n;
       });
       const extra = boxNodes.filter(n => !keep.includes(n));
@@ -547,7 +558,7 @@
         const a = boxNodes[i], b = boxNodes[(i + 1) % boxNodes.length];
         boxLinks.push(link(a, b, 'box', Math.hypot(a.home.x - b.home.x, a.home.y - b.home.y)));
       }
-      tieToBell(lay, false);
+      tieToBell(lay);
       spare.push(...pillNodes, ...extra); pillNodes = [];
       settled = true;
       rich.classList.add('settled');
