@@ -6,7 +6,7 @@
   <title>Week 02 &middot; Badges &amp; Tooltips &middot; Advanced Interface</title>
   <meta name="description" content="Ten components are due: five sets of one badge and one tooltip, each set carrying a tone. Starting with what each one is for, and how micro motion carries tone." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../shared/site.css?v=6" />
+  <link rel="stylesheet" href="../shared/site.css?v=9" />
 </head>
 <body>
 
@@ -487,7 +487,7 @@
 
       <h2>Deliverables</h2>
 
-      <p>Ten components, five sets of one badge and one tooltip. Each set shows how it got there, then the moving prototypes.</p>
+      <p>Ten components, five sets of one badge and one tooltip. Open a set to try its moving prototypes, then see how they got there.</p>
 
       <p>Every set uses the same two anchors: a Message icon for the badge and a Notification bell for the tooltip. Holding the icons still is the control: whatever differs between the five tones comes from motion and styling alone. The shapes stay fixed; only how they are rendered (stroke, colour, texture) follows the tone.</p>
 
@@ -505,383 +505,454 @@
         <figcaption>Left, the badge anchor: a speech bubble, tail at the lower left, so the upper right corner stays clear for the badge. Right, the tooltip anchor: an upright bell, a silhouette that never reads as the bubble.</figcaption>
       </figure>
 
-      <!-- Process: save a frame of each tried version to images/process/TONE-KIND-N.png
-           and add it to the set's process-grid with a line on what changed.
+      <!-- Each set is a .set-box: a card (the latest badge and tooltip frames, the name, a line on the tone)
+           that opens a <dialog class="set-dialog"> holding the prototypes first, then the process.
+           Process: save a frame of each tried version to images/process/TONE-KIND-N.png
+           and add it to the set's process-grid with a line on what changed (and point the summary's
+           thumbnails at the newest frames).
            Filling a prototype: build it as its own page, week-02-TONE-KIND.html,
            swap <div class="proto-art">…</div> for <iframe src="…" title="…" loading="lazy"></iframe>,
            drop the is-empty class, and turn <span class="soon"> into a
            <button type="button" class="viewer-open" data-src="…">View larger</button>. -->
 
-      <h3>Set 1 &middot; Dramatic</h3>
+      <div class="set-grid">
+        <div class="set-box" id="set-dramatic">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-dramatic">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/dramatic-badge-9.png" alt="" loading="lazy" /><img src="images/process/dramatic-tooltip-5.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Dramatic</span><span class="set-line">Black, white and one red: a hole that travels into the corner, a curtain that parts.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-dramatic" aria-labelledby="dlg-dramatic-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-dramatic-title">Dramatic</span></span>
+              <button type="button" class="set-close" aria-label="Close Dramatic"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
 
-      <h4>Process</h4>
+          <div class="proto-grid">
+            <figure class="proto">
+              <iframe src="week-02-dramatic-badge.html" title="Dramatic badge prototype: a red frame swells out, then a hole travels into the corner as the badge" loading="lazy"></iframe>
+              <figcaption>
+                <b>Badge</b>
+                <span>After Swell, in two acts. A red circle swells from the bubble's middle and stays as its frame, the outline cut through it in black; then a black hole opens in the middle, swells, and shrinks into the upper right corner as the badge. With content starts in place showing 2, then the whole badge spins like a flicked coin and lands on 3; None closes the badge and folds the frame away.</span>
+                <button type="button" class="viewer-open" data-src="week-02-dramatic-badge.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-02-dramatic-tooltip.html" title="Dramatic tooltip prototype: a red line drawn above the bell parts open into the name" loading="lazy"></iframe>
+              <figcaption>
+                <b>Tooltip</b>
+                <span>Hover the bell: a thin red line is drawn left to right, as wide as the tooltip, then parts top and bottom to reveal the name. Rich (switch at the bottom): the same line parts into a taller curtain holding &ldquo;Muted until 9 AM&rdquo; and, at its lower right, a black Unmute slab; press it and the slab snaps in and slams shut to a thin bar, the box is hauled in to the plain tooltip's size and place, &ldquo;Notifications on&rdquo; cuts in, and the curtain comes down.</span>
+                <button type="button" class="viewer-open" data-src="week-02-dramatic-tooltip.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
 
-      <p>How the pair got here, one tried version at a time.</p>
+          <h4>Process</h4>
 
-      <p class="process-label">Badge</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/dramatic-badge-1.png" alt="Dramatic badge, step 1" loading="lazy" />
-            <figcaption>First pass, from the storyboard: a red dot sweeps clockwise round the bubble's left side, swelling on the way, and lands on the upper right corner.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-2.png" alt="Dramatic badge, step 2" loading="lazy" />
-            <figcaption>The dot as a light source on a dark stage: amber glow, the outline lit wherever it passes, rays on landing.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-3.png" alt="Dramatic badge, step 3" loading="lazy" />
-            <figcaption>Darker, the background streaks gone, a night-blue light, and a steeper ease-in-out.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-4.png" alt="Dramatic badge, step 4" loading="lazy" />
-            <figcaption>The landing rays gone; the path left as a smeared mark, like a long exposure. It read as a cloud.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-5.png" alt="Dramatic badge, step 5" loading="lazy" />
-            <figcaption>The mark as strobe copies of the dot instead, one per frame, fading fast.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-6.png" alt="Dramatic badge, step 6" loading="lazy" />
-            <figcaption>Started over in black and white: a vortex of twisted bands that inverts the icon and tightens into the dot.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-7.png" alt="Dramatic badge, step 7" loading="lazy" />
-            <figcaption>After the Swell sketch: a white circle swells over the icon, the outline cut through it, then shrinks into the corner.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-8.png" alt="Dramatic badge, step 8" loading="lazy" />
-            <figcaption>Now: the circle turned red and stays as the icon's frame, and a black hole travels into the corner as the badge.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-badge-9.png" alt="Dramatic badge, step 9" loading="lazy" />
-            <figcaption>Now, with content: the whole badge spins like a flicked coin, a 2 on one face and a 3 on the other.</figcaption>
-          </figure>
+          <p>How the pair got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Badge</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/dramatic-badge-1.png" alt="Dramatic badge, step 1" loading="lazy" />
+                <figcaption>First pass, from the storyboard: a red dot sweeps clockwise round the bubble's left side, swelling on the way, and lands on the upper right corner.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-2.png" alt="Dramatic badge, step 2" loading="lazy" />
+                <figcaption>The dot as a light source on a dark stage: amber glow, the outline lit wherever it passes, rays on landing.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-3.png" alt="Dramatic badge, step 3" loading="lazy" />
+                <figcaption>Darker, the background streaks gone, a night-blue light, and a steeper ease-in-out.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-4.png" alt="Dramatic badge, step 4" loading="lazy" />
+                <figcaption>The landing rays gone; the path left as a smeared mark, like a long exposure. It read as a cloud.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-5.png" alt="Dramatic badge, step 5" loading="lazy" />
+                <figcaption>The mark as strobe copies of the dot instead, one per frame, fading fast.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-6.png" alt="Dramatic badge, step 6" loading="lazy" />
+                <figcaption>Started over in black and white: a vortex of twisted bands that inverts the icon and tightens into the dot.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-7.png" alt="Dramatic badge, step 7" loading="lazy" />
+                <figcaption>After the Swell sketch: a white circle swells over the icon, the outline cut through it, then shrinks into the corner.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-8.png" alt="Dramatic badge, step 8" loading="lazy" />
+                <figcaption>Now: the circle turned red and stays as the icon's frame, and a black hole travels into the corner as the badge.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-badge-9.png" alt="Dramatic badge, step 9" loading="lazy" />
+                <figcaption>Now, with content: the whole badge spins like a flicked coin, a 2 on one face and a 3 on the other.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Tooltip</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/dramatic-tooltip-1.png" alt="Dramatic tooltip, step 1" loading="lazy" />
+                <figcaption>First pass: a 2px red line drawn left to right, as wide as the tooltip, about to part into the box.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-tooltip-2.png" alt="Dramatic tooltip, step 2" loading="lazy" />
+                <figcaption>A hairline with a white point at its tip, quicker and sharper. The white went: one red only.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-tooltip-3.png" alt="Dramatic tooltip, step 3" loading="lazy" />
+                <figcaption>All red, everything bigger, the bell centred, the name revealed.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-tooltip-4.png" alt="Dramatic tooltip, step 4" loading="lazy" />
+                <figcaption>The box overshoots as it opens; on leaving, it shuts and the line draws back right to left.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/dramatic-tooltip-5.png" alt="Dramatic tooltip, step 5" loading="lazy" />
+                <figcaption>Now, rich: the curtain opens taller, a playbill with the line at its top left and a black Unmute slab at its lower right; pressed, the slab slams shut and the box is hauled in to the plain size with &ldquo;Notifications on&rdquo;.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+
+        <div class="set-box" id="set-futuristic">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-futuristic">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/futuristic-badge-7.png" alt="" loading="lazy" /><img src="images/process/futuristic-tooltip-6.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Futuristic</span><span class="set-line">A graph of notes, as in Obsidian: badge and tooltip pulled into place on springs.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-futuristic" aria-labelledby="dlg-futuristic-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-futuristic-title">Futuristic</span></span>
+              <button type="button" class="set-close" aria-label="Close Futuristic"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid">
+            <figure class="proto">
+              <iframe src="week-02-futuristic-badge.html" title="Futuristic badge prototype: the bubble as a graph of linked notes, the badge a new note pulled into its corner" loading="lazy"></iframe>
+              <figcaption>
+                <b>Badge</b>
+                <span>After Obsidian's graph view: the bubble is a ring of notes joined by thin links, all on springs. Dot: a blue note is born in the middle and pulled out to the corner on two links, tugging the graph, which wobbles and settles. With content: the badge counts its linked notes; it starts with two, a third flies in and links up, and the count turns to 3.</span>
+                <button type="button" class="viewer-open" data-src="week-02-futuristic-badge.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-02-futuristic-tooltip.html" title="Futuristic tooltip prototype: the bell as a graph of notes; hovering streams notes out into a box round its name" loading="lazy"></iframe>
+              <figcaption>
+                <b>Tooltip</b>
+                <span>The bell as a graph of notes. Hover it, as you would a note in Obsidian's graph: its notes and links light up blue, then a stream of notes pours out of its crown and links up into a box above it, with the name inside. Rich (switch at the bottom): a longer stream links up into a bigger box, and a last run of notes forms a pill inside it, the Unmute button, tied in by its own links; press it and the graph is plucked, the bell rings, the pill's notes gather into one glowing note, and the ring re-forms on its springs into the plain box, surplus notes drawn back into the crown, holding &ldquo;Notifications on&rdquo;.</span>
+                <button type="button" class="viewer-open" data-src="week-02-futuristic-tooltip.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the pair got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Badge</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/futuristic-badge-1.png" alt="Futuristic badge, step 1" loading="lazy" />
+                <figcaption>First pass, after a glowing glass reference: the bubble as a tube of violet glass with glints and a reflection, the dot a rounded square of the same glass.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-2.png" alt="Futuristic badge, step 2" loading="lazy" />
+                <figcaption>The reflection reduced to the light it casts; the dot built from small cubes that spread from the middle, each flipping into place.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-3.png" alt="Futuristic badge, step 3" loading="lazy" />
+                <figcaption>No outline on the badge; the cubes sweep from its lower left to its upper right, and the count is broken down and rebuilt to change.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-4.png" alt="Futuristic badge, step 4" loading="lazy" />
+                <figcaption>The count drawn as tubes of deep violet glass instead of flat type.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-5.png" alt="Futuristic badge, step 5" loading="lazy" />
+                <figcaption>Restyled after Obsidian's graph view: the bubble as linked notes on springs, the dot a new note pulled out to the corner.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-6.png" alt="Futuristic badge, step 6" loading="lazy" />
+                <figcaption>A denser graph, with notes inside the bubble and strays round about. Taken back out again.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-badge-7.png" alt="Futuristic badge, step 7" loading="lazy" />
+                <figcaption>Now: the cooler blue of its tooltip; with content, the count is how many notes are linked, and a third flies in to make 3.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Tooltip</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/futuristic-tooltip-1.png" alt="Futuristic tooltip, step 1" loading="lazy" />
+                <figcaption>First pass: hovering lights the bell's notes, and one note rides out on a link with the name beside it.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-tooltip-2.png" alt="Futuristic tooltip, step 2" loading="lazy" />
+                <figcaption>Many notes instead of one: they stream out of the crown and link up into a box round the name.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-tooltip-3.png" alt="Futuristic tooltip, step 3" loading="lazy" />
+                <figcaption>More room round the name, and a cooler blue in place of violet.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-tooltip-4.png" alt="Futuristic tooltip, step 4" loading="lazy" />
+                <figcaption>The box tied to the bell by seven parallel links.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-tooltip-5.png" alt="Futuristic tooltip, step 5" loading="lazy" />
+                <figcaption>A few irregular links instead, two to the box's lower edge, one to its side, two over to its top.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/futuristic-tooltip-6.png" alt="Futuristic tooltip, step 6" loading="lazy" />
+                <figcaption>Now, rich: a longer stream links up into a bigger box with a pill of notes at its lower right, the Unmute button; pressed, the graph is plucked and the ring re-forms into the plain box.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+
+        <div class="set-box" id="set-intimate">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-intimate">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/intimate-badge-6.png" alt="" loading="lazy" /><img src="images/process/intimate-tooltip-4.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Intimate</span><span class="set-line">Warm paper and terracotta liquid: drops that gather, swell and let go.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-intimate" aria-labelledby="dlg-intimate-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-intimate-title">Intimate</span></span>
+              <button type="button" class="set-close" aria-label="Close Intimate"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid">
+            <figure class="proto">
+              <iframe src="week-02-intimate-badge.html" title="Intimate badge prototype: a soft frame drawn round the bubble, the badge swelling out of it like a drop" loading="lazy"></iframe>
+              <figcaption>
+                <b>Badge</b>
+                <span>After the Frame trace sketch, on warm paper. A terracotta frame draws itself round the bubble, and where it closes the badge fills in like liquid, rising from its foot to its top with a rippling surface: a soft shape wrapped round the corner, fullest in the middle and thinning into the line at each end, one fluid body with the line rather than a dot set on top. With content starts at 2; the sleeve takes a slow breath and the 2 turns to 3.</span>
+                <button type="button" class="viewer-open" data-src="week-02-intimate-badge.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-02-intimate-tooltip.html" title="Intimate tooltip prototype: a viscous drop draws up from the bell, spreads into a box and lets go, and the name is written inside" loading="lazy"></iframe>
+              <figcaption>
+                <b>Tooltip</b>
+                <span>Hover the bell: a thick, slow drop of terracotta liquid draws up out of its crown on a neck of liquid, spreads into a soft rounded box, and the neck thins and lets go, so the box floats free; the name is written inside, a letter at a time. Rich (switch at the bottom): more liquid spreads into a larger box, &ldquo;Muted until 9 AM&rdquo; is written in, and a bead of cream wells up beneath it into a pill, the Unmute button; press it and the bead is absorbed back into the terracotta, the liquid draws in slowly to the plain tooltip's box and place, &ldquo;Notifications on&rdquo; is written there, then it sinks back into the bell.</span>
+                <button type="button" class="viewer-open" data-src="week-02-intimate-tooltip.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the pair got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Badge</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/intimate-badge-1.png" alt="Intimate badge, step 1" loading="lazy" />
+                <figcaption>First pass, after the Frame trace sketch: a terracotta frame drawn round the bubble, and where it closes a drop swells out of the line, one fluid body with it.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-badge-2.png" alt="Intimate badge, step 2" loading="lazy" />
+                <figcaption>The drop made long: a sleeve of liquid wrapped round the frame's corner.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-badge-3.png" alt="Intimate badge, step 3" loading="lazy" />
+                <figcaption>Thicker, so a count sits in it without looking cramped.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-badge-4.png" alt="Intimate badge, step 4" loading="lazy" />
+                <figcaption>No more spring: the badge fills like liquid, rising from its foot to its top with a rippling surface.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-badge-5.png" alt="Intimate badge, step 5" loading="lazy" />
+                <figcaption>Fullest in the middle, thinning into the line at each end.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-badge-6.png" alt="Intimate badge, step 6" loading="lazy" />
+                <figcaption>Now: the count placed at the true middle of the shape, and 2 crossfading into 3 on a slow breath.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Tooltip</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/intimate-tooltip-1.png" alt="Intimate tooltip, step 1" loading="lazy" />
+                <figcaption>First pass: a thread of liquid rises from the bell and pools into a box, still joined to it; the name is written in a letter at a time.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-tooltip-2.png" alt="Intimate tooltip, step 2" loading="lazy" />
+                <figcaption>A thick, slow drop instead, drawn up on a neck that thins as it pulls away.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-tooltip-3.png" alt="Intimate tooltip, step 3" loading="lazy" />
+                <figcaption>The neck lets go, so the box floats free above the centred bell, the name set in its true middle, and nothing left behind.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/intimate-tooltip-4.png" alt="Intimate tooltip, step 4" loading="lazy" />
+                <figcaption>Now, rich: more liquid spreads into a larger box, the line written in at its top left and a cream bead welling up at its lower right as the Unmute pill; pressed, the bead is absorbed and the liquid draws in to the plain box.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+
+        <div class="set-box" id="set-rugged">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-rugged">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/rugged-badge-2.png" alt="" loading="lazy" /><img src="images/process/rugged-tooltip-2.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 4</span><span class="set-name">Rugged</span><span class="set-line">Flat yellow on black, no fonts: plates swept in and carved.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-rugged" aria-labelledby="dlg-rugged-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 4</span><span class="set-name" id="dlg-rugged-title">Rugged</span></span>
+              <button type="button" class="set-close" aria-label="Close Rugged"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid">
+            <figure class="proto">
+              <iframe src="week-02-rugged-badge.html" title="Rugged badge prototype: a yellow square plate is swept in clockwise; the count is a ragged yellow shape that reshapes from 2 to 3" loading="lazy"></iframe>
+              <figcaption>
+                <b>Badge</b>
+                <span>Dot: on black, a flat yellow square plate with just-softened corners is swept in clockwise from twelve, easing in and out, and settles with a small give. With content: no plate, only the count, drawn as a ragged yellow shape rather than set in a font; the 2 reshapes itself into a 3, its corners travelling and new notches growing out of its edges.</span>
+                <button type="button" class="viewer-open" data-src="week-02-rugged-badge.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-02-rugged-tooltip.html" title="Rugged tooltip prototype: a yellow plate is swept in above the bell, stretches into a bar and is carved into the word Notifications" loading="lazy"></iframe>
+              <figcaption>
+                <b>Tooltip</b>
+                <span>Hover the bell: no box. The badge's yellow square plate is swept in above the bell, stretches into a bar, and the bar is carved into NOTIFICATIONS left to right, gaps parting the letters and notches growing in from the edges, the letters drawn like the badge's digits. Rich (switch at the bottom): a taller plate is carved into MUTED UNTIL 9 AM, and the lower half is cut free as a solid slab with UNMUTE cut out of it, so it reads as something to press; press it and the slab steps down and closes solid, the top row is recarved into NOTIFICATIONS ON, and the plate closes.</span>
+                <button type="button" class="viewer-open" data-src="week-02-rugged-tooltip.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the pair got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Badge</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/rugged-badge-1.png" alt="Rugged badge, step 1" loading="lazy" />
+                <figcaption>First pass, after the Sweep sketch and the &ldquo;Ragged&rdquo; reference: a flat yellow square plate, corners only just softened, swept in clockwise from twelve; heavy at first, slamming into its stop with a hard knock.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/rugged-badge-2.png" alt="Rugged badge, step 2" loading="lazy" />
+                <figcaption>Now: the sweep eases in and out with a small soft give. With content has no plate, only the count, drawn as a ragged yellow shape rather than set in a font; 2 reshapes into 3, its corners travelling and new notches growing out of its edges, as in the reference.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Tooltip</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/rugged-tooltip-1.png" alt="Rugged tooltip, step 1" loading="lazy" />
+                <figcaption>First pass, no box: the badge's plate is swept in above the bell, stretches into a bar, and the bar is carved into NOTIFICATIONS, left to right, letters drawn on the digits' grid.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/rugged-tooltip-2.png" alt="Rugged tooltip, step 2" loading="lazy" />
+                <figcaption>Now, rich: a taller plate carved into MUTED UNTIL 9 AM, its lower left cut away to free a solid UNMUTE slab at the right, the word cut out of it so it reads as something to press.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+
+        <div class="set-box" id="set-somber">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-somber">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/somber-badge-6.png" alt="" loading="lazy" /><img src="images/process/somber-tooltip-2.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 5</span><span class="set-name">Somber</span><span class="set-line">A cold dusk: the tile itself swells like cloth; nothing arrives from outside.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-somber" aria-labelledby="dlg-somber-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 5</span><span class="set-name" id="dlg-somber-title">Somber</span></span>
+              <button type="button" class="set-close" aria-label="Close Somber"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid">
+            <figure class="proto">
+              <iframe src="week-02-somber-badge.html" title="Somber badge prototype: the tile behind the bubble slowly swells into a low hill on its top edge" loading="lazy"></iframe>
+              <figcaption>
+                <b>Badge</b>
+                <span>The bubble sits on a plain filled tile, there from the start. Dot: no circle appears; the middle of the tile's top edge slowly swells into a low, smooth hill, one body with the face it grows from. With content: a fuller hill holds a 2; one more arrives like a small ball rolling under a cloth, only its bump travelling along the top edge from the left and up into the hill, which swells a little as the 2 sinks away and a 3 surfaces.</span>
+                <button type="button" class="viewer-open" data-src="week-02-somber-badge.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-02-somber-tooltip.html" title="Somber tooltip prototype: the tile behind the bell swells and a tab pulls free of it, and the name surfaces in it" loading="lazy"></iframe>
+              <figcaption>
+                <b>Tooltip</b>
+                <span>Hover the bell: no box arrives. The tile behind it is pushed up from beneath, like cloth over something rising: its top edge swells, then is drawn up into a tab that pulls free and rests just above the tile, and the name surfaces in it from below. Rich (switch at the bottom): more of the same cloth, a taller tab with &ldquo;Muted until 9 AM&rdquo;, and below it a softer pill swells up out of the tab's own face as the Unmute button; press it and the pill sinks flat, the tab gently narrows and settles to the plain tab's size and place, &ldquo;Notifications on&rdquo; surfaces, and the tab sinks back into the tile.</span>
+                <button type="button" class="viewer-open" data-src="week-02-somber-tooltip.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the pair got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Badge</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/somber-badge-1.png" alt="Somber badge, step 1" loading="lazy" />
+                <figcaption>First pass: a frame comes up round the bubble, its light reaching in from the outline, while fog drifts in and gathers into a small cloud on its corner.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-badge-2.png" alt="Somber badge, step 2" loading="lazy" />
+                <figcaption>Instead, a plain filled tile is there from the start, and the badge is its top edge swelling into a hill; here too steep, and off to the right.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-badge-3.png" alt="Somber badge, step 3" loading="lazy" />
+                <figcaption>The hill moved to the middle, made wider than the flat edge and lower, its crest rounded off.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-badge-4.png" alt="Somber badge, step 4" loading="lazy" />
+                <figcaption>With content: a fuller hill holds the count in a book serif; on a slow breath the 2 sinks into the face and a 3 surfaces.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-badge-5.png" alt="Somber badge, step 5" loading="lazy" />
+                <figcaption>A plainer sans, and the one more shown as a small ball rolling in from the left and taken into the count.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-badge-6.png" alt="Somber badge, step 6" loading="lazy" />
+                <figcaption>Now: the ball rolls under the tile as under a cloth, only its low, wide bump travelling along the edge and into the hill.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Tooltip</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/somber-tooltip-1.png" alt="Somber tooltip, step 1" loading="lazy" />
+                <figcaption>Plain: the tile is pushed up from beneath, its top edge swells, and a tab pulls free of it and rests just above, the name surfacing from below. The neck that first joined them is gone.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/somber-tooltip-2.png" alt="Somber tooltip, step 2" loading="lazy" />
+                <figcaption>Now, rich: a taller tab with the line at its top left and a softer pill swelling out of its face at the lower right; pressed, the pill sinks flat and the tab settles to the plain size.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
       </div>
 
-      <p class="process-label">Tooltip</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/dramatic-tooltip-1.png" alt="Dramatic tooltip, step 1" loading="lazy" />
-            <figcaption>First pass: a 2px red line drawn left to right, as wide as the tooltip, about to part into the box.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-tooltip-2.png" alt="Dramatic tooltip, step 2" loading="lazy" />
-            <figcaption>A hairline with a white point at its tip, quicker and sharper. The white went: one red only.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-tooltip-3.png" alt="Dramatic tooltip, step 3" loading="lazy" />
-            <figcaption>All red, everything bigger, the bell centred, the name revealed.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-tooltip-4.png" alt="Dramatic tooltip, step 4" loading="lazy" />
-            <figcaption>The box overshoots as it opens; on leaving, it shuts and the line draws back right to left.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/dramatic-tooltip-5.png" alt="Dramatic tooltip, step 5" loading="lazy" />
-            <figcaption>Now, rich: the curtain opens taller, a playbill with the line at its top left and a black Unmute slab at its lower right; pressed, the slab slams shut and the box is hauled in to the plain size with &ldquo;Notifications on&rdquo;.</figcaption>
-          </figure>
-      </div>
-
-      <h4>Prototypes</h4>
-
-      <div class="proto-grid">
-        <figure class="proto">
-          <iframe src="week-02-dramatic-badge.html" title="Dramatic badge prototype: a red frame swells out, then a hole travels into the corner as the badge" loading="lazy"></iframe>
-          <figcaption>
-            <b>Badge</b>
-            <span>After Swell, in two acts. A red circle swells from the bubble's middle and stays as its frame, the outline cut through it in black; then a black hole opens in the middle, swells, and shrinks into the upper right corner as the badge. With content starts in place showing 2, then the whole badge spins like a flicked coin and lands on 3; None closes the badge and folds the frame away.</span>
-            <button type="button" class="viewer-open" data-src="week-02-dramatic-badge.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="proto">
-          <iframe src="week-02-dramatic-tooltip.html" title="Dramatic tooltip prototype: a red line drawn above the bell parts open into the name" loading="lazy"></iframe>
-          <figcaption>
-            <b>Tooltip</b>
-            <span>Hover the bell: a thin red line is drawn left to right, as wide as the tooltip, then parts top and bottom to reveal the name. Rich (switch at the bottom): the same line parts into a taller curtain holding &ldquo;Muted until 9 AM&rdquo; and, at its lower right, a black Unmute slab; press it and the slab snaps in and slams shut to a thin bar, the box is hauled in to the plain tooltip's size and place, &ldquo;Notifications on&rdquo; cuts in, and the curtain comes down.</span>
-            <button type="button" class="viewer-open" data-src="week-02-dramatic-tooltip.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
-
-      <h3>Set 2 &middot; Futuristic</h3>
-
-      <h4>Process</h4>
-
-      <p>How the pair got here, one tried version at a time.</p>
-
-      <p class="process-label">Badge</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/futuristic-badge-1.png" alt="Futuristic badge, step 1" loading="lazy" />
-            <figcaption>First pass, after a glowing glass reference: the bubble as a tube of violet glass with glints and a reflection, the dot a rounded square of the same glass.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-2.png" alt="Futuristic badge, step 2" loading="lazy" />
-            <figcaption>The reflection reduced to the light it casts; the dot built from small cubes that spread from the middle, each flipping into place.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-3.png" alt="Futuristic badge, step 3" loading="lazy" />
-            <figcaption>No outline on the badge; the cubes sweep from its lower left to its upper right, and the count is broken down and rebuilt to change.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-4.png" alt="Futuristic badge, step 4" loading="lazy" />
-            <figcaption>The count drawn as tubes of deep violet glass instead of flat type.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-5.png" alt="Futuristic badge, step 5" loading="lazy" />
-            <figcaption>Restyled after Obsidian's graph view: the bubble as linked notes on springs, the dot a new note pulled out to the corner.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-6.png" alt="Futuristic badge, step 6" loading="lazy" />
-            <figcaption>A denser graph, with notes inside the bubble and strays round about. Taken back out again.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-badge-7.png" alt="Futuristic badge, step 7" loading="lazy" />
-            <figcaption>Now: the cooler blue of its tooltip; with content, the count is how many notes are linked, and a third flies in to make 3.</figcaption>
-          </figure>
-      </div>
-
-      <p class="process-label">Tooltip</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/futuristic-tooltip-1.png" alt="Futuristic tooltip, step 1" loading="lazy" />
-            <figcaption>First pass: hovering lights the bell's notes, and one note rides out on a link with the name beside it.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-tooltip-2.png" alt="Futuristic tooltip, step 2" loading="lazy" />
-            <figcaption>Many notes instead of one: they stream out of the crown and link up into a box round the name.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-tooltip-3.png" alt="Futuristic tooltip, step 3" loading="lazy" />
-            <figcaption>More room round the name, and a cooler blue in place of violet.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-tooltip-4.png" alt="Futuristic tooltip, step 4" loading="lazy" />
-            <figcaption>The box tied to the bell by seven parallel links.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-tooltip-5.png" alt="Futuristic tooltip, step 5" loading="lazy" />
-            <figcaption>A few irregular links instead, two to the box's lower edge, one to its side, two over to its top.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/futuristic-tooltip-6.png" alt="Futuristic tooltip, step 6" loading="lazy" />
-            <figcaption>Now, rich: a longer stream links up into a bigger box with a pill of notes at its lower right, the Unmute button; pressed, the graph is plucked and the ring re-forms into the plain box.</figcaption>
-          </figure>
-      </div>
-
-      <h4>Prototypes</h4>
-
-      <div class="proto-grid">
-        <figure class="proto">
-          <iframe src="week-02-futuristic-badge.html" title="Futuristic badge prototype: the bubble as a graph of linked notes, the badge a new note pulled into its corner" loading="lazy"></iframe>
-          <figcaption>
-            <b>Badge</b>
-            <span>After Obsidian's graph view: the bubble is a ring of notes joined by thin links, all on springs. Dot: a blue note is born in the middle and pulled out to the corner on two links, tugging the graph, which wobbles and settles. With content: the badge counts its linked notes; it starts with two, a third flies in and links up, and the count turns to 3.</span>
-            <button type="button" class="viewer-open" data-src="week-02-futuristic-badge.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="proto">
-          <iframe src="week-02-futuristic-tooltip.html" title="Futuristic tooltip prototype: the bell as a graph of notes; hovering streams notes out into a box round its name" loading="lazy"></iframe>
-          <figcaption>
-            <b>Tooltip</b>
-            <span>The bell as a graph of notes. Hover it, as you would a note in Obsidian's graph: its notes and links light up blue, then a stream of notes pours out of its crown and links up into a box above it, with the name inside. Rich (switch at the bottom): a longer stream links up into a bigger box, and a last run of notes forms a pill inside it, the Unmute button, tied in by its own links; press it and the graph is plucked, the bell rings, the pill's notes gather into one glowing note, and the ring re-forms on its springs into the plain box, surplus notes drawn back into the crown, holding &ldquo;Notifications on&rdquo;.</span>
-            <button type="button" class="viewer-open" data-src="week-02-futuristic-tooltip.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
-
-      <h3>Set 3 &middot; Intimate</h3>
-
-      <h4>Process</h4>
-
-      <p>How the pair got here, one tried version at a time.</p>
-
-      <p class="process-label">Badge</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/intimate-badge-1.png" alt="Intimate badge, step 1" loading="lazy" />
-            <figcaption>First pass, after the Frame trace sketch: a terracotta frame drawn round the bubble, and where it closes a drop swells out of the line, one fluid body with it.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-badge-2.png" alt="Intimate badge, step 2" loading="lazy" />
-            <figcaption>The drop made long: a sleeve of liquid wrapped round the frame's corner.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-badge-3.png" alt="Intimate badge, step 3" loading="lazy" />
-            <figcaption>Thicker, so a count sits in it without looking cramped.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-badge-4.png" alt="Intimate badge, step 4" loading="lazy" />
-            <figcaption>No more spring: the badge fills like liquid, rising from its foot to its top with a rippling surface.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-badge-5.png" alt="Intimate badge, step 5" loading="lazy" />
-            <figcaption>Fullest in the middle, thinning into the line at each end.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-badge-6.png" alt="Intimate badge, step 6" loading="lazy" />
-            <figcaption>Now: the count placed at the true middle of the shape, and 2 crossfading into 3 on a slow breath.</figcaption>
-          </figure>
-      </div>
-
-      <p class="process-label">Tooltip</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/intimate-tooltip-1.png" alt="Intimate tooltip, step 1" loading="lazy" />
-            <figcaption>First pass: a thread of liquid rises from the bell and pools into a box, still joined to it; the name is written in a letter at a time.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-tooltip-2.png" alt="Intimate tooltip, step 2" loading="lazy" />
-            <figcaption>A thick, slow drop instead, drawn up on a neck that thins as it pulls away.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-tooltip-3.png" alt="Intimate tooltip, step 3" loading="lazy" />
-            <figcaption>The neck lets go, so the box floats free above the centred bell, the name set in its true middle, and nothing left behind.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/intimate-tooltip-4.png" alt="Intimate tooltip, step 4" loading="lazy" />
-            <figcaption>Now, rich: more liquid spreads into a larger box, the line written in at its top left and a cream bead welling up at its lower right as the Unmute pill; pressed, the bead is absorbed and the liquid draws in to the plain box.</figcaption>
-          </figure>
-      </div>
-
-      <h4>Prototypes</h4>
-
-      <div class="proto-grid">
-        <figure class="proto">
-          <iframe src="week-02-intimate-badge.html" title="Intimate badge prototype: a soft frame drawn round the bubble, the badge swelling out of it like a drop" loading="lazy"></iframe>
-          <figcaption>
-            <b>Badge</b>
-            <span>After the Frame trace sketch, on warm paper. A terracotta frame draws itself round the bubble, and where it closes the badge fills in like liquid, rising from its foot to its top with a rippling surface: a soft shape wrapped round the corner, fullest in the middle and thinning into the line at each end, one fluid body with the line rather than a dot set on top. With content starts at 2; the sleeve takes a slow breath and the 2 turns to 3.</span>
-            <button type="button" class="viewer-open" data-src="week-02-intimate-badge.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="proto">
-          <iframe src="week-02-intimate-tooltip.html" title="Intimate tooltip prototype: a viscous drop draws up from the bell, spreads into a box and lets go, and the name is written inside" loading="lazy"></iframe>
-          <figcaption>
-            <b>Tooltip</b>
-            <span>Hover the bell: a thick, slow drop of terracotta liquid draws up out of its crown on a neck of liquid, spreads into a soft rounded box, and the neck thins and lets go, so the box floats free; the name is written inside, a letter at a time. Rich (switch at the bottom): more liquid spreads into a larger box, &ldquo;Muted until 9 AM&rdquo; is written in, and a bead of cream wells up beneath it into a pill, the Unmute button; press it and the bead is absorbed back into the terracotta, the liquid draws in slowly to the plain tooltip's box and place, &ldquo;Notifications on&rdquo; is written there, then it sinks back into the bell.</span>
-            <button type="button" class="viewer-open" data-src="week-02-intimate-tooltip.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
-
-      <h3>Set 4 &middot; Rugged</h3>
-
-      <h4>Process</h4>
-
-      <p>How the pair got here, one tried version at a time.</p>
-
-      <p class="process-label">Badge</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/rugged-badge-1.png" alt="Rugged badge, step 1" loading="lazy" />
-            <figcaption>First pass, after the Sweep sketch and the &ldquo;Ragged&rdquo; reference: a flat yellow square plate, corners only just softened, swept in clockwise from twelve; heavy at first, slamming into its stop with a hard knock.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/rugged-badge-2.png" alt="Rugged badge, step 2" loading="lazy" />
-            <figcaption>Now: the sweep eases in and out with a small soft give. With content has no plate, only the count, drawn as a ragged yellow shape rather than set in a font; 2 reshapes into 3, its corners travelling and new notches growing out of its edges, as in the reference.</figcaption>
-          </figure>
-      </div>
-
-      <p class="process-label">Tooltip</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/rugged-tooltip-1.png" alt="Rugged tooltip, step 1" loading="lazy" />
-            <figcaption>First pass, no box: the badge's plate is swept in above the bell, stretches into a bar, and the bar is carved into NOTIFICATIONS, left to right, letters drawn on the digits' grid.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/rugged-tooltip-2.png" alt="Rugged tooltip, step 2" loading="lazy" />
-            <figcaption>Now, rich: a taller plate carved into MUTED UNTIL 9 AM, its lower left cut away to free a solid UNMUTE slab at the right, the word cut out of it so it reads as something to press.</figcaption>
-          </figure>
-      </div>
-
-      <h4>Prototypes</h4>
-
-      <div class="proto-grid">
-        <figure class="proto">
-          <iframe src="week-02-rugged-badge.html" title="Rugged badge prototype: a yellow square plate is swept in clockwise; the count is a ragged yellow shape that reshapes from 2 to 3" loading="lazy"></iframe>
-          <figcaption>
-            <b>Badge</b>
-            <span>Dot: on black, a flat yellow square plate with just-softened corners is swept in clockwise from twelve, easing in and out, and settles with a small give. With content: no plate, only the count, drawn as a ragged yellow shape rather than set in a font; the 2 reshapes itself into a 3, its corners travelling and new notches growing out of its edges.</span>
-            <button type="button" class="viewer-open" data-src="week-02-rugged-badge.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="proto">
-          <iframe src="week-02-rugged-tooltip.html" title="Rugged tooltip prototype: a yellow plate is swept in above the bell, stretches into a bar and is carved into the word Notifications" loading="lazy"></iframe>
-          <figcaption>
-            <b>Tooltip</b>
-            <span>Hover the bell: no box. The badge's yellow square plate is swept in above the bell, stretches into a bar, and the bar is carved into NOTIFICATIONS left to right, gaps parting the letters and notches growing in from the edges, the letters drawn like the badge's digits. Rich (switch at the bottom): a taller plate is carved into MUTED UNTIL 9 AM, and the lower half is cut free as a solid slab with UNMUTE cut out of it, so it reads as something to press; press it and the slab steps down and closes solid, the top row is recarved into NOTIFICATIONS ON, and the plate closes.</span>
-            <button type="button" class="viewer-open" data-src="week-02-rugged-tooltip.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
-
-      <h3>Set 5 &middot; Somber</h3>
-
-      <h4>Process</h4>
-
-      <p>How the pair got here, one tried version at a time.</p>
-
-      <p class="process-label">Badge</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/somber-badge-1.png" alt="Somber badge, step 1" loading="lazy" />
-            <figcaption>First pass: a frame comes up round the bubble, its light reaching in from the outline, while fog drifts in and gathers into a small cloud on its corner.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-badge-2.png" alt="Somber badge, step 2" loading="lazy" />
-            <figcaption>Instead, a plain filled tile is there from the start, and the badge is its top edge swelling into a hill; here too steep, and off to the right.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-badge-3.png" alt="Somber badge, step 3" loading="lazy" />
-            <figcaption>The hill moved to the middle, made wider than the flat edge and lower, its crest rounded off.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-badge-4.png" alt="Somber badge, step 4" loading="lazy" />
-            <figcaption>With content: a fuller hill holds the count in a book serif; on a slow breath the 2 sinks into the face and a 3 surfaces.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-badge-5.png" alt="Somber badge, step 5" loading="lazy" />
-            <figcaption>A plainer sans, and the one more shown as a small ball rolling in from the left and taken into the count.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-badge-6.png" alt="Somber badge, step 6" loading="lazy" />
-            <figcaption>Now: the ball rolls under the tile as under a cloth, only its low, wide bump travelling along the edge and into the hill.</figcaption>
-          </figure>
-      </div>
-
-      <p class="process-label">Tooltip</p>
-      <div class="process-grid">
-          <figure>
-            <img src="images/process/somber-tooltip-1.png" alt="Somber tooltip, step 1" loading="lazy" />
-            <figcaption>Plain: the tile is pushed up from beneath, its top edge swells, and a tab pulls free of it and rests just above, the name surfacing from below. The neck that first joined them is gone.</figcaption>
-          </figure>
-          <figure>
-            <img src="images/process/somber-tooltip-2.png" alt="Somber tooltip, step 2" loading="lazy" />
-            <figcaption>Now, rich: a taller tab with the line at its top left and a softer pill swelling out of its face at the lower right; pressed, the pill sinks flat and the tab settles to the plain size.</figcaption>
-          </figure>
-      </div>
-
-      <h4>Prototypes</h4>
-
-      <div class="proto-grid">
-        <figure class="proto">
-          <iframe src="week-02-somber-badge.html" title="Somber badge prototype: the tile behind the bubble slowly swells into a low hill on its top edge" loading="lazy"></iframe>
-          <figcaption>
-            <b>Badge</b>
-            <span>The bubble sits on a plain filled tile, there from the start. Dot: no circle appears; the middle of the tile's top edge slowly swells into a low, smooth hill, one body with the face it grows from. With content: a fuller hill holds a 2; one more arrives like a small ball rolling under a cloth, only its bump travelling along the top edge from the left and up into the hill, which swells a little as the 2 sinks away and a 3 surfaces.</span>
-            <button type="button" class="viewer-open" data-src="week-02-somber-badge.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="proto">
-          <iframe src="week-02-somber-tooltip.html" title="Somber tooltip prototype: the tile behind the bell swells and a tab pulls free of it, and the name surfaces in it" loading="lazy"></iframe>
-          <figcaption>
-            <b>Tooltip</b>
-            <span>Hover the bell: no box arrives. The tile behind it is pushed up from beneath, like cloth over something rising: its top edge swells, then is drawn up into a tab that pulls free and rests just above the tile, and the name surfaces in it from below. Rich (switch at the bottom): more of the same cloth, a taller tab with &ldquo;Muted until 9 AM&rdquo;, and below it a softer pill swells up out of the tab's own face as the Unmute button; press it and the pill sinks flat, the tab gently narrows and settles to the plain tab's size and place, &ldquo;Notifications on&rdquo; surfaces, and the tab sinks back into the tile.</span>
-            <button type="button" class="viewer-open" data-src="week-02-somber-tooltip.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
       <footer class="sources">
         <h2>Sources</h2>
         <ul>
@@ -914,6 +985,25 @@
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
 
+  <script>
+  // Deliverable sets: each card opens its set in a popup (a modal <dialog>): the prototypes,
+  // then the process. Close with the button, Esc, or a click outside. A link to a set
+  // (#set-somber) opens it too.
+  (() => {
+    const lock = on => document.documentElement.classList.toggle('has-dialog', on);
+    for (const box of document.querySelectorAll('.set-box')) {
+      const card = box.querySelector('.set-card');
+      const dlg = box.querySelector('.set-dialog');
+      card.addEventListener('click', () => { dlg.showModal(); lock(true); dlg.querySelector('.set-body').scrollTop = 0; });
+      dlg.querySelector('.set-close').addEventListener('click', () => dlg.close());
+      dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });   // the backdrop
+      dlg.addEventListener('close', () => { lock(false); if (location.hash === '#' + box.id) history.replaceState(null, '', location.pathname + location.search); });
+    }
+    const fromHash = () => { const box = location.hash && document.querySelector(location.hash + '.set-box'); if (box && !box.querySelector('dialog').open) box.querySelector('.set-card').click(); };
+    fromHash(); addEventListener('hashchange', fromHash);
+  })();
+  </script>
   <script src="../shared/viewer.js?v=5"></script>
+  <script src="../shared/toc.js?v=2"></script>
 </body>
 </html>
