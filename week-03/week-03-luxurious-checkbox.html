@@ -5,94 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Luxurious checkbox</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-luxurious.css?v=2" />
+  <link rel="stylesheet" href="week-03-luxurious.css?v=9" />
   <style>
-  /* Luxurious checkbox. Empty, it is a soft square drawn in one fine line.
-     Ticked, a peach bloom of light opens behind it and fades, the espresso
-     gradient settles in from slightly small, and a fine cream check is drawn
-     across it; a faint glow stays while it is on. Unticking undoes it fast. */
+  /* Luxurious checkbox. A frosted glass square. Ticked, warm lamplight fills it from the centre on a spring with no bounce and a fine umber check is drawn across it. Unticked, the light goes quickly. */
   :root {
     --cb-size: 22px;
     --cb-r: 7px;
-    --cb-from: .6;                                    /* the fill grows in from this scale */
-    --bloom-dur: .6s; 
-    --cb-draw-delay: .08s;
+    --cb-from: .6;
   }
-
   .box {
-    position: relative; flex: none;
-    width: var(--cb-size); height: var(--cb-size);
-    border-radius: var(--cb-r);
-    border: var(--stroke) solid var(--line-off);
-    transition: border-color var(--leave-dur) var(--leave-ease), box-shadow var(--leave-dur) var(--leave-ease);
+    width: var(--cb-size); height: var(--cb-size); border-radius: var(--cb-r);
+    border: var(--stroke) solid var(--glass-line);
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 2px rgba(20, 12, 6, .25);
+    transition: border-color var(--leave-dur) var(--leave-ease);
   }
-  /* the bloom: light that opens behind the box once, when it is ticked */
-  .box::before {
-    content: ""; position: absolute; inset: -14px; border-radius: 50%; z-index: -1;
-    background: radial-gradient(closest-side, rgba(246, 207, 180, .95), rgba(246, 207, 180, 0));
-    opacity: 0; scale: .4; pointer-events: none;
-  }
-  .cb-fill {
+  .cb-light {
     position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
-    background:
-      radial-gradient(90% 90% at 75% 20%, rgba(246, 207, 180, .4), transparent 70%),
-      linear-gradient(135deg, var(--espresso) 30%, var(--espresso-lit));
+    background: linear-gradient(135deg, var(--warm-2), var(--warm-1));
+    box-shadow: 0 0 14px rgba(236, 200, 152, .35);
     opacity: 0; scale: var(--cb-from);
     transition: opacity var(--leave-dur) var(--leave-ease), scale var(--leave-dur) var(--leave-ease);
   }
-  .box svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .box path {
-    fill: none; stroke: var(--paper); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
+  .tick { position: absolute; inset: calc(-1 * var(--stroke)); width: var(--cb-size); height: var(--cb-size); overflow: visible; }
+  .tick path {
+    fill: none; stroke: var(--umber); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round;
     stroke-dasharray: 15; stroke-dashoffset: 15;
     transition: stroke-dashoffset calc(var(--leave-dur) / 2) var(--leave-ease);
   }
-
-  .sr-input:checked + .box {
-    border-color: transparent;
-    box-shadow: 0 6px 16px -4px rgba(122, 58, 43, .55);
-    transition: border-color var(--fade-dur) ease, box-shadow var(--arrive-dur) var(--arrive-ease);
-  }
-  .sr-input:checked + .box .cb-fill {
-    opacity: 1; scale: 1;
-    transition: opacity var(--fade-dur) ease, scale var(--arrive-dur) var(--arrive-ease);
-  }
-  .sr-input:checked + .box path {
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset var(--draw-dur) ease-out var(--cb-draw-delay);
-  }
-  /* only after load, so boxes ticked from the start don't bloom on arrival */
-  .ready .sr-input:checked + .box::before { animation: bloom var(--bloom-dur) ease-out; }
-  @keyframes bloom {
-    0% { opacity: 0; scale: .4; }
-    30% { opacity: 1; }
-    100% { opacity: 0; scale: 1.5; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ready .sr-input:checked + .box::before { animation: none; }
-  }
+  .sr-input:checked + .box { border-color: transparent; transition: border-color var(--fade-dur) ease; }
+  .sr-input:checked + .box .cb-light { opacity: 1; scale: 1; transition: opacity var(--fade-dur) ease, scale var(--arrive-dur) var(--arrive-ease); }
+  .sr-input:checked + .box .tick path { stroke-dashoffset: 0; transition: stroke-dashoffset var(--draw-dur) ease-out var(--draw-delay); }
   </style>
 </head>
 <body>
 
   <main class="stage">
     <fieldset class="card">
-      <legend>Tell me about</legend>
-      <div class="rows">
+      <legend>Wind-down</legend>
+      <div>
         <label class="row">
           <input class="sr-input" type="checkbox" checked />
-          <span class="ctl box" aria-hidden="true"><span class="cb-fill"></span><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
-          <span class="text"><span class="label">Big purchases</span><span class="support">Anything over $100</span></span>
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"></span><svg class="tick" viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
+          <span class="text"><span class="label">Dim the lights</span><span class="support">From 10 PM</span></span>
         </label>
         <label class="row">
           <input class="sr-input" type="checkbox" />
-          <span class="ctl box" aria-hidden="true"><span class="cb-fill"></span><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
-          <span class="text"><span class="label">Bills due</span><span class="support">Three days before</span></span>
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"></span><svg class="tick" viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
+          <span class="text"><span class="label">Close the curtains</span><span class="support">Slowly, over a minute</span></span>
         </label>
         <label class="row">
           <input class="sr-input" type="checkbox" />
-          <span class="ctl box" aria-hidden="true"><span class="cb-fill"></span><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
-          <span class="text"><span class="label">Subscriptions</span><span class="support">When one renews</span></span>
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"></span><svg class="tick" viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span>
+          <span class="text"><span class="label">White noise</span><span class="support">Rain, low</span></span>
         </label>
       </div>
     </fieldset>
@@ -100,54 +66,50 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. With reduced motion on, the durations print as they then run: almost zero.</p>
+    <p>Read from the CSS this page runs on. With reduced motion on, nothing glides; only the end states remain.</p>
 
     <h3>Checkbox</h3>
     <table>
-      <tr><td>Box</td><td data-var="--cb-size,--cb-size" data-join=" × "></td></tr>
+      <tr><td>Box</td><td data-var="--cb-size,--cb-size" data-join=" × " data-after=", frosted glass"></td></tr>
       <tr><td>Corner</td><td data-var="--cb-r"></td></tr>
-      <tr><td>Outline, empty</td><td data-var="--stroke" data-after=" solid"></td></tr>
-      <tr><td>Check stroke</td><td data-var="--mark-stroke"></td></tr>
-      <tr><td>Fill grows from</td><td data-var="--cb-from" data-after=" scale"></td></tr>
-      <tr><td>Bloom</td><td>Peach light, 50px across at its widest</td></tr>
-      <tr><td>On is told by</td><td>The filled box and a drawn check</td></tr>
+      <tr><td>Outline, empty</td><td data-var="--stroke" data-after=" cream at 55%"></td></tr>
+      <tr><td>Check</td><td><span data-var="--mark-stroke"></span> umber on lamplight</td></tr>
+      <tr><td>On</td><td>Warm lamplight fills the box from <span data-var="--cb-from"></span>, the check drawn over it</td></tr>
+      <tr><td>On is told by</td><td>The lit box and its check</td></tr>
     </table>
 
-    <h3>Row and type</h3>
+    <h3>Type and layout</h3>
     <table>
-      <tr><td>Font</td><td>Manrope</td></tr>
+      <tr><td>Font</td><td>Inter Tight</td></tr>
       <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
       <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
       <tr><td>Supporting text</td><td data-var="--support-size,--support-line,--support-weight"></td></tr>
       <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
-      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
-      <tr><td>Box to text</td><td data-var="--row-gap"></td></tr>
-      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
-      <tr><td>Divider</td><td data-var="--stroke" data-after=" hairline"></td></tr>
-      <tr><td>Card width, at most</td><td data-var="--card-w"></td></tr>
-      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
-      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
-      <tr><td>Target</td><td>The whole row</td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Panel width, at most</td><td data-var="--card-w"></td></tr>
+      <tr><td>Panel padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Panel corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Glass</td><td>Cream at 5.5%, <span data-var="--blur"></span> blur, 1.15 saturation, a <span data-var="--stroke"></span> edge at 32%, a faint light along the top</td></tr>
+      <tr><td>Target</td><td>The whole row; on hover the control's glass clears a little</td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
-      <tr><td>Paper, also the check</td><td data-var="--paper" data-kind="color"></td></tr>
-      <tr><td>Glow</td><td data-var="--glow" data-kind="color"></td></tr>
-      <tr><td>Espresso, gradient start</td><td data-var="--espresso" data-kind="color"></td></tr>
-      <tr><td>Espresso, lit end</td><td data-var="--espresso-lit" data-kind="color"></td></tr>
-      <tr><td>Label</td><td data-var="--ink" data-kind="color"></td></tr>
-      <tr><td>Supporting text</td><td data-var="--ink-soft" data-kind="color"></td></tr>
-      <tr><td>Empty outline</td><td data-var="--line-off" data-kind="color" data-after=" · 4.2 : 1 on paper"></td></tr>
+      <tr><td>Room, top to floor</td><td><span data-var="--room-top" data-kind="color"></span> &rarr; <span data-var="--room-mid" data-kind="color"></span> &rarr; <span data-var="--room-low" data-kind="color"></span></td></tr>
+      <tr><td>The lamp</td><td data-var="--lamp"></td></tr>
+      <tr><td>Cream, labels</td><td data-var="--cream" data-kind="color"></td></tr>
+      <tr><td>Supporting text</td><td data-var="--cream-soft"></td></tr>
+      <tr><td>Control outline, off</td><td data-var="--glass-line"></td></tr>
+      <tr><td>Lamplight, on</td><td><span data-var="--warm-1" data-kind="color"></span> to <span data-var="--warm-2" data-kind="color"></span></td></tr>
+      <tr><td>Umber, marks on lamplight</td><td data-var="--umber" data-kind="color"></td></tr>
     </table>
 
     <h3>Motion</h3>
     <table>
-      <tr><td>Fill grows, ticking</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
-      <tr><td>Fill fades, ticking</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
-      <tr><td>Check drawn</td><td><span data-var="--draw-dur"></span> ease-out, after <span data-var="--cb-draw-delay"></span></td></tr>
-      <tr><td>Bloom, once</td><td data-var="--bloom-dur" data-after=" ease-out"></td></tr>
-      <tr><td>Everything, unticking</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
+      <tr><td>Light fills</td><td><span data-var="--arrive-dur"></span> spring, no bounce</td></tr>
+      <tr><td>Check drawn</td><td><span data-var="--draw-dur"></span> ease-out, after <span data-var="--draw-delay"></span></td></tr>
+      <tr><td>Lamplight fills</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
+      <tr><td>Everything, turning off</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
     </table>
   </section>
 
@@ -156,7 +118,6 @@
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
-    requestAnimationFrame(() => document.body.classList.add('ready'));
   </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Quirky checkbox</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-quirky.css?v=4" />
+  <link rel="stylesheet" href="week-03-quirky.css?v=6" />
   <style>
   /* Quirky checkbox. Off, a box scribbled round and round with a stray loop at its corner, boiling. Ticked, it swells past its size with a colour split, springs back, and is neon shards on black with a fat check on top, and keeps changing colour. */
   </style>
@@ -89,6 +89,8 @@
       <tr><td>Scribble stroke</td><td><span data-var="--ink-min"></span>&ndash;<span data-var="--ink-max"></span>px, picked per pass</td></tr>
       <tr><td>Times round the shape</td><td data-var="--loops"></td></tr>
       <tr><td>Wander per pass</td><td data-var="--scribble-amp" data-after="px"></td></tr>
+      <tr><td>Brush strands</td><td><span data-var="--strands"></span> per outline, side by side, from thin to thick; bunched into one black band in places and fanned up to <span data-var="--strand-spread"></span>px apart in others, irregularly</td></tr>
+      <tr><td>Bunching drifts</td><td><span data-var="--strand-drift"></span> rad round the outline every boil frame, so the clumps travel</td></tr>
       <tr><td>Shard seams</td><td>0.7px void</td></tr>
       <tr><td>Colour-split edge</td><td>1.3px cyan and pink, 1.4px apart; 1.8px void on top</td></tr>
       <tr><td>Halftone</td><td>0.85px dots on a 3.2px grid, 30&deg;</td></tr>
@@ -107,7 +109,7 @@
 
   <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
 
-  <script src="week-03-quirky.js?v=3"></script>
+  <script src="week-03-quirky.js?v=5"></script>
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

@@ -43,6 +43,9 @@
   --ink-max: 1.9;
   --loops: 3;                 /* how many times the pen goes round */
   --scribble-amp: 1.8;        /* how far each pass wanders, px */
+  --strands: 8;               /* brush strands round each outline */
+  --strand-spread: 6;         /* how far apart they fan where they float, px; 0 where they bunch */
+  --strand-drift: .22;        /* how far the bunching travels round the outline each boil frame */
 
   /* motion */
   --boil-ms: 125;             /* the lines re-wobble 8 times a second */

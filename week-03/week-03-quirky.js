@@ -13,6 +13,7 @@
   const col = n => css.getPropertyValue(n).trim();
 
   const INK_MIN = num('--ink-min'), INK_MAX = num('--ink-max');
+  const STRANDS = Math.round(num('--strands')), SPREAD = num('--strand-spread'), DRIFT = num('--strand-drift');
   const LOOPS = Math.round(num('--loops')), AMP = num('--scribble-amp');
   const BOIL_MS = num('--boil-ms'), BOIL_SCALE = num('--boil-scale'), RECOLOR_MS = num('--recolor-ms');
   const INK = col('--ink'), VOID = col('--void');
@@ -86,6 +87,49 @@
       el('path', { d: smooth(pts, false), ...stroke(rnd(INK_MIN, INK_MAX) * (p ? .7 : 1)) }, g);
     }
   }
+  // strands: like a dry brush, many strokes go round the shape side by side. How far
+  // apart they lie changes irregularly along the way: here they bunch into one black
+  // band, there they fan out and float apart. Each shape keeps a phase, and every boil
+  // frame the bunching drifts on round the outline, so the clumps travel.
+  const strandShapes = [];
+  function strands(g, d, n = 40) {
+    const base = sample(d, n);
+    const cx = base.reduce((a, p) => a + p[0], 0) / n, cy = base.reduce((a, p) => a + p[1], 0) / n;
+    const normals = base.map(([x, y]) => { const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy) || 1; return [dx / r, dy / r]; });
+    const shape = {
+      base, normals, phase: rnd(0, 6.283),
+      f1: Math.round(rnd(2, 3)), f2: Math.round(rnd(4, 6)), p2: rnd(0, 6.283),   // two rhythms of bunching
+      lines: [],
+    };
+    for (let k = 0; k < STRANDS; k++) {
+      const path = el('path', { ...stroke(rnd(INK_MIN * .5, INK_MAX * 1.15)) }, g);
+      shape.lines.push({
+        path,
+        lane: (k / (STRANDS - 1)) * 2 - 1 + rnd(-.25, .25),     // where it sits across the band, −1 to 1
+        start: Math.floor(rnd(0, n)), len: Math.floor(n * rnd(.75, 1.15)),   // most strands go nearly or just over once round
+        jit: Array.from({ length: n }, () => rnd(-.35, .35)),
+      });
+    }
+    strandShapes.push(shape);
+    drawStrands(shape);
+  }
+  function drawStrands(shape) {
+    const { base, normals, lines } = shape, n = base.length;
+    // spread along the outline, 0 (bunched) to 1 (fanned out); squared so bunching wins most of the way
+    const spread = i => {
+      const t = i / n * 6.283;
+      const v = .5 + .35 * Math.sin(shape.f1 * t + shape.phase) + .15 * Math.sin(shape.f2 * t + shape.p2 - shape.phase * .6);
+      return Math.max(0, Math.min(1, v)) ** 2;
+    };
+    for (const L of lines) {
+      const pts = [];
+      for (let s = 0; s <= L.len; s++) {
+        const i = (L.start + s) % n, off = spread(i) * SPREAD * L.lane + L.jit[i];
+        pts.push([base[i][0] + normals[i][0] * off, base[i][1] + normals[i][1] * off]);
+      }
+      L.path.setAttribute('d', smooth(pts, false));
+    }
+  }
   function spiral(g, cx, cy, r0, r1, turns) {
     const pts = [], n = Math.round(turns * 14), a0 = rnd(0, 6.28);
     for (let i = 0; i <= n; i++) {
@@ -144,13 +188,13 @@
       Object.assign(svg.dataset, { w: W, h: H });
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
       const ink = layer(svg, 'q-ink', 'q-boil');
-      scribble(ink, track, { n: 26 });
+      strands(ink, track, 48);
       const neon = layer(svg, 'q-neon', 'q-boil-soft');
       spray(neon, W / 2, H / 2, W / 2, H / 2, 16);
       neonFace(neon, track, [0, 0, W, H], 5, 2, DEEP, .6);
       const handle = el('g', { class: 'q-handle' }, svg);
       const hInk = layer(handle, 'q-ink', 'q-boil');
-      scribble(hInk, circle(H / 2, H / 2, R - 1), { n: 16, amp: AMP * .9 });
+      strands(hInk, circle(H / 2, H / 2, R - 1), 30);
       spiral(hInk, H / 2, H / 2, 1, R - 4, 2.2);
       const hNeon = layer(handle, 'q-neon', 'q-boil-soft');
       neonFace(hNeon, circle(H / 2, H / 2, R), [H / 2 - R, H / 2 - R, 2 * R, 2 * R], 3, 3, BRIGHT, .3);
@@ -159,7 +203,7 @@
       const S = 30, box = rrect(0, 0, S, S, 5);
       svg.setAttribute('viewBox', `0 0 ${S} ${S}`);
       const ink = layer(svg, 'q-ink', 'q-boil');
-      scribble(ink, box, { n: 20 });
+      strands(ink, box, 36);
       scribble(ink, circle(S + 1, -1, 2.6), { n: 9, loops: 2, passes: 1, amp: .7 });
       const neon = layer(svg, 'q-neon', 'q-boil-soft');
       spray(neon, S / 2, S / 2, S / 2, S / 2, 12);
@@ -173,7 +217,7 @@
       const S = 30, c = S / 2, ring = circle(c, c, 14);
       svg.setAttribute('viewBox', `0 0 ${S} ${S}`);
       const ink = layer(svg, 'q-ink', 'q-boil');
-      scribble(ink, circle(c, c, 13.5), { n: 20 });
+      strands(ink, circle(c, c, 13.5), 36);
       spiral(ink, c, c, .8, 8, 2.4);
       for (let i = 0; i < 3; i++) {
         const a = rnd(0, 6.283), d = rnd(17.5, 21), r = rnd(1.5, 3.6);
@@ -274,7 +318,16 @@
   // ---------- never still ----------
   if (BOIL_MS > 0) {
     let seed = 1;
-    setInterval(() => { seed = seed % 97 + 1; for (const t of turbs) t.setAttribute('seed', seed); }, BOIL_MS);
+    setInterval(() => {
+      seed = seed % 97 + 1;
+      for (const t of turbs) t.setAttribute('seed', seed);
+      // the bunching drifts on round each outline (only for controls showing ink)
+      for (const sh of strandShapes) {
+        if (sh.lines[0].path.closest('.ctl').previousElementSibling.checked && !sh.lines[0].path.closest('.q-handle')) continue;
+        sh.phase += DRIFT;
+        drawStrands(sh);
+      }
+    }, BOIL_MS);
   }
   if (RECOLOR_MS > 0) {
     setInterval(() => {
