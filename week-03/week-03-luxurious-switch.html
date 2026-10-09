@@ -11,7 +11,7 @@
      thumb will go, a shallow arc like the path of the sun low over the horizon. Turned
      on, the thumb travels along the line and comes to rest at its far end on a spring
      with no bounce, growing from a small glass bead to a solid cream one, while warm
-     lamplight is drawn along the line behind it. Off, it goes back the same way, quickly.
+     lamplight is drawn along the line behind it. Off, it goes back the same way, just as unhurried.
      The thumb turns about the arc's centre, so it can never leave the line. */
   :root {
     --sw-w: 76px;
@@ -24,6 +24,9 @@
     --thumb: 18px;
     --thumb-off: .72;                                 /* off, the thumb is a glass bead about 13px across */
     --sw-press: .92;
+    /* turning off: the thumb goes back along the route on the same unhurried spring it came on */
+    --return-dur: var(--arrive-dur);
+    --return-ease: var(--arrive-ease);
   }
   .switch { width: var(--sw-w); height: var(--sw-h); }
   .arc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -34,20 +37,20 @@
     fill: none; stroke: url(#lamp-arc); stroke-width: var(--route-lit); stroke-linecap: round;
     stroke-dasharray: 100 200; stroke-dashoffset: 100; opacity: 0;
     filter: drop-shadow(0 0 5px rgba(236, 200, 152, .7));
-    transition: stroke-dashoffset var(--leave-dur) var(--leave-ease), opacity 0s linear var(--leave-dur);
+    transition: stroke-dashoffset var(--return-dur) var(--return-ease), opacity 0s linear var(--return-dur);
   }
   /* the thumb turns about the route's centre, from one end to the other */
   .arc .orbit {
     transform-box: view-box; transform-origin: 38px 55.06px;
     rotate: calc(-1 * var(--arc-turn));
-    transition: rotate var(--leave-dur) var(--leave-ease);
+    transition: rotate var(--return-dur) var(--return-ease);
   }
   .arc .knob {
     transform-box: fill-box; transform-origin: center;
     fill: rgba(255, 248, 240, .28); stroke: rgba(255, 248, 240, .75); stroke-width: var(--stroke);
     filter: drop-shadow(0 2px 3px rgba(20, 12, 6, .35));
     scale: var(--thumb-off);
-    transition: scale var(--leave-dur) var(--leave-ease), fill var(--leave-dur) ease, stroke var(--leave-dur) ease;
+    transition: scale var(--return-dur) var(--return-ease), fill var(--fade-dur) ease, stroke var(--fade-dur) ease;
   }
   .sr-input:checked + .switch .light {
     stroke-dashoffset: 0; opacity: 1;
@@ -136,7 +139,7 @@
     <table>
       <tr><td>Thumb travels the route, light follows</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
       <tr><td>Lamplight fills</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
-      <tr><td>Everything, turning off</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
+      <tr><td>Turning off</td><td>Back along the route on the same spring, <span data-var="--arrive-dur"></span>, no bounce; the light drawn back behind it</td></tr>
     </table>
   </section>
 
