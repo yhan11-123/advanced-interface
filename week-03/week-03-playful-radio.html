@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Playful radio buttons</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-playful.css?v=1" />
+  <link rel="stylesheet" href="week-03-playful.css?v=2" />
   <style>
-  /* Playful radio buttons. Each dot is a soap bubble. Choose one and it blows up on a bouncy spring, overshooting before it settles, and leaves a ripple spreading from the ring; the one before shrinks away. */
+  /* Playful radio buttons. Each dot is a soap bubble. Choose another and the bubble travels over from the one chosen before, sliding home on a bouncy spring, stretched along its way and squashing as it lands, with a ripple spreading from the ring. */
   :root {
-    --rd-size: 26px;
-    --rd-dot: 14px;
+    --rd-size: 30px;
+    --rd-dot: 18px;
   }
   .ring {
     width: var(--rd-size); height: var(--rd-size); border-radius: 50%;
-    background: #fff; border: var(--stroke) solid var(--line-off);
-    transition: border-color var(--off-dur) var(--off-ease);
+    background: var(--jelly-base); border: var(--stroke) solid var(--line-off);
+    box-shadow: var(--jelly-off);
+    transition: border-color var(--off-dur) var(--off-ease), scale var(--squish-dur) ease-out;
   }
   /* the dot is a soap bubble */
   .bubble {
@@ -33,7 +34,20 @@
   }
   .sr-input:checked + .ring { border-color: var(--pop-5); }
   .sr-input:checked + .ring .bubble { scale: 1; transition: scale var(--bubble-dur) var(--bubble-ease); }
+  /* chosen after another: the bubble travels over from where the old one was */
+  .ring.leave .bubble { scale: 0; transition: none; }
+  .ring.travel .bubble {
+    scale: 1; transition: none;
+    animation: travel var(--roll-dur) var(--roll-ease), stretch .55s ease-out;
+  }
+  @keyframes travel { from { translate: 0 var(--from-y, 0); } to { translate: 0 0; } }
+  /* it stretches along the way it is going, then squashes as it lands */
+  @keyframes stretch { 0% { scale: .9 1.25; } 45% { scale: .92 1.15; } 70% { scale: 1.12 .88; } 85% { scale: .97 1.03; } 100% { scale: 1 1; } }
+  .ring.pop { animation: jelly var(--wobble-dur) ease-out; }
   .ctl.pop.ring::after { animation: ripple .6s ease-out; }
+  /* when it travelled, the ripple waits for it to land */
+  .ctl.pop.travel.ring::after { animation-delay: .3s; animation-fill-mode: backwards; }
+  @media (prefers-reduced-motion: reduce) { .ring.travel .bubble { animation: none; } }
   @keyframes ripple { 0% { opacity: .9; scale: 1; } 100% { opacity: 0; scale: 1.9; } }
   </style>
 </head>
@@ -105,7 +119,11 @@
 
     <h3>Motion</h3>
     <table>
-      <tr><td>Bubble blows up</td><td><span data-var="--bubble-dur"></span> spring, bounce 0.55 <code>linear(…)</code>: overshoots to 1.2</td></tr>
+      <tr><td>Jelly</td><td>Each control a soft gummy: light top edge, darker underside, a 3px lip below</td></tr>
+      <tr><td>Pressed</td><td>Squashes to <span data-var="--squish"></span> in <span data-var="--squish-dur"></span>, from its bottom edge</td></tr>
+      <tr><td>Let go, or changed</td><td>Wobbles back like jelly over <span data-var="--wobble-dur"></span>: 1.16 &times; 0.82 &rarr; 0.9 &times; 1.12 &rarr; settles</td></tr>
+      <tr><td>Bubble travels over</td><td>From the ring chosen before to the new one, <span data-var="--roll-dur"></span> spring, bounce 0.35 <code>linear(…)</code>; stretched 1.25&times; along its way, squashed as it lands (.55s)</td></tr>
+      <tr><td>Ripple</td><td>Waits .3s, for the bubble to land</td></tr>
       <tr><td>Ripple</td><td>.6s ease-out</td></tr>
       <tr><td>The one before</td><td><span data-var="--off-dur"></span> back to nothing</td></tr>
     </table>
@@ -113,7 +131,7 @@
 
   <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
 
-  <script src="week-03-playful.js?v=1"></script>
+  <script src="week-03-playful.js?v=2"></script>
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

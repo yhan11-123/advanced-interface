@@ -55,11 +55,21 @@
   --off-dur: .22s;
   --off-ease: cubic-bezier(.4, 0, .6, 1);
 
+  /* jelly: every control is a soft gummy. A light top edge, a darker underside and a
+     solid lip below give it thickness; pressed it squashes, let go it wobbles */
+  --jelly-off: inset 0 -3px 0 rgba(155, 128, 181, .22), inset 0 2px 1px rgba(255, 255, 255, .95), 0 3px 0 rgba(155, 128, 181, .3), 0 7px 12px -5px rgba(155, 128, 181, .45);
+  --jelly-on: inset 0 -4px 0 rgba(214, 84, 150, .3), inset 0 3px 1px rgba(255, 255, 255, .6), 0 3px 0 rgba(222, 96, 160, .38), 0 8px 14px -6px rgba(255, 111, 174, .55);
+  --jelly-base: linear-gradient(#fff, #f1e9fa);
+  --squish: 1.14 .82;         /* pressed: wider and lower, as if under a fingertip */
+  --squish-dur: .12s;
+  --wobble-dur: .62s;
+
   color-scheme: light;
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --roll-dur: .01s; --bubble-dur: .01s; --pop-dur: .01s; --off-dur: .01s; }
   .ctl.pop *, .ctl.pop, .ctl.unpop, .ctl.unpop * { animation: none !important; }
+  :root { --squish: 1 1; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -106,7 +116,18 @@ body {
 
 .sr-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
 .sr-input:focus-visible + .ctl { outline: 2px solid var(--pop-5); outline-offset: 4px; }
-.ctl { flex: none; position: relative; display: block; }
+.ctl { flex: none; position: relative; display: block; transform-origin: 50% 100%; }
+/* pressed: the gummy squashes down onto the row */
+.row:active .ctl { scale: var(--squish); }
+/* let go, or changed by keyboard: it wobbles back like jelly */
+@keyframes jelly {
+  0%   { scale: 1.16 .82; }
+  22%  { scale: .9 1.12; }
+  42%  { scale: 1.07 .94; }
+  62%  { scale: .97 1.03; }
+  82%  { scale: 1.01 .99; }
+  100% { scale: 1 1; }
+}
 
 .back-pill {
   position: fixed; left: 12px; top: 12px; z-index: 9;

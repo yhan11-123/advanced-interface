@@ -34,6 +34,19 @@
     clearTimeout(ctl._t);
     ctl._t = setTimeout(() => ctl.classList.remove('pop', 'unpop'), 1000);
   }
+  // radio buttons: the bubble does not pop up in place, it travels over from the one
+  // chosen before. The new bubble starts where the old one was (--from-y) and slides home
+  // on a bouncy spring, stretching as it goes; the old one is gone the same instant.
+  function travel(fromRing, toRing) {
+    const dy = fromRing.getBoundingClientRect().top - toRing.getBoundingClientRect().top;
+    toRing.style.setProperty('--from-y', dy + 'px');
+    for (const r of [fromRing, toRing]) r.classList.remove('leave', 'travel');
+    void toRing.offsetWidth;
+    fromRing.classList.add('leave');
+    toRing.classList.add('travel');
+    clearTimeout(toRing._tr);
+    toRing._tr = setTimeout(() => { toRing.classList.remove('travel'); fromRing.classList.remove('leave'); }, 1000);
+  }
   const chosen = new Map();
   for (const input of document.querySelectorAll('.sr-input')) {
     if (input.type === 'radio' && input.checked) chosen.set(input.name, input);
@@ -41,7 +54,10 @@
       kick(input.nextElementSibling, input.checked ? 'pop' : 'unpop');
       if (input.type === 'radio') {
         const prev = chosen.get(input.name);
-        if (prev && prev !== input) kick(prev.nextElementSibling, 'unpop');
+        if (prev && prev !== input) {
+          kick(prev.nextElementSibling, 'unpop');
+          travel(prev.nextElementSibling, input.nextElementSibling);
+        }
         chosen.set(input.name, input);
       }
     });

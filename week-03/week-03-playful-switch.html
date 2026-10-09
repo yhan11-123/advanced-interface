@@ -5,29 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Playful switch</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-playful.css?v=1" />
+  <link rel="stylesheet" href="week-03-playful.css?v=2" />
   <style>
   /* Playful switch. The handle is a pinwheel: four pastel blades, pink, sky, lemon and lilac, each with a paler fold, on a white pin. Switched, it rolls across the track on a bouncy spring, a little too far and back, spinning a turn and a quarter as it goes, like a pinwheel catching the wind; the track fills cotton-candy pink. Pressed, it squashes. */
   :root {
-    --sw-w: 62px;
-    --sw-h: 34px;
-    --ball: 28px;
-    --sw-travel: 28px;                                /* w − 2 × stroke − 2px − ball */
+    --sw-w: 68px;
+    --sw-h: 38px;
+    --ball: 30px;
+    --sw-travel: 30px;                                /* w − 2 × stroke − 2 × 2px − ball */
     --roll-turn: 450deg;                              /* a turn and a quarter: a pinwheel spins more than it rolls */
   }
   .switch {
     width: var(--sw-w); height: var(--sw-h); border-radius: calc(var(--sw-h) / 2);
-    background: var(--track-off); border: var(--stroke) solid var(--line-off);
-    transition: background-color var(--off-dur) var(--off-ease), border-color var(--off-dur) var(--off-ease);
+    background: var(--jelly-base); border: var(--stroke) solid var(--line-off);
+    box-shadow: var(--jelly-off);
+    transition: background-color var(--off-dur) var(--off-ease), border-color var(--off-dur) var(--off-ease), scale var(--squish-dur) ease-out;
   }
   .sw-on {
     position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
     background: linear-gradient(90deg, var(--pink), var(--peach));
+    box-shadow: var(--jelly-on);
     opacity: 0; transition: opacity var(--off-dur) var(--off-ease);
   }
   /* the pinwheel: it rolls across like a ball and spins like a pinwheel in the wind */
   .ball {
-    position: absolute; top: 1px; left: 1px;
+    position: absolute; top: 2px; left: 2px;
     width: var(--ball); height: var(--ball);
     filter: drop-shadow(0 2px 2px rgba(90, 70, 112, .28));
     transition: translate var(--roll-dur) var(--roll-ease), scale .15s ease;
@@ -37,8 +39,8 @@
   .sr-input:checked + .switch .sw-on { opacity: 1; transition: opacity .3s ease; }
   .sr-input:checked + .switch .ball { translate: var(--sw-travel) 0; }
   .sr-input:checked + .switch .ball-spin { rotate: var(--roll-turn); }
-  /* pressed: the pinwheel squashes a little under the finger */
-  .row:active .ball { scale: 1.08 .9; }
+  /* the jelly track wobbles each time it changes */
+  .switch.pop, .switch.unpop { animation: jelly var(--wobble-dur) ease-out; }
   </style>
 </head>
 <body>
@@ -111,16 +113,18 @@
 
     <h3>Motion</h3>
     <table>
+      <tr><td>Jelly</td><td>Each control a soft gummy: light top edge, darker underside, a 3px lip below</td></tr>
+      <tr><td>Pressed</td><td>Squashes to <span data-var="--squish"></span> in <span data-var="--squish-dur"></span>, from its bottom edge</td></tr>
+      <tr><td>Let go, or changed</td><td>Wobbles back like jelly over <span data-var="--wobble-dur"></span>: 1.16 &times; 0.82 &rarr; 0.9 &times; 1.12 &rarr; settles</td></tr>
       <tr><td>Roll, both ways</td><td><span data-var="--roll-dur"></span> spring, bounce 0.35 <code>linear(…)</code>: rolls 6.7% too far and back</td></tr>
       <tr><td>Track fill on</td><td>.3s ease</td></tr>
       <tr><td>Track fill off</td><td data-var="--off-dur"></td></tr>
-      <tr><td>Press</td><td>The pinwheel squashes to 1.08 &times; 0.9 in .15s</td></tr>
-    </table>
+          </table>
   </section>
 
   <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
 
-  <script src="week-03-playful.js?v=1"></script>
+  <script src="week-03-playful.js?v=2"></script>
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

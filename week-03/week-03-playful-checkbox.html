@@ -5,22 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Playful checkbox</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-playful.css?v=1" />
+  <link rel="stylesheet" href="week-03-playful.css?v=2" />
   <style>
-  /* Playful checkbox. Ticked, the box swells like a balloon being blown up, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it deflates. */
+  /* Playful checkbox. Ticked, the box swells like a balloon being blown up, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it lets its air out: the box sputters, the fill shrinks away and the check is flicked off. */
   :root {
-    --cb-size: 26px;
-    --cb-r: 9px;
+    --cb-size: 30px;
+    --cb-r: 10px;
     --cb-swell: 1.22;                                 /* how big the balloon gets before it pops */
+    --leak-dur: .9s;                                  /* unticking: the air goes out */
   }
   .box {
     width: var(--cb-size); height: var(--cb-size); border-radius: var(--cb-r);
-    background: #fff; border: var(--stroke) solid var(--line-off);
-    transition: border-color var(--off-dur) var(--off-ease);
+    background: var(--jelly-base); border: var(--stroke) solid var(--line-off);
+    box-shadow: var(--jelly-off);
+    transition: border-color var(--off-dur) var(--off-ease), scale var(--squish-dur) ease-out;
   }
   .bx-fill {
     position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
     background: linear-gradient(135deg, var(--pink), var(--lilac));
+    box-shadow: var(--jelly-on);
     opacity: 0; transition: opacity var(--off-dur) var(--off-ease);
   }
   .tick { position: absolute; inset: calc(-1 * var(--stroke)); width: var(--cb-size); height: var(--cb-size); overflow: visible; }
@@ -30,7 +33,7 @@
     transition: stroke-dashoffset .12s var(--off-ease);
   }
   /* the burst: eight lines just outside the box, drawn by the script */
-  .burst { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; overflow: visible; pointer-events: none; }
+  .burst { position: absolute; left: 50%; top: 50%; width: 94px; height: 94px; margin: -47px 0 0 -47px; overflow: visible; pointer-events: none; }
   .burst line { stroke-width: 2.5; stroke-linecap: round; opacity: 0; }
 
   /* on: the fill and the check arrive at the moment it pops (38% through) */
@@ -41,11 +44,12 @@
   /* the balloon: swells slowly, pops, wobbles back */
   .ctl.pop.box { animation: balloon var(--pop-dur) both; }
   @keyframes balloon {
-    0%   { scale: 1; background-color: #fff; animation-timing-function: cubic-bezier(.4, 0, .9, .6); }
-    34%  { scale: var(--cb-swell); background-color: #ffe3f0; animation-timing-function: linear; }
-    38%  { scale: .8; animation-timing-function: ease-out; }
-    62%  { scale: 1.08; }
-    82%  { scale: .97; }
+    0%   { scale: 1; animation-timing-function: cubic-bezier(.4, 0, .9, .6); }
+    34%  { scale: var(--cb-swell); animation-timing-function: linear; }
+    38%  { scale: 1.18 .74; animation-timing-function: ease-out; }
+    55%  { scale: .9 1.12; }
+    70%  { scale: 1.06 .95; }
+    85%  { scale: .98 1.02; }
     100% { scale: 1; }
   }
   /* the lines fly out from the edge at the pop */
@@ -56,8 +60,34 @@
     100%    { opacity: 0; translate: 0 -12px; }
   }
   /* off: a quick deflate */
-  .ctl.unpop.box { animation: deflate .3s ease-out; }
-  @keyframes deflate { 0% { scale: .86; } 60% { scale: 1.04; } 100% { scale: 1; } }
+  /* off: the balloon lets its air out. The box sputters side to side, the fill shrinks
+     away as if leaking, and the check is flicked off: it hops up and tumbles out of view */
+  .ctl.unpop.box { animation: sputter var(--leak-dur) ease-out; }
+  .ctl.unpop .bx-fill { animation: leak calc(var(--leak-dur) * .75) ease-in forwards; }
+  .tick path { transform-box: fill-box; transform-origin: center; }
+  .ctl.unpop .tick path { animation: flick var(--leak-dur) cubic-bezier(.3, 0, .7, 1) forwards; }
+  @keyframes sputter {
+    0%   { scale: 1.15 .85; rotate: 0deg; }
+    12%  { scale: .88 1.12; rotate: -18deg; }
+    24%  { scale: 1.1 .9; rotate: 15deg; }
+    38%  { scale: .94 1.06; rotate: -11deg; }
+    52%  { scale: 1.04 .96; rotate: 7deg; }
+    68%  { rotate: -4deg; }
+    84%  { rotate: 2deg; }
+    100% { scale: 1 1; rotate: 0deg; }
+  }
+  @keyframes leak {
+    0%   { opacity: 1; scale: 1; rotate: 0deg; }
+    35%  { opacity: 1; scale: .75 .6; rotate: 25deg; }
+    65%  { opacity: 1; scale: .45 .35; rotate: 70deg; }
+    100% { opacity: 0; scale: .1; rotate: 120deg; }
+  }
+  @keyframes flick {
+    0%   { stroke-dashoffset: 0; opacity: 1; translate: 0 0; rotate: 0deg; stroke: #fff; stroke-width: 2.5px; }
+    14%  { stroke: var(--pop-1); stroke-width: 3.5px; }   /* out of the box it would vanish on white, so it turns pink */
+    35%  { stroke-dashoffset: 0; opacity: 1; translate: 10px -26px; rotate: 35deg; stroke: var(--pop-1); stroke-width: 3.5px; }
+    100% { stroke-dashoffset: 0; opacity: 0; translate: 26px 34px; rotate: 160deg; stroke: var(--pop-1); stroke-width: 3.5px; }
+  }
   </style>
 </head>
 <body>
@@ -129,19 +159,22 @@
 
     <h3>Motion</h3>
     <table>
+      <tr><td>Jelly</td><td>Each control a soft gummy: light top edge, darker underside, a 3px lip below</td></tr>
+      <tr><td>Pressed</td><td>Squashes to <span data-var="--squish"></span> in <span data-var="--squish-dur"></span>, from its bottom edge</td></tr>
+      <tr><td>Let go, or changed</td><td>Wobbles back like jelly over <span data-var="--wobble-dur"></span>: 1.16 &times; 0.82 &rarr; 0.9 &times; 1.12 &rarr; settles</td></tr>
       <tr><td>Pop, in one go</td><td data-var="--pop-dur"></td></tr>
       <tr><td>&nbsp;&nbsp;Swell</td><td>0&ndash;34%: grows to <span data-var="--cb-swell"></span>, slowly speeding up, blushing pink</td></tr>
-      <tr><td>&nbsp;&nbsp;Pop</td><td>34&ndash;38%: snaps to 0.8; fill and lines appear</td></tr>
-      <tr><td>&nbsp;&nbsp;Settle</td><td>38&ndash;100%: 1.08 &rarr; 0.97 &rarr; 1</td></tr>
+      <tr><td>&nbsp;&nbsp;Pop</td><td>34&ndash;38%: squashes flat (1.18 &times; 0.74); fill and lines appear</td></tr>
+      <tr><td>&nbsp;&nbsp;Settle</td><td>38&ndash;100%: wobbles tall, wide, tall, and still, like jelly</td></tr>
       <tr><td>Burst lines</td><td>From 40%: fly 12px out and fade</td></tr>
       <tr><td>Check drawn</td><td>.25s ease-out, from 42%</td></tr>
-      <tr><td>Off</td><td>A quick deflate, .3s: 0.86 &rarr; 1.04 &rarr; 1</td></tr>
+      <tr><td>Off, the air goes out</td><td><span data-var="--leak-dur"></span>: the box sputters hard side to side (&minus;18&deg;, 15&deg;, &minus;11&deg;, 7&deg;&hellip;), the fill twists and shrinks away as if leaking, and the check, turning pink and thicker, is flicked 26px up and tumbles off</td></tr>
     </table>
   </section>
 
   <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
 
-  <script src="week-03-playful.js?v=1"></script>
+  <script src="week-03-playful.js?v=2"></script>
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

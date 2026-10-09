@@ -7,54 +7,65 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-03-luxurious.css?v=9" />
   <style>
-  /* Luxurious switch. A frosted glass track and thumb in a dusk-lit room. Turned on, the thumb glides across on a spring with no bounce, grows from small to full and turns solid cream, and the track fills with warm lamplight. Off undoes it quickly. */
+  /* Luxurious switch, on a route. No track to sit in: one fine line shows the way the
+     thumb will go, a shallow arc like the path of the sun low over the horizon. Turned
+     on, the thumb travels along the line and comes to rest at its far end on a spring
+     with no bounce, growing from a small glass bead to a solid cream one, while warm
+     lamplight is drawn along the line behind it. Off, it goes back the same way, quickly.
+     The thumb turns about the arc's centre, so it can never leave the line. */
   :root {
-    --sw-w: 52px;
-    --sw-h: 30px;
-    --thumb: 24px;
-    --sw-inset: 2px;
-    --sw-travel: 22px;                                /* w − 2 × stroke − 2 × inset − thumb */
-    --thumb-off: .72;                                 /* off, the thumb is drawn at this scale: about 17px */
+    --sw-w: 76px;
+    --sw-h: 32px;
+    --arc-r: 42px;                                    /* radius of the route: a shallow arc */
+    --arc-rise: 9px;                                  /* how high it rises over its 52px span */
+    --arc-turn: 38.19deg;                             /* half the angle the route spans, either side of the top */
+    --route: 3px;                                     /* the route, off */
+    --route-lit: 4px;                                 /* the lamplight drawn along it, on */
+    --thumb: 18px;
+    --thumb-off: .72;                                 /* off, the thumb is a glass bead about 13px across */
     --sw-press: .92;
   }
-  /* a glass track; on, it fills with warm lamplight */
-  .switch {
-    width: var(--sw-w); height: var(--sw-h); border-radius: calc(var(--sw-h) / 2);
-    border: var(--stroke) solid var(--glass-line);
-    background: var(--glass-fill);
-    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 2px rgba(20, 12, 6, .25);
-    transition: border-color var(--leave-dur) var(--leave-ease), background-color var(--leave-dur) var(--leave-ease);
+  .switch { width: var(--sw-w); height: var(--sw-h); }
+  .arc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  /* the route, one fine line */
+  .arc .route { fill: none; stroke: var(--glass-line); stroke-width: var(--route); stroke-linecap: round; }
+  /* lamplight drawn along the route, up to the thumb */
+  .arc .light {
+    fill: none; stroke: url(#lamp-arc); stroke-width: var(--route-lit); stroke-linecap: round;
+    stroke-dasharray: 100 200; stroke-dashoffset: 100; opacity: 0;
+    filter: drop-shadow(0 0 5px rgba(236, 200, 152, .7));
+    transition: stroke-dashoffset var(--leave-dur) var(--leave-ease), opacity 0s linear var(--leave-dur);
   }
-  .sw-light {
-    position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
-    background: linear-gradient(90deg, var(--warm-1), var(--warm-2));
-    box-shadow: 0 0 18px rgba(236, 200, 152, .35);
-    opacity: 0; transition: opacity var(--leave-dur) var(--leave-ease);
+  /* the thumb turns about the route's centre, from one end to the other */
+  .arc .orbit {
+    transform-box: view-box; transform-origin: 38px 55.06px;
+    rotate: calc(-1 * var(--arc-turn));
+    transition: rotate var(--leave-dur) var(--leave-ease);
   }
-  /* a frosted glass thumb; on, it turns solid cream */
-  .thumb {
-    position: absolute; top: calc((var(--sw-h) - 2 * var(--stroke) - var(--thumb)) / 2); left: var(--sw-inset);
-    width: var(--thumb); height: var(--thumb); border-radius: 50%;
-    background: rgba(255, 248, 240, .32);
-    border: var(--stroke) solid rgba(255, 248, 240, .6);
-    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-    box-shadow: 0 2px 6px rgba(20, 12, 6, .3);
+  .arc .knob {
+    transform-box: fill-box; transform-origin: center;
+    fill: rgba(255, 248, 240, .28); stroke: rgba(255, 248, 240, .75); stroke-width: var(--stroke);
+    filter: drop-shadow(0 2px 3px rgba(20, 12, 6, .35));
     scale: var(--thumb-off);
-    transition: translate var(--leave-dur) var(--leave-ease), scale var(--leave-dur) var(--leave-ease), background-color var(--leave-dur) ease;
+    transition: scale var(--leave-dur) var(--leave-ease), fill var(--leave-dur) ease, stroke var(--leave-dur) ease;
   }
-  .sr-input:checked + .switch { border-color: transparent; transition: border-color var(--fade-dur) ease; }
-  .sr-input:checked + .switch .sw-light { opacity: 1; transition: opacity var(--fade-dur) ease; }
-  .sr-input:checked + .switch .thumb {
-    translate: var(--sw-travel) 0; background-color: #fbf3e8; scale: 1;
-    transition: translate var(--arrive-dur) var(--arrive-ease), scale var(--arrive-dur) var(--arrive-ease), background-color var(--fade-dur) ease;
+  .sr-input:checked + .switch .light {
+    stroke-dashoffset: 0; opacity: 1;
+    transition: stroke-dashoffset var(--arrive-dur) var(--arrive-ease), opacity 0s;
+  }
+  .sr-input:checked + .switch .orbit { rotate: var(--arc-turn); transition: rotate var(--arrive-dur) var(--arrive-ease); }
+  .sr-input:checked + .switch .knob {
+    fill: #fbf3e8; stroke: transparent; scale: 1;
+    transition: scale var(--arrive-dur) var(--arrive-ease), fill var(--fade-dur) ease, stroke var(--fade-dur) ease;
   }
   /* pressed: it gives a little, from whichever size it is */
-  .row:active .thumb { scale: calc(var(--thumb-off) * var(--sw-press)); }
-  .row:active .sr-input:checked + .switch .thumb { scale: var(--sw-press); }
+  .row:active .knob { scale: calc(var(--thumb-off) * var(--sw-press)); }
+  .row:active .sr-input:checked + .switch .knob { scale: var(--sw-press); }
   </style>
 </head>
 <body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="lamp-arc" x1="0" x2="1"><stop offset="0" stop-color="#e2bf90"/><stop offset="1" stop-color="#f3dfc0"/></linearGradient></defs></svg>
 
   <main class="stage">
     <section class="card" aria-labelledby="title">
@@ -63,17 +74,17 @@
         <label class="row">
           <span class="text"><span class="label">Climate control</span><span class="support">Holds the room at 19°</span></span>
           <input class="sr-input" type="checkbox" role="switch" checked />
-          <span class="ctl switch" aria-hidden="true"><span class="sw-light"></span><span class="thumb"></span></span>
+          <span class="ctl switch" aria-hidden="true"><svg class="arc" viewBox="0 0 76 32"><path class="route" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><path class="light" pathLength="100" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><g class="orbit"><circle class="knob" cx="38" cy="13" r="9"/></g></svg></span>
         </label>
         <label class="row">
           <span class="text"><span class="label">Ambient light</span><span class="support">Warm, at 20%</span></span>
           <input class="sr-input" type="checkbox" role="switch" />
-          <span class="ctl switch" aria-hidden="true"><span class="sw-light"></span><span class="thumb"></span></span>
+          <span class="ctl switch" aria-hidden="true"><svg class="arc" viewBox="0 0 76 32"><path class="route" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><path class="light" pathLength="100" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><g class="orbit"><circle class="knob" cx="38" cy="13" r="9"/></g></svg></span>
         </label>
         <label class="row">
           <span class="text"><span class="label">Do not disturb</span><span class="support">Until 7 AM</span></span>
           <input class="sr-input" type="checkbox" role="switch" />
-          <span class="ctl switch" aria-hidden="true"><span class="sw-light"></span><span class="thumb"></span></span>
+          <span class="ctl switch" aria-hidden="true"><svg class="arc" viewBox="0 0 76 32"><path class="route" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><path class="light" pathLength="100" d="M 12 22 A 42.06 42.06 0 0 1 64 22"/><g class="orbit"><circle class="knob" cx="38" cy="13" r="9"/></g></svg></span>
         </label>
       </div>
     </section>
@@ -83,15 +94,15 @@
     <h2 id="spec-title">Spec</h2>
     <p>Read from the CSS this page runs on. With reduced motion on, nothing glides; only the end states remain.</p>
 
-    <h3>Switch</h3>
+    <h3>Switch, on a route</h3>
     <table>
-      <tr><td>Track</td><td data-var="--sw-w,--sw-h" data-join=" × " data-after=", fully round, frosted glass"></td></tr>
-      <tr><td>Track outline, off</td><td data-var="--stroke" data-after=" cream at 55%"></td></tr>
-      <tr><td>Thumb</td><td><span data-var="--thumb"></span> when on, drawn at <span data-var="--thumb-off"></span> (about 17px) when off; frosted glass, solid cream when on</td></tr>
-      <tr><td>Thumb inset</td><td data-var="--sw-inset"></td></tr>
-      <tr><td>Thumb travel</td><td data-var="--sw-travel"></td></tr>
-      <tr><td>On</td><td>The track fills with warm lamplight and gives off a soft warmth</td></tr>
-      <tr><td>On is told by</td><td>Thumb position, its larger size, and the lit track</td></tr>
+      <tr><td>Control</td><td data-var="--sw-w,--sw-h" data-join=" × "></td></tr>
+      <tr><td>Route</td><td>One <span data-var="--route"></span> line, round ends, cream at 55%: a shallow arc rising <span data-var="--arc-rise"></span> over a 52px span (radius <span data-var="--arc-r"></span>)</td></tr>
+      <tr><td>Thumb</td><td><span data-var="--thumb"></span> solid cream when on; a glass bead drawn at <span data-var="--thumb-off"></span> (about 13px) when off</td></tr>
+      <tr><td>Thumb travel</td><td>Turns <span data-var="--arc-turn"></span> either side of the top, about the route's centre, so it stays on the line</td></tr>
+      <tr><td>On</td><td>Lamplight drawn along the route behind the thumb, <span data-var="--route-lit"></span>, with a soft 5px warmth</td></tr>
+      <tr><td>On is told by</td><td>Thumb at the right end, its larger solid size, and the lit route</td></tr>
+      <tr><td>States</td><td>Two only, the ends; nothing stops halfway</td></tr>
       <tr><td>Pressed</td><td data-var="--sw-press" data-after=" scale"></td></tr>
     </table>
 
@@ -123,7 +134,7 @@
 
     <h3>Motion</h3>
     <table>
-      <tr><td>Thumb glides</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
+      <tr><td>Thumb travels the route, light follows</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
       <tr><td>Lamplight fills</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
       <tr><td>Everything, turning off</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
     </table>
