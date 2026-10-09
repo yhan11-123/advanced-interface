@@ -5,37 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 03 &middot; Mysterious checkbox</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-03-mysterious.css?v=14" />
+  <link rel="stylesheet" href="week-03-mysterious.css?v=15" />
   <style>
-  /* Mysterious checkbox. Empty, it is a dim square in the dark. Ticked, a short hush, then moonlight opens from its centre with the check already inside it, as if a light had found something that was always there; the row surfaces with it. */
+  /* Mysterious checkbox, as a light bulb hanging base-up. Empty, it is a dim outline of a bulb in the dark. Ticked, a short hush, then it comes on like a failing bulb: the glass fills with light, the check already inside it, and it catches, dies, stutters twice and holds; the row surfaces with it. */
   :root {
-    --cb-size: 22px;
-    --cb-r: 3px;
+    --bulb-w: 22px;
+    --bulb-h: 30px;
+    --flicker-dur: .62s;                              /* catches, dies, stutters, holds */
   }
 
-  .box {
-    width: var(--cb-size); height: var(--cb-size); border-radius: var(--cb-r);
-    border: var(--stroke) solid var(--line-off);
-    transition: border-color var(--hide-dur) var(--hide-ease), box-shadow var(--hide-dur) var(--hide-ease), filter var(--hide-dur) var(--hide-ease);
-  }
-  /* moonlight inside the box, with the check already in it, opened from the centre */
-  .cb-light {
-    position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
-    background: radial-gradient(circle at 35% 30%, var(--moon), var(--moon-shade));
-    clip-path: circle(0 at 50% 50%);
-    transition: clip-path var(--hide-dur) var(--hide-ease);
-  }
-  .cb-light svg { display: block; width: 100%; height: 100%; }
-  .cb-light path { fill: none; stroke: var(--night); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round; }
+  .box { width: var(--bulb-w); height: var(--bulb-h); transition: filter var(--hide-dur) var(--hide-ease); }
+  .bulb { display: block; width: 100%; height: 100%; overflow: visible; }
+  /* off: the glass and the screw base drawn in one dim line */
+  .bulb .glass, .bulb .base { fill: none; stroke: var(--line-off); stroke-width: var(--stroke); stroke-linecap: round; stroke-linejoin: round; transition: stroke var(--hide-dur) var(--hide-ease); }
+  /* on: the glass fills with light, the check inside it in night */
+  .bulb .lit { opacity: 0; transition: opacity var(--hide-dur) var(--hide-ease); }
+  .bulb .lit .fill { fill: url(#bulb-light); }
+  .bulb .lit .tick { fill: none; stroke: var(--night); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round; }
+  .bulb .lit { filter: drop-shadow(0 0 7px rgba(255, 255, 255, .28)); }
 
-  .sr-input:checked + .box {
-    border-color: transparent; box-shadow: 0 0 14px rgba(255, 255, 255, .24);
-    transition: border-color var(--reveal-dur) var(--reveal-ease) var(--hush), box-shadow var(--reveal-dur) var(--reveal-ease) var(--hush), filter var(--reveal-dur) var(--reveal-ease) var(--hush);
+  .sr-input:checked + .box { transition: filter var(--reveal-dur) var(--reveal-ease) var(--hush); }
+  .sr-input:checked + .box .glass { stroke: transparent; transition: stroke 0s linear var(--hush); }
+  .sr-input:checked + .box .base { stroke: var(--moon-shade); transition: stroke 0s linear var(--hush); }
+  .sr-input:checked + .box .lit { opacity: 1; transition: opacity 0s linear var(--hush); }
+  /* ticked by hand: it comes on like a failing bulb, in held frames */
+  .box.flick .lit { animation: flicker var(--flicker-dur) steps(1, end) var(--hush) both; }
+  @keyframes flicker {
+    0%   { opacity: 0; }
+    8%   { opacity: .85; }
+    15%  { opacity: 0; }
+    30%  { opacity: .5; }
+    35%  { opacity: 0; }
+    48%  { opacity: 1; }
+    55%  { opacity: .2; }
+    63%, 100% { opacity: 1; }
   }
-  .sr-input:checked + .box .cb-light { clip-path: circle(75% at 50% 50%); transition: clip-path var(--reveal-dur) var(--reveal-ease) var(--hush); }
+  @media (prefers-reduced-motion: reduce) { .box.flick .lit { animation: none; } }
   </style>
 </head>
 <body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="bulb-light" cx="40%" cy="62%" r="70%"><stop offset="0" stop-color="#ededed"/><stop offset="1" stop-color="#9a9a9a"/></radialGradient></defs></svg>
 
   <main class="stage">
     <fieldset class="list">
@@ -43,17 +53,17 @@
       <div>
         <label class="row">
           <input class="sr-input" type="checkbox" checked />
-          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="ctl box" aria-hidden="true"><svg class="bulb" viewBox="0 0 22 30"><g class="lit"><path class="fill" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="tick" d="M7 20 l2.9 2.9 l5.3 -5.7"/></g><path class="glass" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="base" transform="matrix(1 0 0 -1 0 30)" d="M7 22.5 H15 M7.5 25 H14.5 M9 27.5 H13"/></svg></span>
           <span class="label">Contacts</span>
         </label>
         <label class="row">
           <input class="sr-input" type="checkbox" />
-          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="ctl box" aria-hidden="true"><svg class="bulb" viewBox="0 0 22 30"><g class="lit"><path class="fill" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="tick" d="M7 20 l2.9 2.9 l5.3 -5.7"/></g><path class="glass" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="base" transform="matrix(1 0 0 -1 0 30)" d="M7 22.5 H15 M7.5 25 H14.5 M9 27.5 H13"/></svg></span>
           <span class="label">Friends of friends</span>
         </label>
         <label class="row">
           <input class="sr-input" type="checkbox" />
-          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="ctl box" aria-hidden="true"><svg class="bulb" viewBox="0 0 22 30"><g class="lit"><path class="fill" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="tick" d="M7 20 l2.9 2.9 l5.3 -5.7"/></g><path class="glass" transform="matrix(1 0 0 -1 0 30)" d="M6.5 20 C6.5 16.5 2 14.5 2 10 A9 9 0 0 1 20 10 C20 14.5 15.5 16.5 15.5 20 Z"/><path class="base" transform="matrix(1 0 0 -1 0 30)" d="M7 22.5 H15 M7.5 25 H14.5 M9 27.5 H13"/></svg></span>
           <span class="label">Nearby</span>
         </label>
       </div>
@@ -64,14 +74,12 @@
     <h2 id="spec-title">Spec</h2>
     <p>Read from the CSS this page runs on. With reduced motion on, the light still comes, without the hush or the travel. Settings you make may not stay made.</p>
 
-    <h3>Checkbox</h3>
+    <h3>Checkbox, a light bulb</h3>
     <table>
-      <tr><td>Box</td><td data-var="--cb-size,--cb-size" data-join=" × "></td></tr>
-      <tr><td>Corner</td><td data-var="--cb-r"></td></tr>
-      <tr><td>Outline, empty</td><td data-var="--stroke" data-after=" dim"></td></tr>
-      <tr><td>Check</td><td><span data-var="--mark-stroke"></span> night, on moonlight</td></tr>
-      <tr><td>On</td><td>Moonlight fills the box from its centre, the check already inside it; a faint glow around</td></tr>
-      <tr><td>On is told by</td><td>A filled, lit box and its check</td></tr>
+      <tr><td>Bulb</td><td data-var="--bulb-w,--bulb-h" data-join=" × " data-after=": hanging base-up, a three-line screw base over an 18px glass"></td></tr>
+      <tr><td>Outline, off</td><td data-var="--stroke" data-after=" dim, glass and base"></td></tr>
+      <tr><td>On</td><td>The glass fills with light, the check in it in night (<span data-var="--mark-stroke"></span>); the base lights to the far side of the light; a soft 7px glow</td></tr>
+      <tr><td>On is told by</td><td>A lit bulb with a check in it</td></tr>
     </table>
 
     <h3>Row and type</h3>
@@ -110,7 +118,7 @@
     <table>
       <tr><td>Chance a setting is undone</td><td data-var="--tamper-chance" data-after=", each time you switch something on"></td></tr>
       <tr><td>When</td><td><span data-var="--tamper-min"></span>&ndash;<span data-var="--tamper-max"></span> s later, at random</td></tr>
-      <tr><td>How</td><td><span data-var="--tamper-dur"></span> burst of red static on the row, the words jitter red, and it is off again</td></tr>
+      <tr><td>How</td><td><span data-var="--tamper-dur"></span> burst of mostly grey static with a few red specks on the row, the words jitter, and it is off again</td></tr>
       <tr><td>Radio buttons</td><td>The group falls back to what was chosen before</td></tr>
       <tr><td>Cancelled by</td><td>Changing it yourself before it happens</td></tr>
       <tr><td>Screen readers</td><td>Told plainly, politely: &ldquo;Incognito was turned off.&rdquo;</td></tr>
@@ -121,7 +129,7 @@
       <tr><td>Hush before the light</td><td data-var="--hush"></td></tr>
       <tr><td>Reveal</td><td><span data-var="--reveal-dur"></span> <code>cubic-bezier(.2, .7, .2, 1)</code>, no overshoot</td></tr>
       <tr><td>The dark returns</td><td><span data-var="--hide-dur"></span> <code>cubic-bezier(.4, 0, 1, 1)</code>, no hush</td></tr>
-      <tr><td>Light opens in the box</td><td><span data-var="--reveal-dur"></span> after the hush, a circle from the centre</td></tr>
+      <tr><td>Bulb comes on</td><td><span data-var="--flicker-dur"></span> after the hush, in held frames: on 85%, off, 50%, off, full, 20%, full and holds</td></tr>
       <tr><td>At rest</td><td>Nothing moves</td></tr>
       <tr><td>Pointer light</td><td><span data-var="--torch-r"></span> radius, cold white at <span data-var="--torch-alpha"></span>, screen blend</td></tr>
     </table>
@@ -129,7 +137,7 @@
 
   <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
 
-  <script src="week-03-mysterious.js?v=4"></script>
+  <script src="week-03-mysterious.js?v=5"></script>
   <script src="week-03-spec.js?v=1"></script>
   <script>
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');

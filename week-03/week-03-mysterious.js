@@ -62,6 +62,19 @@
     setTimeout(() => row.classList.remove('is-tampered'), BURST + 50);
   }
 
+  // a checkbox ticked by hand gets .flick for the length of its flicker
+  for (const input of inputs) {
+    if (input.type !== 'checkbox' || !input.nextElementSibling.classList.contains('box')) continue;
+    input.addEventListener('change', () => {
+      const box = input.nextElementSibling;
+      box.classList.remove('flick');
+      if (!input.checked) return;
+      void box.offsetWidth;
+      box.classList.add('flick');
+      clearTimeout(box._f); box._f = setTimeout(() => box.classList.remove('flick'), 1200);
+    });
+  }
+
   for (const input of inputs) {
     input.addEventListener('change', () => {
       clearTimeout(input._tamper);
