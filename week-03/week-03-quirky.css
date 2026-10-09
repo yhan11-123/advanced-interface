@@ -1,0 +1,165 @@
+/* Week 03 · Quirky: shared by the switch, checkbox and radio prototypes.
+   Never still. Off, each control is ink scribbled round and round on grey
+   paper, tangled loops that keep boiling like hand-drawn animation on
+   eights. On, it turns into faces: neon shards on black, halftone dots,
+   a colour-split edge and spray around it, re-coloured every few frames.
+   Changes jump in steps, like a stop-motion cut, never a glide.
+   The page script (week-03-quirky.js) draws the controls and reads its
+   timing and line weights from the custom properties below. */
+
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap");
+
+:root {
+  /* colour */
+  --paper: #b3b2ae;           /* grey paper, as in the ink reference */
+  --ink: #111110;             /* the scribble and the labels */
+  --ink-soft: #3b3b39;
+  --void: #0b0b0d;            /* the black every neon face sits on */
+  --neon-pink: #ff2bd6;
+  --neon-green: #39ff6a;
+  --neon-cyan: #1fe5ff;
+  --neon-orange: #ff7a1a;
+  --neon-yellow: #fff23a;
+  --neon-violet: #8a3dff;
+
+  /* type */
+  --font: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --title-size: 24px;
+  --title-line: 28px;
+  --title-weight: 800;
+  --label-size: 19px;
+  --label-line: 24px;
+  --label-weight: 600;
+  --label-on-weight: 800;     /* a row that is on shouts a little */
+
+  /* layout */
+  --list-w: 340px;
+  --row-h: 64px;
+  --row-pad: 12px;
+  --row-gap: 16px;
+
+  /* line: every scribble stroke is picked between these */
+  --ink-min: 1.1;
+  --ink-max: 1.9;
+  --loops: 3;                 /* how many times the pen goes round */
+  --scribble-amp: 1.8;        /* how far each pass wanders, px */
+
+  /* motion */
+  --boil-ms: 125;             /* the lines re-wobble 8 times a second */
+  --boil-scale: 2.4;          /* how far they wobble, px */
+  --recolor-ms: 250;          /* neon faces change colour 4 times a second */
+  --step-dur: .5s;            /* the hop: 6 frames, each held 83ms, like animating on twos at 24fps */
+  --pop-dur: .32s;            /* the jump into faces, 4 frames */
+  --grow-dur: .5s;            /* chosen: swells past its size and springs back */
+  --grow-peak: 1.3;
+  --swap-dur: .08s;           /* ink and neon cut, not fade */
+
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --boil-ms: 0; --recolor-ms: 0; --step-dur: .01s; --pop-dur: .01s; --swap-dur: .01s; --grow-dur: .01s; }
+  .ctl.pop, .ctl.unpop, .ctl.pop *, .ctl.unpop * { animation: none !important; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0; color: var(--ink);
+  font: var(--label-weight) var(--label-size) / var(--label-line) var(--font);
+  -webkit-font-smoothing: antialiased;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(70% 60% at 50% 45%, #bdbcb8, var(--paper));
+}
+
+.stage { min-height: 100vh; display: grid; place-items: center; padding: 20px 16px; }
+.list { width: min(100%, var(--list-w)); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.list h1, .list legend {
+  float: left; width: 100%;
+  margin: 0 0 4px; padding: 0 var(--row-pad);
+  font-size: var(--title-size); line-height: var(--title-line); font-weight: var(--title-weight);
+  letter-spacing: -.02em; font-stretch: condensed;
+}
+.list legend + *, .list h1 + * { clear: both; }
+
+.row {
+  position: relative;
+  display: flex; align-items: center; gap: var(--row-gap);
+  min-height: var(--row-h); padding: 6px var(--row-pad);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.label { flex: 1; min-width: 0; font-size: var(--label-size); line-height: var(--label-line); font-weight: var(--label-weight); letter-spacing: -.01em; }
+.row:hover .label { text-decoration: underline wavy var(--ink) 1px; text-underline-offset: 5px; }
+
+/* the row, when on: it turns too. A rough black band (drawn by the script) slams in
+   behind it, and the label goes neon with a colour-split edge, re-coloured as it boils. */
+.row { isolation: isolate; }
+.q-row-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1;
+  overflow: visible; pointer-events: none;
+  opacity: 0; transition: opacity var(--swap-dur) steps(1, end);
+  transform-origin: left center;
+}
+.row:has(.sr-input:checked) .q-row-bg { opacity: 1; }
+.label { transition: color var(--swap-dur) steps(1, end); }
+.row:has(.sr-input:checked) .label {
+  color: var(--row-neon, var(--neon-yellow));
+  font-weight: var(--label-on-weight);
+  text-shadow: -1.5px 0 var(--neon-pink), 1.5px 0 var(--neon-cyan);
+}
+.row:has(.sr-input:checked):hover .label { text-decoration-color: var(--row-neon, var(--neon-yellow)); }
+.row.row-pop .q-row-bg { animation: slam var(--pop-dur) steps(3, end); }
+.row.row-pop .label { animation: jolt var(--pop-dur) steps(3, end); }
+.row.row-unpop .label { animation: jolt var(--pop-dur) steps(2, end) reverse; }
+@keyframes slam { 0% { scale: .15 .6; } 40% { scale: 1.05 1.2; } 75% { scale: .99 .96; } 100% { scale: 1 1; } }
+@keyframes jolt { 0% { translate: -8px 0; rotate: -3deg; } 50% { translate: 4px 0; rotate: 2deg; } 100% { translate: 0 0; rotate: 0deg; } }
+
+/* a rough, boiling rule between rows, drawn by the script */
+.rule { position: absolute; left: var(--row-pad); top: -3px; width: calc(100% - 2 * var(--row-pad)); height: 6px; overflow: visible; pointer-events: none; }
+
+.sr-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.sr-input:focus-visible + .ctl { outline: 2px dashed var(--ink); outline-offset: 6px; border-radius: 6px; }
+
+.ctl { flex: none; display: block; }
+.ctl svg { display: block; overflow: visible; }
+
+/* ink and neon swap in a cut */
+.q-ink { transition: opacity var(--swap-dur) steps(1, end); }
+.q-neon { opacity: 0; transition: opacity var(--swap-dur) steps(1, end); }
+.sr-input:checked + .ctl .q-ink { opacity: 0; }
+.sr-input:checked + .ctl .q-neon { opacity: 1; }
+.q-neon, .q-ink { transform-box: fill-box; transform-origin: center; }
+.ctl.pop .q-neon { animation: pop var(--pop-dur) steps(4, end); }
+.ctl.unpop .q-ink { animation: unpop var(--pop-dur) steps(3, end); }
+@keyframes pop { 0% { scale: .6; rotate: -8deg; } 35% { scale: 1.25; rotate: 6deg; } 70% { scale: .92; rotate: -2deg; } 100% { scale: 1; rotate: 0deg; } }
+/* chosen checkbox or radio: the whole control swells past its size, colour split at the peak, then springs back */
+.ctl[data-kind="checkbox"], .ctl[data-kind="radio"] { transform-origin: center; }
+.ctl.pop[data-kind="checkbox"], .ctl.pop[data-kind="radio"] { animation: grow var(--grow-dur) ease-out; }
+.ctl.pop[data-kind="checkbox"] .q-neon, .ctl.pop[data-kind="radio"] .q-neon { animation: none; }
+@keyframes grow {
+  0%   { scale: 1; filter: none; }
+  28%  { scale: var(--grow-peak); rotate: -6deg; filter: drop-shadow(3px 0 var(--neon-pink)) drop-shadow(-3px 0 var(--neon-cyan)); }
+  52%  { scale: .9; rotate: 4deg; filter: drop-shadow(1.5px 0 var(--neon-pink)) drop-shadow(-1.5px 0 var(--neon-cyan)); }
+  74%  { scale: 1.06; rotate: -1deg; filter: none; }
+  100% { scale: 1; rotate: 0deg; filter: none; }
+}
+@keyframes unpop { 0% { scale: 1.2; rotate: 6deg; } 60% { scale: .94; } 100% { scale: 1; rotate: 0deg; } }
+
+.back-pill {
+  position: fixed; left: 12px; top: 12px; z-index: 9;
+  font: 700 12px/1 var(--font); color: var(--paper); background: var(--ink);
+  padding: 8px 12px; border-radius: 999px; text-decoration: none;
+}
+
+/* ---------- Spec ---------- */
+.spec { max-width: 720px; margin: 0 auto; padding: 24px 20px 72px; }
+.spec h2 { margin: 0 0 4px; font-size: 30px; line-height: 34px; font-weight: 800; letter-spacing: -.02em; }
+.spec > p { margin: 0 0 24px; font: 500 14px/21px var(--font); color: var(--ink-soft); }
+.spec h3 { margin: 28px 0 8px; font-size: 12px; line-height: 16px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.spec table { width: 100%; border-collapse: collapse; font: 500 14px/20px var(--font); }
+.spec td { padding: 10px 0; border-top: 1px solid rgba(17, 17, 16, .25); vertical-align: top; }
+.spec tr:last-child td { border-bottom: 1px solid rgba(17, 17, 16, .25); }
+.spec td:first-child { width: 42%; padding-right: 16px; color: var(--ink-soft); }
+.spec td:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+.spec code { font: 500 12.5px/18px ui-monospace, Menlo, monospace; color: var(--ink-soft); }
+.swatch { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: 1px solid rgba(17, 17, 16, .4); }

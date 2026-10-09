@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Mysterious radio buttons</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-mysterious.css?v=14" />
+  <style>
+  /* Mysterious radio buttons. Each dot is a moon in eclipse, its shadow the colour of night, so only the dim ring shows. Choose one: a hush, then the shadow slides off, a crescent widening to a full moon, the ring lights and the row surfaces. The one before goes back into eclipse at once. */
+  :root {
+    --rd-size: 22px;
+    --rd-moon: 12px;
+  }
+
+  .ring {
+    width: var(--rd-size); height: var(--rd-size); border-radius: 50%;
+    border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--hide-dur) var(--hide-ease), box-shadow var(--hide-dur) var(--hide-ease), filter var(--hide-dur) var(--hide-ease);
+  }
+  /* the dot is a moon in eclipse; choosing it slides the shadow off */
+  .rd-moon {
+    position: absolute; left: 50%; top: 50%;
+    width: var(--rd-moon); height: var(--rd-moon); margin: calc(var(--rd-moon) / -2) 0 0 calc(var(--rd-moon) / -2);
+    border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 35% 35%, var(--moon), var(--moon-shade));
+  }
+  .rd-shadow {
+    position: absolute; inset: -1px; border-radius: 50%; background: var(--night);
+    transition: translate var(--hide-dur) var(--hide-ease);
+  }
+
+  .sr-input:checked + .ring {
+    border-color: var(--moon-shade); box-shadow: 0 0 14px rgba(255, 255, 255, .24);
+    transition: border-color var(--reveal-dur) var(--reveal-ease) var(--hush), box-shadow var(--reveal-dur) var(--reveal-ease) var(--hush), filter var(--reveal-dur) var(--reveal-ease) var(--hush);
+  }
+  .sr-input:checked + .ring .rd-shadow { translate: calc(-1 * var(--rd-moon) - 2px) 0; transition: translate var(--reveal-dur) var(--reveal-ease) var(--hush); }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="list">
+      <legend>Messages vanish after</legend>
+      <div>
+        <label class="row">
+          <input class="sr-input" type="radio" name="vanish" value="hour" />
+          <span class="ctl ring" aria-hidden="true"><span class="rd-moon"><span class="rd-shadow"></span></span></span>
+          <span class="label">An hour</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="vanish" value="day" checked />
+          <span class="ctl ring" aria-hidden="true"><span class="rd-moon"><span class="rd-shadow"></span></span></span>
+          <span class="label">A day</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="vanish" value="week" />
+          <span class="ctl ring" aria-hidden="true"><span class="rd-moon"><span class="rd-shadow"></span></span></span>
+          <span class="label">A week</span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, the light still comes, without the hush or the travel. Settings you make may not stay made.</p>
+
+    <h3>Radio button</h3>
+    <table>
+      <tr><td>Ring</td><td data-var="--rd-size" data-after=" circle"></td></tr>
+      <tr><td>Ring stroke</td><td data-var="--stroke" data-after=", dim, moon shade when chosen"></td></tr>
+      <tr><td>Dot, a moon</td><td data-var="--rd-moon" data-after=" circle"></td></tr>
+      <tr><td>Not chosen</td><td>The moon is eclipsed by a shadow the colour of night: nothing shows</td></tr>
+      <tr><td>Chosen</td><td>The shadow has slid off: a full moon in a lit ring</td></tr>
+      <tr><td>Chosen is told by</td><td>The dot, and a lit ring</td></tr>
+      <tr><td>Group</td><td>One preselected; arrow keys move and choose</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Cormorant Garamond</td></tr>
+      <tr><td>Title</td><td><span data-var="--title-size,--title-line,--title-weight"></span>, capitals tracked <span data-var="--title-track"></span></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Mist, at rest</td><td><span data-var="--mist-rest"></span> blur, a soft halo, lit brightest at the upper left and falling away</td></tr>
+      <tr><td>Mist, pointer or focus near</td><td><span data-var="--mist-near"></span> blur</td></tr>
+      <tr><td>Mist, chosen</td><td><span data-var="--mist-chosen"></span> blur, moon glow 8px and 24px</td></tr>
+      <tr><td>Title mist</td><td>1.2px blur</td></tr>
+      <tr><td>Control mist</td><td><span data-var="--ctl-mist-rest"></span> at rest, <span data-var="--ctl-mist-near"></span> near, <span data-var="--ctl-mist-on"></span> once it is on</td></tr>
+      <tr><td>Focus</td><td>A 1px light ring around the whole row, kept out of the mist</td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>List width, at most</td><td data-var="--list-w"></td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+      <tr><td>Chosen row</td><td>No surface: only the label comes out of the mist, white</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Night, the page</td><td data-var="--night" data-kind="color"></td></tr>
+      <tr><td>Outlines at rest</td><td data-var="--faint-line" data-kind="color" data-after=" · 1.7 : 1 on night"></td></tr>
+      <tr><td>Labels at rest</td><td data-var="--faint-label" data-kind="color" data-after=" · 2.5 : 1 on night"></td></tr>
+      <tr><td>Outlines, pointer or focus near</td><td data-var="--dim" data-kind="color" data-after=" · 3.2 : 1"></td></tr>
+      <tr><td>Labels, pointer or focus near</td><td data-var="--label" data-kind="color" data-after=" · 6.1 : 1"></td></tr>
+      <tr><td>Light</td><td data-var="--moon" data-kind="color"></td></tr>
+      <tr><td>Light, far side</td><td data-var="--moon-shade" data-kind="color"></td></tr>
+      <tr><td>Signal, the only colour</td><td data-var="--signal" data-kind="color"></td></tr>
+    </table>
+
+    <h3>Tampering</h3>
+    <table>
+      <tr><td>Chance a setting is undone</td><td data-var="--tamper-chance" data-after=", each time you switch something on"></td></tr>
+      <tr><td>When</td><td><span data-var="--tamper-min"></span>&ndash;<span data-var="--tamper-max"></span> s later, at random</td></tr>
+      <tr><td>How</td><td><span data-var="--tamper-dur"></span> burst of red static on the row, the words jitter red, and it is off again</td></tr>
+      <tr><td>Radio buttons</td><td>The group falls back to what was chosen before</td></tr>
+      <tr><td>Cancelled by</td><td>Changing it yourself before it happens</td></tr>
+      <tr><td>Screen readers</td><td>Told plainly, politely: &ldquo;Incognito was turned off.&rdquo;</td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Hush before the light</td><td data-var="--hush"></td></tr>
+      <tr><td>Reveal</td><td><span data-var="--reveal-dur"></span> <code>cubic-bezier(.2, .7, .2, 1)</code>, no overshoot</td></tr>
+      <tr><td>The dark returns</td><td><span data-var="--hide-dur"></span> <code>cubic-bezier(.4, 0, 1, 1)</code>, no hush</td></tr>
+      <tr><td>Eclipse ends</td><td><span data-var="--reveal-dur"></span> after the hush: the shadow slides off to the left, a crescent widening to full</td></tr>
+      <tr><td>At rest</td><td>Nothing moves</td></tr>
+      <tr><td>Pointer light</td><td><span data-var="--torch-r"></span> radius, cold white at <span data-var="--torch-alpha"></span>, screen blend</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-mysterious.js?v=4"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

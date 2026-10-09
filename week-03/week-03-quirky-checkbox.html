@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Quirky checkbox</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-quirky.css?v=4" />
+  <style>
+  /* Quirky checkbox. Off, a box scribbled round and round with a stray loop at its corner, boiling. Ticked, it swells past its size with a colour split, springs back, and is neon shards on black with a fat check on top, and keeps changing colour. */
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="list">
+      <legend>Toppings</legend>
+      <div>
+        <label class="row">
+          <input class="sr-input" type="checkbox" checked />
+          <span class="ctl" data-kind="checkbox"></span>
+          <span class="label">Extra cheese</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl" data-kind="checkbox"></span>
+          <span class="label">Pickles</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl" data-kind="checkbox"></span>
+          <span class="label">Chili oil</span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on; the script draws with the same values. Every scribble is drawn fresh on each load, so no two visits look alike.</p>
+
+    <h3>Checkbox</h3>
+    <table>
+      <tr><td>Box</td><td>30px &times; 30px, 5px corners</td></tr>
+      <tr><td>Off</td><td>Ink: the box scribbled round 3 times, a stray loop at its corner</td></tr>
+      <tr><td>On</td><td>Faces: deep neon shards and halftone, a fat yellow check outlined in void with a pink shadow</td></tr>
+      <tr><td>On is told by</td><td>The check, and lines turned into filled faces</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Bricolage Grotesque</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>List width, at most</td><td data-var="--list-w"></td></tr>
+      <tr><td>Divider</td><td>A scribbled 1.1px rule that boils with the controls</td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+    </table>
+
+    <h3>Row, when on</h3>
+    <table>
+      <tr><td>Band</td><td>Void, rough-edged, inset 2px &times; 5px from the row, 6px corners, boiling</td></tr>
+      <tr><td>Band texture</td><td>Pink halftone, 1.1px dots on a 5px grid at 32%; seven deep shards streaked across the far end</td></tr>
+      <tr><td>Band edge</td><td>Cyan and pink split, 1.2px, 1.5px apart; spray outside</td></tr>
+      <tr><td>Label</td><td><span data-var="--label-size,--label-line,--label-on-weight"></span>, neon, re-coloured with the shards</td></tr>
+      <tr><td>Label edge</td><td>Pink and cyan text shadow, 1.5px either side</td></tr>
+      <tr><td>Band in</td><td><span data-var="--pop-dur"></span> in 3 frames, slammed from the left: 0.15 &rarr; 1.05 &rarr; 0.99 &rarr; 1</td></tr>
+      <tr><td>Label in</td><td><span data-var="--pop-dur"></span> in 3 frames, a jolt: &minus;8px &rarr; 4px &rarr; 0</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Paper</td><td data-var="--paper" data-kind="color"></td></tr>
+      <tr><td>Ink, scribble and labels</td><td data-var="--ink" data-kind="color" data-after=" · 9 : 1 on paper"></td></tr>
+      <tr><td>Void, under every neon face</td><td data-var="--void" data-kind="color"></td></tr>
+      <tr><td>Neon pink</td><td data-var="--neon-pink" data-kind="color"></td></tr>
+      <tr><td>Neon green</td><td data-var="--neon-green" data-kind="color"></td></tr>
+      <tr><td>Neon cyan</td><td data-var="--neon-cyan" data-kind="color"></td></tr>
+      <tr><td>Neon orange</td><td data-var="--neon-orange" data-kind="color"></td></tr>
+      <tr><td>Neon yellow</td><td data-var="--neon-yellow" data-kind="color"></td></tr>
+      <tr><td>Neon violet</td><td data-var="--neon-violet" data-kind="color"></td></tr>
+    </table>
+
+    <h3>Line</h3>
+    <table>
+      <tr><td>Scribble stroke</td><td><span data-var="--ink-min"></span>&ndash;<span data-var="--ink-max"></span>px, picked per pass</td></tr>
+      <tr><td>Times round the shape</td><td data-var="--loops"></td></tr>
+      <tr><td>Wander per pass</td><td data-var="--scribble-amp" data-after="px"></td></tr>
+      <tr><td>Shard seams</td><td>0.7px void</td></tr>
+      <tr><td>Colour-split edge</td><td>1.3px cyan and pink, 1.4px apart; 1.8px void on top</td></tr>
+      <tr><td>Halftone</td><td>0.85px dots on a 3.2px grid, 30&deg;</td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Line boil, always</td><td>every <span data-var="--boil-ms"></span>ms, <span data-var="--boil-scale"></span>px wobble</td></tr>
+      <tr><td>Shards re-colour, while on</td><td>every <span data-var="--recolor-ms"></span>ms, about half of them</td></tr>
+      <tr><td>Ink to neon</td><td>a cut, <span data-var="--swap-dur"></span></td></tr>
+      <tr><td>Chosen: overshoot</td><td><span data-var="--grow-dur"></span> ease-out: 1 &rarr; <span data-var="--grow-peak"></span> &rarr; 0.9 &rarr; 1.06 &rarr; 1, tilting as it goes</td></tr>
+      <tr><td>Colour split at the peak</td><td>Pink and cyan, 3px, easing to nothing by the rebound</td></tr>
+      <tr><td>Back to ink</td><td><span data-var="--pop-dur"></span> in 3 frames: 1.2 &rarr; 0.94 &rarr; 1</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-quirky.js?v=3"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+/* Week 03 · Mysterious, leaning to conspiracy: shared by the switch, checkbox and
+   radio prototypes. Black and white; red appears only when something is tampered with. Nothing is fully shown until it is chosen: the list sits in
+   the dark, its words in mist; the pointer carries a small light. Choose something
+   and, after a short hush, light opens from the control and that row surfaces: the
+   switch handle and the radio dot come out of eclipse, the checkbox is lit from its
+   centre. But it may not stay that way. Now and then something you set is quietly
+   undone (week-03-mysterious.js): a burst of red static on the row, and it is off
+   again, as if it never took. */
+
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap");
+
+:root {
+  /* colour */
+  --night: #0a0a0a;           /* the page */
+  --dusk: #161616;            /* the faintest surface */
+  --faint-line: #3a3a3a;      /* outlines at rest, barely there: 1.7 : 1 on night */
+  --faint-label: #505050;     /* labels at rest: 2.5 : 1 */
+  --dim: #616161;             /* outlines once the pointer or focus comes near: 3.2 : 1 */
+  --label: #8f8f8f;           /* labels once something comes near: 6.1 : 1 */
+  --moon: #ededed;            /* the light, plain white */
+  --moon-shade: #9a9a9a;      /* the far side of the light's gradient */
+  --moon-air: rgba(255, 255, 255, .07);  /* light on the row */
+  --signal: #c8141c;          /* the only colour, seen only when something is tampered with */
+
+
+  /* tampering: after you switch something on, this is the chance it is quietly undone */
+  --tamper-chance: .5;
+  --tamper-min: 2.5;          /* seconds after you set it, earliest */
+  --tamper-max: 7;            /* latest */
+  --tamper-dur: .5s;          /* the burst of red static before it goes */
+
+  /* type */
+  --font: "Cormorant Garamond", Georgia, serif;
+  --title-size: 13px;
+  --title-line: 16px;
+  --title-weight: 600;
+  --title-track: .28em;
+  --label-size: 22px;
+  --label-line: 26px;
+  --label-weight: 500;
+
+  /* mist: the words are breath on glass, soft and unevenly lit, like a face in the dark */
+  --mist-rest: 2px;           /* blur at rest */
+  --mist-near: .9px;          /* pointer or focus near */
+  --mist-chosen: .35px;       /* chosen: almost in focus, never razor sharp */
+  --mist-halo: 0 0 6px rgba(190, 190, 190, .26), 0 0 18px rgba(190, 190, 190, .14);
+  --ctl-mist-rest: 2.6px;     /* the controls sit in the same mist: very soft at rest */
+  --ctl-mist-near: 1.8px;
+  --ctl-mist-on: 1.1px;       /* working: a little clearer, never sharp */
+  --mist-glow: 0 0 8px rgba(240, 240, 240, .42), 0 0 24px rgba(220, 220, 220, .22);
+
+  /* layout */
+  --list-w: 340px;
+  --row-h: 60px;
+  --row-pad: 14px;
+  --row-gap: 18px;
+  --row-r: 14px;
+
+  /* line */
+  --stroke: 1px;
+  --mark-stroke: 1.5px;
+
+  /* motion: a hush, then a slow reveal with no overshoot; the dark returns fast */
+  --hush: .12s;
+  --reveal-dur: .5s;
+  --reveal-ease: cubic-bezier(.2, .7, .2, 1);
+  --hide-dur: .2s;
+  --hide-ease: cubic-bezier(.4, 0, 1, 1);
+
+  /* the pointer's light */
+  --torch-r: 140px;
+  --torch-alpha: .14;
+
+  color-scheme: dark;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --hush: 0s; --reveal-dur: .01s; --hide-dur: .01s; --tamper-dur: .01s; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--night); }
+body {
+  margin: 0; color: var(--label);
+  font: var(--label-weight) var(--label-size) / var(--label-line) var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: radial-gradient(80% 70% at 50% 40%, #121212, var(--night));
+}
+
+.stage { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 20px 16px; }
+/* the pointer carries a small cold light that lifts whatever it passes over */
+.stage::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 5;
+  background: radial-gradient(circle var(--torch-r) at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, var(--torch-alpha)), transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0; transition: opacity .4s ease;
+}
+.stage.is-lit::after { opacity: 1; }
+
+.list { width: min(100%, var(--list-w)); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.list h1, .list legend {
+  float: left; width: 100%;
+  margin: 0 0 6px; padding: 0 var(--row-pad);
+  font-size: var(--title-size); line-height: var(--title-line); font-weight: var(--title-weight);
+  letter-spacing: var(--title-track); text-transform: uppercase; color: var(--faint-label);
+  filter: blur(1.2px); text-shadow: var(--mist-halo);
+}
+.list legend + *, .list h1 + * { clear: both; }
+
+.row {
+  position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: var(--row-gap);
+  min-height: var(--row-h); padding: 6px var(--row-pad);
+  border-radius: var(--row-r);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.label {
+  flex: 1; min-width: 0; letter-spacing: .005em; color: var(--faint-label);
+  filter: blur(var(--mist-rest));
+  text-shadow: var(--mist-halo);
+  /* lit unevenly, brightest towards the upper left, falling away like light on a face */
+  -webkit-mask-image: radial-gradient(120% 140% at 25% 30%, #000 35%, rgba(0, 0, 0, .45) 100%);
+          mask-image: radial-gradient(120% 140% at 25% 30%, #000 35%, rgba(0, 0, 0, .45) 100%);
+  transition: color var(--hide-dur) var(--hide-ease), filter var(--hide-dur) var(--hide-ease), text-shadow var(--hide-dur) var(--hide-ease);
+}
+/* at rest everything unchosen is barely there; the pointer or keyboard focus brings a row
+   up to readable, the way a light finds it. --line-off is what each control outlines with. */
+.row { --line-off: var(--faint-line); }
+.row:hover, .row:has(.sr-input:focus-visible) { --line-off: var(--dim); }
+.row:hover .label, .row:has(.sr-input:focus-visible) .label { color: var(--label); filter: blur(var(--mist-near)); transition: color .3s ease, filter .3s ease; }
+.row:has(.sr-input:checked) .label {
+  color: var(--moon); filter: blur(var(--mist-chosen)); text-shadow: var(--mist-glow);
+  transition: color var(--reveal-dur) var(--reveal-ease) var(--hush), filter var(--reveal-dur) var(--reveal-ease) var(--hush), text-shadow var(--reveal-dur) var(--reveal-ease) var(--hush);
+}
+
+/* tampered: red static floods the row and the words jitter, then the setting is gone */
+.row.is-tampered::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='1' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .86 0 0 0 0 .04 0 0 0 0 .06 0 0 0 6 -3.2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+  animation: tamper var(--tamper-dur) steps(1, end) forwards;
+}
+.row.is-tampered .label { animation: jitter var(--tamper-dur) steps(1, end); }
+@keyframes tamper {
+  0% { opacity: .9; background-position: 0 0; }
+  20% { opacity: .4; background-position: 37px 11px; }
+  40% { opacity: 1; background-position: -23px 29px; }
+  60% { opacity: .5; background-position: 51px -17px; }
+  80% { opacity: .8; background-position: -9px -41px; }
+  100% { opacity: 0; }
+}
+@keyframes jitter {
+  0% { translate: 2px 0; } 20% { translate: -3px 1px; } 40% { translate: 1px -1px; color: var(--signal); }
+  60% { translate: -1px 0; } 80% { translate: 2px 1px; color: var(--signal); } 100% { translate: 0 0; }
+}
+
+.sr-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.row:has(.sr-input:focus-visible) { outline: var(--stroke) solid var(--moon); outline-offset: 2px; }
+.ctl { flex: none; position: relative; display: block; filter: blur(var(--ctl-mist-rest)); }
+/* the controls are in the mist too: nearer, a little clearer; working, clearer still */
+.row:hover .ctl, .row:has(.sr-input:focus-visible) .ctl { filter: blur(var(--ctl-mist-near)); }
+.sr-input:checked + .ctl { filter: blur(var(--ctl-mist-on)); }
+
+.back-pill {
+  position: fixed; left: 12px; top: 12px; z-index: 9;
+  font: 600 13px/1 var(--font); letter-spacing: .08em; color: var(--night); background: var(--label);
+  padding: 8px 12px; border-radius: 999px; text-decoration: none;
+}
+
+/* ---------- Spec ---------- */
+.spec { max-width: 720px; margin: 0 auto; padding: 24px 20px 72px; color: var(--label); }
+.spec h2 { margin: 0 0 4px; font-size: 34px; line-height: 38px; font-weight: 500; color: var(--moon); }
+.spec > p { margin: 0 0 24px; font: 500 17px/24px var(--font); }
+.spec h3 { margin: 28px 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+.spec table { width: 100%; border-collapse: collapse; font: 500 16px/22px var(--font); }
+.spec td { padding: 10px 0; border-top: 1px solid #262626; vertical-align: top; }
+.spec tr:last-child td { border-bottom: 1px solid #262626; }
+.spec td:first-child { width: 42%; padding-right: 16px; }
+.spec td:last-child { color: var(--moon); font-variant-numeric: tabular-nums; }
+.spec code { font: 500 12.5px/18px ui-monospace, Menlo, monospace; color: var(--label); }
+.swatch { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: 1px solid #333; }

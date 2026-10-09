@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Mysterious checkbox</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-mysterious.css?v=14" />
+  <style>
+  /* Mysterious checkbox. Empty, it is a dim square in the dark. Ticked, a short hush, then moonlight opens from its centre with the check already inside it, as if a light had found something that was always there; the row surfaces with it. */
+  :root {
+    --cb-size: 22px;
+    --cb-r: 3px;
+  }
+
+  .box {
+    width: var(--cb-size); height: var(--cb-size); border-radius: var(--cb-r);
+    border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--hide-dur) var(--hide-ease), box-shadow var(--hide-dur) var(--hide-ease), filter var(--hide-dur) var(--hide-ease);
+  }
+  /* moonlight inside the box, with the check already in it, opened from the centre */
+  .cb-light {
+    position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
+    background: radial-gradient(circle at 35% 30%, var(--moon), var(--moon-shade));
+    clip-path: circle(0 at 50% 50%);
+    transition: clip-path var(--hide-dur) var(--hide-ease);
+  }
+  .cb-light svg { display: block; width: 100%; height: 100%; }
+  .cb-light path { fill: none; stroke: var(--night); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round; }
+
+  .sr-input:checked + .box {
+    border-color: transparent; box-shadow: 0 0 14px rgba(255, 255, 255, .24);
+    transition: border-color var(--reveal-dur) var(--reveal-ease) var(--hush), box-shadow var(--reveal-dur) var(--reveal-ease) var(--hush), filter var(--reveal-dur) var(--reveal-ease) var(--hush);
+  }
+  .sr-input:checked + .box .cb-light { clip-path: circle(75% at 50% 50%); transition: clip-path var(--reveal-dur) var(--reveal-ease) var(--hush); }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="list">
+      <legend>Who can find me</legend>
+      <div>
+        <label class="row">
+          <input class="sr-input" type="checkbox" checked />
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="label">Contacts</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="label">Friends of friends</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl box" aria-hidden="true"><span class="cb-light"><svg viewBox="0 0 22 22"><path d="M6.2 11.3 l3.2 3.2 l6.4 -6.9"/></svg></span></span>
+          <span class="label">Nearby</span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, the light still comes, without the hush or the travel. Settings you make may not stay made.</p>
+
+    <h3>Checkbox</h3>
+    <table>
+      <tr><td>Box</td><td data-var="--cb-size,--cb-size" data-join=" × "></td></tr>
+      <tr><td>Corner</td><td data-var="--cb-r"></td></tr>
+      <tr><td>Outline, empty</td><td data-var="--stroke" data-after=" dim"></td></tr>
+      <tr><td>Check</td><td><span data-var="--mark-stroke"></span> night, on moonlight</td></tr>
+      <tr><td>On</td><td>Moonlight fills the box from its centre, the check already inside it; a faint glow around</td></tr>
+      <tr><td>On is told by</td><td>A filled, lit box and its check</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Cormorant Garamond</td></tr>
+      <tr><td>Title</td><td><span data-var="--title-size,--title-line,--title-weight"></span>, capitals tracked <span data-var="--title-track"></span></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Mist, at rest</td><td><span data-var="--mist-rest"></span> blur, a soft halo, lit brightest at the upper left and falling away</td></tr>
+      <tr><td>Mist, pointer or focus near</td><td><span data-var="--mist-near"></span> blur</td></tr>
+      <tr><td>Mist, chosen</td><td><span data-var="--mist-chosen"></span> blur, moon glow 8px and 24px</td></tr>
+      <tr><td>Title mist</td><td>1.2px blur</td></tr>
+      <tr><td>Control mist</td><td><span data-var="--ctl-mist-rest"></span> at rest, <span data-var="--ctl-mist-near"></span> near, <span data-var="--ctl-mist-on"></span> once it is on</td></tr>
+      <tr><td>Focus</td><td>A 1px light ring around the whole row, kept out of the mist</td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>List width, at most</td><td data-var="--list-w"></td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+      <tr><td>Chosen row</td><td>No surface: only the label comes out of the mist, white</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Night, the page</td><td data-var="--night" data-kind="color"></td></tr>
+      <tr><td>Outlines at rest</td><td data-var="--faint-line" data-kind="color" data-after=" · 1.7 : 1 on night"></td></tr>
+      <tr><td>Labels at rest</td><td data-var="--faint-label" data-kind="color" data-after=" · 2.5 : 1 on night"></td></tr>
+      <tr><td>Outlines, pointer or focus near</td><td data-var="--dim" data-kind="color" data-after=" · 3.2 : 1"></td></tr>
+      <tr><td>Labels, pointer or focus near</td><td data-var="--label" data-kind="color" data-after=" · 6.1 : 1"></td></tr>
+      <tr><td>Light</td><td data-var="--moon" data-kind="color"></td></tr>
+      <tr><td>Light, far side</td><td data-var="--moon-shade" data-kind="color"></td></tr>
+      <tr><td>Signal, the only colour</td><td data-var="--signal" data-kind="color"></td></tr>
+    </table>
+
+    <h3>Tampering</h3>
+    <table>
+      <tr><td>Chance a setting is undone</td><td data-var="--tamper-chance" data-after=", each time you switch something on"></td></tr>
+      <tr><td>When</td><td><span data-var="--tamper-min"></span>&ndash;<span data-var="--tamper-max"></span> s later, at random</td></tr>
+      <tr><td>How</td><td><span data-var="--tamper-dur"></span> burst of red static on the row, the words jitter red, and it is off again</td></tr>
+      <tr><td>Radio buttons</td><td>The group falls back to what was chosen before</td></tr>
+      <tr><td>Cancelled by</td><td>Changing it yourself before it happens</td></tr>
+      <tr><td>Screen readers</td><td>Told plainly, politely: &ldquo;Incognito was turned off.&rdquo;</td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Hush before the light</td><td data-var="--hush"></td></tr>
+      <tr><td>Reveal</td><td><span data-var="--reveal-dur"></span> <code>cubic-bezier(.2, .7, .2, 1)</code>, no overshoot</td></tr>
+      <tr><td>The dark returns</td><td><span data-var="--hide-dur"></span> <code>cubic-bezier(.4, 0, 1, 1)</code>, no hush</td></tr>
+      <tr><td>Light opens in the box</td><td><span data-var="--reveal-dur"></span> after the hush, a circle from the centre</td></tr>
+      <tr><td>At rest</td><td>Nothing moves</td></tr>
+      <tr><td>Pointer light</td><td><span data-var="--torch-r"></span> radius, cold white at <span data-var="--torch-alpha"></span>, screen blend</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-mysterious.js?v=4"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

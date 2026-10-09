@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Quirky switch</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-quirky.css?v=4" />
+  <style>
+  /* Quirky switch. Off, the track and handle are pen scribbles going round and round, boiling. On, the handle hops across in six drawn frames, winding up, smearing, overshooting and landing, and both turn into neon shards on black; the shards keep changing colour while it stays on. */
+  :root {
+    --sw-travel: 32px;
+    --sw-frames: 6;                                   /* the hop, drawn frame by frame */
+  }
+  /* the handle hops in six held frames over --step-dur: it winds up the other way,
+     smears long as it flies, overshoots squashed, and lands. No easing between frames. */
+  .q-handle { transform-box: fill-box; transform-origin: center; }
+  .sr-input:checked + .ctl .q-handle { translate: var(--sw-travel) 0; }
+  .ctl.pop .q-handle { animation: hop-on var(--step-dur) forwards; }
+  .ctl.unpop .q-handle { animation: hop-off var(--step-dur) forwards; }
+  .ctl.pop .q-handle, .ctl.unpop .q-handle { animation-timing-function: steps(1, end); }
+  @keyframes hop-on {
+    0%     { translate: -3px 0;  scale: .88 1.08; }
+    16.7%  { translate: 6px 0;   scale: 1.3 .86; }
+    33.3%  { translate: 18px 0;  scale: 1.45 .8; }
+    50%    { translate: 35px 0;  scale: .8 1.15; }
+    66.7%  { translate: 30.5px 0; scale: 1.08 .95; }
+    83.3%, 100% { translate: var(--sw-travel) 0; scale: 1 1; }
+  }
+  @keyframes hop-off {
+    0%     { translate: 35px 0;  scale: .88 1.08; }
+    16.7%  { translate: 26px 0;  scale: 1.3 .86; }
+    33.3%  { translate: 14px 0;  scale: 1.45 .8; }
+    50%    { translate: -3px 0;  scale: .8 1.15; }
+    66.7%  { translate: 1.5px 0; scale: 1.08 .95; }
+    83.3%, 100% { translate: 0 0; scale: 1 1; }
+  }
+  /* the whole switch flashes its colour split as it lands */
+  .ctl.pop { animation: split var(--step-dur) steps(1, end); }
+  @keyframes split {
+    0%, 33% { filter: none; }
+    50% { filter: drop-shadow(3px 0 var(--neon-pink)) drop-shadow(-3px 0 var(--neon-cyan)); }
+    67%, 100% { filter: none; }
+  }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <section class="list" aria-labelledby="title">
+      <h1 id="title">Playback</h1>
+      <div>
+      <label class="row">
+        <span class="label">Crossfade</span>
+        <input class="sr-input" type="checkbox" role="switch" checked />
+        <span class="ctl" data-kind="switch"></span>
+      </label>
+      <label class="row">
+        <span class="label">Loud mode</span>
+        <input class="sr-input" type="checkbox" role="switch" />
+        <span class="ctl" data-kind="switch"></span>
+      </label>
+      <label class="row">
+        <span class="label">Lyrics on screen</span>
+        <input class="sr-input" type="checkbox" role="switch" />
+        <span class="ctl" data-kind="switch"></span>
+      </label>
+      </div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on; the script draws with the same values. Every scribble is drawn fresh on each load, so no two visits look alike.</p>
+
+    <h3>Switch</h3>
+    <table>
+      <tr><td>Track</td><td>72px &times; 40px, fully round</td></tr>
+      <tr><td>Handle</td><td>28px circle</td></tr>
+      <tr><td>Handle travel</td><td data-var="--sw-travel" data-after=""></td></tr>
+      <tr><td>Off</td><td>Ink: the track scribbled round 3 times, the handle a tangle with a spiral in it</td></tr>
+      <tr><td>On</td><td>Faces: deep neon shards in the track, bright ones in the handle, halftone over both</td></tr>
+      <tr><td>On is told by</td><td>Handle position, and lines turned into filled faces</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Bricolage Grotesque</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>List width, at most</td><td data-var="--list-w"></td></tr>
+      <tr><td>Divider</td><td>A scribbled 1.1px rule that boils with the controls</td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+    </table>
+
+    <h3>Row, when on</h3>
+    <table>
+      <tr><td>Band</td><td>Void, rough-edged, inset 2px &times; 5px from the row, 6px corners, boiling</td></tr>
+      <tr><td>Band texture</td><td>Pink halftone, 1.1px dots on a 5px grid at 32%; seven deep shards streaked across the far end</td></tr>
+      <tr><td>Band edge</td><td>Cyan and pink split, 1.2px, 1.5px apart; spray outside</td></tr>
+      <tr><td>Label</td><td><span data-var="--label-size,--label-line,--label-on-weight"></span>, neon, re-coloured with the shards</td></tr>
+      <tr><td>Label edge</td><td>Pink and cyan text shadow, 1.5px either side</td></tr>
+      <tr><td>Band in</td><td><span data-var="--pop-dur"></span> in 3 frames, slammed from the left: 0.15 &rarr; 1.05 &rarr; 0.99 &rarr; 1</td></tr>
+      <tr><td>Label in</td><td><span data-var="--pop-dur"></span> in 3 frames, a jolt: &minus;8px &rarr; 4px &rarr; 0</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Paper</td><td data-var="--paper" data-kind="color"></td></tr>
+      <tr><td>Ink, scribble and labels</td><td data-var="--ink" data-kind="color" data-after=" · 9 : 1 on paper"></td></tr>
+      <tr><td>Void, under every neon face</td><td data-var="--void" data-kind="color"></td></tr>
+      <tr><td>Neon pink</td><td data-var="--neon-pink" data-kind="color"></td></tr>
+      <tr><td>Neon green</td><td data-var="--neon-green" data-kind="color"></td></tr>
+      <tr><td>Neon cyan</td><td data-var="--neon-cyan" data-kind="color"></td></tr>
+      <tr><td>Neon orange</td><td data-var="--neon-orange" data-kind="color"></td></tr>
+      <tr><td>Neon yellow</td><td data-var="--neon-yellow" data-kind="color"></td></tr>
+      <tr><td>Neon violet</td><td data-var="--neon-violet" data-kind="color"></td></tr>
+    </table>
+
+    <h3>Line</h3>
+    <table>
+      <tr><td>Scribble stroke</td><td><span data-var="--ink-min"></span>&ndash;<span data-var="--ink-max"></span>px, picked per pass</td></tr>
+      <tr><td>Times round the shape</td><td data-var="--loops"></td></tr>
+      <tr><td>Wander per pass</td><td data-var="--scribble-amp" data-after="px"></td></tr>
+      <tr><td>Shard seams</td><td>0.7px void</td></tr>
+      <tr><td>Colour-split edge</td><td>1.3px cyan and pink, 1.4px apart; 1.8px void on top</td></tr>
+      <tr><td>Halftone</td><td>0.85px dots on a 3.2px grid, 30&deg;</td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Line boil, always</td><td>every <span data-var="--boil-ms"></span>ms, <span data-var="--boil-scale"></span>px wobble</td></tr>
+      <tr><td>Shards re-colour, while on</td><td>every <span data-var="--recolor-ms"></span>ms, about half of them</td></tr>
+      <tr><td>Ink to neon</td><td>a cut, <span data-var="--swap-dur"></span></td></tr>
+      <tr><td>Jump into faces</td><td><span data-var="--pop-dur"></span> in 4 frames: 0.6 &rarr; 1.25 &rarr; 0.92 &rarr; 1</td></tr>
+      <tr><td>Back to ink</td><td><span data-var="--pop-dur"></span> in 3 frames: 1.2 &rarr; 0.94 &rarr; 1</td></tr>
+      <tr><td>Handle hop</td><td><span data-var="--step-dur"></span> in <span data-var="--sw-frames"></span> held frames: wind-up &minus;3px, smear 1.45&times; wide, overshoot to 35px squashed, land</td></tr>
+      <tr><td>Landing flash</td><td>Pink and cyan split, 3px, for one frame</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-quirky.js?v=3"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

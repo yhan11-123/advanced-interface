@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Selectors &middot; Advanced Interface</title>
+  <meta name="description" content="Twelve components are due: four sets of one switch, one checkbox and one radio button, each set carrying a tone, each shown in a labelled list with its spec." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=18" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 03</div>
+      <h1>Selectors</h1>
+      <div class="meta">
+        <span>Oct 5, 2026</span>
+        <span class="tag">selectors</span>
+        <span class="tag">switches</span>
+        <span class="tag">checkboxes</span>
+        <span class="tag">radio-buttons</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">micro-motion</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Twelve components: four sets, each one switch, one checkbox and one radio button, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a working prototype, with the versions tried along the way shown as its process.</p>
+
+      <p>Every component sits in a list, each row with a text label, the way the brief's examples do: a settings row with a switch, a list of meal extras with checkboxes, a language picker with radio buttons.</p>
+
+
+      <h3>What each prototype has to show</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>In a list of</th><th>Must show</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Switch</td><td>Labelled setting rows</td><td>Off &rarr; on, and on &rarr; off</td></tr>
+          <tr><td>Checkbox</td><td>Labelled options, any number chosen</td><td>Off &rarr; on, and on &rarr; off</td></tr>
+          <tr><td>Radio buttons</td><td>Labelled options, one chosen</td><td>Off &rarr; on, and on &rarr; off</td></tr>
+        </tbody>
+      </table>
+
+      <h3>The spec</h3>
+
+      <p>No Figma file this week: every prototype carries its own spec, in a section of the prototype page. At least spacing, font, font size and line height, the component's size, and every other property that shapes it, such as roundness and stroke width. The numbers are read from the same values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>All three say yes or no to something. What differs is how many answers a list allows, and when the answer counts.</p>
+
+      <p>Read mainly against Apple's Toggles guidelines and Material 3's switch, checkbox and radio button pages, every tab of each: overview, specs, guidelines, accessibility. IBM's Carbon, one of the open systems on Design Systems' public list, is a third voice. Where they agree, it is a rule. Where they differ, it is room for a tone.</p>
+
+      <h3>Three selectors</h3>
+
+      <div class="rv-pair is-three">
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="A switch in its on position: a pill track with the handle at the right">
+              <rect x="35" y="34" width="100" height="56" rx="28" class="rv-acc"/>
+              <circle cx="107" cy="62" r="21" class="rv-surface"/>
+              <path class="rv-mute" d="M48 62 H76 M71 57 L76 62 L71 67"/>
+              <path class="rv-mute" d="M128 36 L146 20"/>
+              <text x="148" y="18" class="rv-note">handle</text>
+              <path class="rv-mute" d="M40 88 L28 104"/>
+              <text x="4" y="114" class="rv-note">track</text>
+              <text x="62" y="114" class="rv-note">slides off &rarr; on</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Switch</b>
+            <dl class="rv-facts">
+              <dt>Pick it when</dt><dd>A standalone setting that should act now</dd>
+              <dt>Chooses</dt><dd>One setting, on or off</dd>
+              <dt>Counts</dt><dd>At once, no Save button</dd>
+              <dt>In a list</dt><dd>Every row stands alone</dd>
+              <dt>Keyboard</dt><dd>Tab to it, Space flips it</dd>
+              <dt>Screen reader</dt><dd><code>role="switch"</code> with <code>aria-checked</code>: &ldquo;Wi-Fi, switch, on&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="Three checkboxes: empty for off, filled with a check for on, filled with a dash for mixed">
+              <rect x="18" y="38" width="32" height="32" rx="4" class="rv-ink"/>
+              <rect x="69" y="38" width="32" height="32" rx="4" class="rv-acc"/>
+              <path d="M76 54 L82 60 L94 47" fill="none" stroke="var(--bg-elev)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="120" y="38" width="32" height="32" rx="4" class="rv-acc"/>
+              <path d="M127 54 H145" fill="none" stroke="var(--bg-elev)" stroke-width="3" stroke-linecap="round"/>
+              <text x="34" y="92" text-anchor="middle" class="rv-note">off</text>
+              <text x="85" y="92" text-anchor="middle" class="rv-note">on</text>
+              <text x="136" y="92" text-anchor="middle" class="rv-note">mixed</text>
+              <text x="136" y="106" text-anchor="middle" class="rv-note">(a parent only)</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Checkbox</b>
+            <dl class="rv-facts">
+              <dt>Pick it when</dt><dd>Several related options, or a parent with sub-choices</dd>
+              <dt>Chooses</dt><dd>Any number from a list, none included</dd>
+              <dt>Counts</dt><dd>Often only once the form is sent</dd>
+              <dt>In a list</dt><dd>Rows are independent; a parent row can be mixed</dd>
+              <dt>Keyboard</dt><dd>Tab from box to box, Space ticks it</dd>
+              <dt>Screen reader</dt><dd>Native <code>input type="checkbox"</code>: &ldquo;Pickles, checkbox, checked&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="Three radio buttons in a column, the middle one chosen, with label lines beside them">
+              <circle cx="42" cy="28" r="11" class="rv-ink"/>
+              <circle cx="42" cy="62" r="11" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+              <circle cx="42" cy="62" r="5.5" class="rv-acc"/>
+              <circle cx="42" cy="96" r="11" class="rv-ink"/>
+              <path class="rv-mute" d="M64 28 H112 M64 62 H122 M64 96 H104"/>
+              <path class="rv-mute" d="M18 40 V50 M15 47 L18 50 L21 47"/>
+              <path class="rv-mute" d="M18 84 V74 M15 77 L18 74 L21 77"/>
+              <text x="128" y="66" class="rv-note">only one</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Radio buttons</b>
+            <dl class="rv-facts">
+              <dt>Pick it when</dt><dd>One answer from two to five, all in view</dd>
+              <dt>Chooses</dt><dd>Exactly one from a set</dd>
+              <dt>Counts</dt><dd>Choosing one clears the one before; you cannot go back to none</dd>
+              <dt>In a list</dt><dd>The rows are one group</dd>
+              <dt>Keyboard</dt><dd>Tab into the group, arrow keys move and choose</dd>
+              <dt>Screen reader</dt><dd><code>radiogroup</code> of <code>radio</code>s: &ldquo;English, radio button, 1 of 3, selected&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Which one, and where</h3>
+
+      <p>Apple's guidelines say less about drawing these controls than about choosing between them, and Material agrees on almost every point. The choice decides the list each prototype sits in.</p>
+
+      <div class="rv-rules is-roomy">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 124 46" aria-hidden="true">
+            <rect x="0" y="4" width="62" height="20" rx="3" class="rv-hair"/>
+            <path class="rv-ink" d="M7 14 H30"/>
+            <rect x="40" y="9" width="16" height="10" rx="5" class="rv-acc"/>
+            <circle cx="51" cy="14" r="3.5" class="rv-surface"/>
+            <text x="31" y="42" text-anchor="middle" class="rv-note">list row</text>
+            <path class="rv-hair" d="M80 0 V46"/>
+            <rect x="96" y="5" width="20" height="18" rx="5" class="rv-acc"/>
+            <path d="M101 10 H111 M103 14 H109 M105 18 H107" fill="none" stroke="var(--bg-elev)" stroke-width="1.4" stroke-linecap="round"/>
+            <text x="106" y="42" text-anchor="middle" class="rv-note">elsewhere</text>
+          </svg>
+          <b>A switch lives in a list row</b>
+          <p>The row's own words are its label. Outside a list, iOS uses a button that changes its background instead, and macOS keeps switches out of toolbars.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <path class="rv-ink" d="M2 8.5 H30"/>
+            <rect x="44" y="2" width="26" height="13" rx="6.5" class="rv-acc"/>
+            <circle cx="63.5" cy="8.5" r="4.6" class="rv-surface"/>
+            <path class="rv-mute" d="M10 25 H34 M10 37 H30"/>
+            <rect x="52" y="20.5" width="18" height="9" rx="4.5" class="rv-acc"/>
+            <circle cx="65.5" cy="25" r="3.1" class="rv-surface"/>
+            <rect x="52" y="32.5" width="18" height="9" rx="4.5" class="rv-ink"/>
+            <circle cx="56.5" cy="37" r="2.4" class="rv-ink"/>
+          </svg>
+          <b>Weight follows what it controls</b>
+          <p>A switch is heavier than a checkbox, so it suits a setting that matters or one that turns on a group. On the Mac, a regular switch leads and mini switches follow.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="2" width="11" height="11" rx="2" class="rv-acc"/>
+            <path d="M5 7.5 H10" fill="none" stroke="var(--bg-elev)" stroke-width="1.6" stroke-linecap="round"/>
+            <path class="rv-ink" d="M18 7.5 H40"/>
+            <text x="46" y="10" class="rv-note">mixed</text>
+            <rect x="12" y="17" width="11" height="11" rx="2" class="rv-acc"/>
+            <path d="M14.8 22.6 L16.9 24.7 L20.4 20.6" fill="none" stroke="var(--bg-elev)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="rv-mute" d="M28 22.5 H50"/>
+            <rect x="12" y="32" width="11" height="11" rx="2" class="rv-ink"/>
+            <path class="rv-mute" d="M28 37.5 H46"/>
+          </svg>
+          <b>Settings with children are checkboxes</b>
+          <p>Checkboxes line up on their leading edge and indent to show what depends on what. A parent whose children disagree shows a dash, the mixed state.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 132 44" aria-hidden="true">
+            <circle cx="6" cy="14" r="4.5" class="rv-ink"/>
+            <circle cx="21" cy="14" r="4.5" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="21" cy="14" r="2.2" class="rv-acc"/>
+            <circle cx="36" cy="14" r="4.5" class="rv-ink"/>
+            <circle cx="51" cy="14" r="4.5" class="rv-ink"/>
+            <circle cx="66" cy="14" r="4.5" class="rv-ink"/>
+            <text x="36" y="40" text-anchor="middle" class="rv-note">up to five</text>
+            <path class="rv-mute" d="M79 14 H89 M86 11 L89 14 L86 17"/>
+            <rect x="98" y="6" width="32" height="16" rx="4" class="rv-ink"/>
+            <path class="rv-mute" d="M103 14 H115"/>
+            <path class="rv-ink" d="M120 12.5 L122.5 15.5 L125 12.5"/>
+            <text x="114" y="40" text-anchor="middle" class="rv-note">more: a menu</text>
+          </svg>
+          <b>Two to five, then a menu</b>
+          <p>Radio buttons come in sets of two to about five. Past that, the list swallows the screen. Both systems draw the line at five and switch to a menu.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 100 44" aria-hidden="true">
+            <g opacity=".45">
+              <circle cx="8" cy="14" r="6" class="rv-ink"/>
+              <path class="rv-mute" d="M20 14 H32"/>
+            </g>
+            <text x="18" y="40" text-anchor="middle" class="rv-note">lone radio</text>
+            <rect x="62" y="8" width="12" height="12" rx="2" class="rv-acc"/>
+            <path d="M65 14.2 L67.3 16.5 L71.2 12" fill="none" stroke="var(--bg-elev)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="rv-ink" d="M80 14 H94"/>
+            <text x="78" y="40" text-anchor="middle" class="rv-note">checkbox</text>
+          </svg>
+          <b>One on/off is a checkbox</b>
+          <p>A tick reads faster than a lone dot. Use a pair of radio buttons only when each state needs its own name.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 124 44" aria-hidden="true">
+            <circle cx="6" cy="10" r="4.5" class="rv-ink"/>
+            <path class="rv-mute" d="M15 10 H24"/>
+            <circle cx="48" cy="10" r="4.5" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="48" cy="10" r="2.2" class="rv-acc"/>
+            <path class="rv-ink" d="M57 10 H76"/>
+            <circle cx="90" cy="10" r="4.5" class="rv-ink"/>
+            <path class="rv-mute" d="M99 10 H110"/>
+            <path class="rv-mute" d="M1 21 V27 M1 24 H38 M38 21 V27 M43 21 V27 M43 24 H80 M80 21 V27 M85 21 V27 M85 24 H122 M122 21 V27"/>
+            <text x="62" y="41" text-anchor="middle" class="rv-note">set by the longest label</text>
+          </svg>
+          <b>Side by side, evenly</b>
+          <p>Laid out in a row, every radio button gets the width of the longest label, so the gaps never wobble. Material would rather they were never in a row at all.</p>
+        </div>
+      </div>
+
+      <h3>Switch, up close</h3>
+
+      <p>Material draws the switch in dp, the numbers below. The on state is told twice: the handle crosses the track and it grows from 16 to 24&nbsp;dp, so colour is never the only signal.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-48 -34 146 104" role="img" aria-label="A switch in its on state, drawn to Material 3 measurements, with five numbered parts: track, handle, icon, state layer and target">
+            <rect x="-2" y="-8" width="56" height="48" rx="6" class="an-target"/>
+            <circle cx="36" cy="16" r="20" class="an-layer"/>
+            <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--accent)"/>
+            <circle cx="36" cy="16" r="12" fill="var(--bg-elev)"/>
+            <path d="M31.5 16.2 L34.6 19.3 L40.8 13" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="an-dim" d="M0 47 V53 M0 50 H52 M52 47 V53 M-16 0 H-10 M-13 0 V32 M-16 32 H-10"/>
+            <text x="26" y="60" text-anchor="middle" class="an-txt">52</text>
+            <text x="-18" y="17.8" text-anchor="end" class="an-txt">32</text>
+            <path class="an-lead" d="M-34 52 L4 27 M14 -26 L28 8 M46 -26 L38.5 14 M88 -6 L55 10 M88 40 L54 36"/>
+            <g class="an-num"><circle cx="-34" cy="52" r="4.4"/><text x="-34" y="52">1</text></g>
+            <g class="an-num"><circle cx="14" cy="-26" r="4.4"/><text x="14" y="-26">2</text></g>
+            <g class="an-num"><circle cx="46" cy="-26" r="4.4"/><text x="46" y="-26">3</text></g>
+            <g class="an-num"><circle cx="88" cy="-6" r="4.4"/><text x="88" y="-6">4</text></g>
+            <g class="an-num"><circle cx="88" cy="40" r="4.4"/><text x="88" y="40">5</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Track</b><span>52 &times; 32 dp, fully round. Off: a 2&nbsp;dp outline and no fill.</span></li>
+          <li><b>Handle</b><span>16 dp off, 24 dp on, 28 dp while pressed. Always 24 when it carries an icon.</span></li>
+          <li><b>Icon, optional</b><span>16 dp. It has to mean on or off: a check and an X, never a moon or a pencil.</span></li>
+          <li><b>State layer</b><span>A 40 dp circle behind the handle on hover, focus and press.</span></li>
+          <li><b>Target</b><span>48 dp. Denser layouts may shrink it only when people ask for them.</span></li>
+        </ol>
+      </div>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <rect x="1" y="1" width="50" height="30" rx="15" fill="none" stroke="var(--fg-muted)" stroke-width="2"/>
+            <circle cx="16" cy="16" r="8" fill="var(--fg-muted)"/>
+          </svg>
+          <figcaption><b>Off</b><span>16 dp handle</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--accent)"/>
+            <circle cx="36" cy="16" r="12" fill="var(--bg-elev)"/>
+          </svg>
+          <figcaption><b>On</b><span>24 dp handle</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <circle cx="36" cy="16" r="20" class="an-layer"/>
+            <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--accent)"/>
+            <circle cx="36" cy="16" r="12" fill="var(--bg-elev)"/>
+          </svg>
+          <figcaption><b>Hovered</b><span>40 dp layer</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <rect x="-4" y="-4" width="60" height="40" rx="20" fill="none" stroke="var(--fg)" stroke-width="2"/>
+            <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--accent)"/>
+            <circle cx="36" cy="16" r="12" fill="var(--bg-elev)"/>
+          </svg>
+          <figcaption><b>Focused</b><span>Ring outside</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <circle cx="36" cy="16" r="20" class="an-layer"/>
+            <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--accent)"/>
+            <circle cx="36" cy="16" r="14" fill="var(--bg-elev)"/>
+          </svg>
+          <figcaption><b>Pressed</b><span>28 dp handle</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-8 -8 68 48" aria-hidden="true">
+            <g opacity=".35">
+              <rect x="0" y="0" width="52" height="32" rx="16" fill="var(--fg-muted)"/>
+              <circle cx="36" cy="16" r="12" fill="var(--bg-elev)"/>
+            </g>
+          </svg>
+          <figcaption><b>Disabled</b><span>Faded, no layer</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="rv-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="rv-ink" d="M8 7 H44 M8 22 H38 M8 37 H42"/>
+            <rect x="90" y="2.5" width="20" height="9" rx="4.5" class="rv-acc"/>
+            <circle cx="105.5" cy="7" r="3.3" class="rv-surface"/>
+            <rect x="90" y="17.5" width="20" height="9" rx="4.5" class="rv-ink"/>
+            <circle cx="94.5" cy="22" r="2.2" class="rv-ink"/>
+            <rect x="90" y="32.5" width="20" height="9" rx="4.5" class="rv-acc"/>
+            <circle cx="105.5" cy="37" r="3.3" class="rv-surface"/>
+            <path class="rv-hair" d="M4 14.5 H116 M4 29.5 H116"/>
+          </svg>
+          <figcaption><b>Do</b>Stack standalone settings, one switch per row, on a settings screen.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14" y="10" width="36" height="22" rx="11" fill="none" stroke="var(--fg-muted)" stroke-width="1.4"/>
+            <circle cx="25" cy="21" r="8" fill="var(--fg-muted)"/>
+            <path d="M22.2 18.2 L27.8 23.8 M27.8 18.2 L22.2 23.8" stroke="var(--bg-elev)" stroke-width="1.4" stroke-linecap="round"/>
+            <rect x="70" y="10" width="36" height="22" rx="11" class="rv-acc"/>
+            <circle cx="95" cy="21" r="8" class="rv-surface"/>
+            <path d="M91.6 21.2 L94 23.6 L98.6 18.6" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <figcaption><b>Do</b>If the handle carries an icon, it says on or off: an X and a check.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14" y="10" width="36" height="22" rx="11" class="rv-acc"/>
+            <circle cx="39" cy="21" r="8" class="rv-surface"/>
+            <path d="M40.5 15.8 A5.4 5.4 0 1 0 44.2 23.4 A4.4 4.4 0 0 1 40.5 15.8 Z" fill="var(--accent)"/>
+            <rect x="70" y="10" width="36" height="22" rx="11" class="rv-acc"/>
+            <circle cx="95" cy="21" r="8" class="rv-surface"/>
+            <path d="M91.5 24.5 L92 22 L97.5 16.5 L99.5 18.5 L94 24 Z" fill="none" stroke="var(--accent)" stroke-width="1.1" stroke-linejoin="round"/>
+          </svg>
+          <figcaption><b>Don't</b>Use icons that don't answer on or off, like a moon or a pencil.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="38" y="8" width="44" height="26" rx="13" class="rv-acc"/>
+            <circle cx="69" cy="21" r="10" class="rv-surface"/>
+            <text x="49" y="23.4" text-anchor="middle" fill="var(--bg-elev)" style="font: 700 6px/1 var(--font)">ON</text>
+          </svg>
+          <figcaption><b>Don't</b>Write words inside the track. At that size they are too small to read; use an icon.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <text x="30" y="24" text-anchor="end" class="rv-note">List</text>
+            <rect x="38" y="13" width="30" height="16" rx="8" class="rv-acc"/>
+            <circle cx="60" cy="21" r="5.6" class="rv-surface"/>
+            <text x="76" y="24" class="rv-note">Map</text>
+          </svg>
+          <figcaption><b>Don't</b>Switch between two opposing things, like list or map view. That is a choice; use a connected button group.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="rv-ink" d="M4 7 H36 M4 19 H30"/>
+            <rect x="52" y="2" width="20" height="10" rx="5" class="rv-acc"/>
+            <circle cx="66.5" cy="7" r="3.6" class="rv-surface"/>
+            <rect x="52" y="14" width="20" height="10" rx="5" class="rv-ink"/>
+            <circle cx="57" cy="19" r="2.4" class="rv-ink"/>
+            <rect x="80" y="30" width="32" height="13" rx="6.5" class="rv-acc"/>
+            <text x="96" y="38.8" text-anchor="middle" class="rv-on-acc" style="font-size: 6.5px">Save</text>
+          </svg>
+          <figcaption><b>Don't</b>Use switches for options that wait for Save. Switches act at once; these are checkboxes.</figcaption>
+        </figure>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Switch</th><th>How it behaves</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Label</td><td>Inline and short, naming what the switch does when it is on. The label keeps its colour in both states.</td></tr>
+          <tr><td>Effect</td><td>At once, no Save. If it waits, it is not a switch.</td></tr>
+          <tr><td>Keyboard</td><td>Tab lands on the handle; Space or Enter flips it.</td></tr>
+          <tr><td>Screen reader</td><td>Reads the label, then &ldquo;switch&rdquo;. A vague label like &ldquo;Photo album&rdquo; gets a fuller accessible name: &ldquo;Photo album access&rdquo;.</td></tr>
+          <tr><td>Touch and pointer</td><td>Tap or drag grows the handle; hover grows the layer. The control shows it noticed before it changes.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Checkbox, up close</h3>
+
+      <p>The smallest of the three, and the only one with a third state. Material 3 added indeterminate and error versions of every state.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-31 -20 76 66" class="is-small" role="img" aria-label="A ticked checkbox drawn to Material 3 measurements, with four numbered parts: container, icon, state layer and target">
+            <rect x="-15" y="-15" width="48" height="48" rx="3" class="an-target"/>
+            <circle cx="9" cy="9" r="20" class="an-layer"/>
+            <rect x="0" y="0" width="18" height="18" rx="2" fill="var(--accent)"/>
+            <path d="M4.5 9.4 L7.6 12.5 L13.6 6.2" fill="none" stroke="var(--bg-elev)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="an-dim" d="M0 36 V40 M0 38 H18 M18 36 V40"/>
+            <text x="9" y="43.6" text-anchor="middle" class="an-txt">18</text>
+            <path class="an-lead" d="M-25 25 L1 16 M-25 -8 L5.5 10 M39 -14 L25 -2.5 M39 30 L33 27"/>
+            <g class="an-num"><circle cx="-25" cy="25" r="2.6"/><text x="-25" y="25">1</text></g>
+            <g class="an-num"><circle cx="-25" cy="-8" r="2.6"/><text x="-25" y="-8">2</text></g>
+            <g class="an-num"><circle cx="39" cy="-14" r="2.6"/><text x="39" y="-14">3</text></g>
+            <g class="an-num"><circle cx="39" cy="30" r="2.6"/><text x="39" y="30">4</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>18 dp square, 2 dp corners, a 2&nbsp;dp outline when empty.</span></li>
+          <li><b>Icon</b><span>18 dp, centred: a check for on, a dash for mixed.</span></li>
+          <li><b>State layer</b><span>A 40 dp circle on hover, focus and press.</span></li>
+          <li><b>Target</b><span>48 dp, and the label belongs to it: clicking the words ticks the box.</span></li>
+        </ol>
+      </div>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke="var(--fg-muted)" stroke-width="2"/>
+          </svg>
+          <figcaption><b>Unselected</b><span>Outline only</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <rect x="0" y="0" width="18" height="18" rx="2" fill="var(--accent)"/>
+            <path d="M4.5 9.4 L7.6 12.5 L13.6 6.2" fill="none" stroke="var(--bg-elev)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <figcaption><b>Selected</b><span>Fill and check</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <rect x="0" y="0" width="18" height="18" rx="2" fill="var(--accent)"/>
+            <path d="M5 9 H13" stroke="var(--bg-elev)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <figcaption><b>Indeterminate</b><span>A parent, split</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <circle cx="9" cy="9" r="20" class="an-layer"/>
+            <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke="var(--fg)" stroke-width="2"/>
+          </svg>
+          <figcaption><b>Hovered</b><span>40 dp layer</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke="var(--dont)" stroke-width="2"/>
+          </svg>
+          <figcaption><b>Error</b><span>For every state</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-13 -13 44 44" aria-hidden="true">
+            <g opacity=".35">
+              <rect x="0" y="0" width="18" height="18" rx="2" fill="var(--fg-muted)"/>
+              <path d="M4.5 9.4 L7.6 12.5 L13.6 6.2" fill="none" stroke="var(--bg-elev)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+          <figcaption><b>Disabled</b><span>Faded</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="rv-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="20" y="1" width="11" height="11" rx="2" class="rv-acc"/>
+            <path d="M23 6.5 H28" stroke="var(--bg-elev)" stroke-width="1.6" stroke-linecap="round"/>
+            <path class="rv-ink" d="M37 6.5 H70"/>
+            <rect x="32" y="17" width="11" height="11" rx="2" class="rv-acc"/>
+            <path d="M34.8 22.6 L36.9 24.7 L40.4 20.6" fill="none" stroke="var(--bg-elev)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="rv-mute" d="M49 22.5 H80"/>
+            <rect x="32" y="32" width="11" height="11" rx="2" class="rv-ink"/>
+            <path class="rv-mute" d="M49 37.5 H74"/>
+          </svg>
+          <figcaption><b>Do</b>Give a list a parent checkbox. Ticking it ticks every child; some ticked makes it a dash, and ticking the dash ticks all.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="rv-ink" d="M14 7 H46 M14 22 H40 M14 37 H44"/>
+            <rect x="80" y="2" width="20" height="10" rx="5" class="rv-acc"/>
+            <circle cx="94.5" cy="7" r="3.6" class="rv-surface"/>
+            <rect x="80" y="17" width="20" height="10" rx="5" class="rv-ink"/>
+            <circle cx="85" cy="22" r="2.4" class="rv-ink"/>
+            <rect x="80" y="32" width="20" height="10" rx="5" class="rv-acc"/>
+            <circle cx="94.5" cy="37" r="3.6" class="rv-surface"/>
+          </svg>
+          <figcaption><b>Don't</b>Use switches for a list of related options. Checkboxes say the items belong together, and take less room.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="24" y="6" width="12" height="12" rx="2" class="rv-acc"/>
+            <path d="M27 12.2 L29.3 14.5 L33.2 10" fill="none" stroke="var(--bg-elev)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="rv-ink" d="M44 12 H90"/>
+            <rect x="25" y="27" width="10" height="10" rx="1.5" class="rv-ink"/>
+            <path class="rv-ink" d="M44 32 H84" opacity=".3"/>
+          </svg>
+          <figcaption><b>Don't</b>Fade the label of an empty box. The text keeps its colour whether ticked or not; the box carries the state.</figcaption>
+        </figure>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Checkbox</th><th>How it behaves</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Label</td><td>On the trailing side, scannable. In an editable checklist the box may stand alone.</td></tr>
+          <tr><td>Group</td><td>If the set's relation isn't obvious, a heading introduces it, its baseline lined up with the first box.</td></tr>
+          <tr><td>Effect</td><td>Usually when the form is sent. When a single box turns something on or off, it acts at once.</td></tr>
+          <tr><td>Keyboard</td><td>Tab to each box, Space ticks it. Material's own checkbox key table is copied from its chips page, so the WAI-ARIA pattern is the one to follow here.</td></tr>
+          <tr><td>Screen reader</td><td>Reads the label, then &ldquo;checkbox, checked&rdquo;. The accessible name is usually the visible label.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Radio buttons, up close</h3>
+
+      <p>A radio button never stands alone: the group is the component. Each option needs its own label, because each is a different answer.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-31 -20 78 66" class="is-small" role="img" aria-label="A selected radio button drawn to Material 3 measurements, with four numbered parts: ring, dot, state layer and target">
+            <rect x="-14" y="-14" width="48" height="48" rx="3" class="an-target"/>
+            <circle cx="10" cy="10" r="20" class="an-layer"/>
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="5" fill="var(--accent)"/>
+            <path class="an-dim" d="M0 37 V41 M0 39 H20 M20 37 V41"/>
+            <text x="10" y="44.6" text-anchor="middle" class="an-txt">20</text>
+            <path class="an-lead" d="M-25 24 L2.5 15 M-25 -8 L7.5 8 M41 -14 L25.3 -2.9 M41 30 L34 27"/>
+            <g class="an-num"><circle cx="-25" cy="24" r="2.6"/><text x="-25" y="24">1</text></g>
+            <g class="an-num"><circle cx="-25" cy="-8" r="2.6"/><text x="-25" y="-8">2</text></g>
+            <g class="an-num"><circle cx="41" cy="-14" r="2.6"/><text x="41" y="-14">3</text></g>
+            <g class="an-num"><circle cx="41" cy="30" r="2.6"/><text x="41" y="30">4</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Ring</b><span>20 dp icon, drawn with a 2&nbsp;dp stroke.</span></li>
+          <li><b>Dot</b><span>10 dp, only in the chosen one.</span></li>
+          <li><b>State layer</b><span>A 40 dp circle on hover, focus and press.</span></li>
+          <li><b>Target</b><span>48 dp, label included: the words choose too.</span></li>
+        </ol>
+      </div>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--fg-muted)" stroke-width="2"/>
+          </svg>
+          <figcaption><b>Unselected</b><span>Empty ring</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="5" fill="var(--accent)"/>
+          </svg>
+          <figcaption><b>Selected</b><span>Ring and dot</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="20" class="an-layer"/>
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--fg)" stroke-width="2"/>
+          </svg>
+          <figcaption><b>Hovered</b><span>40 dp layer</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="14.5" fill="none" stroke="var(--fg)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="5" fill="var(--accent)"/>
+          </svg>
+          <figcaption><b>Focused</b><span>Ring outside</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="20" class="an-layer"/>
+            <circle cx="10" cy="10" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="5" fill="var(--accent)"/>
+          </svg>
+          <figcaption><b>Pressed</b><span>Layer and dot</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-12 -12 44 44" aria-hidden="true">
+            <g opacity=".35">
+              <circle cx="10" cy="10" r="9" fill="none" stroke="var(--fg-muted)" stroke-width="2"/>
+              <circle cx="10" cy="10" r="5" fill="var(--fg-muted)"/>
+            </g>
+          </svg>
+          <figcaption><b>Disabled</b><span>Faded</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="rv-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <circle cx="30" cy="7" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M42 7 H76"/>
+            <circle cx="30" cy="22" r="5" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="30" cy="22" r="2.5" class="rv-acc"/>
+            <path class="rv-ink" d="M42 22 H84"/>
+            <circle cx="30" cy="37" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M42 37 H70"/>
+          </svg>
+          <figcaption><b>Do</b>Stack the options in a column, with one already chosen.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <circle cx="22" cy="7" r="5" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="22" cy="7" r="2.5" class="rv-acc"/>
+            <path class="rv-ink" d="M34 7 H70"/>
+            <circle cx="40" cy="22" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M52 22 H82"/>
+            <circle cx="40" cy="37" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M52 37 H78"/>
+          </svg>
+          <figcaption><b>Don't</b>Nest radio buttons under one another, or let a group take more than one answer. That is a checkbox job.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <circle cx="30" cy="7" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M42 7 H72"/>
+            <circle cx="30" cy="22" r="5" class="rv-ink"/>
+            <path class="rv-mute" d="M42 22 H66"/>
+            <circle cx="30" cy="37" r="5" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="30" cy="37" r="2.5" class="rv-acc"/>
+            <text x="42" y="40" class="rv-label" style="font-size: 9px">None</text>
+          </svg>
+          <figcaption><b>Do</b>Give a way out. Once chosen, a group can't be cleared, so offer &ldquo;None&rdquo; or a Clear button.</figcaption>
+        </figure>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Radio buttons</th><th>How they behave</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Label</td><td>Every option has its own, after the circle. The group's title names the group.</td></tr>
+          <tr><td>How many</td><td>Two to five. More than that, and a drop-down saves room, at the cost of an extra tap and more thought.</td></tr>
+          <tr><td>Effect</td><td>At once, unless the group sits in a dialog or page that is saved.</td></tr>
+          <tr><td>Keyboard</td><td>Tab enters at the chosen one, or the first if none (Shift+Tab: the last). Arrows move and choose, wrapping from last to first. Space chooses and never clears.</td></tr>
+          <tr><td>Screen reader</td><td>A &ldquo;radio group&rdquo; named by its title; each option read by its label.</td></tr>
+        </tbody>
+      </table>
+
+      <details class="rv-table">
+        <summary>Three systems side by side</summary>
+        <table>
+          <thead>
+            <tr><th>Part</th><th>Material 3</th><th>Apple</th><th>Carbon</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Switch</td><td>52 &times; 32 dp</td><td>51 &times; 31 pt on iOS; regular and mini on Mac</td><td>48 &times; 24 px; small 32 &times; 16 px</td></tr>
+            <tr><td>Switch handle</td><td>16 / 24 / 28 dp</td><td>Knob stretches while held</td><td>18 px; small 10 px</td></tr>
+            <tr><td>Switch on colour</td><td>Primary</td><td>Green, or the app accent if it contrasts</td><td>Success green</td></tr>
+            <tr><td>Checkbox</td><td>18 dp, 2 dp corners, 2 dp outline</td><td>Small square, title trailing</td><td>16 px, 2 px corners, 1 px outline</td></tr>
+            <tr><td>Checkbox states</td><td>Unselected, selected, indeterminate, each with error</td><td>Off, on, mixed</td><td>Unchecked, checked, indeterminate</td></tr>
+            <tr><td>Radio button</td><td>20 dp ring, 2 dp stroke</td><td>Small circle, label after</td><td>18 px ring, 1 px stroke</td></tr>
+            <tr><td>Target</td><td>48 dp</td><td>44 pt</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <h3>Where Apple and Material disagree</h3>
+
+      <p>Mostly they say the same thing. Where they part, the brief has to pick a side, and the choice is written into every prototype's spec.</p>
+
+      <table>
+        <thead>
+          <tr><th>Question</th><th>Apple</th><th>Material 3</th><th>What I follow</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Radio buttons in a row?</td><td>Fine, spaced by the longest label</td><td>Avoid horizontal lists</td><td>Stacked: the brief puts every control in a list anyway</td></tr>
+          <tr><td>A group with nothing chosen?</td><td>Not addressed</td><td>Guidelines: always preselect. Accessibility: may start empty, with a way out</td><td>Preselect, and add &ldquo;None&rdquo; when skipping is a real answer</td></tr>
+          <tr><td>Where the switch's label lives</td><td>The row's own content on iOS; a label on Mac</td><td>Always an inline label, never text in the track</td><td>The row label, nothing written on the control</td></tr>
+          <tr><td>Switch colour</td><td>Green by default; change it only if needed</td><td>The theme's primary colour</td><td>Colour is a tone lever, as long as on stands clear of off</td></tr>
+          <tr><td>How on is told apart</td><td>Fill, shape or inner mark, never colour alone</td><td>Position and a bigger handle, optional icon</td><td>Two signals at least, one of them not colour</td></tr>
+          <tr><td>Mixed state</td><td>Checkboxes; radio can, but rarely should</td><td>Checkbox only, plus error states</td><td>Only a parent checkbox</td></tr>
+          <tr><td>Keys that flip a switch</td><td>Space (platform default)</td><td>Space or Enter</td><td>Both</td></tr>
+        </tbody>
+      </table>
+
+
+      <h3>How each one moves</h3>
+
+      <p>Material 3's own code, read for what moves, for how long and on which curve. Click a row to play it: each bar underneath fills on that part&rsquo;s own curve, on one shared 0&ndash;500 ms clock.</p>
+
+      <figure class="demo-frame">
+        <iframe src="week-03-motion.html" title="How a switch, a checkbox and radio buttons move, with a timeline of each moving part" loading="lazy" style="height: 712px"></iframe>
+        <figcaption>
+          <span>Live demo. Click a row, then click it again; switch the speed at the top.</span>
+          <button type="button" class="viewer-open" data-src="week-03-motion.html">View larger</button>
+        </figcaption>
+      </figure>
+
+      <details class="rv-table">
+        <summary>Table view</summary>
+        <table>
+          <thead>
+            <tr><th>Part</th><th>Duration</th><th>Curve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Switch handle, position</td><td>300 ms</td><td>Overshoot, <code>cubic-bezier(0.175, 0.885, 0.32, 1.275)</code></td></tr>
+            <tr><td>Switch handle, size</td><td>250 ms</td><td>Standard, <code>cubic-bezier(0.2, 0, 0, 1)</code></td></tr>
+            <tr><td>Switch handle, pressed</td><td>100 ms</td><td>Linear</td></tr>
+            <tr><td>Switch handle, colour</td><td>67 ms</td><td>Linear</td></tr>
+            <tr><td>Checkbox, checking (box and mark)</td><td>350 ms</td><td>Emphasized decelerate, <code>cubic-bezier(0.05, 0.7, 0.1, 1)</code></td></tr>
+            <tr><td>Checkbox, unchecking</td><td>150 ms</td><td>Emphasized accelerate, <code>cubic-bezier(0.3, 0, 0.8, 0.15)</code></td></tr>
+            <tr><td>Radio, inner dot grows</td><td>300 ms</td><td>Emphasized decelerate</td></tr>
+            <tr><td>Radio, dot out and ring colour</td><td>50 ms</td><td>Linear</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <h3>What the motion teaches</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="9" class="rv-note">on</text>
+            <rect x="0" y="13" width="64" height="6" rx="3" class="rv-acc"/>
+            <text x="0" y="31" class="rv-note">off</text>
+            <rect x="0" y="35" width="27" height="6" rx="3" class="rv-acc" opacity=".45"/>
+          </svg>
+          <b>Arrive slow, leave fast</b>
+          <p>Turning on eases into place and earns a look; turning off hurries away. Material's checkbox leaves in under half the time it arrives.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="4" y="6" width="52" height="26" rx="13" class="rv-acc"/>
+            <circle cx="17" cy="19" r="7" fill="none" stroke="var(--bg-elev)" stroke-width="1" stroke-dasharray="2 2" opacity=".7"/>
+            <circle cx="43" cy="19" r="9" class="rv-surface"/>
+            <path class="rv-mute" d="M10 41 H48 M45 38 L48 41 L45 44"/>
+          </svg>
+          <b>Travel says which way</b>
+          <p>The switch handle crosses the track, so where it ends is the answer. A small overshoot makes it feel thrown rather than placed.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="14" cy="18" r="6" class="rv-ink"/>
+            <path class="rv-mute" d="M26 18 H34 M31 15 L34 18 L31 21"/>
+            <circle cx="50" cy="18" r="10" class="rv-acc"/>
+            <text x="14" y="42" text-anchor="middle" class="rv-note">rest</text>
+            <text x="50" y="42" text-anchor="middle" class="rv-note">held</text>
+          </svg>
+          <b>Answer the press, not only the release</b>
+          <p>Held down, Material's handle swells to 28 in 100 ms; iOS stretches its knob into a pill. The control shows it felt the finger before anything changes.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="11" cy="20" r="9" class="rv-ink"/>
+            <circle cx="11" cy="20" r="1.5" class="rv-acc"/>
+            <circle cx="36" cy="20" r="9" class="rv-ink"/>
+            <circle cx="36" cy="20" r="3" class="rv-acc"/>
+            <circle cx="61" cy="20" r="9" class="rv-ink"/>
+            <circle cx="61" cy="20" r="4.5" class="rv-acc"/>
+          </svg>
+          <b>Grow from where it lives</b>
+          <p>The radio dot swells out of the ring's centre; the checkbox fill pops up from 60%. Nothing slides in from somewhere else.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="9" class="rv-note">colour</text>
+            <rect x="0" y="13" width="14" height="6" rx="3" class="rv-acc" opacity=".45"/>
+            <text x="0" y="31" class="rv-note">shape</text>
+            <rect x="0" y="35" width="64" height="6" rx="3" class="rv-acc"/>
+          </svg>
+          <b>Colour cuts, shape moves</b>
+          <p>Colour changes in 50 to 67 ms, almost instantly. The time is spent on shape and position, which is where the eye follows the change.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="4" y="6" width="52" height="26" rx="13" class="rv-ink"/>
+            <circle cx="30" cy="19" r="9" class="rv-acc"/>
+            <path d="M30 24 l0 13 l3 -3 l2.2 4.6 l2.2 -1.1 l-2.2 -4.6 l4.2 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+          </svg>
+          <b>Follow the finger</b>
+          <p>On iOS the knob can be dragged, and a spring picks up the finger's speed where the drag ends. With reduced motion on, the end states alone still have to read.</p>
+        </div>
+      </div>
+
+      <h3>Speed is a tone, too</h3>
+
+      <p>Carbon draws the same switch with the opposite temper. Its handle and track colour move together in 70&nbsp;ms on an exit curve, with no overshoot: the switch is simply already there. Material spends 300&nbsp;ms and lets the handle overshoot. Same job, two characters, so duration and curve belong to the tone, not only to the spec.</p>
+
+      <table>
+        <thead>
+          <tr><th>Switch handle</th><th>Duration</th><th>Curve</th><th>Reads as</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Material 3</td><td>300 ms</td><td>Overshoot, <code>cubic-bezier(0.175, 0.885, 0.32, 1.275)</code></td><td>Thrown, springy</td></tr>
+          <tr><td>Carbon</td><td>70 ms</td><td>Exit productive, <code>cubic-bezier(0.2, 0, 1, 0.9)</code></td><td>Instant, matter-of-fact</td></tr>
+          <tr><td>Apple, iOS</td><td>Spring</td><td>Carries the finger's speed after a drag</td><td>Physical, held</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="1" y="10" width="70" height="22" rx="4" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2"/>
+            <rect x="6" y="15" width="12" height="12" rx="2" class="rv-ink"/>
+            <path class="rv-ink" d="M24 21 H52"/>
+            <path d="M46 24 l0 13 l3.2 -3.2 l2.4 5 l2.4 -1.2 l-2.4 -5 l4.4 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+          </svg>
+          <b>The whole row is the target</b>
+          <p>Clicking the words flips the control too. Material draws an 18&nbsp;dp box inside a 48&nbsp;dp target: the drawing can be tiny, the hit area cannot.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <path class="rv-ink" d="M2 10 H30"/>
+            <rect x="44" y="4" width="24" height="12" rx="6" class="rv-ink"/>
+            <circle cx="50" cy="10" r="3.4" class="rv-ink"/>
+            <path class="rv-ink" d="M2 32 H30"/>
+            <rect x="44" y="26" width="24" height="12" rx="6" class="rv-acc"/>
+            <circle cx="62" cy="32" r="4.4" class="rv-surface"/>
+          </svg>
+          <b>The label stays put</b>
+          <p>&ldquo;Wi-Fi&rdquo; stays &ldquo;Wi-Fi&rdquo; whether it is on or off. The control carries the state; rewriting the words as it flips only makes people read twice.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="8" width="30" height="18" rx="9" class="rv-ink"/>
+            <circle cx="11" cy="17" r="5" class="rv-ink"/>
+            <rect x="40" y="8" width="30" height="18" rx="9" class="rv-acc"/>
+            <circle cx="61" cy="17" r="6.5" class="rv-surface"/>
+            <text x="17" y="40" text-anchor="middle" class="rv-note">off: left</text>
+            <text x="55" y="40" text-anchor="middle" class="rv-note">on: right</text>
+          </svg>
+          <b>Never colour alone</b>
+          <p>On and off must differ in shape or position too. Apple names three ways: add or remove a fill, show or hide a shape, change the mark inside. WCAG 1.4.1.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="4" y="10" width="20" height="20" rx="3" fill="none" stroke="var(--line)" stroke-width="1.6"/>
+            <text x="14" y="42" text-anchor="middle" class="rv-note">too faint</text>
+            <rect x="46" y="10" width="20" height="20" rx="3" class="rv-ink"/>
+            <text x="56" y="42" text-anchor="middle" class="rv-note">3 : 1</text>
+          </svg>
+          <b>Edges you can see</b>
+          <p>The outline of an empty box or ring needs 3:1 contrast against what is behind it, off state included. WCAG 1.4.11. A new accent colour has to stand clear of the off state too.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 108 44" style="width: 168px" aria-hidden="true">
+            <rect x="2" y="6" width="28" height="16" rx="8" class="rv-acc"/>
+            <circle cx="22" cy="14" r="5.5" class="rv-surface"/>
+            <path class="rv-mute" d="M34 14 H44 M41 11 L44 14 L41 17"/>
+            <circle cx="50" cy="14" r="4" class="rv-acc"/>
+            <text x="22" y="38" text-anchor="middle" class="rv-note">switch: now</text>
+            <path class="rv-hair" d="M62 2 V44"/>
+            <rect x="68" y="6" width="12" height="12" rx="2" class="rv-ink"/>
+            <rect x="84" y="4" width="22" height="14" rx="3" class="rv-ink"/>
+            <text x="95" y="14" text-anchor="middle" class="rv-note" style="font-size: 6px">Send</text>
+            <text x="87" y="38" text-anchor="middle" class="rv-note">checkbox: later</text>
+          </svg>
+          <b>A switch acts now</b>
+          <p>Flip it and the thing is already on. If a choice waits for Submit, it is a checkbox, not a switch.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="10" cy="10" r="6" class="rv-ink"/>
+            <circle cx="10" cy="26" r="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+            <circle cx="10" cy="26" r="3" class="rv-acc"/>
+            <rect x="34" y="8" width="14" height="14" rx="3" class="rv-ink"/>
+            <path class="rv-ink" d="M41 18 V12 M38 15 L41 12 L44 15"/>
+            <rect x="34" y="26" width="14" height="14" rx="3" class="rv-ink"/>
+            <path class="rv-ink" d="M41 30 V36 M38 33 L41 36 L44 33"/>
+            <text x="54" y="27" class="rv-note">move</text>
+          </svg>
+          <b>One group, one stop</b>
+          <p>Tab lands on the chosen radio once; the arrow keys move the choice. Start with one chosen, or the group can never return to none.</p>
+        </div>
+      </div>
+
+      <h3>When a row needs help</h3>
+
+      <p>On the Mac a tooltip, which Apple calls a help tag, appears when the pointer rests on a control; in visionOS, when the eyes do. Touch has no hover, so on a phone the same sentence lives under the label instead. Atlassian suggests a tooltip to say what flipping a toggle will do, which is where week 2's tooltips meet these rows.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <path class="rv-mute" d="M2 5 H28 M2 33 H28"/>
+            <rect x="44" y="0" width="22" height="10" rx="5" class="rv-ink"/>
+            <circle cx="49" cy="5" r="2.8" class="rv-ink"/>
+            <rect x="44" y="28" width="22" height="10" rx="5" class="rv-acc"/>
+            <circle cx="61" cy="33" r="3.5" class="rv-surface"/>
+            <rect x="41" y="25" width="28" height="16" rx="8" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2"/>
+            <rect x="22" y="14" width="40" height="7" rx="2" fill="var(--fg)"/>
+            <path d="M52.5 21 L55 23.5 L57.5 21 Z" fill="var(--fg)"/>
+            <path d="M25 17.5 H57" fill="none" stroke="var(--bg-elev)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <b>Explain the one being pointed at</b>
+          <p>Describe only the control the person is asking about, not its neighbours and not the bigger task around it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="8" class="rv-note">Low Data Mode</text>
+            <rect x="0" y="16" width="72" height="14" rx="3" fill="var(--fg)"/>
+            <text x="5" y="25.5" fill="var(--bg-elev)" style="font: 7.5px/1 var(--font)"><tspan font-weight="700">Pause</tspan> updates</text>
+            <text x="0" y="41" class="rv-note">verb first, no name</text>
+          </svg>
+          <b>Start with a verb, skip the name</b>
+          <p>Say what the control does, as an action: &ldquo;Pause background updates&rdquo;. The label already says &ldquo;Low Data Mode&rdquo;; repeating it wastes the space.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="0" y="12" width="72" height="10" rx="2" class="rv-hair"/>
+            <rect x="0" y="12" width="56" height="10" rx="2" class="rv-acc"/>
+            <path class="rv-mute" d="M56 6 V28"/>
+            <text x="56" y="38" text-anchor="middle" class="rv-note">60&ndash;75</text>
+          </svg>
+          <b>Sixty to seventy-five characters</b>
+          <p>A fragment, no articles. If a control needs more than that to explain, Apple's advice is to simplify the control, not lengthen the tip.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="14" fill="currentColor" style="font: 8px/1 var(--font)">Show hidden files</text>
+            <text x="0" y="34" class="rv-note">Show Hidden Files.</text>
+            <path class="rv-mute" d="M0 31.5 H66"/>
+          </svg>
+          <b>Sentence case, no full stop</b>
+          <p>Sentence case reads as plain speech. Leave off the closing full stop unless the rest of the product uses one.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 108 44" style="width: 168px" aria-hidden="true">
+            <rect x="0" y="5" width="16" height="9" rx="4.5" class="rv-ink"/>
+            <circle cx="4.5" cy="9.5" r="2.4" class="rv-ink"/>
+            <rect x="24" y="2" width="70" height="15" rx="2" fill="var(--fg)"/>
+            <text x="28" y="12.5" fill="var(--bg-elev)" style="font: 7.5px/1 var(--font)">Pause updates</text>
+            <rect x="0" y="29" width="16" height="9" rx="4.5" class="rv-acc"/>
+            <circle cx="11.5" cy="33.5" r="3" class="rv-surface"/>
+            <rect x="24" y="26" width="70" height="15" rx="2" fill="var(--fg)"/>
+            <text x="28" y="36.5" fill="var(--bg-elev)" style="font: 7.5px/1 var(--font)">Resume updates</text>
+          </svg>
+          <b>Change with the state</b>
+          <p>A selector has two states, so its tip can have two sentences: each says what flipping it now will do.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="16" cy="22" r="12" class="rv-ink"/>
+            <path class="rv-ink" d="M16 22 L16 13"/>
+            <path class="rv-mute" d="M3 9 A17 17 0 0 1 29 9 M26 6 L29 9 L25 10.5"/>
+            <g opacity=".45">
+              <path class="rv-mute" d="M42 12 H70 M42 19 H68 M42 26 H70 M42 33 H60"/>
+            </g>
+            <path class="rv-ink" d="M40 8 L72 38"/>
+          </svg>
+          <b>Teach the strange by motion</b>
+          <p>Don't explain how a standard switch works. If a tone makes the control unfamiliar, orient people with animation, not a paragraph.</p>
+        </div>
+      </div>
+
+      <h3>The row around it</h3>
+
+      <p>The brief puts every control in a labelled list, so the row is part of the spec too. A baseline to depart from: a tone can move every number here, as long as the rules above still hold.</p>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Size</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>List row, one line</td><td>56 dp tall, 16 dp side padding</td><td>Material 3 lists</td></tr>
+          <tr><td>Row label</td><td>16 sp on a 24 sp line</td><td>Material 3, Body Large</td></tr>
+          <tr><td>Label colour</td><td>On surface, the same in every state</td><td>Material 3</td></tr>
+          <tr><td>Touch target</td><td>48 &times; 48 dp</td><td>Material 3</td></tr>
+          <tr><td>Touch target</td><td>44 &times; 44 pt</td><td>Apple</td></tr>
+          <tr><td>Target, the minimum</td><td>24 &times; 24 CSS px</td><td>WCAG 2.5.8</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-03-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-03-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-03-NAME.html">View larger</button>
+          </figcaption>
+        </figure>
+      -->
+      <div class="idea-grid">
+      </div>
+
+      <h2>Deliverables</h2>
+
+      <p>Twelve components, four sets of one switch, one checkbox and one radio button. Open a set to try its prototypes, each a labelled list with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-03-TONE-{switch,checkbox,radio}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the list first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the three <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-luxurious">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-luxurious">
+            <span class="set-thumbs is-three" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Luxurious</span><span class="set-line">Espresso on warm paper lit by a peach glow: fine lines, gradients that glow, motion that takes its time.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-luxurious" aria-labelledby="dlg-luxurious-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-luxurious-title">Luxurious</span></span>
+              <button type="button" class="set-close" aria-label="Close the Luxurious set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-luxurious-switch.html" title="Luxurious switch prototype: a fine-lined track that fills with an espresso gradient as the pearl handle glides across" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Savings settings. Off is a 1px outline holding a pearl handle. On, an espresso gradient fades up through the track, the handle glides across on a spring with no bounce, the track begins to glow, and a fine check is drawn inside the handle once it has nearly arrived. Off undoes it in a third of the time.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-switch.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-luxurious-checkbox.html" title="Luxurious checkbox prototype: a peach bloom opens behind the box as its gradient fill settles and a fine check is drawn" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Alerts to choose. Empty is a soft square in one fine line. Ticked, a bloom of peach light opens behind it and fades, the gradient fill settles in from 60% on the same spring, and a fine cream check is drawn across it. Unticking leaves fast.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-checkbox.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-luxurious-radio.html" title="Luxurious radio button prototype: the chosen ring darkens, a gradient pearl swells from its centre and a soft light stays around it" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Round-up amount. Each option is a fine ring. Choosing one darkens its ring, swells a gradient pearl from the centre on a soft spring, and gathers a light around it that stays, so the chosen one is the lit one. The one before lets go quickly.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-radio.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-quirky">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-quirky">
+            <span class="set-thumbs is-three" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Quirky</span><span class="set-line">Never still: ink tangled round and round on grey paper, cut into neon shards on black once chosen.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-quirky" aria-labelledby="dlg-quirky-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-quirky-title">Quirky</span></span>
+              <button type="button" class="set-close" aria-label="Close the Quirky set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-quirky-switch.html" title="Quirky switch prototype: a boiling ink scribble that jumps into neon shards on black when switched on" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Playback settings. Off, the track and handle are pen scribbles that go round and round and never stop boiling. On, the handle hops across in six drawn frames, winding up, smearing long, overshooting squashed and landing with a colour-split flash, and both cut into neon shards on black, with halftone, a colour-split edge and spray; the shards keep changing colour while it stays on. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-switch.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-quirky-checkbox.html" title="Quirky checkbox prototype: a scribbled box that jumps into neon shards with a fat yellow check" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Toppings. Off, a box scribbled round three times with a stray loop at its corner, boiling. Ticked, it swells past its size with a pink and cyan split, springs back, and is neon shards on black with a fat yellow check on top, re-coloured four times a second. Unticking drops it back to ink in three. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-checkbox.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-quirky-radio.html" title="Quirky radio button prototype: tangled ink circles, the chosen one cut into neon shards with a yellow dot" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Ringtone. Each option is a tangle of circles with a spiral inside and loops flung around it, after the ink reference. The chosen one swells past its size and springs back as neon shards with a yellow dot, spray where the loops were; the one before drops back to ink. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-radio.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-mysterious">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-mysterious">
+            <span class="set-thumbs is-three" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Mysterious</span><span class="set-line">Mysterious, edging into conspiracy: black and white, words in mist, and what you set may quietly not stay set.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-mysterious" aria-labelledby="dlg-mysterious-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-mysterious-title">Mysterious</span></span>
+              <button type="button" class="set-close" aria-label="Close the Mysterious set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-mysterious-switch.html" title="Mysterious switch prototype: a dark new-moon handle that crosses and, after a hush, comes out of eclipse as full" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Privacy settings in the dark. The handle is a moon: off, a new moon with only its rim showing. Switched on, it crosses at once; after a short hush its shadow slides off the other way, the track takes a thin light and the row surfaces in light. Off, the dark takes it back quickly. The pointer carries a small light. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-switch.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-mysterious-checkbox.html" title="Mysterious checkbox prototype: a dim square lit from its centre by light with the check already inside" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Who can find me. Empty, each box is a dim square in the dark. Ticked, a hush, then light opens as a circle from its centre with the check already in it, as if a light had found something that was always there; the row and its label surface with it. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-checkbox.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-mysterious-radio.html" title="Mysterious radio button prototype: each dot a moon in eclipse; the chosen one slides out of shadow into full" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Messages vanish after. Each dot is a moon in eclipse, so only the dim ring shows. Choose one: a hush, then the shadow slides off, a crescent widening to full, the ring lights and the row surfaces. The one before goes back into eclipse at once. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-radio.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-playful">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-playful">
+            <span class="set-thumbs is-three" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 4</span><span class="set-name">Playful</span><span class="set-line">Cotton candy pastels: a pinwheel that rolls and spins, a checkbox that pops like a balloon, a bubble that blows up.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-playful" aria-labelledby="dlg-playful-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 4</span><span class="set-name" id="dlg-playful-title">Playful</span></span>
+              <button type="button" class="set-close" aria-label="Close the Playful set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-playful-switch.html" title="Playful switch prototype: a pastel pinwheel that rolls across a cotton-candy track, spinning as it goes" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Party mode. The handle is a pinwheel of four pastel blades. Switched, it rolls across on a bouncy spring, a little too far and back, spinning a turn and a quarter like a pinwheel catching the wind; the track fills pink to peach. Pressed, it squashes.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-switch.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-playful-checkbox.html" title="Playful checkbox prototype: the box swells like a balloon and pops, coloured lines bursting out past its edge" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Pick your sweets. Ticked, the box swells like a balloon, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it deflates.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-checkbox.html">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-playful-radio.html" title="Playful radio button prototype: a soap-bubble dot that blows up with a bounce and leaves a ripple" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Balloon colour. Each dot is a soap bubble; choose one and it blows up on a bouncy spring, overshooting before it settles, with a ripple spreading from the ring. The one before shrinks away.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-radio.html">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid"></div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/toggles">Toggles</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/offering-help#macOS-visionOS">Offering help</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://www.designsystems.com/open-design-systems/">Open Design Systems</a>, Design Systems (Figma)</li>
+          <li>Carbon source: <a href="https://github.com/carbon-design-system/carbon/blob/main/packages/styles/scss/components/toggle/_toggle.scss">toggle</a>, <a href="https://github.com/carbon-design-system/carbon/blob/main/packages/styles/scss/components/checkbox/_checkbox.scss">checkbox</a>, <a href="https://github.com/carbon-design-system/carbon/blob/main/packages/styles/scss/components/radio-button/_radio-button.scss">radio button</a> and <a href="https://github.com/carbon-design-system/carbon/blob/main/packages/motion/src/dtcg/motion.json">motion tokens</a>, IBM Carbon Design System</li>
+          <li><a href="https://atlassian.design/components/toggle/usage">Toggle</a>, Atlassian Design System</li>
+          <li>Switch: <a href="https://m3.material.io/components/switch/overview">overview</a>, <a href="https://m3.material.io/components/switch/specs">specs</a>, <a href="https://m3.material.io/components/switch/guidelines">guidelines</a>, <a href="https://m3.material.io/components/switch/accessibility">accessibility</a>, Material Design 3</li>
+          <li>Checkbox: <a href="https://m3.material.io/components/checkbox/overview">overview</a>, <a href="https://m3.material.io/components/checkbox/specs">specs</a>, <a href="https://m3.material.io/components/checkbox/guidelines">guidelines</a>, <a href="https://m3.material.io/components/checkbox/accessibility">accessibility</a>, Material Design 3</li>
+          <li>Radio button: <a href="https://m3.material.io/components/radio-button/overview">overview</a>, <a href="https://m3.material.io/components/radio-button/specs">specs</a>, <a href="https://m3.material.io/components/radio-button/guidelines">guidelines</a>, <a href="https://m3.material.io/components/radio-button/accessibility">accessibility</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/components/lists/specs">Lists</a>, Material Design 3</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/switch/">Switch pattern</a>, <a href="https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/">Checkbox pattern</a> and <a href="https://www.w3.org/WAI/ARIA/apg/patterns/radio/">Radio group pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+          <li>material-web source: <a href="https://github.com/material-components/material-web/blob/main/switch/internal/_handle.scss">switch handle</a>, <a href="https://github.com/material-components/material-web/blob/main/checkbox/internal/_checkbox.scss">checkbox</a> and <a href="https://github.com/material-components/material-web/blob/main/radio/internal/_radio.scss">radio</a> motion, Material Design 3</li>
+          <li><a href="https://m3.material.io/styles/motion/easing-and-duration/tokens-specs">Easing and duration</a>, Material Design 3</li>
+          <li><a href="https://developer.apple.com/videos/play/wwdc2023/10158/">Animate with springs</a>, Apple, WWDC23</li>
+          <li><a href="https://www.nngroup.com/articles/toggle-switch-guidelines/">Toggle-Switch Guidelines</a>, Nielsen Norman Group</li>
+          <li><a href="https://www.nngroup.com/articles/checkboxes-vs-radio-buttons/">Checkboxes vs. Radio Buttons</a>, Nielsen Norman Group</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html">Understanding SC 1.4.1: Use of Color</a>, W3C</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">Understanding SC 1.4.11: Non-text Contrast</a>, W3C</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">Understanding SC 2.5.8: Target Size (Minimum)</a>, W3C</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-02/week-02.html">&larr; Week 02: Badges &amp; Tooltips</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=5"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+</body>
+</html>

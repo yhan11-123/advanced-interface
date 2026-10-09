@@ -1,0 +1,155 @@
+/* Week 03 · Luxurious: shared by the switch, checkbox and radio prototypes.
+   After Cleo's home screen: espresso brown on warm paper lit by a peach glow,
+   fine 1px lines, fills that are gradients rather than flat colour, and motion
+   that takes its time arriving and leaves without fuss.
+   Every number the Spec section prints is a custom property here or on the
+   component page, so the spec reads what the prototype runs on. */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");
+
+:root {
+  /* colour */
+  --paper: #fbf5ef;
+  --glow: #f6cfb4;            /* the peach light behind everything */
+  --glow-soft: #fbe3d4;
+  --espresso: #3f1f1c;        /* ink of the "on" state, the darkest stop */
+  --espresso-lit: #7a3a2b;    /* the lit end of every gradient */
+  --ink: #3a1d1a;             /* labels */
+  --ink-soft: #7c625b;        /* supporting text */
+  --line-off: #8c6f67;        /* off outlines: 4.2 : 1 on the paper */
+  --hair: rgba(63, 31, 28, .1);
+  --card: rgba(255, 252, 249, .62);
+
+  /* type */
+  --font: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --title-size: 15px;
+  --title-line: 20px;
+  --title-weight: 700;
+  --label-size: 16px;
+  --label-line: 22px;
+  --label-weight: 600;
+  --support-size: 13px;
+  --support-line: 18px;
+  --support-weight: 400;
+
+  /* layout */
+  --card-w: 380px;
+  --card-r: 28px;
+  --card-pad: 8px;
+  --row-h: 60px;
+  --row-pad: 18px;
+  --row-gap: 16px;
+  --row-r: 20px;
+
+  /* line */
+  --stroke: 1px;              /* every outline is a fine line */
+  --mark-stroke: 1.5px;       /* checks and the drawn mark */
+
+  /* motion: arrive slow on a spring with no bounce, leave quicker */
+  --arrive-dur: .67s;         /* 0.4 s visual; the rest is the settle */
+  --arrive-ease: linear(0, 0.023, 0.077, 0.144, 0.223, 0.305, 0.38, 0.456, 0.527, 0.587, 0.645, 0.695, 0.738, 0.777, 0.811, 0.839, 0.864, 0.885, 0.903, 0.919, 0.932, 0.942, 0.952, 0.96, 0.966, 0.972, 0.976, 0.98, 0.984, 0.986, 0.989, 0.991, 0.992, 0.994, 0.995, 0.996, 0.996, 0.997, 0.997, 0.998, 1);
+  --leave-dur: .22s;
+  --leave-ease: cubic-bezier(.3, 0, .2, 1);
+  --fade-dur: .32s;           /* gradients cross-fade, they don't cut */
+  --draw-dur: .3s;            /* the fine mark is drawn, not stamped */
+  --draw-delay: .08s;
+  --press-dur: .18s;
+
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --arrive-dur: .01s; --leave-dur: .01s; --draw-dur: .01s; --draw-delay: 0s; --press-dur: .01s;
+    --fade-dur: .15s;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0;
+  color: var(--ink);
+  font: var(--label-weight) var(--label-size) / var(--label-line) var(--font);
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(48% 42% at 72% 30%, color-mix(in srgb, var(--glow) 70%, transparent), transparent 72%),
+    radial-gradient(52% 46% at 18% 78%, var(--glow-soft), transparent 74%),
+    var(--paper);
+  background-attachment: fixed;
+}
+
+/* the stage: the list alone, centred in the first screen */
+.stage { min-height: 100vh; display: grid; place-items: center; padding: 20px 16px; }
+
+.card {
+  width: min(100%, var(--card-w));
+  padding: var(--card-pad);
+  border-radius: var(--card-r);
+  background: var(--card);
+  border: var(--stroke) solid var(--hair);
+  box-shadow: 0 30px 60px -30px rgba(122, 58, 43, .28), 0 1px 0 rgba(255, 255, 255, .8) inset;
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+}
+.card h1, .card legend {
+  margin: 0; padding: 12px var(--row-pad) 6px;
+  font-size: var(--title-size); line-height: var(--title-line); font-weight: var(--title-weight);
+  letter-spacing: -.01em;
+}
+fieldset.card { margin: 0; min-inline-size: 0; }
+fieldset.card legend { float: left; width: 100%; }
+fieldset.card legend + * { clear: both; }
+
+/* a row: the whole thing is the target */
+.row {
+  position: relative;
+  display: flex; align-items: center; gap: var(--row-gap);
+  min-height: var(--row-h); padding: 8px var(--row-pad);
+  border-radius: var(--row-r);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.row + .row::before {
+  content: ""; position: absolute; top: 0; left: var(--row-pad); right: var(--row-pad);
+  border-top: var(--stroke) solid var(--hair);
+}
+.row::after {                       /* a faint light passes under the row on hover */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+  background: radial-gradient(70% 140% at 20% 50%, rgba(246, 207, 180, .45), transparent 70%);
+  opacity: 0; transition: opacity var(--fade-dur) ease;
+}
+.row:hover::after { opacity: 1; }
+.rows { position: relative; z-index: 0; }
+
+.text { flex: 1; min-width: 0; display: grid; }
+.label { font-size: var(--label-size); line-height: var(--label-line); font-weight: var(--label-weight); letter-spacing: -.01em; }
+.support { font-size: var(--support-size); line-height: var(--support-line); font-weight: var(--support-weight); color: var(--ink-soft); }
+
+/* native inputs stay in place for keyboard and screen readers, drawn over by the control */
+.sr-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+
+/* focus: a fine ring with light around it */
+.sr-input:focus-visible + .ctl {
+  outline: var(--stroke) solid var(--espresso);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 8px rgba(246, 207, 180, .55);
+}
+
+.back-pill {
+  position: fixed; left: 12px; top: 12px; z-index: 9;
+  font: 600 12px/1 var(--font); color: var(--paper); background: var(--espresso);
+  padding: 8px 12px; border-radius: 999px; text-decoration: none;
+}
+
+/* ---------- Spec ---------- */
+.spec { max-width: 720px; margin: 0 auto; padding: 24px 20px 72px; }
+.spec h2 { margin: 0 0 4px; font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -.02em; }
+.spec > p { margin: 0 0 24px; font: 400 14px/21px var(--font); color: var(--ink-soft); }
+.spec h3 { margin: 28px 0 8px; font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.spec table { width: 100%; border-collapse: collapse; font: 400 14px/20px var(--font); }
+.spec td { padding: 10px 0; border-top: var(--stroke) solid var(--hair); vertical-align: top; }
+.spec tr:last-child td { border-bottom: var(--stroke) solid var(--hair); }
+.spec td:first-child { width: 42%; padding-right: 16px; color: var(--ink-soft); }
+.spec td:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+.spec code { font: 500 12.5px/18px ui-monospace, Menlo, monospace; color: var(--ink-soft); }
+.swatch { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: var(--stroke) solid var(--hair); }

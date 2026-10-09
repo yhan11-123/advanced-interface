@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Luxurious radio buttons</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-luxurious.css?v=2" />
+  <style>
+  /* Luxurious radio buttons. Each option is a fine 1px ring. Choosing one,
+     its ring darkens to espresso, a pearl of gradient swells up from the
+     centre on a soft spring, and a soft light gathers around it and stays,
+     so the chosen one is the lit one. The one before lets go quickly. */
+  :root {
+    --rd-size: 22px;
+    --rd-dot: 10px;
+    --rd-halo: 7px;                                   /* how far the light spreads past the ring */
+  }
+
+  .ring {
+    position: relative; flex: none;
+    width: var(--rd-size); height: var(--rd-size); border-radius: 50%;
+    border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--leave-dur) var(--leave-ease);
+  }
+  .ring::before {                                     /* the light that stays with the chosen one */
+    content: ""; position: absolute; inset: calc(-1 * var(--rd-halo)); border-radius: 50%; z-index: -1;
+    background: radial-gradient(closest-side, rgba(246, 207, 180, .9), rgba(246, 207, 180, 0));
+    opacity: 0; scale: .5;
+    transition: opacity var(--leave-dur) var(--leave-ease), scale var(--leave-dur) var(--leave-ease);
+  }
+  .dot {
+    position: absolute; left: 50%; top: 50%;
+    width: var(--rd-dot); height: var(--rd-dot); margin: calc(var(--rd-dot) / -2) 0 0 calc(var(--rd-dot) / -2);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--espresso-lit), var(--espresso) 75%);
+    scale: 0;
+    transition: scale var(--leave-dur) var(--leave-ease);
+  }
+
+  .sr-input:checked + .ring {
+    border-color: var(--espresso);
+    transition: border-color var(--fade-dur) ease;
+  }
+  .sr-input:checked + .ring::before {
+    opacity: 1; scale: 1;
+    transition: opacity var(--fade-dur) ease, scale var(--arrive-dur) var(--arrive-ease);
+  }
+  .sr-input:checked + .ring .dot {
+    scale: 1;
+    transition: scale var(--arrive-dur) var(--arrive-ease);
+  }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="card">
+      <legend>Round up to the nearest</legend>
+      <div class="rows">
+        <label class="row">
+          <input class="sr-input" type="radio" name="round" value="1" checked />
+          <span class="ctl ring" aria-hidden="true"><span class="dot"></span></span>
+          <span class="text"><span class="label">$1</span><span class="support">Gentle, you won't notice it</span></span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="round" value="5" />
+          <span class="ctl ring" aria-hidden="true"><span class="dot"></span></span>
+          <span class="text"><span class="label">$5</span><span class="support">Steady, a little each week</span></span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="round" value="10" />
+          <span class="ctl ring" aria-hidden="true"><span class="dot"></span></span>
+          <span class="text"><span class="label">$10</span><span class="support">Ambitious, saves the most</span></span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, the durations print as they then run: almost zero.</p>
+
+    <h3>Radio button</h3>
+    <table>
+      <tr><td>Ring</td><td data-var="--rd-size" data-after=" circle"></td></tr>
+      <tr><td>Ring stroke</td><td data-var="--stroke" data-after=" solid, both states"></td></tr>
+      <tr><td>Dot</td><td data-var="--rd-dot" data-after=" circle"></td></tr>
+      <tr><td>Light around the chosen one</td><td data-var="--rd-halo" data-after=" past the ring"></td></tr>
+      <tr><td>Chosen is told by</td><td>The dot, a darker ring, and the light</td></tr>
+      <tr><td>Group</td><td>One preselected; arrow keys move and choose</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Manrope</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Supporting text</td><td data-var="--support-size,--support-line,--support-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Ring to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>Divider</td><td data-var="--stroke" data-after=" hairline"></td></tr>
+      <tr><td>Card width, at most</td><td data-var="--card-w"></td></tr>
+      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Paper</td><td data-var="--paper" data-kind="color"></td></tr>
+      <tr><td>Glow</td><td data-var="--glow" data-kind="color"></td></tr>
+      <tr><td>Espresso, ring on and dot edge</td><td data-var="--espresso" data-kind="color"></td></tr>
+      <tr><td>Espresso, lit dot centre</td><td data-var="--espresso-lit" data-kind="color"></td></tr>
+      <tr><td>Label</td><td data-var="--ink" data-kind="color"></td></tr>
+      <tr><td>Supporting text</td><td data-var="--ink-soft" data-kind="color"></td></tr>
+      <tr><td>Ring, not chosen</td><td data-var="--line-off" data-kind="color" data-after=" · 4.2 : 1 on paper"></td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Dot grows, choosing</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
+      <tr><td>Light gathers</td><td><span data-var="--fade-dur"></span> fade, spreading on the same spring</td></tr>
+      <tr><td>Ring darkens</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
+      <tr><td>The one before lets go</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

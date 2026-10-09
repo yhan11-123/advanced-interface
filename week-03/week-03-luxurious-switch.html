@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Luxurious switch</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-luxurious.css?v=2" />
+  <style>
+  /* Luxurious switch. Off is a fine 1px outline with a pearl handle resting
+     in it. On, an espresso gradient fades up through the track, the handle
+     glides across on a spring with no bounce, the track starts to glow,
+     and once the handle has nearly arrived a fine check is drawn inside it.
+     Turning off undoes it in a third of the time. */
+  :root {
+    --sw-w: 56px;
+    --sw-h: 32px;
+    --sw-handle: 24px;
+    --sw-inset: 3px;                                  /* handle to track, inside the outline */
+    --sw-travel: calc(var(--sw-w) - 2 * var(--stroke) - 2 * var(--sw-inset) - var(--sw-handle));
+    --sw-press: .9;                                   /* the handle gives under a finger */
+    --sw-draw-delay: .2s;                             /* the check waits for the handle */
+  }
+
+  .switch {
+    position: relative; flex: none;
+    width: var(--sw-w); height: var(--sw-h);
+    border-radius: calc(var(--sw-h) / 2);
+    border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--leave-dur) var(--leave-ease), box-shadow var(--leave-dur) var(--leave-ease);
+  }
+  .sw-fill {
+    position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
+    background:
+      radial-gradient(60% 120% at 78% 30%, rgba(246, 207, 180, .35), transparent 70%),
+      linear-gradient(115deg, var(--espresso) 25%, var(--espresso-lit));
+    opacity: 0;
+    transition: opacity var(--leave-dur) var(--leave-ease);
+  }
+  .sw-handle {
+    position: absolute;
+    top: calc((var(--sw-h) - 2 * var(--stroke) - var(--sw-handle)) / 2);
+    left: var(--sw-inset);
+    width: var(--sw-handle); height: var(--sw-handle); border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff 0 35%, #f1e2d7 100%);
+    border: var(--stroke) solid rgba(63, 31, 28, .22);
+    box-shadow: 0 2px 6px rgba(63, 31, 28, .16);
+    transition:
+      translate var(--leave-dur) var(--leave-ease),
+      scale var(--press-dur) var(--leave-ease),
+      border-color var(--leave-dur) ease;
+  }
+  .sw-handle svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .sw-handle path {
+    fill: none; stroke: var(--espresso); stroke-width: var(--mark-stroke); stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 14; stroke-dashoffset: 14;
+    vector-effect: non-scaling-stroke;                /* stays a true 1.5px inside the 22px face */
+    transition: stroke-dashoffset calc(var(--leave-dur) / 2) var(--leave-ease);
+  }
+
+  /* on: fill fades up, handle glides, light gathers, then the check */
+  .sr-input:checked + .switch {
+    border-color: transparent;
+    box-shadow: 0 8px 20px -6px rgba(122, 58, 43, .6);
+    transition: border-color var(--fade-dur) ease, box-shadow var(--arrive-dur) var(--arrive-ease);
+  }
+  .sr-input:checked + .switch .sw-fill { opacity: 1; transition: opacity var(--fade-dur) ease; }
+  .sr-input:checked + .switch .sw-handle {
+    translate: var(--sw-travel) 0;
+    border-color: transparent;
+    transition:
+      translate var(--arrive-dur) var(--arrive-ease),
+      scale var(--press-dur) var(--leave-ease),
+      border-color var(--fade-dur) ease;
+  }
+  .sr-input:checked + .switch .sw-handle path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset var(--draw-dur) ease-out var(--sw-draw-delay);
+  }
+
+  /* pressed: the handle sinks a little, the way a soft key does */
+  .row:active .sw-handle { scale: var(--sw-press); }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <section class="card" aria-labelledby="title">
+      <h1 id="title">Savings</h1>
+      <div class="rows">
+        <label class="row">
+          <span class="text"><span class="label">Round-ups</span><span class="support">Spare change, saved</span></span>
+          <input class="sr-input" type="checkbox" role="switch" checked />
+          <span class="ctl switch" aria-hidden="true"><span class="sw-fill"></span><span class="sw-handle"><svg viewBox="0 0 24 24"><path d="M7.5 12.4 l3 3 l6 -6.4"/></svg></span></span>
+        </label>
+        <label class="row">
+          <span class="text"><span class="label">Payday heads-up</span><span class="support">The morning pay lands</span></span>
+          <input class="sr-input" type="checkbox" role="switch" />
+          <span class="ctl switch" aria-hidden="true"><span class="sw-fill"></span><span class="sw-handle"><svg viewBox="0 0 24 24"><path d="M7.5 12.4 l3 3 l6 -6.4"/></svg></span></span>
+        </label>
+        <label class="row">
+          <span class="text"><span class="label">Quiet hours</span><span class="support">No nudges at night</span></span>
+          <input class="sr-input" type="checkbox" role="switch" />
+          <span class="ctl switch" aria-hidden="true"><span class="sw-fill"></span><span class="sw-handle"><svg viewBox="0 0 24 24"><path d="M7.5 12.4 l3 3 l6 -6.4"/></svg></span></span>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, the durations print as they then run: almost zero.</p>
+
+    <h3>Switch</h3>
+    <table>
+      <tr><td>Track</td><td data-var="--sw-w,--sw-h" data-join=" × "></td></tr>
+      <tr><td>Track corner</td><td>Fully round, half the height</td></tr>
+      <tr><td>Outline, off</td><td data-var="--stroke" data-after=" solid"></td></tr>
+      <tr><td>Handle</td><td data-var="--sw-handle" data-after=" circle, both states"></td></tr>
+      <tr><td>Handle inset</td><td data-var="--sw-inset"></td></tr>
+      <tr><td>Handle travel</td><td>24px</td></tr>
+      <tr><td>Check stroke</td><td data-var="--mark-stroke"></td></tr>
+      <tr><td>Pressed handle</td><td data-var="--sw-press" data-after=" scale"></td></tr>
+      <tr><td>On is told by</td><td>Handle position, the fill, and a drawn check</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Manrope</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Supporting text</td><td data-var="--support-size,--support-line,--support-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Text to switch</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>Divider</td><td data-var="--stroke" data-after=" hairline"></td></tr>
+      <tr><td>Card width, at most</td><td data-var="--card-w"></td></tr>
+      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Target</td><td>The whole row</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Paper</td><td data-var="--paper" data-kind="color"></td></tr>
+      <tr><td>Glow</td><td data-var="--glow" data-kind="color"></td></tr>
+      <tr><td>Espresso, gradient start</td><td data-var="--espresso" data-kind="color"></td></tr>
+      <tr><td>Espresso, lit end</td><td data-var="--espresso-lit" data-kind="color"></td></tr>
+      <tr><td>Label</td><td data-var="--ink" data-kind="color"></td></tr>
+      <tr><td>Supporting text</td><td data-var="--ink-soft" data-kind="color"></td></tr>
+      <tr><td>Off outline</td><td data-var="--line-off" data-kind="color" data-after=" · 4.2 : 1 on paper"></td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Handle, turning on</td><td><span data-var="--arrive-dur"></span> spring, no bounce <code>linear(…)</code></td></tr>
+      <tr><td>Fill and glow, turning on</td><td data-var="--fade-dur" data-after=" ease"></td></tr>
+      <tr><td>Check drawn</td><td><span data-var="--draw-dur"></span> ease-out, after <span data-var="--sw-draw-delay"></span></td></tr>
+      <tr><td>Everything, turning off</td><td><span data-var="--leave-dur"></span> <code>cubic-bezier(.3, 0, .2, 1)</code></td></tr>
+      <tr><td>Press</td><td data-var="--press-dur"></td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

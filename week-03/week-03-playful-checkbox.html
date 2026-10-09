@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Playful checkbox</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-playful.css?v=1" />
+  <style>
+  /* Playful checkbox. Ticked, the box swells like a balloon being blown up, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it deflates. */
+  :root {
+    --cb-size: 26px;
+    --cb-r: 9px;
+    --cb-swell: 1.22;                                 /* how big the balloon gets before it pops */
+  }
+  .box {
+    width: var(--cb-size); height: var(--cb-size); border-radius: var(--cb-r);
+    background: #fff; border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--off-dur) var(--off-ease);
+  }
+  .bx-fill {
+    position: absolute; inset: calc(-1 * var(--stroke)); border-radius: inherit;
+    background: linear-gradient(135deg, var(--pink), var(--lilac));
+    opacity: 0; transition: opacity var(--off-dur) var(--off-ease);
+  }
+  .tick { position: absolute; inset: calc(-1 * var(--stroke)); width: var(--cb-size); height: var(--cb-size); overflow: visible; }
+  .tick path {
+    fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 17; stroke-dashoffset: 17;
+    transition: stroke-dashoffset .12s var(--off-ease);
+  }
+  /* the burst: eight lines just outside the box, drawn by the script */
+  .burst { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; overflow: visible; pointer-events: none; }
+  .burst line { stroke-width: 2.5; stroke-linecap: round; opacity: 0; }
+
+  /* on: the fill and the check arrive at the moment it pops (38% through) */
+  .sr-input:checked + .box { border-color: transparent; transition: border-color 0s linear calc(var(--pop-dur) * .38); }
+  .sr-input:checked + .box .bx-fill { opacity: 1; transition: opacity 0s linear calc(var(--pop-dur) * .38); }
+  .sr-input:checked + .box .tick path { stroke-dashoffset: 0; transition: stroke-dashoffset .25s ease-out calc(var(--pop-dur) * .42); }
+
+  /* the balloon: swells slowly, pops, wobbles back */
+  .ctl.pop.box { animation: balloon var(--pop-dur) both; }
+  @keyframes balloon {
+    0%   { scale: 1; background-color: #fff; animation-timing-function: cubic-bezier(.4, 0, .9, .6); }
+    34%  { scale: var(--cb-swell); background-color: #ffe3f0; animation-timing-function: linear; }
+    38%  { scale: .8; animation-timing-function: ease-out; }
+    62%  { scale: 1.08; }
+    82%  { scale: .97; }
+    100% { scale: 1; }
+  }
+  /* the lines fly out from the edge at the pop */
+  .ctl.pop .burst line { animation: burst var(--pop-dur) linear both; }
+  @keyframes burst {
+    0%, 37% { opacity: 0; translate: 0 3px; }
+    40%     { opacity: 1; translate: 0 0; }
+    100%    { opacity: 0; translate: 0 -12px; }
+  }
+  /* off: a quick deflate */
+  .ctl.unpop.box { animation: deflate .3s ease-out; }
+  @keyframes deflate { 0% { scale: .86; } 60% { scale: 1.04; } 100% { scale: 1; } }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="card">
+      <legend>Pick your sweets</legend>
+      <div>
+        <label class="row">
+          <input class="sr-input" type="checkbox" checked />
+          <span class="ctl box" aria-hidden="true"><span class="bx-fill"></span><svg class="tick" viewBox="0 0 26 26"><path d="M7.5 13.5 l3.8 3.8 l7.4 -8"/></svg></span>
+          <span class="label">Cotton candy</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl box" aria-hidden="true"><span class="bx-fill"></span><svg class="tick" viewBox="0 0 26 26"><path d="M7.5 13.5 l3.8 3.8 l7.4 -8"/></svg></span>
+          <span class="label">Gummy bears</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="checkbox" />
+          <span class="ctl box" aria-hidden="true"><span class="bx-fill"></span><svg class="tick" viewBox="0 0 26 26"><path d="M7.5 13.5 l3.8 3.8 l7.4 -8"/></svg></span>
+          <span class="label">Marshmallows</span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, every pop and roll is skipped; only the end states remain.</p>
+
+    <h3>Checkbox</h3>
+    <table>
+      <tr><td>Box</td><td data-var="--cb-size,--cb-size" data-join=" × "></td></tr>
+      <tr><td>Corner</td><td data-var="--cb-r"></td></tr>
+      <tr><td>Outline, empty</td><td data-var="--stroke" data-after=" solid"></td></tr>
+      <tr><td>Check</td><td>2.5px white, round ends</td></tr>
+      <tr><td>On</td><td>Pink to lilac fill</td></tr>
+      <tr><td>Burst lines</td><td>Eight, every 45&deg;, 8px and 5px long alternately, 2.5px, in pink, sky, lemon, mint and violet; they start 19px from the centre</td></tr>
+      <tr><td>On is told by</td><td>The fill and the check</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Fredoka</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>Card width, at most</td><td data-var="--card-w"></td></tr>
+      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Target</td><td>The whole row; it blushes pink on hover</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Sugar, the page</td><td data-var="--sugar" data-kind="color"></td></tr>
+      <tr><td>Pink</td><td data-var="--pink" data-kind="color"></td></tr>
+      <tr><td>Peach</td><td data-var="--peach" data-kind="color"></td></tr>
+      <tr><td>Lilac</td><td data-var="--lilac" data-kind="color"></td></tr>
+      <tr><td>Sky</td><td data-var="--sky" data-kind="color"></td></tr>
+      <tr><td>Lemon</td><td data-var="--lemon" data-kind="color"></td></tr>
+      <tr><td>Labels</td><td data-var="--plum" data-kind="color" data-after=" · 8 : 1 on sugar"></td></tr>
+      <tr><td>Outlines when off</td><td data-var="--line-off" data-kind="color" data-after=" · 3.3 : 1 on sugar"></td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Pop, in one go</td><td data-var="--pop-dur"></td></tr>
+      <tr><td>&nbsp;&nbsp;Swell</td><td>0&ndash;34%: grows to <span data-var="--cb-swell"></span>, slowly speeding up, blushing pink</td></tr>
+      <tr><td>&nbsp;&nbsp;Pop</td><td>34&ndash;38%: snaps to 0.8; fill and lines appear</td></tr>
+      <tr><td>&nbsp;&nbsp;Settle</td><td>38&ndash;100%: 1.08 &rarr; 0.97 &rarr; 1</td></tr>
+      <tr><td>Burst lines</td><td>From 40%: fly 12px out and fade</td></tr>
+      <tr><td>Check drawn</td><td>.25s ease-out, from 42%</td></tr>
+      <tr><td>Off</td><td>A quick deflate, .3s: 0.86 &rarr; 1.04 &rarr; 1</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-playful.js?v=1"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

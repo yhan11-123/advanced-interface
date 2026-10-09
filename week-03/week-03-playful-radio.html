@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; Playful radio buttons</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-03-playful.css?v=1" />
+  <style>
+  /* Playful radio buttons. Each dot is a soap bubble. Choose one and it blows up on a bouncy spring, overshooting before it settles, and leaves a ripple spreading from the ring; the one before shrinks away. */
+  :root {
+    --rd-size: 26px;
+    --rd-dot: 14px;
+  }
+  .ring {
+    width: var(--rd-size); height: var(--rd-size); border-radius: 50%;
+    background: #fff; border: var(--stroke) solid var(--line-off);
+    transition: border-color var(--off-dur) var(--off-ease);
+  }
+  /* the dot is a soap bubble */
+  .bubble {
+    position: absolute; left: 50%; top: 50%;
+    width: var(--rd-dot); height: var(--rd-dot); margin: calc(var(--rd-dot) / -2) 0 0 calc(var(--rd-dot) / -2);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff 0 16%, var(--sky) 46%, var(--lilac) 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+    scale: 0; transition: scale var(--off-dur) var(--off-ease);
+  }
+  /* a ripple left behind as it blows up */
+  .ring::after {
+    content: ""; position: absolute; inset: calc(-1 * var(--stroke)); border-radius: 50%;
+    border: var(--stroke) solid var(--sky); opacity: 0; pointer-events: none;
+  }
+  .sr-input:checked + .ring { border-color: var(--pop-5); }
+  .sr-input:checked + .ring .bubble { scale: 1; transition: scale var(--bubble-dur) var(--bubble-ease); }
+  .ctl.pop.ring::after { animation: ripple .6s ease-out; }
+  @keyframes ripple { 0% { opacity: .9; scale: 1; } 100% { opacity: 0; scale: 1.9; } }
+  </style>
+</head>
+<body>
+
+  <main class="stage">
+    <fieldset class="card">
+      <legend>Balloon colour</legend>
+      <div>
+        <label class="row">
+          <input class="sr-input" type="radio" name="balloon" value="bubblegum" checked />
+          <span class="ctl ring" aria-hidden="true"><span class="bubble"></span></span>
+          <span class="label">Bubblegum pink</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="balloon" value="sky" />
+          <span class="ctl ring" aria-hidden="true"><span class="bubble"></span></span>
+          <span class="label">Sky blue</span>
+        </label>
+        <label class="row">
+          <input class="sr-input" type="radio" name="balloon" value="lemon" />
+          <span class="ctl ring" aria-hidden="true"><span class="bubble"></span></span>
+          <span class="label">Lemon</span>
+        </label>
+      </div>
+    </fieldset>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. With reduced motion on, every pop and roll is skipped; only the end states remain.</p>
+
+    <h3>Radio button</h3>
+    <table>
+      <tr><td>Ring</td><td data-var="--rd-size" data-after=" circle"></td></tr>
+      <tr><td>Ring stroke</td><td data-var="--stroke" data-after=", violet when chosen"></td></tr>
+      <tr><td>Dot, a soap bubble</td><td data-var="--rd-dot" data-after=", white glint, sky to lilac"></td></tr>
+      <tr><td>Ripple</td><td>2px sky ring, grows to 1.9&times; and fades</td></tr>
+      <tr><td>Chosen is told by</td><td>The bubble and a violet ring</td></tr>
+      <tr><td>Group</td><td>One preselected; arrow keys move and choose</td></tr>
+    </table>
+
+    <h3>Row and type</h3>
+    <table>
+      <tr><td>Font</td><td>Fredoka</td></tr>
+      <tr><td>Title</td><td data-var="--title-size,--title-line,--title-weight"></td></tr>
+      <tr><td>Label</td><td data-var="--label-size,--label-line,--label-weight"></td></tr>
+      <tr><td>Row height, minimum</td><td data-var="--row-h"></td></tr>
+      <tr><td>Row padding, sides</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Control to text</td><td data-var="--row-gap"></td></tr>
+      <tr><td>Row corner</td><td data-var="--row-r"></td></tr>
+      <tr><td>Card width, at most</td><td data-var="--card-w"></td></tr>
+      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Target</td><td>The whole row; it blushes pink on hover</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Sugar, the page</td><td data-var="--sugar" data-kind="color"></td></tr>
+      <tr><td>Pink</td><td data-var="--pink" data-kind="color"></td></tr>
+      <tr><td>Peach</td><td data-var="--peach" data-kind="color"></td></tr>
+      <tr><td>Lilac</td><td data-var="--lilac" data-kind="color"></td></tr>
+      <tr><td>Sky</td><td data-var="--sky" data-kind="color"></td></tr>
+      <tr><td>Lemon</td><td data-var="--lemon" data-kind="color"></td></tr>
+      <tr><td>Labels</td><td data-var="--plum" data-kind="color" data-after=" · 8 : 1 on sugar"></td></tr>
+      <tr><td>Outlines when off</td><td data-var="--line-off" data-kind="color" data-after=" · 3.3 : 1 on sugar"></td></tr>
+    </table>
+
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Bubble blows up</td><td><span data-var="--bubble-dur"></span> spring, bounce 0.55 <code>linear(…)</code>: overshoots to 1.2</td></tr>
+      <tr><td>Ripple</td><td>.6s ease-out</td></tr>
+      <tr><td>The one before</td><td><span data-var="--off-dur"></span> back to nothing</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Week 03</a>
+
+  <script src="week-03-playful.js?v=1"></script>
+  <script src="week-03-spec.js?v=1"></script>
+  <script>
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>

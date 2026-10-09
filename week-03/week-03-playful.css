@@ -1,0 +1,128 @@
+/* Week 03 · Playful: shared by the switch, checkbox and radio prototypes.
+   Cotton candy: pastel pink, lilac, sky and lemon on a sugary white, rounded
+   type, everything soft and a little bouncy. The switch handle is a beach ball
+   that rolls across the track and you can see it spin; the checkbox swells like
+   a balloon and pops, lines bursting out past its edge; the radio dot blows up
+   like a bubble with a ripple around it. week-03-playful.js adds the burst
+   lines and starts the one-off pops. */
+
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap");
+
+:root {
+  /* colour */
+  --sugar: #fff6fb;           /* the page */
+  --pink: #ffb3d4;
+  --peach: #ffd6b8;
+  --lilac: #d2bdfd;
+  --sky: #a9dcff;
+  --lemon: #ffe589;
+  --mint: #b4f0d6;
+  --plum: #5a4670;            /* labels: 8 : 1 on sugar */
+  --line-off: #9b80b5;        /* outlines when off: 3.3 : 1 on sugar */
+  --track-off: #f1e8fb;
+  /* the pop lines, stronger than the pastels so they read on white */
+  --pop-1: #ff6fae;
+  --pop-2: #5cc3ff;
+  --pop-3: #ffc93c;
+  --pop-4: #4fd8a0;
+  --pop-5: #a77bff;
+
+  /* type */
+  --font: "Fredoka", "Arial Rounded MT Bold", "Helvetica Neue", Arial, sans-serif;
+  --title-size: 20px;
+  --title-line: 24px;
+  --title-weight: 600;
+  --label-size: 18px;
+  --label-line: 24px;
+  --label-weight: 500;
+
+  /* layout */
+  --card-w: 360px;
+  --card-r: 30px;
+  --card-pad: 10px;
+  --row-h: 60px;
+  --row-pad: 16px;
+  --row-gap: 16px;
+  --row-r: 22px;
+  --stroke: 2px;              /* outlines are soft but sturdy */
+
+  /* motion */
+  --roll-dur: .87s;           /* 0.45 s visual, bounce 0.35: rolls a touch too far and back */
+  --roll-ease: linear(0, 0.026, 0.09, 0.181, 0.285, 0.391, 0.501, 0.605, 0.701, 0.785, 0.854, 0.915, 0.964, 1.001, 1.029, 1.047, 1.059, 1.065, 1.067, 1.065, 1.061, 1.054, 1.047, 1.04, 1.033, 1.026, 1.02, 1.014, 1.009, 1.005, 1.002, 1, 0.998, 0.997, 0.996, 0.996, 0.996, 0.996, 0.996, 0.996, 0.997, 0.997, 0.998, 0.998, 1);
+  --bubble-dur: .9s;          /* 0.35 s visual, bounce 0.55: overshoots to 1.2 */
+  --bubble-ease: linear(0, 0.047, 0.157, 0.316, 0.485, 0.662, 0.818, 0.95, 1.06, 1.134, 1.182, 1.202, 1.201, 1.184, 1.157, 1.122, 1.087, 1.053, 1.022, 0.998, 0.979, 0.967, 0.96, 0.958, 0.96, 0.965, 0.971, 0.979, 0.986, 0.992, 0.998, 1.002, 1.006, 1.008, 1.008, 1.008, 1.008, 1.006, 1.005, 1.004, 1.002, 1.001, 1, 0.999, 1);
+  --pop-dur: .55s;            /* swell, pop, settle */
+  --off-dur: .22s;
+  --off-ease: cubic-bezier(.4, 0, .6, 1);
+
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --roll-dur: .01s; --bubble-dur: .01s; --pop-dur: .01s; --off-dur: .01s; }
+  .ctl.pop *, .ctl.pop, .ctl.unpop, .ctl.unpop * { animation: none !important; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--sugar); }
+body {
+  margin: 0; color: var(--plum);
+  font: var(--label-weight) var(--label-size) / var(--label-line) var(--font);
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(40% 35% at 18% 22%, color-mix(in srgb, var(--pink) 55%, transparent), transparent 70%),
+    radial-gradient(38% 34% at 82% 26%, color-mix(in srgb, var(--sky) 50%, transparent), transparent 70%),
+    radial-gradient(42% 38% at 70% 82%, color-mix(in srgb, var(--lilac) 50%, transparent), transparent 70%),
+    radial-gradient(36% 30% at 22% 80%, color-mix(in srgb, var(--lemon) 45%, transparent), transparent 70%),
+    var(--sugar);
+  background-attachment: fixed;
+}
+
+.stage { min-height: 100vh; display: grid; place-items: center; padding: 20px 16px; }
+.card {
+  width: min(100%, var(--card-w)); margin: 0; min-inline-size: 0;
+  padding: var(--card-pad);
+  border: 0; border-radius: var(--card-r);
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 18px 40px -18px rgba(255, 111, 174, .35), 0 2px 0 rgba(255, 255, 255, .9) inset;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.card h1, .card legend {
+  float: left; width: 100%;
+  margin: 0; padding: 10px var(--row-pad) 4px;
+  font-size: var(--title-size); line-height: var(--title-line); font-weight: var(--title-weight);
+}
+.card legend + *, .card h1 + * { clear: both; }
+
+.row {
+  position: relative;
+  display: flex; align-items: center; gap: var(--row-gap);
+  min-height: var(--row-h); padding: 6px var(--row-pad);
+  border-radius: var(--row-r);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background-color .25s ease;
+}
+.row:hover { background: rgba(255, 179, 212, .2); }
+.label { flex: 1; min-width: 0; font-size: var(--label-size); line-height: var(--label-line); font-weight: var(--label-weight); }
+
+.sr-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.sr-input:focus-visible + .ctl { outline: 2px solid var(--pop-5); outline-offset: 4px; }
+.ctl { flex: none; position: relative; display: block; }
+
+.back-pill {
+  position: fixed; left: 12px; top: 12px; z-index: 9;
+  font: 600 12px/1 var(--font); color: #fff; background: var(--plum);
+  padding: 8px 12px; border-radius: 999px; text-decoration: none;
+}
+
+/* ---------- Spec ---------- */
+.spec { max-width: 720px; margin: 0 auto; padding: 24px 20px 72px; }
+.spec h2 { margin: 0 0 4px; font-size: 30px; line-height: 36px; font-weight: 600; }
+.spec > p { margin: 0 0 24px; font: 500 15px/22px var(--font); opacity: .8; }
+.spec h3 { margin: 28px 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.spec table { width: 100%; border-collapse: collapse; font: 500 15px/21px var(--font); }
+.spec td { padding: 10px 0; border-top: 2px dotted rgba(155, 128, 181, .35); vertical-align: top; }
+.spec tr:last-child td { border-bottom: 2px dotted rgba(155, 128, 181, .35); }
+.spec td:first-child { width: 42%; padding-right: 16px; opacity: .75; }
+.spec td:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+.spec code { font: 500 12.5px/18px ui-monospace, Menlo, monospace; opacity: .8; }
+.swatch { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: 1px solid rgba(90, 70, 112, .25); }

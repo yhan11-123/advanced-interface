@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 03 &middot; How selectors move</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* This demo is a whole page of its own, so its styles stay in this file
+     and can never reach another week. Every duration and curve is Material 3's,
+     read from the material-web source. Colours and type follow week 2's motion
+     study, so the two demos read as one family. */
+  html, body { margin: 0; min-height: 100%; }
+  body { background: #f2f0ea; }
+
+  .sheet {
+    /* colour */
+    --ink: #1a1a1a;
+    --ink-2: #4a4944;
+    --muted: #77756e;
+    --line: #dcdad2;
+    --line-soft: #ebe9e2;
+    --surface: #fbfaf7;
+    --stage: #ffffff;
+    --accent: #2b47ff;
+    --accent-soft: rgba(43, 71, 255, .12);
+    --off: #8a8880;               /* outlines and the resting handle */
+    --track-off: #efede7;
+    /* type: three sizes only */
+    --sans: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --t-title: 600 15px/20px var(--sans);
+    --t-body: 400 13px/19px var(--sans);
+    --t-small: 400 11.5px/16px var(--sans);
+    /* motion */
+    --slow: 1;                    /* duration multiplier, set by the speed control */
+    --standard: cubic-bezier(0.2, 0, 0, 1);
+    --decel: cubic-bezier(0.05, 0.7, 0.1, 1);     /* emphasized decelerate: arriving */
+    --accel: cubic-bezier(0.3, 0, 0.8, 0.15);     /* emphasized accelerate: leaving */
+    --overshoot: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* the controls are drawn at 1.5x, so the motion can be seen */
+    --s: 1.5;
+
+    box-sizing: border-box;
+    width: min(1040px, 100% - 32px);
+    margin: 0 auto;
+    padding: 24px 0 32px;
+    font: var(--t-body);
+    color: var(--ink);
+  }
+  .sheet *, .sheet *::before, .sheet *::after { box-sizing: border-box; }
+
+  /* ---- top bar ---- */
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
+  .top p { margin: 0; color: var(--muted); }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+  .seg button { font: 500 12px/1 var(--sans); color: var(--ink-2); background: transparent; border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---- cards: head, stage, timeline and note share rows across all three ---- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+  .card { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .head { padding: 16px 16px 12px; }
+  .head h2 { margin: 0; font: var(--t-title); }
+  .head p { margin: 4px 0 0; color: var(--muted); }
+
+  .stage { margin: 0 12px; padding: 8px 4px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--stage);
+    display: flex; flex-direction: column; justify-content: center; min-height: 228px; }
+  .row { display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 0 16px; border-radius: 8px;
+    font: 400 15px/20px var(--sans); color: var(--ink); cursor: pointer; user-select: none; }
+  .row + .row { box-shadow: 0 -1px 0 var(--line-soft); }
+  .row.trail { justify-content: space-between; }
+  .row:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+  input.sr { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+
+  /* switch: 52 x 32 track; handle 16 off, 24 on, 28 pressed (all x --s) */
+  .sw { --w: calc(52px * var(--s)); --h: calc(32px * var(--s)); position: relative; flex: none; width: var(--w); height: var(--h);
+    border-radius: 999px; background: var(--track-off); box-shadow: inset 0 0 0 calc(2px * var(--s)) var(--off);
+    transition: background-color calc(67ms * var(--slow)) linear, box-shadow calc(67ms * var(--slow)) linear; }
+  .sw .hc { position: absolute; top: 0; left: 0; width: var(--h); height: var(--h); display: grid; place-items: center;
+    transition: left calc(300ms * var(--slow)) var(--overshoot); }
+  .sw .h { width: calc(16px * var(--s)); height: calc(16px * var(--s)); border-radius: 50%; background: var(--off);
+    transition: width calc(250ms * var(--slow)) var(--standard), height calc(250ms * var(--slow)) var(--standard),
+                background-color calc(67ms * var(--slow)) linear; }
+  .on .sw { background: var(--accent); box-shadow: inset 0 0 0 calc(2px * var(--s)) var(--accent); }
+  .on .sw .hc { left: calc(var(--w) - var(--h)); }
+  .on .sw .h { width: calc(24px * var(--s)); height: calc(24px * var(--s)); background: #fff; }
+  .row:active .sw .h { width: calc(28px * var(--s)); height: calc(28px * var(--s));
+    transition-duration: calc(100ms * var(--slow)); transition-timing-function: linear; }
+
+  /* checkbox: 18 x 18 box, 2 px corners, 2 px outline (x --s) */
+  .cb { position: relative; flex: none; width: calc(18px * var(--s)); height: calc(18px * var(--s)); }
+  .cb::before { content: ""; position: absolute; inset: 0; border: calc(2px * var(--s)) solid var(--ink-2); border-radius: calc(2px * var(--s)); }
+  .cb .fill { position: absolute; inset: 0; border-radius: calc(2px * var(--s)); background: var(--accent); opacity: 0; transform: scale(.6);
+    transition: transform calc(150ms * var(--slow)) var(--accel), opacity calc(150ms * var(--slow)) var(--accel); }
+  .cb svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cb path { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14;
+    transition: stroke-dashoffset calc(150ms * var(--slow)) var(--accel); }
+  .on .cb .fill, .on .cb path { transition-duration: calc(350ms * var(--slow)); transition-timing-function: var(--decel); }
+  .on .cb .fill { opacity: 1; transform: none; }
+  .on .cb path { stroke-dashoffset: 0; }
+
+  /* radio: 20 px ring, 2 px stroke, 10 px dot (x --s) */
+  .rb { position: relative; flex: none; width: calc(20px * var(--s)); height: calc(20px * var(--s)); border-radius: 50%;
+    box-shadow: inset 0 0 0 calc(2px * var(--s)) var(--ink-2); transition: box-shadow calc(50ms * var(--slow)) linear; }
+  .rb::after { content: ""; position: absolute; inset: calc(5px * var(--s)); border-radius: 50%; background: var(--accent); opacity: 0;
+    transition: opacity calc(50ms * var(--slow)) linear; }
+  .on .rb { box-shadow: inset 0 0 0 calc(2px * var(--s)) var(--accent); }
+  .on .rb::after { opacity: 1; animation: grow calc(300ms * var(--slow)) var(--decel); }
+  @keyframes grow { from { transform: scale(0); } }
+
+  /* ---- timeline: one lane per moving part, on one 0-500 ms clock ---- */
+  .tl { padding: 16px 16px 4px; }
+  .tl-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .tl-tabs span { font: 500 11.5px/1 var(--sans); padding: 6px 10px; border-radius: 999px; color: var(--muted); }
+  .tl-tabs .unit { margin-left: auto; padding-right: 0; color: var(--muted); font-weight: 400; }
+  .tl-tabs span.is-on { background: var(--accent-soft); color: var(--accent); }
+  .lane { padding: 5px 0 6px; }
+  .lane-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: var(--t-small); }
+  .lane-top .what { color: var(--ink); }
+  .lane-top .val { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lane-top .val b { font-weight: 500; color: var(--ink); }
+  .lane.is-empty { visibility: hidden; }
+  .track { position: relative; height: 6px; margin-top: 5px; border-radius: 3px;
+    background: repeating-linear-gradient(to right, var(--line-soft) 0 1px, transparent 1px 20%), var(--track-off); }
+  .bar { position: absolute; left: 0; top: 0; height: 6px; border-radius: 3px; background: var(--line); }
+  .bar i { position: absolute; inset: 0; border-radius: 3px; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .axis { position: relative; height: 16px; margin-top: 4px; font: 400 10.5px/16px var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  .axis span:first-child { transform: none; }
+  .axis span:last-child { transform: translateX(-100%); }
+
+  .note { margin: 12px 16px 16px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--muted); }
+  .note b { font-weight: 500; color: var(--ink); }
+
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9999; font: 12px/1 system-ui, sans-serif; color: #fff;
+    background: rgba(0,0,0,.65); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <div class="top">
+      <p>Click a row to turn it on, again to turn it off. Controls drawn at 1.5&times;.</p>
+      <div class="seg" role="group" aria-label="Speed">
+        <button type="button" data-slow="1" aria-pressed="false">Real speed</button>
+        <button type="button" data-slow="4" aria-pressed="true">4&times; slower</button>
+      </div>
+    </div>
+
+    <div class="cards">
+      <section class="card" data-kind="switch">
+        <div class="head">
+          <h2>Switch</h2>
+          <p>The handle slides across, overshoots a little and settles, growing as it goes.</p>
+        </div>
+        <div class="stage">
+          <label class="row trail"><span>Wi-Fi</span><input class="sr" type="checkbox" role="switch" /><span class="sw"><span class="hc"><span class="h"></span></span></span></label>
+          <label class="row trail"><span>Bluetooth</span><input class="sr" type="checkbox" role="switch" /><span class="sw"><span class="hc"><span class="h"></span></span></span></label>
+        </div>
+        <div class="tl"></div>
+        <p class="note"><b>Press and hold:</b> the handle swells to 28 in 100 ms, before you let go.</p>
+      </section>
+
+      <section class="card" data-kind="checkbox">
+        <div class="head">
+          <h2>Checkbox</h2>
+          <p>The box pops up from 60% while the check is drawn. Unchecking is quicker.</p>
+        </div>
+        <div class="stage">
+          <label class="row"><input class="sr" type="checkbox" /><span class="cb"><span class="fill"></span><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 9.5 L7.5 12.5 L13.5 6"/></svg></span><span>Pickles</span></label>
+          <label class="row"><input class="sr" type="checkbox" /><span class="cb"><span class="fill"></span><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 9.5 L7.5 12.5 L13.5 6"/></svg></span><span>Tomato</span></label>
+        </div>
+        <div class="tl"></div>
+        <p class="note"><b>Arrive slow, leave fast:</b> checking eases in over 350 ms, unchecking hurries out in 150.</p>
+      </section>
+
+      <section class="card" data-kind="radio">
+        <div class="head">
+          <h2>Radio buttons</h2>
+          <p>The new dot grows out of the centre; the old one simply goes out.</p>
+        </div>
+        <div class="stage" role="radiogroup" aria-label="Language">
+          <label class="row on"><input class="sr" type="radio" name="lang" checked /><span class="rb"></span><span>English</span></label>
+          <label class="row"><input class="sr" type="radio" name="lang" /><span class="rb"></span><span>Chinese</span></label>
+          <label class="row"><input class="sr" type="radio" name="lang" /><span class="rb"></span><span>Spanish</span></label>
+        </div>
+        <div class="tl"></div>
+        <p class="note"><b>Never off alone:</b> choosing another is what turns a radio off.</p>
+      </section>
+    </div>
+  </main>
+
+  <a class="back-pill" href="week-03.html" hidden>&larr; Back to the week</a>
+
+  <script>
+  if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+
+  // Material 3 values, from material-web: [part, ms, curve].
+  const MAX = 500;
+  const EASE = {
+    standard: 'cubic-bezier(0.2, 0, 0, 1)', decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+    accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)', overshoot: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', linear: 'linear',
+  };
+  const PARTS = {
+    switch: {
+      on:  [['Slide', 300, 'overshoot'], ['Grow 16→24', 250, 'standard'], ['Colour', 67, 'linear']],
+      off: [['Slide', 300, 'overshoot'], ['Shrink 24→16', 250, 'standard'], ['Colour', 67, 'linear']],
+    },
+    checkbox: {
+      on:  [['Box fills', 350, 'decelerate'], ['Check drawn', 350, 'decelerate'], ['', 0, '']],
+      off: [['Box empties', 150, 'accelerate'], ['Check erased', 150, 'accelerate'], ['', 0, '']],
+    },
+    radio: {
+      on:  [['New dot', 300, 'decelerate'], ['Old dot', 50, 'linear'], ['Ring colour', 50, 'linear']],
+    },
+  };
+
+  let slow = 4;
+  const sheet = document.querySelector('.sheet');
+  const setSlow = n => {
+    slow = n; sheet.style.setProperty('--slow', n);
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.slow === n)));
+  };
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setSlow(+b.dataset.slow)));
+  setSlow(4);
+
+  // Every card keeps three lanes, so the three timelines line up.
+  function draw(card, dir) {
+    const kind = card.dataset.kind, parts = PARTS[kind][dir];
+    const tabs = kind === 'radio'
+      ? `<span class="is-on">Choosing another</span>`
+      : `<span class="${dir === 'on' ? 'is-on' : ''}">Turning on</span><span class="${dir === 'off' ? 'is-on' : ''}">Turning off</span>`;
+    card.querySelector('.tl').innerHTML = `<div class="tl-tabs">${tabs}<span class="unit">ms</span></div>` +
+      parts.map(([what, ms, ease]) => `<div class="lane${ms ? '' : ' is-empty'}"><div class="lane-top"><span class="what">${what || '&nbsp;'}</span><span class="val"><b>${ms}</b> ms · ${ease}</span></div>
+        <div class="track">${ms ? `<span class="bar" style="width:${ms / MAX * 100}%"><i></i></span>` : ''}</div></div>`).join('') +
+      `<div class="axis"><span style="left:0">0</span><span style="left:20%">100</span><span style="left:40%">200</span><span style="left:60%">300</span><span style="left:80%">400</span><span style="left:100%">500</span></div>`;
+    return parts;
+  }
+  function play(card, dir) {
+    const parts = draw(card, dir);
+    card.querySelectorAll('.bar i').forEach((el, k) => {
+      const [, ms, ease] = parts.filter(p => p[1])[k];
+      el.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: ms * slow, easing: EASE[ease], fill: 'forwards' });
+    });
+  }
+
+  for (const card of document.querySelectorAll('.card')) {
+    draw(card, 'on');
+    card.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+      if (input.type === 'radio') {
+        card.querySelectorAll('.row').forEach(r => r.classList.toggle('on', r.contains(input)));
+        play(card, 'on');
+      } else {
+        input.closest('.row').classList.toggle('on', input.checked);
+        play(card, input.checked ? 'on' : 'off');
+      }
+    }));
+  }
+  </script>
+</body>
+</html>
