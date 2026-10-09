@@ -6,7 +6,7 @@
   <title>Week 02 &middot; Badges &amp; Tooltips &middot; Advanced Interface</title>
   <meta name="description" content="Ten components are due: five sets of one badge and one tooltip, each set carrying a tone. Starting with what each one is for, and how micro motion carries tone." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../shared/site.css?v=9" />
+  <link rel="stylesheet" href="../shared/site.css?v=18" />
 </head>
 <body>
 
@@ -976,7 +976,7 @@
 
     <nav class="post-nav">
       <span><a href="../week-01/week-01.html">&larr; Week 01: Loading</a></span>
-      <span class="next"></span>
+      <span class="next"><a href="../week-03/week-03.html">Week 03: Selectors &rarr;</a></span>
     </nav>
 
   </main>
@@ -985,25 +985,8 @@
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
 
-  <script>
-  // Deliverable sets: each card opens its set in a popup (a modal <dialog>): the prototypes,
-  // then the process. Close with the button, Esc, or a click outside. A link to a set
-  // (#set-somber) opens it too.
-  (() => {
-    const lock = on => document.documentElement.classList.toggle('has-dialog', on);
-    for (const box of document.querySelectorAll('.set-box')) {
-      const card = box.querySelector('.set-card');
-      const dlg = box.querySelector('.set-dialog');
-      card.addEventListener('click', () => { dlg.showModal(); lock(true); dlg.querySelector('.set-body').scrollTop = 0; });
-      dlg.querySelector('.set-close').addEventListener('click', () => dlg.close());
-      dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });   // the backdrop
-      dlg.addEventListener('close', () => { lock(false); if (location.hash === '#' + box.id) history.replaceState(null, '', location.pathname + location.search); });
-    }
-    const fromHash = () => { const box = location.hash && document.querySelector(location.hash + '.set-box'); if (box && !box.querySelector('dialog').open) box.querySelector('.set-card').click(); };
-    fromHash(); addEventListener('hashchange', fromHash);
-  })();
-  </script>
   <script src="../shared/viewer.js?v=5"></script>
-  <script src="../shared/toc.js?v=2"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
 </body>
 </html>

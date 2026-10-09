@@ -13,6 +13,7 @@
   --line: #e2e0d8;
   --accent: #2b47ff;
   --accent-soft: #e6e9ff;
+  --dont: #c4402a;
   --radius: 10px;
   --max: 880px;
   --font: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -28,6 +29,7 @@
     --line: #2c2c2a;
     --accent: #8fa0ff;
     --accent-soft: #23284a;
+    --dont: #ff8a73;
   }
 }
 
@@ -213,6 +215,10 @@ button { font: inherit; color: inherit; }
 .set-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .set-thumbs { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .prose .set-thumbs img { width: 100%; height: auto; aspect-ratio: 640 / 440; object-fit: cover; margin: 0; border-radius: 6px; }
+/* a set of three (week 3): three thumbnails, and dashed stand-ins until frames exist */
+.proto-grid.is-three { grid-template-columns: repeat(auto-fill, minmax(max(220px, (100% - 24px) / 3), 1fr)); }
+.set-thumbs.is-three { grid-template-columns: repeat(3, 1fr); }
+.set-thumbs .thumb-empty { aspect-ratio: 640 / 440; border: 1px dashed var(--line); border-radius: 6px; }
 .set-head { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .set-card .set-head { padding-left: 6px; }
 .set-num { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
@@ -288,6 +294,13 @@ html.has-dialog { overflow: hidden; }
 .rv-facts dd { margin: 0; }
 .rv-facts code { font-size: .85em; }
 
+/* three subjects side by side: the facts stack, label over value, so narrow cards stay readable */
+.rv-pair.is-three { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.rv-pair.is-three .rv-facts { grid-template-columns: 1fr; gap: 0; }
+.rv-pair.is-three .rv-facts dt { padding-top: 10px; }
+.rv-pair.is-three .rv-facts dt:first-child { padding-top: 0; }
+.rv-pair.is-three .rv-facts dd { margin-top: 2px; }
+
 /* rules as cards, each with a tiny pictogram:
    <div class="rv-rules"><div class="rv-rule"><svg class="rv-pict"/><b>Rule</b><p>What it forces</p></div></div> */
 .rv-rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(200px, (100% - 24px) / 3), 1fr)); gap: 12px; margin: 16px 0 24px; }
@@ -297,6 +310,52 @@ html.has-dialog { overflow: hidden; }
 .rv-pict .rv-on-acc { font-size: 8px; }
 .rv-rule b { display: block; font-size: 14.5px; line-height: 1.35; margin-bottom: 4px; }
 .prose .rv-rule p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+/* .is-roomy: the picture gets its own band, like .rv-art on .rv-card */
+.rv-rules.is-roomy .rv-rule { padding: 0; overflow: hidden; }
+.rv-rules.is-roomy .rv-pict { box-sizing: border-box; width: 100%; height: 132px; margin: 0; padding: 26px 24px; border-bottom: 1px solid var(--line); }
+.rv-rules.is-roomy .rv-rule b { margin: 14px 16px 4px; }
+.prose .rv-rules.is-roomy .rv-rule p { margin: 0 16px 16px; }
+
+/* Component up close: anatomy drawn in dp with numbered parts, then states, then do/don't.
+   <div class="rv-anat"><figure class="rv-anat-fig"><svg/></figure><ol class="rv-anat-key"><li><b/><span/></li></ol></div>
+   <div class="rv-states"><figure class="rv-state"><svg/><figcaption><b/><span/></figcaption></figure></div>
+   <div class="rv-dd"><figure class="rv-do [is-dont]"><svg/><figcaption><b>Do</b>text</figcaption></figure></div> */
+.rv-anat { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); margin: 16px 0 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.rv-anat-fig { display: grid; place-items: center; margin: 0; padding: 28px 24px; border-right: 1px solid var(--line); color: var(--fg); }
+.rv-anat-fig svg { width: 100%; max-width: 380px; height: auto; overflow: visible; }
+.an-target { fill: none; stroke: var(--fg-muted); stroke-width: .6; stroke-dasharray: 2 1.6; }
+.an-layer { fill: var(--accent); opacity: .16; }
+.an-dim, .an-lead { fill: none; stroke: var(--fg-muted); stroke-width: .6; }
+.an-txt { fill: var(--fg-muted); font: 5px/1 var(--font); }
+.an-num circle { fill: var(--accent); }
+.an-num text { fill: var(--bg-elev); font: 700 5px/1 var(--font); text-anchor: middle; dominant-baseline: central; }
+.is-small .an-target, .is-small .an-dim, .is-small .an-lead { stroke-width: .35; stroke-dasharray: none; }
+.is-small .an-target { stroke-dasharray: 1.2 1; }
+.rv-anat-fig svg.is-small { max-width: 300px; }
+.is-small .an-txt { font-size: 3px; }
+.is-small .an-num text { font-size: 3px; }
+.prose .rv-anat-key { counter-reset: part; list-style: none; display: grid; gap: 12px; align-content: center; margin: 0; padding: 20px 20px 20px 18px; font-size: 13.5px; line-height: 1.45; }
+.prose .rv-anat-key li { position: relative; margin: 0; padding-left: 32px; counter-increment: part; }
+.rv-anat-key li::before { content: counter(part); position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--bg-elev); font: 700 11px/20px var(--font); text-align: center; }
+.rv-anat-key b { display: block; font-size: 14px; }
+.rv-anat-key span { color: var(--fg-muted); }
+@media (max-width: 640px) {
+  .rv-anat { grid-template-columns: 1fr; }
+  .rv-anat-fig { border-right: 0; border-bottom: 1px solid var(--line); }
+}
+.rv-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.rv-state { margin: 0; padding: 16px 8px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); text-align: center; color: var(--fg); }
+.rv-state svg { display: block; width: 100%; height: 56px; overflow: visible; }
+.rv-state figcaption { margin-top: 10px; font-size: 12px; line-height: 1.35; }
+.rv-state figcaption b { display: block; font-size: 12.5px; }
+.rv-state figcaption span { color: var(--fg-muted); }
+.rv-dd { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(200px, (100% - 24px) / 3), 1fr)); gap: 12px; margin: 0 0 16px; }
+.rv-do { margin: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.rv-do svg { display: block; box-sizing: border-box; width: 100%; height: 112px; padding: 22px 20px; border-bottom: 3px solid var(--accent); color: var(--fg); overflow: visible; }
+.rv-do.is-dont svg { border-bottom-color: var(--dont); }
+.rv-do figcaption { padding: 12px 16px 16px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.rv-do figcaption b { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.rv-do.is-dont figcaption b { color: var(--dont); }
 
 /* the shared colour roles inside every drawing */
 .rv-ink { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -451,6 +510,11 @@ html { scroll-behavior: smooth; }
 .prose h2[id], .prose h3[id], .prose details[id] { scroll-margin-top: 24px; }
 
 .toc { font-size: 13px; line-height: 1.35; }
+/* home: a quiet link above the list, ruled off from it (not a pill, so it never competes with the entries) */
+.toc a.toc-home { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 0 0 12px; border: 0; border-bottom: 1px solid var(--line);
+  border-radius: 0; font-size: 12.5px; font-weight: 600; color: var(--fg-muted); }
+.toc a.toc-home::before { content: ""; flex: none; width: 6px; height: 6px; border: solid currentColor; border-width: 0 0 1.5px 1.5px; transform: rotate(45deg); margin-left: 2px; }
+.toc a.toc-home:hover { color: var(--accent); }
 .toc-title { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
 .toc ol { list-style: none; margin: 0; padding: 0; }
 .toc > ol > li + li { margin-top: 10px; }

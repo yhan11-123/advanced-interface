@@ -7,7 +7,7 @@
    is an entry under its section too, which opens the set's popup. Headings
    without an id get one from their text. On a wide screen it sits fixed
    in the left margin; on a narrow one it folds into a "Contents" button in
-   the lower right. The entry for the part being read is marked.
+   the lower right. Its first link goes home, to the timeline of every week. The entry for the part being read is marked.
    --------------------------------------------------------------- */
 (() => {
   const prose = document.querySelector('.prose');
@@ -44,7 +44,9 @@
   nav.className = 'toc';
   nav.setAttribute('aria-label', 'On this page');
   nav.id = 'toc';
-  let html = '<p class="toc-title">On this page</p><ol>';
+  // a way home first: back to the timeline of every week (the header's brand link knows where it is)
+  const home = document.querySelector('.site-header .brand')?.getAttribute('href') || '../index.html';
+  let html = `<a class="toc-home" href="${home}">All weeks</a><p class="toc-title">On this page</p><ol>`;
   for (const s of sections) {
     html += `<li><a href="#${s.id}" class="toc-h2">${s.text}</a>`;
     if (s.items.length) html += '<ol>' + s.items.map(i => `<li><a href="#${i.id}">${i.text}</a></li>`).join('') + '</ol>';
@@ -78,7 +80,7 @@
   });
 
   // mark the part being read: the last heading that has passed a line a third of the way down
-  const links = [...nav.querySelectorAll('a')];
+  const links = [...nav.querySelectorAll('a[href^="#"]')];
   const targets = links.map(a => document.getElementById(a.hash.slice(1)));
   let ticking = false;
   function mark() {
