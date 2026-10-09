@@ -310,6 +310,9 @@ html.has-dialog { overflow: hidden; }
 .rv-pict .rv-on-acc { font-size: 8px; }
 .rv-rule b { display: block; font-size: 14.5px; line-height: 1.35; margin-bottom: 4px; }
 .prose .rv-rule p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+/* Research pictures are drawn in small units and shown larger; keep every line at its drawn
+   width (1 to 2px) instead of letting it scale up, so all of them share one thin line. */
+.rv-pict *, .rv-art svg *, .rv-do svg *, .rv-state svg * { vector-effect: non-scaling-stroke; }
 /* .is-roomy: the picture gets its own band, like .rv-art on .rv-card */
 .rv-rules.is-roomy .rv-rule { padding: 0; overflow: hidden; }
 .rv-rules.is-roomy .rv-pict { box-sizing: border-box; width: 100%; height: 132px; margin: 0; padding: 26px 24px; border-bottom: 1px solid var(--line); }
