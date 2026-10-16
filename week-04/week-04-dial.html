@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Mode dial</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Mode dial. A camera's mode dial seen from above, half of it showing: a ring of ticks and the modes round it,
+     macro and landscape to C3. Turn it with your finger round its centre; whatever sits under the fixed mark at
+     the top is the mode, filled white. It clicks from mode to mode. */
+  :root { --bg: #000; --fg: #fff; --dim: #6e6e6e; --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; --mono: ui-monospace, "SF Mono", Menlo, monospace; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .dial { width: min(92vw, 400px); aspect-ratio: 400 / 250; touch-action: none; outline: none; cursor: grab; }
+  .dial:focus-visible { outline: 1px solid var(--fg); outline-offset: 4px; }
+  .dial.is-dragging { cursor: grabbing; }
+  svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .tk { stroke: var(--fg); stroke-width: 2; stroke-linecap: butt; transition: opacity .15s; }
+  .mark { stroke: var(--fg); stroke-width: 2; }
+  .mode text { font: 700 15px var(--font); fill: var(--fg); text-anchor: middle; dominant-baseline: central; letter-spacing: .02em; }
+  .mode .chip { fill: none; stroke: none; transition: fill .15s, stroke .15s; }
+  .mode .icon { fill: var(--fg); stroke: none; }
+  .mode.on .chip { fill: var(--fg); }
+  .mode.on text { fill: var(--bg); }
+  .mode.on .icon { fill: var(--bg); }
+  .mode.pill .chip { stroke: var(--fg); stroke-width: 2; }
+  .mode.is-near .chip { stroke: var(--fg); stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .mode.pill.is-near .chip { stroke-dasharray: none; }
+  .dial.is-hover .tk { opacity: .85; }
+  .dial.is-pressed .mark, .dial.is-dragging .mark { stroke-width: 3; }
+  .name { font: 600 13px var(--mono); letter-spacing: .18em; fill: var(--fg); text-anchor: middle; }
+  .name.sub { font: 500 9px var(--mono); letter-spacing: .14em; fill: var(--dim); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="dial" role="slider" tabindex="0" aria-label="Shooting mode"><svg viewBox="0 0 400 250"></svg></div>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const MODES = [
+    { k: 'macro', name: 'MACRO', sub: 'CLOSE UP' }, { k: 'land', name: 'LANDSCAPE', sub: 'FAR AWAY' }, { k: 'AUTO', name: 'AUTO', sub: 'CAMERA DECIDES', pill: true },
+    { k: 'P', name: 'PROGRAM', sub: 'AUTO EXPOSURE' }, { k: 'S', name: 'SHUTTER', sub: 'YOU SET SPEED' }, { k: 'A', name: 'APERTURE', sub: 'YOU SET F-STOP' },
+    { k: 'M', name: 'MANUAL', sub: 'YOU SET BOTH' }, { k: 'C1', name: 'CUSTOM 1', sub: 'SAVED SETUP' }, { k: 'C2', name: 'CUSTOM 2', sub: 'SAVED SETUP' }, { k: 'C3', name: 'CUSTOM 3', sub: 'SAVED SETUP' }
+  ], N = MODES.length;
+  const dial = document.querySelector('.dial'), svg = dial.querySelector('svg');
+  const C = { x: 200, y: 222 }, R_TICK = 170, R_MODE = 126, STEP = 20, TICK_STEP = 4;   // degrees between modes and between ticks
+  const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };
+  const at = (deg, r) => { const a = deg * Math.PI / 180; return { x: C.x + r * Math.cos(a), y: C.y + r * Math.sin(a) }; };
+
+  // the ring turns; the mark at the top does not
+  const ring = el('g', {});
+  const ticks = []; for (let d = -360; d <= 360; d += TICK_STEP) ticks.push({ d, n: el('line', { class: 'tk' }, ring) });
+  const mark = el('line', { class: 'mark', x1: C.x, x2: C.x, y1: C.y - R_TICK - 14, y2: C.y - R_TICK + 16 });
+  const ICON = {
+    macro: '<path class="icon" d="M0 -9 C-4 -9 -6 -6 -6 -3 C-6 0 -3 2 0 2 C3 2 6 0 6 -3 C6 -6 4 -9 0 -9Z M-1 -10 L0 -13 L1 -10Z M-.8 2 H.8 V10 H-.8Z M0 7 C-3 3 -8 3 -9 5 C-6 9 -2 9 0 8Z M0 7 C3 3 8 3 9 5 C6 9 2 9 0 8Z"/>',
+    land: '<circle class="icon" cx="1" cy="-8" r="3"/><path class="icon" d="M-12 9 L-4 -2 L1 4 L4 1 L12 9Z"/>'
+  };
+  const modes = MODES.map((m, i) => {
+    const g = el('g', { class: 'mode' + (m.pill ? ' pill' : '') });
+    if (ICON[m.k]) { el('circle', { class: 'chip', r: 15 }, g); g.insertAdjacentHTML('beforeend', ICON[m.k]); }
+    else if (m.pill) { el('rect', { class: 'chip', x: -24, y: -12, width: 48, height: 24, rx: 12 }, g); el('text', {}, g).textContent = m.k; }
+    else if (m.k[0] === 'C') { el('circle', { class: 'chip', r: 15 }, g); el('text', {}, g).textContent = m.k; }
+    else { el('circle', { class: 'chip', r: 15 }, g); el('text', {}, g).textContent = m.k; }
+    return g;
+  });
+  const name = el('text', { class: 'name', x: C.x, y: C.y - 22 }), sub = el('text', { class: 'name sub', x: C.x, y: C.y - 6 });
+
+  // pos is the mode under the mark, continuous while turning; the mark sits at -90deg
+  let pos = 6, idx = 6, shown = 6, near = null;
+  function draw() {
+    const turn = -shown * STEP;
+    ticks.forEach(t => {
+      const d = t.d + turn, rel = ((d + 90) % 360 + 540) % 360 - 180;    // angle from the mark
+      if (Math.abs(rel) > 92) { t.n.style.display = 'none'; return; }
+      t.n.style.display = ''; const a = at(-90 + rel, R_TICK), b = at(-90 + rel, R_TICK + 12);
+      t.n.setAttribute('x1', a.x); t.n.setAttribute('y1', a.y); t.n.setAttribute('x2', b.x); t.n.setAttribute('y2', b.y);
+      t.n.style.opacity = Math.abs(rel) < 3 ? 0 : (1 - Math.pow(Math.abs(rel) / 92, 3)).toFixed(3);
+    });
+    modes.forEach((g, i) => {
+      const rel = (i - shown) * STEP, q = at(-90 + rel, R_MODE);
+      g.setAttribute('transform', `translate(${q.x.toFixed(2)} ${q.y.toFixed(2)}) rotate(${rel.toFixed(2)})`);
+      g.style.opacity = Math.abs(rel) > 105 ? 0 : (1 - Math.pow(Math.max(0, Math.abs(rel) - 40) / 65, 2)).toFixed(3);
+      g.classList.toggle('on', i === Math.round(shown));
+      g.classList.toggle('is-near', i === near && i !== idx);
+    });
+    const m = MODES[Math.round(shown)];
+    name.textContent = m.name; sub.textContent = m.sub;
+    dial.setAttribute('aria-valuenow', idx); dial.setAttribute('aria-valuetext', MODES[idx].name);
+  }
+
+  // what you see follows pos smoothly: briefly behind the finger, and easing into each click on release
+  let raf = 0, tau = .1, last = 0;
+  const tick = now => { const dt = Math.min(.05, Math.max(0, now - (last || now - 16)) / 1000); last = now; shown += (pos - shown) * (1 - Math.exp(-dt / tau)); if (Math.abs(pos - shown) < 1e-3) shown = pos; draw(); raf = shown === pos ? 0 : requestAnimationFrame(tick); };
+  const to = (v, t) => { pos = Math.min(N - 1, Math.max(0, v)); tau = t; if (!raf) { last = 0; raf = requestAnimationFrame(tick); } };
+
+  const local = e => { const b = svg.getBoundingClientRect(), s = 400 / b.width; return { x: (e.clientX - b.left) * s, y: (e.clientY - b.top) * s }; };
+  const angle = e => { const m = local(e); return Math.atan2(m.y - C.y, m.x - C.x) * 180 / Math.PI; };
+  const modeAt = e => { const m = local(e); let best = null, bd = 22 * 22; modes.forEach((g, i) => { const q = at(-90 + (i - shown) * STEP, R_MODE), d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < bd) { bd = d; best = i; } }); return best; };
+
+  let hover = false, down = false, drag = false, a0 = 0, p0 = 0, x0 = 0, y0 = 0;
+  const show = () => { dial.classList.toggle('is-hover', hover && !down); dial.classList.toggle('is-pressed', down && !drag); dial.classList.toggle('is-dragging', drag); };
+  dial.addEventListener('pointerenter', e => { hover = true; near = modeAt(e); show(); draw(); });
+  dial.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  dial.addEventListener('pointerdown', e => { dial.setPointerCapture(e.pointerId); a0 = angle(e); p0 = pos; x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  dial.addEventListener('pointermove', e => {
+    if (!dial.hasPointerCapture(e.pointerId)) { if (hover) { near = modeAt(e); draw(); } return; }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
+    if (drag) { let da = angle(e) - a0; da = ((da + 540) % 360) - 180; to(p0 - da / STEP, .05); }   // turn the dial under the finger
+  });
+  const release = e => {
+    if (!down) return; const wasDrag = drag; down = drag = false; show();
+    const tap = wasDrag ? null : modeAt(e);
+    idx = tap !== null ? tap : Math.round(pos); to(idx, .11); near = hover && !wasDrag ? null : near;
+  };
+  dial.addEventListener('pointerup', release);
+  dial.addEventListener('pointercancel', release);
+  dial.setAttribute('aria-valuemin', 0); dial.setAttribute('aria-valuemax', N - 1);
+  dial.addEventListener('keydown', e => {
+    const m = { ArrowRight: idx + 1, ArrowUp: idx + 1, ArrowLeft: idx - 1, ArrowDown: idx - 1, Home: 0, End: N - 1 };
+    if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); to(idx, .1); }
+  });
+  draw();
+  if (window.top === window && !location.search.includes('thumb')) document.querySelector('.back-pill').hidden = false;
+  </script>
+</body>
+</html>
