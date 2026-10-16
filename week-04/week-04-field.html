@@ -72,8 +72,8 @@
 
     <h3>Moving</h3>
     <table>
-      <tr><td>Stack: between layers</td><td>Up and down only. Pointing at the stack shows a line through the layers at the handle's point, the layer you point at labelled; press and the handle lifts onto it at that layer, drag up or down 28px a layer, let go and it settles on the nearest</td></tr>
-      <tr><td>Flat view: on a layer</td><td>Across and along only, at 0.7 speed for fine work; a press jumps the handle to that point</td></tr>
+      <tr><td>Stack: mostly between layers</td><td>Pointing at the stack shows a line through the layers at the handle's point, the layer you point at labelled; a tap goes to that layer. A drag that starts anywhere near vertical (steeper than 0.6) lifts the handle onto the line, 28px a layer, settling on the nearest; a clearly sideways drag moves it across the layer instead</td></tr>
+      <tr><td>Flat view: on a layer</td><td>Across and along, at 0.7 speed for fine work; a press jumps the handle to that point</td></tr>
       <tr><td>Linked</td><td>The handle in the stack and the one in the flat view are the same point; each follows the other</td></tr>
     </table>
 
@@ -189,6 +189,7 @@
       }
     }
     // the cross under the pointer on the panel
+    if (down && axis === 'h') { const q = P(su, sv, layerY(Lr) + depth(Lr, su, sv).y); line({ x: q.x - 16, y: q.y }, { x: q.x + 16, y: q.y }, 'rgba(255,255,255,.5)'); }
     if (hover && !down && hover.type === 'panel') {
       const q = Q(hover.u, hover.v);
       line({ x: q.x - 5, y: q.y }, { x: q.x + 5, y: q.y }, 'rgba(255,255,255,.9)'); line({ x: q.x, y: q.y - 5 }, { x: q.x, y: q.y + 5 }, 'rgba(255,255,255,.9)');
@@ -237,15 +238,17 @@
     return m.y > top && m.y < bot && Math.abs(m.x - O.x) < A + 30 ? { type: 'layer', L: layerAt(m) } : null;
   }
 
-  let x0 = 0, y0 = 0, p0 = 0, u0 = 0, v0 = 0;
-  const showState = () => { field.classList.toggle('is-hover', !!hover && !down); field.classList.toggle('is-pressed', down && !drag); field.classList.toggle('is-dragging', drag); field.style.cursor = lifted || (hover && hover.type === 'layer') ? 'ns-resize' : down ? 'grabbing' : hover ? (hover.type.includes('handle') ? 'grab' : 'crosshair') : 'default'; };
+  let x0 = 0, y0 = 0, p0 = 0, u0 = 0, v0 = 0, axis = null, tapL = null;
+  const showState = () => { field.classList.toggle('is-hover', !!hover && !down); field.classList.toggle('is-pressed', down && !drag); field.classList.toggle('is-dragging', drag); field.style.cursor = lifted ? 'ns-resize' : axis === 'h' ? 'ew-resize' : hover && hover.type === 'layer' ? 'move' : down ? 'grabbing' : hover ? (hover.type.includes('handle') ? 'grab' : 'crosshair') : 'default'; };
   field.addEventListener('pointermove', e => {
     const m = local(e);
     if (!field.hasPointerCapture(e.pointerId)) { hover = look(m); showState(); return; }
-    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 4) { drag = true; showState(); }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) { drag = true; showState(); }
     if (!drag) return;
     const r = field.getBoundingClientRect(), dy = (e.clientY - y0) * H / r.height, dx = (e.clientX - x0) * W / r.width;
-    if (where === 'stack') p = Math.min(N - 1, Math.max(0, p0 + dy / GAP));                 // the stack: up and down only, 28px a layer
+    if (where === 'stack' && !axis) axis = Math.abs(dy) >= Math.abs(dx) * .6 ? 'v' : 'h';     // the stack leans to up and down: anything near vertical goes between layers
+    if (where === 'stack' && axis === 'v') { lifted = true; p = Math.min(N - 1, Math.max(0, p0 + dy / GAP)); }
+    else if (where === 'stack') { const q = onLayer(m, Math.round(p)); u = clamp01(q.u); v = clamp01(q.v); }   // clearly sideways: across the layer                 // the stack: up and down only, 28px a layer
     else { const a = fromQ({ x: PC.x + dx * .7, y: PC.y - PA + dy * .7 }); u = clamp01(u0 + a.u); v = clamp01(v0 + a.v); }   // the panel: across and along
   });
   field.addEventListener('pointerleave', () => { if (!down) { hover = null; near = false; showState(); } });
@@ -253,11 +256,15 @@
     const m = local(e), h = look(m); if (!h) return;
     field.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; p0 = p; down = true; drag = false; hover = null; holdT = performance.now();
     where = h.type === 'layer' ? 'stack' : 'panel';
-    if (h.type === 'layer') { lifted = true; p = h.L; p0 = p; }                                  // a press on the stack: lift onto the line, at the layer pointed to
+    axis = null; tapL = h.type === 'layer' ? h.L : null;                                  // a press on the stack: lift onto the line, at the layer pointed to
     if (h.type === 'panel') { u = h.u; v = h.v; }                                                // a press on the panel: the handle goes there
     u0 = u; v0 = v; showState();
   });
-  const release = e => { if (!down) return; down = drag = false; if (lifted) { lifted = false; p = Math.round(p); } hold = 0; where = null; hover = look(local(e)); showState(); };
+  const release = e => {
+    if (!down) return;
+    if (!drag && tapL !== null) p = tapL;                                                      // a tap on the stack goes to the layer pointed at
+    down = drag = false; if (lifted) { lifted = false; p = Math.round(p); } where = null; axis = null; hover = look(local(e)); showState();
+  };
   field.addEventListener('pointerup', release);
   field.addEventListener('pointercancel', release);
   field.addEventListener('wheel', e => { e.preventDefault(); p = Math.min(N - 1, Math.max(0, Math.round(p) + Math.sign(e.deltaY))); }, { passive: false });
