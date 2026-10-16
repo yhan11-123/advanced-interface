@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Sliders &middot; Advanced Interface</title>
+  <meta name="description" content="Six components are due: three sets of one stepped slider and one continuous slider, each set carrying a tone, each one telling you the value it holds." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=20" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 04</div>
+      <h1>Sliders</h1>
+      <div class="meta">
+        <span>Oct 12, 2026</span>
+        <span class="tag">sliders</span>
+        <span class="tag">stepped</span>
+        <span class="tag">continuous</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">micro-motion</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Six components: three sets, each one stepped slider and one continuous slider, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the control is for and what it lets you do. Here the function is fixed, so the tone has to live in how the slider looks, moves and answers the finger.</p>
+
+      <p>One rule cuts across all six: <strong>every slider has to tell you the value it is set to</strong>, either while it is being dragged or as a label that stays.</p>
+
+      <h3>What each prototype has to show</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Picks</th><th>Value shown</th><th>States</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Stepped slider</td><td>One of a set of stops; the handle snaps</td><td>While dragging, or as labels on the stops</td><td>Hover, pressed, drag</td></tr>
+          <tr><td>Continuous slider</td><td>Any value in a range</td><td>While dragging, or as a label or field beside it</td><td>Hover, pressed, drag</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief's own examples show both routes. For stepped: Material's floating bubble reading &ldquo;90&rdquo; over a row of stop dots, and the macOS Energy Saver slider, labelled 1&nbsp;min, 15&nbsp;min, 1&nbsp;hr, 3&nbsp;hrs, Never. For continuous: Material's bubble reading &ldquo;71&rdquo;, and an Opacity slider with a 50% field and a stepper beside it.</p>
+
+      <h3>The spec</h3>
+
+      <p>Same as last week, no Figma file: every prototype carries its own spec in a section of the prototype page. At least spacing, font, font size and line height, the slider's size, and every other property that shapes it: track height, handle size, roundness, stroke width, stop size, the value label's size and offset. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>A slider picks a value by place instead of by typing. That makes it quick and rough. Everything the guidelines add is there to put back the precision that dragging takes away.</p>
+
+      <p>Read mainly against Apple's Sliders guidelines and Material 3's sliders, with Material's own token values. IBM's Carbon is the third voice again, and the WAI-ARIA slider pattern sets the keyboard. Where they agree, it is a rule. Where they differ, it is room for a tone.</p>
+
+      <h3>Two sliders</h3>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A stepped slider: a track with evenly spaced stop dots, the handle sitting on one of them, a value bubble reading 6 above it">
+              <rect x="12" y="62" width="104" height="12" rx="6" class="rv-acc"/>
+              <rect x="128" y="62" width="50" height="12" rx="6" class="rv-ink"/>
+              <rect x="120" y="52" width="4" height="32" rx="2" class="rv-acc"/>
+              <g fill="var(--bg-elev)">
+                <circle cx="20" cy="68" r="1.8"/><circle cx="36" cy="68" r="1.8"/><circle cx="52" cy="68" r="1.8"/><circle cx="68" cy="68" r="1.8"/><circle cx="84" cy="68" r="1.8"/><circle cx="100" cy="68" r="1.8"/>
+              </g>
+              <g fill="var(--fg-muted)">
+                <circle cx="138" cy="68" r="1.8"/><circle cx="154" cy="68" r="1.8"/><circle cx="170" cy="68" r="1.8"/>
+              </g>
+              <rect x="106" y="18" width="32" height="24" rx="12" fill="var(--fg)"/>
+              <text x="122" y="34" text-anchor="middle" class="rv-note" fill="var(--bg-elev)" style="fill: var(--bg-elev)">6</text>
+              <text x="12" y="104" class="rv-note">snaps from stop to stop</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Stepped slider</b>
+            <dl class="rv-facts">
+              <dt>Pick it when</dt><dd>A handful of set values, and the gaps between them mean nothing</dd>
+              <dt>Chooses</dt><dd>One stop; the handle snaps to the nearest</dd>
+              <dt>Shows the value</dt><dd>A bubble while dragging, or words on the stops (1 min &hellip; Never)</dd>
+              <dt>Stops</dt><dd>Drawn on the track, so the choices are visible before the drag</dd>
+              <dt>Keyboard</dt><dd>Arrows move one stop, Home and End jump to the ends</dd>
+              <dt>Screen reader</dt><dd><code>role="slider"</code> with <code>aria-valuetext</code> when the stop is a word: &ldquo;Turn display off, slider, 15 minutes&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A continuous slider: a plain track with the handle part way, and a small field beside it reading 50%">
+              <rect x="10" y="62" width="64" height="12" rx="6" class="rv-acc"/>
+              <rect x="86" y="62" width="44" height="12" rx="6" class="rv-ink"/>
+              <circle cx="125" cy="68" r="1.8" fill="var(--fg-muted)"/>
+              <rect x="78" y="52" width="4" height="32" rx="2" class="rv-acc"/>
+              <rect x="140" y="56" width="42" height="24" rx="5" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
+              <text x="161" y="72" text-anchor="middle" class="rv-note">50%</text>
+              <path class="rv-mute" d="M30 40 H120 M115 35 L120 40 L115 45"/>
+              <text x="10" y="104" class="rv-note">any value, read beside it</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Continuous slider</b>
+            <dl class="rv-facts">
+              <dt>Pick it when</dt><dd>A rough value in a range is good enough: opacity, brightness, size</dd>
+              <dt>Chooses</dt><dd>Any value between min and max</dd>
+              <dt>Shows the value</dt><dd>A bubble while dragging, a field beside it, or the result itself changing live</dd>
+              <dt>Stops</dt><dd>None, or a single dot marking the end of the track</dd>
+              <dt>Keyboard</dt><dd>Arrows nudge one step, Page Up and Down move further</dd>
+              <dt>Screen reader</dt><dd><code>role="slider"</code> with <code>aria-valuenow</code>: &ldquo;Opacity, slider, 50%&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Four ways to tell the value</h3>
+
+      <p>The brief allows either route. The systems between them use four, and a tone can pick any of them, or combine two.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="24" y="2" width="22" height="14" rx="7" fill="var(--fg)"/>
+            <rect x="2" y="27" width="30" height="6" rx="3" class="rv-acc"/>
+            <rect x="34" y="22" width="2" height="16" rx="1" class="rv-acc"/>
+            <rect x="38" y="27" width="32" height="6" rx="3" class="rv-ink"/>
+          </svg>
+          <b>A bubble while dragging</b>
+          <p>Material: a pill in the inverse colour, 12&nbsp;dp above the handle, there only while the handle is held. Above, so the finger cannot cover it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="8" width="30" height="5" rx="2.5" class="rv-acc"/>
+            <rect x="34" y="8" width="36" height="5" rx="2.5" class="rv-ink"/>
+            <circle cx="32" cy="10.5" r="5" class="rv-surface"/>
+            <text x="2" y="32" class="rv-note">1m</text>
+            <text x="22" y="32" class="rv-note">1h</text>
+            <text x="50" y="32" class="rv-note">never</text>
+          </svg>
+          <b>Words on the stops</b>
+          <p>macOS: tick marks with labels under them. Label the ends, plus a few in between when the scale is not even, as in Energy Saver.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="18" width="20" height="5" rx="2.5" class="rv-acc"/>
+            <rect x="24" y="18" width="18" height="5" rx="2.5" class="rv-ink"/>
+            <circle cx="23" cy="20.5" r="5" class="rv-surface"/>
+            <rect x="48" y="12" width="22" height="17" rx="3" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
+            <text x="51" y="24" class="rv-note">50</text>
+          </svg>
+          <b>A field beside it</b>
+          <p>Apple and Carbon: the exact number in a text field, typed into when dragging is not precise enough. Apple adds a stepper for whole steps.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="4" y="4" width="10" height="10" rx="2" class="rv-ink"/>
+            <rect x="20" y="2" width="14" height="14" rx="2" class="rv-ink"/>
+            <rect x="40" y="0" width="18" height="18" rx="3" class="rv-acc"/>
+            <rect x="2" y="30" width="40" height="5" rx="2.5" class="rv-acc"/>
+            <rect x="44" y="30" width="26" height="5" rx="2.5" class="rv-ink"/>
+            <circle cx="43" cy="32.5" r="5" class="rv-surface"/>
+          </svg>
+          <b>The result itself</b>
+          <p>Apple: give live feedback, like the Dock icons growing as the Size slider moves. The thing being changed becomes the label.</p>
+        </div>
+      </div>
+
+      <h3>Slider, up close</h3>
+
+      <p>Material's 2024 slider, drawn from its own token values in dp. The handle is a thin upright bar, not a dot, and it sits in a gap cut out of the track.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-30 -46 220 112" role="img" aria-label="A Material 3 slider drawn to its token values with seven numbered parts: active track, handle, gap, inactive track, stop indicator, value indicator and target">
+            <rect x="0" y="0" width="90" height="16" rx="8" fill="var(--accent)"/>
+            <rect x="96" y="-14" width="4" height="44" rx="2" fill="var(--accent)"/>
+            <rect x="106" y="0" width="54" height="16" rx="8" fill="var(--fg-muted)" opacity=".35"/>
+            <circle cx="152" cy="8" r="2" fill="var(--fg)"/>
+            <rect x="80" y="-44" width="40" height="24" rx="12" fill="var(--fg)"/>
+            <text x="100" y="-28" text-anchor="middle" class="an-txt" style="fill: var(--bg-elev)">71</text>
+            <rect x="74" y="-16" width="52" height="48" rx="6" class="an-target"/>
+            <path class="an-dim" d="M90 38 V44 M96 38 V44 M90 41 H96 M-12 0 H-6 M-9 0 V16 M-12 16 H-6 M166 -14 H172 M169 -14 V30 M166 30 H172"/>
+            <text x="100" y="47" class="an-txt">6</text>
+            <text x="-14" y="11" text-anchor="end" class="an-txt">16</text>
+            <text x="176" y="11" class="an-txt">44</text>
+            <path class="an-lead" d="M20 30 L30 10 M60 -8 L96 -4 M86 55 L90 45 M130 46 L130 16 M152 -28 L152 5 M60 -40 L80 -32 M60 40 L74 28"/>
+            <g class="an-num"><circle cx="20" cy="30" r="4.4"/><text x="20" y="30">1</text></g>
+            <g class="an-num"><circle cx="60" cy="-8" r="4.4"/><text x="60" y="-8">2</text></g>
+            <g class="an-num"><circle cx="83" cy="58" r="4.4"/><text x="83" y="58">3</text></g>
+            <g class="an-num"><circle cx="130" cy="46" r="4.4"/><text x="130" y="46">4</text></g>
+            <g class="an-num"><circle cx="152" cy="-28" r="4.4"/><text x="152" y="-28">5</text></g>
+            <g class="an-num"><circle cx="56" cy="-42" r="4.4"/><text x="56" y="-42">6</text></g>
+            <g class="an-num"><circle cx="60" cy="40" r="4.4"/><text x="60" y="40">7</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Active track</b><span>16 dp tall, fully round, in primary. The part between minimum and handle.</span></li>
+          <li><b>Handle</b><span>4 &times; 44 dp, fully round. Narrows to 2 dp when pressed or focused.</span></li>
+          <li><b>Gap</b><span>6 dp of nothing on each side of the handle, so the track never runs under it.</span></li>
+          <li><b>Inactive track</b><span>16 dp, secondary container. What is left to the maximum.</span></li>
+          <li><b>Stop indicator</b><span>4 dp dots. On a stepped slider, one per stop; on a continuous one, a single dot marks the end.</span></li>
+          <li><b>Value indicator</b><span>A pill in inverse surface, Label Large type (14 sp on a 20 sp line), its bottom 12 dp above the handle.</span></li>
+          <li><b>Target</b><span>48 dp around the handle, though the drawing is only 4 dp wide.</span></li>
+        </ol>
+      </div>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
+            <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--accent)"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+          </svg>
+          <figcaption><b>Rest</b><span>4 dp handle</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <circle cx="34.2" cy="4" r="12" class="an-layer"/>
+            <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
+            <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--accent)"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+          </svg>
+          <figcaption><b>Hover</b><span>8% layer, same width</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
+            <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+          </svg>
+          <figcaption><b>Pressed</b><span>Handle to 2 dp</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <rect x="24" y="-25" width="20" height="13" rx="6.5" fill="var(--fg)"/>
+            <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
+            <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <path class="rv-mute" d="M10 26 H54 M50 23 L54 26 L50 29"/>
+          </svg>
+          <figcaption><b>Drag</b><span>Value shows above</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <rect x="-3" y="-10" width="66" height="28" rx="6" fill="none" stroke="var(--fg)" stroke-width="1.4"/>
+            <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
+            <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+          </svg>
+          <figcaption><b>Focused</b><span>Ring, 2 dp handle</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="-6 -26 72 60" aria-hidden="true">
+            <g opacity=".38">
+              <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--fg-muted)"/>
+              <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--fg-muted)"/>
+              <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            </g>
+          </svg>
+          <figcaption><b>Disabled</b><span>38%, no layer</span></figcaption>
+        </figure>
+      </div>
+
+      <p>The three states the brief asks for sit close together and are easy to blur. <strong>Hover</strong> says &ldquo;you can grab this&rdquo; before any touch, and only exists with a pointer. <strong>Pressed</strong> is the instant the handle is caught, before it has moved. <strong>Drag</strong> is the handle following the finger, and it is where the value has to be readable. Material narrows the handle on press, the opposite of last week's switch, which swelled: a thin bar hides less of the track under the finger.</p>
+
+      <h3>Where they disagree</h3>
+
+      <table>
+        <thead>
+          <tr><th>Question</th><th>Apple</th><th>Material 3</th><th>Carbon</th><th>What I follow</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>The handle</td><td>A round knob (iOS); a narrow lozenge on macOS</td><td>A 4 &times; 44 dp upright bar</td><td>A 14 px dot on a 2 px track</td><td>Shape is a tone lever, as long as it reads as the thing to grab</td></tr>
+          <tr><td>Pressed</td><td>Not specified</td><td>Handle narrows, 4 &rarr; 2 dp</td><td>Handle grows &times;1.43, 14 &rarr; 20 px</td><td>Something visibly changes on press; which way is the tone's call</td></tr>
+          <tr><td>Where the value lives</td><td>Labels, ticks, a field and stepper, a tooltip on hover (Mac)</td><td>Floating bubble while dragging</td><td>A 64 px number field beside it</td><td>At least one, always; a bubble plus a label where the tone allows</td></tr>
+          <tr><td>Stops</td><td>Tick marks under or on the track (Mac)</td><td>4 dp dots inside the track</td><td>Not drawn</td><td>Stepped sliders draw every stop</td></tr>
+          <tr><td>Uneven steps</td><td>Fine: Energy Saver goes 1 min to Never</td><td>Even steps</td><td>Even steps</td><td>Allowed, if the labels say so</td></tr>
+          <tr><td>Volume</td><td>Don't build your own on iOS</td><td>Fine</td><td>Fine</td><td>Avoid volume as the example</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How it moves</h3>
+
+      <p>Started, not finished. What is clear so far: a slider should never lag the finger.</p>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Duration</th><th>Curve</th><th>From</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Handle following a drag</td><td>0 ms</td><td>None, it is glued to the finger</td><td>All three</td></tr>
+          <tr><td>Carbon handle grow, track fill colour</td><td>110 ms (fast-02)</td><td>Standard productive, <code>cubic-bezier(0.2, 0, 0.38, 0.9)</code></td><td>Carbon source</td></tr>
+          <tr><td>Stepped: snapping to the nearest stop on release</td><td>To read</td><td>To read</td><td>material-web source, next</td></tr>
+          <tr><td>Value bubble in and out</td><td>To read</td><td>To read</td><td>material-web source, next</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="12" class="rv-note">min</text>
+            <text x="50" y="12" class="rv-note">max</text>
+            <rect x="0" y="20" width="34" height="6" rx="3" class="rv-acc"/>
+            <rect x="38" y="20" width="32" height="6" rx="3" class="rv-ink"/>
+            <path class="rv-mute" d="M8 38 H62 M58 35 L62 38 L58 41"/>
+          </svg>
+          <b>Small on the left, big on the right</b>
+          <p>Every system agrees: minimum on the leading side, maximum trailing; on a vertical slider, minimum at the bottom. A tone can redraw the track, never flip it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="26" y="0" width="20" height="12" rx="6" fill="var(--fg)"/>
+            <rect x="2" y="20" width="68" height="5" rx="2.5" class="rv-ink"/>
+            <circle cx="36" cy="22.5" r="5" class="rv-acc"/>
+            <path d="M33 26 l0 13 l3.2 -3.2 l2.4 5 l2.4 -1.2 l-2.4 -5 l4.4 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+          </svg>
+          <b>Above the finger, not under it</b>
+          <p>NN/g: labels and the current value go above or beside the slider. Anything below the handle is under the hand while it drags.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="18" width="68" height="5" rx="2.5" class="rv-ink"/>
+            <rect x="34" y="14" width="3" height="13" rx="1.5" class="rv-acc"/>
+            <rect x="23" y="4" width="25" height="34" rx="4" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2"/>
+          </svg>
+          <b>Thin to look at, wide to catch</b>
+          <p>Material's handle is 4 dp drawn and 48 dp to touch; Apple asks 44 pt. The handle can be a hairline, the target cannot.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="16" width="68" height="6" rx="3" class="rv-ink"/>
+            <g class="rv-acc"><circle cx="8" cy="19" r="2.2"/><circle cx="22" cy="19" r="2.2"/><circle cx="36" cy="19" r="2.2"/><circle cx="50" cy="19" r="2.2"/><circle cx="64" cy="19" r="2.2"/></g>
+            <text x="36" y="40" text-anchor="middle" class="rv-note">about ten at most</text>
+          </svg>
+          <b>Few stops, all drawn</b>
+          <p>A stepped slider shows its choices before the drag. Past about ten stops it stops being stepped in practice; Apple suggests labelling only the ends then.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="4" width="16" height="12" rx="2" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
+            <path class="rv-ink" d="M6 10 L10 10 M8 8 L6 10 L8 12"/>
+            <rect x="22" y="4" width="16" height="12" rx="2" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
+            <path class="rv-ink" d="M27 10 L32 10 M30 8 L32 10 L30 12"/>
+            <text x="42" y="14" class="rv-note">Home</text>
+            <text x="2" y="34" class="rv-note">End &middot; PgUp &middot; PgDn</text>
+          </svg>
+          <b>Works without dragging</b>
+          <p>Arrows move one step, Home and End jump to the ends, Page Up and Down move further. Focus sits on the handle, and the value is read out with it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <text x="0" y="14" class="rv-note">aria-valuenow</text>
+            <text x="0" y="24" class="rv-note">= 2</text>
+            <text x="0" y="38" class="rv-note">valuetext &ldquo;15 min&rdquo;</text>
+          </svg>
+          <b>Say the word, not the index</b>
+          <p>When a stop is a word or a unit, <code>aria-valuetext</code> carries it. A screen reader should hear &ldquo;15 minutes&rdquo;, not &ldquo;2&rdquo;.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="14" width="44" height="6" rx="3" class="rv-ink"/>
+            <circle cx="30" cy="17" r="5" class="rv-acc"/>
+            <rect x="52" y="8" width="18" height="18" rx="3" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
+            <text x="54" y="21" class="rv-note">72</text>
+          </svg>
+          <b>Rough by nature</b>
+          <p>NN/g: sliders suit values where close enough is fine. When the exact number matters, pair it with a field so it can be typed.</p>
+        </div>
+      </div>
+
+      <h3>Still to read</h3>
+
+      <ul>
+        <li>material-web's slider source, for the motion: the snap on release, the value bubble in and out, the handle narrowing.</li>
+        <li>iOS <code>UISlider</code>: knob size and the spring after a drag; how the system brightness and volume sliders in Control Center fill as one big track.</li>
+        <li>Material 3 Expressive sizes, extra small to extra large: the track gets thick enough to hold an icon inside it.</li>
+        <li>Sliders that carry tone well in the wild: camera exposure dials, synth knobs turned into faders, game settings menus, the Teenage Engineering family.</li>
+      </ul>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-04-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-04-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-04-NAME.html">View larger</button>
+          </figcaption>
+        </figure>
+      -->
+      <div class="idea-grid">
+      </div>
+
+      <h2>Deliverables</h2>
+
+      <p>Six components, three sets of one stepped slider and one continuous slider. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-04-TONE-{stepped,continuous}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the slider first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
+                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
+                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
+                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
+                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-3">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-3">
+            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-3" aria-labelledby="dlg-3-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-3-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 3"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
+                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
+                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/sliders">Sliders</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://m3.material.io/components/sliders/overview">Sliders</a>, Material Design 3</li>
+          <li><a href="https://flutter.googlesource.com/mirrors/flutter/+/HEAD/dev/tools/gen_defaults/data/slider.json">Material 3 slider tokens, v6.1</a>, via Flutter's token data</li>
+          <li><a href="https://github.com/material-components/material-components-android/blob/master/docs/components/Slider.md">Slider</a>, Material Components for Android</li>
+          <li><a href="https://docs.flutter.dev/release/breaking-changes/updated-material-3-slider">Updated Material 3 Slider</a>, Flutter</li>
+          <li>Carbon source: <a href="https://github.com/carbon-design-system/carbon/blob/main/packages/styles/scss/components/slider/_slider.scss">slider</a>, IBM Carbon Design System</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/slider/">Slider pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+          <li><a href="https://www.nngroup.com/articles/gui-slider-controls/">Slider Design: Rules of Thumb</a>, Nielsen Norman Group</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">Understanding SC 2.5.8: Target Size (Minimum)</a>, W3C</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-03/week-03.html">&larr; Week 03: Selectors</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=5"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+</body>
+</html>
