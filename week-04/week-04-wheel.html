@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Word wheel</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file.
+     Word wheel. The options are the slider: a column of names set round the rim of a huge wheel whose hub is
+     far off to the left, so the list curves away and each name tilts with it. Spin it up or down; the name that
+     comes level with the blue dot is chosen. */
+  :root { --bg: #000; --fg: #fff; --dot: #2f5bea; --font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .wheel { position: fixed; inset: 0; touch-action: none; outline: none; cursor: ns-resize; }
+  .wheel:focus-visible::after { content: ""; position: absolute; inset: 6px; border: 1px solid #fff3; }
+  svg { width: 100%; height: 100%; display: block; }
+  .item { font: 500 24px var(--font); letter-spacing: -.005em; fill: var(--fg); dominant-baseline: central; transition: fill .15s; }
+  .item.is-near { fill: #9fb4ff; }
+  .dot { fill: var(--dot); transition: r .15s var(--ease, cubic-bezier(.2,.8,.2,1)), opacity .15s; }
+  .ring { fill: none; stroke: var(--dot); stroke-width: 1.5; opacity: 0; transition: opacity .15s, r .15s; }
+  .wheel.is-hover .ring { opacity: .6; }
+  .wheel.is-pressed .dot { r: 6px; }
+  .wheel.is-dragging .dot { r: 11px; }
+  .wheel.is-dragging .ring { opacity: 0; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wheel" role="slider" tabindex="0" aria-label="Constellation"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const NAMES = ['ORION', 'LYRA', 'CYGNUS', 'ANDROMEDA', 'CASSIOPEIA', 'PEGASUS', 'PERSEUS', 'AQUILA', 'DRACO', 'URSA MAJOR', 'URSA MINOR', 'CENTAURUS', 'SCORPIUS', 'SAGITTARIUS', 'GEMINI', 'TAURUS', 'LEO', 'VIRGO'], N = NAMES.length;
+  const wheel = document.querySelector('.wheel'), svg = wheel.querySelector('svg');
+  // the rim: the chosen name starts at x 168 on the middle row; the hub is R to its left
+  const R = 520, X0 = 168, Y0 = 150, CX = X0 - R, CY = Y0, STEP = 31 / R;   // radians between names (31px along the rim)
+  const el = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.append(e); return e; };
+  el('circle', { class: 'ring', cx: 112, cy: Y0, r: 15 });
+  el('circle', { class: 'dot', cx: 112, cy: Y0, r: 9 });
+  const items = NAMES.map(n => { const t = el('text', { class: 'item' }); t.textContent = n; return t; });
+
+  let pos = 7, idx = 7, shown = 7, near = null;
+  function draw() {
+    items.forEach((t, i) => {
+      const a = (i - shown) * STEP, x = CX + R * Math.cos(a), y = CY + R * Math.sin(a), deg = a * 180 / Math.PI;
+      t.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${deg.toFixed(2)})`);
+      const d = Math.abs(i - shown);
+      t.style.opacity = d > 6 ? 0 : (1 - Math.max(0, d - 3.5) / 2.5).toFixed(3);   // fade out towards the top and bottom
+      t.classList.toggle('is-near', i === near && i !== idx);
+    });
+    wheel.setAttribute('aria-valuenow', idx); wheel.setAttribute('aria-valuetext', NAMES[idx]);
+  }
+
+  // what you see follows pos smoothly: a touch behind the finger, then easing into place
+  let raf = 0, tau = .1, last = 0;
+  const tick = now => { const dt = Math.min(.05, Math.max(0, now - (last || now - 16)) / 1000); last = now; shown += (pos - shown) * (1 - Math.exp(-dt / tau)); if (Math.abs(pos - shown) < 1e-3) shown = pos; draw(); raf = shown === pos ? 0 : requestAnimationFrame(tick); };
+  const to = (v, t) => { pos = Math.min(N - 1, Math.max(0, v)); tau = t; if (!raf) { last = 0; raf = requestAnimationFrame(tick); } };
+  const go = i => { idx = Math.min(N - 1, Math.max(0, i)); to(idx, .12); };
+
+  const local = e => { const m = svg.getScreenCTM().inverse(), p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m); return { x: p.x, y: p.y }; };
+  const scale = () => 1 / svg.getScreenCTM().a;   // screen px to viewBox units
+  // the name under the pointer: the row whose angle on the rim is nearest the pointer's angle from the hub
+  const itemAt = e => { const m = local(e); if (m.x < X0 - 70) return null; const a = Math.atan2(m.y - CY, m.x - CX), i = Math.round(shown + a / STEP); return i >= 0 && i < N && Math.abs(i - shown) < 6 ? i : null; };
+
+  let hover = false, down = false, drag = false, y0 = 0, p0 = 0;
+  const show = () => { wheel.classList.toggle('is-hover', hover && !down); wheel.classList.toggle('is-pressed', down && !drag); wheel.classList.toggle('is-dragging', drag); };
+  wheel.addEventListener('pointerenter', e => { hover = true; near = itemAt(e); show(); draw(); });
+  wheel.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  wheel.addEventListener('pointerdown', e => { wheel.setPointerCapture(e.pointerId); y0 = e.clientY; p0 = pos; down = true; drag = false; near = null; show(); draw(); });
+  wheel.addEventListener('pointermove', e => {
+    if (!wheel.hasPointerCapture(e.pointerId)) { if (hover) { near = itemAt(e); draw(); } return; }
+    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
+    if (drag) to(p0 - (e.clientY - y0) * scale() / 31, .05);   // pull down to bring the names above into place
+  });
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); const t = wasDrag ? null : itemAt(e); go(t !== null ? t : Math.round(pos)); };
+  wheel.addEventListener('pointerup', release);
+  wheel.addEventListener('pointercancel', release);
+  // a trackpad or mouse wheel spins it too, settling once the scrolling stops
+  let settle = 0;
+  wheel.addEventListener('wheel', e => { e.preventDefault(); to(pos + e.deltaY / 60, .06); clearTimeout(settle); settle = setTimeout(() => go(Math.round(pos)), 140); }, { passive: false });
+  wheel.setAttribute('aria-valuemin', 0); wheel.setAttribute('aria-valuemax', N - 1);
+  wheel.addEventListener('keydown', e => {
+    const m = { ArrowDown: idx + 1, ArrowRight: idx + 1, ArrowUp: idx - 1, ArrowLeft: idx - 1, Home: 0, End: N - 1 };
+    if (e.key in m) { e.preventDefault(); go(m[e.key]); }
+  });
+  draw();
+  if (window.top === window && !location.search.includes('thumb')) document.querySelector('.back-pill').hidden = false;
+  </script>
+</body>
+</html>
