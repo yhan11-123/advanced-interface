@@ -32,9 +32,9 @@
   .core { position: absolute; inset: 24%; border-radius: 50%; display: grid; place-content: center; text-align: center; transition: transform .15s; pointer-events: none; }
   .deg { font: 600 clamp(18px, 7vmin, 26px)/1 var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: #111; }
   .hex { margin-top: 5px; font: 10px/1 var(--mono); color: rgba(0,0,0,.6); letter-spacing: .04em; }
-  .knob { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,.5); transition: transform .12s; pointer-events: none; }
-  .ringhit.is-hover + .knob { transform: scale(1.1); }
-  .ringhit.is-pressed + .knob, .ringhit.is-dragging + .knob { transform: scale(1.35); }
+  .knob { position: absolute; width: 15%; height: 15%; transform: translate(-50%, -50%); border-radius: 50%; border: 2.5px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,.5); transition: transform .12s; pointer-events: none; }
+  .ringhit.is-hover + .knob { transform: translate(-50%, -50%) scale(1.05); }
+  .ringhit.is-pressed + .knob, .ringhit.is-dragging + .knob { transform: translate(-50%, -50%) scale(1.12); }
   .wrap:has(.is-dragging) .core { transform: scale(1.06); }
 
   </style>
@@ -135,7 +135,7 @@
       return a;
     },
     render(v) {
-      const rad = v * Math.PI / 180, R = 41;   // percent of the box, centre of the band
+      const rad = v * Math.PI / 180, R = 39.75;   // percent of the box: halfway between the band's inner (29.5) and outer (50) edge
       knob.style.left = (50 + Math.sin(rad) * R) + '%'; knob.style.top = (50 - Math.cos(rad) * R) + '%';
       const c = `hsl(${v} 90% 60%)`; knob.style.background = c; core.style.background = c;
       core.querySelector('.deg').textContent = v + '°'; core.querySelector('.hex').textContent = hex(v, .9, .6).toUpperCase();
