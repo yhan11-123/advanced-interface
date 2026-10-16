@@ -30,18 +30,19 @@
   .side .pre { color: var(--mute); font-weight: 500; opacity: 0; transition: opacity .12s; }
   .mix.is-peek .side .pre { opacity: 1; }
   .bar { position: relative; height: var(--bar-h); cursor: ew-resize; touch-action: none; }
-  .part { position: absolute; top: 0; height: 100%; border-radius: var(--bar-r); overflow: hidden; display: flex; align-items: center; gap: var(--wave-gap); padding-left: 8px; transition: left .22s var(--ease-out), width .22s var(--ease-out), opacity .15s; }
+  .part { position: absolute; top: 0; height: 100%; border-radius: var(--bar-r); overflow: hidden; display: flex; align-items: center; gap: var(--wave-gap); padding-left: 8px; transition: width .2s var(--ease-out), opacity .15s; }
   .part.a { left: 0; background: color-mix(in srgb, var(--a) 22%, var(--off)); }
-  .part.b { background: color-mix(in srgb, var(--b) 22%, var(--off)); }
+  .part.b { right: 0; background: color-mix(in srgb, var(--b) 22%, var(--off)); }
   .part i { flex: none; width: var(--wave-bars); border-radius: 1.5px; opacity: .85; }
   .part.a i { background: var(--a); } .part.b i { background: var(--b); }
-  .divider { position: absolute; top: 50%; width: var(--divider-w); height: var(--divider-h); margin: calc(var(--divider-h) / -2) 0 0 calc(var(--divider-w) / -2); border-radius: 2px; background: var(--ink); pointer-events: none; transition: left .22s var(--ease-out), width .15s, margin .15s, box-shadow .15s, height .15s; }
+  .divider { position: absolute; top: 50%; width: var(--divider-w); height: var(--divider-h); margin: calc(var(--divider-h) / -2) 0 0 calc(var(--divider-w) / -2); border-radius: 2px; background: var(--ink); pointer-events: none; transition: left .2s var(--ease-out), width .15s, margin .15s, box-shadow .15s, height .15s; }
   .ghost { position: absolute; top: 50%; height: var(--divider-h); margin-top: calc(var(--divider-h) / -2); width: 0; border-left: 1px dashed rgba(232,230,242,.55); opacity: 0; transition: opacity .12s; pointer-events: none; }
   .bar.is-hover .ghost { opacity: 1; }
   .bar.is-hover .divider { box-shadow: 0 0 0 4px rgba(232,230,242,.08); }
   .bar.is-pressed .divider, .bar.is-dragging .divider { width: var(--divider-held); margin-left: calc(var(--divider-held) / -2); box-shadow: 0 0 12px rgba(232,230,242,.6); }
   .bar.is-pressed .divider { height: calc(var(--divider-h) - 6px); margin-top: calc((var(--divider-h) - 6px) / -2); }
-  .bar.is-dragging .part, .bar.is-dragging .divider { transition: width .15s, margin .15s, box-shadow .15s, height .15s; }
+  .bar.is-dragging .part { transition: opacity .15s; }
+  .bar.is-dragging .divider { transition: margin .15s, box-shadow .15s, height .15s; }
   .ticks { position: relative; height: 5px; }
   .ticks i { position: absolute; top: 0; width: 1px; height: 4px; background: var(--mute); opacity: .4; }
   .ticks i.mid { height: 5px; opacity: .8; }
@@ -71,7 +72,7 @@
       <tr><td>Divider</td><td data-var="--divider-w,--divider-h" data-join=" × " data-after="; 3px wide while held"></td></tr>
       <tr><td>Sound inside a part</td><td data-var="--wave-bars" data-after=" bars, 3px apart, up to 70% of the bar's height, scaled by the share"></td></tr>
       <tr><td>Steps</td><td>Eleven stops, 0 to 100 in tens; ticks under the bar, the middle one longer</td></tr>
-      <tr><td>Settle</td><td>0.22s, ease out, to the nearest ten</td></tr>
+      <tr><td>Settle</td><td>0.2s, ease out, to the nearest ten; each part is pinned to its own end and only changes width</td></tr>
     </table>
 
     <h3>Type</h3>
@@ -93,7 +94,7 @@
     <table>
       <tr><td>Hover</td><td>A soft ring round the divider; a dashed line marks the stop under the pointer and both shares preview what they would become. The mix stays</td></tr>
       <tr><td>Pressed</td><td>The divider thickens to 3px, shortens 6px and glows; a tap moves it to the stop under the finger</td></tr>
-      <tr><td>Drag</td><td>The divider follows the finger ten by ten; the two parts trade width, their sounds grow and shrink, and the shares count with it</td></tr>
+      <tr><td>Drag</td><td>The divider and both parts follow the finger exactly, with no easing, so the bar keeps its length; the shares read the nearest ten as you go, and on letting go the divider settles onto it in 0.2s</td></tr>
       <tr><td>Keyboard</td><td>Left and Right ten; Home and End all one sound or all the other</td></tr>
     </table>
   </section>
@@ -118,14 +119,14 @@
   const barsA = fill(partA), barsB = fill(partB);
   document.querySelector('.ticks').innerHTML = Array.from({ length: 11 }, (_, k) => `<i class="${k === 5 ? 'mid' : ''}" style="left:${k * 10}%"></i>`).join('');
 
-  let a = 'Rain', b = 'Ocean', share = 30, hv = null;
+  let a = 'Rain', b = 'Ocean', share = 30, pos = 30, hv = null;   // pos follows the finger; share is the stop it lands on
   const xOf = s => s / 100 * bar.clientWidth;
   function layout() {
-    const W = bar.clientWidth, x = xOf(share);
+    const W = bar.clientWidth, x = xOf(drag ? pos : share);
     // each part stops half a gap short of the divider; a part with no share disappears
     const wa = Math.max(0, x - GAP / 2), wb = Math.max(0, W - x - GAP / 2);
-    partA.style.width = wa + 'px'; partA.style.opacity = share === 0 ? 0 : 1;
-    partB.style.left = (W - wb) + 'px'; partB.style.width = wb + 'px'; partB.style.opacity = share === 100 ? 0 : 1;
+    partA.style.width = wa + 'px'; partA.style.opacity = wa < 1 ? 0 : 1;
+    partB.style.width = wb + 'px'; partB.style.opacity = wb < 1 ? 0 : 1;
     divider.style.left = x + 'px';
     sideA.querySelector('.name').textContent = a; sideA.querySelector('.pct').textContent = share + '%';
     sideB.querySelector('.name').textContent = b; sideB.querySelector('.pct').textContent = (100 - share) + '%';
@@ -141,7 +142,8 @@
     barsB.forEach((el, i) => el.style.height = Math.max(2, SOUNDS[b](i, i / n, t + 3) * gb * BH * .7) + 'px');
     requestAnimationFrame(frame);
   }
-  const set = n => { share = Math.max(0, Math.min(100, Math.round(n / 10) * 10)); layout(); };
+  const set = n => { share = Math.max(0, Math.min(100, Math.round(n / 10) * 10)); pos = share; layout(); };
+  const exact = e => { const r = bar.getBoundingClientRect(); return Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)); };
   const pAt = e => { const r = bar.getBoundingClientRect(); return Math.max(0, Math.min(100, Math.round((e.clientX - r.left) / r.width * 10) * 10)); };
 
   let hover = false, down = false, drag = false, x0 = 0;
@@ -152,9 +154,9 @@
   bar.addEventListener('pointermove', e => {
     if (!bar.hasPointerCapture(e.pointerId)) { if (hover) { hv = pAt(e); layout(); } return; }
     if (!drag && Math.abs(e.clientX - x0) > 3) { drag = true; show(); }
-    if (drag) set(pAt(e));
+    if (drag) { pos = exact(e); share = Math.round(pos / 10) * 10; layout(); }
   });
-  const release = e => { if (!down) return; if (!drag) set(pAt(e)); down = drag = false; hv = hover ? pAt(e) : null; show(); };
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; hv = hover ? pAt(e) : null; show(); set(wasDrag ? share : pAt(e)); };   // drop the drag state first, so the settle eases
   bar.addEventListener('pointerup', release);
   bar.addEventListener('pointercancel', release);
   bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', 100);
