@@ -80,9 +80,7 @@
 
       <h2>Research</h2>
 
-      <p>A slider picks a value by place instead of by typing. That makes it quick and rough. Everything the guidelines add is there to put back the precision that dragging takes away.</p>
-
-      <p>Read mainly against Apple's Sliders guidelines and Material 3's sliders, with Material's own token values. IBM's Carbon is the third voice again, and the WAI-ARIA slider pattern sets the keyboard. Where they agree, it is a rule. Where they differ, it is room for a tone.</p>
+      <p>Read against Apple, Material 3 (with its token values), IBM Carbon and the WAI-ARIA slider pattern.</p>
 
       <h3>Two sliders</h3>
 
@@ -93,14 +91,7 @@
           </div>
           <figcaption>
             <b>Stepped slider</b>
-            <dl class="rv-facts">
-              <dt>Pick it when</dt><dd>A handful of set values, and the gaps between them mean nothing</dd>
-              <dt>Chooses</dt><dd>One stop; the handle snaps to the nearest</dd>
-              <dt>Shows the value</dt><dd>A bubble while dragging, or words on the stops (1 min &hellip; Never)</dd>
-              <dt>Stops</dt><dd>Drawn on the track, so the choices are visible before the drag</dd>
-              <dt>Keyboard</dt><dd>Arrows move one stop, Home and End jump to the ends</dd>
-              <dt>Screen reader</dt><dd><code>role="slider"</code> with <code>aria-valuetext</code> when the stop is a word: &ldquo;Turn display off, slider, 15 minutes&rdquo;</dd>
-            </dl>
+            <dl class="rv-facts"><dt>Pick it when</dt><dd>A handful of set values</dd><dt>Value</dt><dd>Bubble, or words on the stops</dd><dt>Stops</dt><dd>All drawn; the handle snaps</dd></dl>
           </figcaption>
         </figure>
         <figure class="rv-card">
@@ -109,48 +100,41 @@
           </div>
           <figcaption>
             <b>Continuous slider</b>
-            <dl class="rv-facts">
-              <dt>Pick it when</dt><dd>A rough value in a range is good enough: opacity, brightness, size</dd>
-              <dt>Chooses</dt><dd>Any value between min and max</dd>
-              <dt>Shows the value</dt><dd>A bubble while dragging, a field beside it, or the result itself changing live</dd>
-              <dt>Stops</dt><dd>None, or a single dot marking the end of the track</dd>
-              <dt>Keyboard</dt><dd>Arrows nudge one step, Page Up and Down move further</dd>
-              <dt>Screen reader</dt><dd><code>role="slider"</code> with <code>aria-valuenow</code>: &ldquo;Opacity, slider, 50%&rdquo;</dd>
-            </dl>
+            <dl class="rv-facts"><dt>Pick it when</dt><dd>Close enough is fine</dd><dt>Value</dt><dd>Bubble, a field, or the result itself</dd><dt>Stops</dt><dd>One dot at the end</dd></dl>
           </figcaption>
         </figure>
       </div>
 
       <h3>Four ways to tell the value</h3>
 
-      <p>The brief allows either route. The systems between them use four, and a tone can pick any of them, or combine two.</p>
+      
 
       <div class="rv-rules">
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="45.0" y="10" width="22" height="16" rx="8.0" class="sl-bubble"/><text x="56" y="21.2" class="sl-bubble-txt">60</text><rect x="8" y="39.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="39.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="42" r="1.25" class="sl-stop-off"/><rect x="54.75" y="33.0" width="2.5" height="18" rx="1.25" class="sl-on"/></svg>
           <b>A bubble while dragging</b>
-          <p>Material: a pill in the inverse colour, 12&nbsp;dp above the handle, there only while the handle is held. Above, so the finger cannot cover it.</p>
+          <p>Material. Above the handle, so the finger never covers it.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="23.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="23.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="26" r="1.25" class="sl-stop"/><circle cx="28" cy="26" r="1.25" class="sl-stop"/><circle cx="42" cy="26" r="1.25" class="sl-stop"/><circle cx="70" cy="26" r="1.25" class="sl-stop-off"/><circle cx="84" cy="26" r="1.25" class="sl-stop-off"/><circle cx="98" cy="26" r="1.25" class="sl-stop-off"/><rect x="54.75" y="17.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="14" y="50" text-anchor="middle" class="sl-label">1m</text><text x="56" y="50" text-anchor="middle" class="sl-label">1h</text><text x="98" y="50" text-anchor="middle" class="sl-label">never</text></svg>
           <b>Words on the stops</b>
-          <p>macOS: tick marks with labels under them. Label the ends, plus a few in between when the scale is not even, as in Energy Saver.</p>
+          <p>macOS. Ends plus a few in between when steps are uneven.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="27.75" height="6" rx="3.0" class="sl-on"/><rect x="44.25" y="31.0" width="27.75" height="6" rx="3.0" class="sl-off"/><circle cx="69.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="38.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="80" y="25" width="24" height="18" rx="4" class="sl-field"/><text x="92.0" y="37.2" class="sl-field-txt">50</text></svg>
           <b>A field beside it</b>
-          <p>Apple and Carbon: the exact number in a text field, typed into when dragging is not precise enough. Apple adds a stepper for whole steps.</p>
+          <p>Apple, Carbon. For when the exact number matters.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="20" y="16" width="8" height="8" rx="2" class="sl-field"/><rect x="36" y="12" width="12" height="12" rx="2.5" class="sl-field"/><rect x="56" y="8" width="16" height="16" rx="3" class="sl-on"/><rect x="8" y="43.0" width="63.75" height="6" rx="3.0" class="sl-on"/><rect x="80.25" y="43.0" width="23.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="46" r="1.25" class="sl-stop-off"/><rect x="74.75" y="37.0" width="2.5" height="18" rx="1.25" class="sl-on"/></svg>
           <b>The result itself</b>
-          <p>Apple: give live feedback, like the Dock icons growing as the Size slider moves. The thing being changed becomes the label.</p>
+          <p>Apple. The thing being changed is the label.</p>
         </div>
       </div>
 
       <h3>Slider, up close</h3>
 
-      <p>Material's 2024 slider, drawn from its own token values in dp. The handle is a thin upright bar, not a dot, and it sits in a gap cut out of the track.</p>
+      <p>Material 3, from its token values (dp).</p>
 
       <div class="rv-anat">
         <figure class="rv-anat-fig">
@@ -177,13 +161,13 @@
           </svg>
         </figure>
         <ol class="rv-anat-key">
-          <li><b>Active track</b><span>16 dp tall, fully round, in primary. The part between minimum and handle.</span></li>
-          <li><b>Handle</b><span>4 &times; 44 dp, fully round. Narrows to 2 dp when pressed or focused.</span></li>
-          <li><b>Gap</b><span>6 dp of nothing on each side of the handle, so the track never runs under it.</span></li>
-          <li><b>Inactive track</b><span>16 dp, secondary container. What is left to the maximum.</span></li>
-          <li><b>Stop indicator</b><span>4 dp dots. On a stepped slider, one per stop; on a continuous one, a single dot marks the end.</span></li>
-          <li><b>Value indicator</b><span>A pill in inverse surface, Label Large type (14 sp on a 20 sp line), its bottom 12 dp above the handle.</span></li>
-          <li><b>Target</b><span>48 dp around the handle, though the drawing is only 4 dp wide.</span></li>
+          <li><b>Active track</b><span>16 tall, primary</span></li>
+          <li><b>Handle</b><span>4 &times; 44; 2 wide when pressed</span></li>
+          <li><b>Gap</b><span>6 each side of the handle</span></li>
+          <li><b>Inactive track</b><span>16 tall, secondary container</span></li>
+          <li><b>Stop indicator</b><span>4 dot, one per stop</span></li>
+          <li><b>Value indicator</b><span>Label Large, 12 above the handle</span></li>
+          <li><b>Target</b><span>48 around the handle</span></li>
         </ol>
       </div>
 
@@ -244,37 +228,20 @@
         </figure>
       </div>
 
-      <p>The three states the brief asks for sit close together and are easy to blur. <strong>Hover</strong> says &ldquo;you can grab this&rdquo; before any touch, and only exists with a pointer. <strong>Pressed</strong> is the instant the handle is caught, before it has moved. <strong>Drag</strong> is the handle following the finger, and it is where the value has to be readable. Material narrows the handle on press, the opposite of last week's switch, which swelled: a thin bar hides less of the track under the finger.</p>
-
-      <h3>Where they disagree</h3>
-
-      <table>
-        <thead>
-          <tr><th>Question</th><th>Apple</th><th>Material 3</th><th>Carbon</th><th>What I follow</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>The handle</td><td>A round knob (iOS); a narrow lozenge on macOS</td><td>A 4 &times; 44 dp upright bar</td><td>A 14 px dot on a 2 px track</td><td>Shape is a tone lever, as long as it reads as the thing to grab</td></tr>
-          <tr><td>Pressed</td><td>Not specified</td><td>Handle narrows, 4 &rarr; 2 dp</td><td>Handle grows &times;1.43, 14 &rarr; 20 px</td><td>Something visibly changes on press; which way is the tone's call</td></tr>
-          <tr><td>Where the value lives</td><td>Labels, ticks, a field and stepper, a tooltip on hover (Mac)</td><td>Floating bubble while dragging</td><td>A 64 px number field beside it</td><td>At least one, always; a bubble plus a label where the tone allows</td></tr>
-          <tr><td>Stops</td><td>Tick marks under or on the track (Mac)</td><td>4 dp dots inside the track</td><td>Not drawn</td><td>Stepped sliders draw every stop</td></tr>
-          <tr><td>Uneven steps</td><td>Fine: Energy Saver goes 1 min to Never</td><td>Even steps</td><td>Even steps</td><td>Allowed, if the labels say so</td></tr>
-          <tr><td>Volume</td><td>Don't build your own on iOS</td><td>Fine</td><td>Fine</td><td>Avoid volume as the example</td></tr>
-        </tbody>
-      </table>
+      <p><strong>Hover</strong>: grab me. <strong>Pressed</strong>: caught, not moved yet. <strong>Drag</strong>: following the finger, value readable. Material thins the handle on press, Carbon grows it &times;1.43; either is fine as long as the press shows.</p>
 
       <h3>How it moves</h3>
 
-      <p>Started, not finished. What is clear so far: a slider should never lag the finger.</p>
+      <p>Never lag the finger.</p>
 
       <table>
         <thead>
-          <tr><th>Part</th><th>Duration</th><th>Curve</th><th>From</th></tr>
+          <tr><th>Part</th><th>Duration</th><th>Curve</th></tr>
         </thead>
         <tbody>
-          <tr><td>Handle following a drag</td><td>0 ms</td><td>None, it is glued to the finger</td><td>All three</td></tr>
-          <tr><td>Carbon handle grow, track fill colour</td><td>110 ms (fast-02)</td><td>Standard productive, <code>cubic-bezier(0.2, 0, 0.38, 0.9)</code></td><td>Carbon source</td></tr>
-          <tr><td>Stepped: snapping to the nearest stop on release</td><td>To read</td><td>To read</td><td>material-web source, next</td></tr>
-          <tr><td>Value bubble in and out</td><td>To read</td><td>To read</td><td>material-web source, next</td></tr>
+          <tr><td>Handle following a drag</td><td>0 ms</td><td>None, glued to the finger</td></tr>
+          <tr><td>Carbon: handle grows, fill colour</td><td>110 ms</td><td><code>cubic-bezier(0.2, 0, 0.38, 0.9)</code></td></tr>
+          
         </tbody>
       </table>
 
@@ -284,47 +251,47 @@
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><text x="8" y="16" class="sl-label">min</text><text x="104" y="16" text-anchor="end" class="sl-label">max</text><rect x="8" y="29.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="29.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="32" r="1.25" class="sl-stop-off"/><rect x="54.75" y="23.0" width="2.5" height="18" rx="1.25" class="sl-on"/><path class="sl-guide" d="M30 56 H82 M78 52 L82 56 L78 60"/></svg>
           <b>Small on the left, big on the right</b>
-          <p>Every system agrees: minimum on the leading side, maximum trailing; on a vertical slider, minimum at the bottom. A tone can redraw the track, never flip it.</p>
+          <p>Min leading, max trailing. Redraw the track, never flip it.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="45.0" y="4" width="22" height="16" rx="8.0" class="sl-bubble"/><text x="56" y="15.2" class="sl-bubble-txt">60</text><rect x="8" y="29.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="29.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="32" r="1.25" class="sl-stop-off"/><rect x="54.75" y="23.0" width="2.5" height="18" rx="1.25" class="sl-on"/><path d="M57 44 l0 13 l3.2 -3.2 l2.4 5 l2.4 -1.2 l-2.4 -5 l4.4 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
           <b>Above the finger, not under it</b>
-          <p>NN/g: labels and the current value go above or beside the slider. Anything below the handle is under the hand while it drags.</p>
+          <p>Labels and value above or beside, never below (NN/g).</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="31.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="54.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="40" y="16" width="32" height="36" rx="6" class="sl-target"/><text x="56" y="64" text-anchor="middle" class="sl-label">48 dp target</text></svg>
           <b>Thin to look at, wide to catch</b>
-          <p>Material's handle is 4 dp drawn and 48 dp to touch; Apple asks 44 pt. The handle can be a hairline, the target cannot.</p>
+          <p>Draw 4 dp, touch 48 dp (Apple: 44 pt).</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="25.0" width="29.75" height="6" rx="3.0" class="sl-on"/><rect x="46.25" y="25.0" width="57.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="28" r="1.25" class="sl-stop"/><circle cx="28" cy="28" r="1.25" class="sl-stop"/><circle cx="56" cy="28" r="1.25" class="sl-stop-off"/><circle cx="70" cy="28" r="1.25" class="sl-stop-off"/><circle cx="84" cy="28" r="1.25" class="sl-stop-off"/><circle cx="98" cy="28" r="1.25" class="sl-stop-off"/><rect x="40.75" y="19.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="56" y="56" text-anchor="middle" class="sl-label">about ten at most</text></svg>
           <b>Few stops, all drawn</b>
-          <p>A stepped slider shows its choices before the drag. Past about ten stops it stops being stepped in practice; Apple suggests labelling only the ends then.</p>
+          <p>Show the choices before the drag.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="8" width="22" height="18" rx="4" class="sl-field"/><path class="sl-guide" d="M24 17 H14 M18 13 L14 17 L18 21"/><rect x="36" y="8" width="22" height="18" rx="4" class="sl-field"/><path class="sl-guide" d="M42 17 H52 M48 13 L52 17 L48 21"/><text x="66" y="21" class="sl-label">one step</text><text x="8" y="46" class="sl-label">Home &middot; End</text><text x="8" y="60" class="sl-label">PgUp &middot; PgDn</text></svg>
           <b>Works without dragging</b>
-          <p>Arrows move one step, Home and End jump to the ends, Page Up and Down move further. Focus sits on the handle, and the value is read out with it.</p>
+          <p>Arrows, Home, End, Page Up and Down.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="15.0" width="23.75" height="6" rx="3.0" class="sl-on"/><rect x="40.25" y="15.0" width="63.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="18" r="1.25" class="sl-stop"/><circle cx="58" cy="18" r="1.25" class="sl-stop-off"/><circle cx="80" cy="18" r="1.25" class="sl-stop-off"/><circle cx="98" cy="18" r="1.25" class="sl-stop-off"/><rect x="34.75" y="9.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="8" y="44" class="sl-label">valuenow = 2</text><text x="8" y="60" class="sl-label">valuetext = &ldquo;15 min&rdquo;</text></svg>
           <b>Say the word, not the index</b>
-          <p>When a stop is a word or a unit, <code>aria-valuetext</code> carries it. A screen reader should hear &ldquo;15 minutes&rdquo;, not &ldquo;2&rdquo;.</p>
+          <p><code>aria-valuetext</code> says &ldquo;15 minutes&rdquo;, not &ldquo;2&rdquo;.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="37.75" height="6" rx="3.0" class="sl-on"/><rect x="54.25" y="31.0" width="21.75" height="6" rx="3.0" class="sl-off"/><circle cx="73.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="48.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="82" y="25" width="22" height="18" rx="4" class="sl-field"/><text x="93.0" y="37.2" class="sl-field-txt">72</text></svg>
           <b>Rough by nature</b>
-          <p>NN/g: sliders suit values where close enough is fine. When the exact number matters, pair it with a field so it can be typed.</p>
+          <p>Exact number needed? Add a field.</p>
         </div>
       </div>
 
       <h3>Still to read</h3>
 
       <ul>
-        <li>material-web's slider source, for the motion: the snap on release, the value bubble in and out, the handle narrowing.</li>
-        <li>iOS <code>UISlider</code>: knob size and the spring after a drag; how the system brightness and volume sliders in Control Center fill as one big track.</li>
-        <li>Material 3 Expressive sizes, extra small to extra large: the track gets thick enough to hold an icon inside it.</li>
-        <li>Sliders that carry tone well in the wild: camera exposure dials, synth knobs turned into faders, game settings menus, the Teenage Engineering family.</li>
+        <li>material-web motion: snap on release, bubble in and out</li>
+        <li>iOS <code>UISlider</code>: knob and spring</li>
+        <li>M3 Expressive sizes, XS to XL</li>
+        <li>Sliders with tone in the wild: camera dials, synths, game menus</li>
       </ul>
 
       <h2>Process</h2>
