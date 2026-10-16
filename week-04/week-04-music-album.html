@@ -23,6 +23,7 @@
     --spine-peek: 15px;       /* a spine under the pointer half turns */
     --spine-face: 28px;       /* the chosen one, square, face-on */
     --mini-disc: 22px;
+    --spine-grey: #3f3f3f; --spine-grey-peek: #6a6a6a; --spine-grey-face: #9a9a9a;   /* flat boxes, no artwork */
     --hit-h: 40px;
     --settle: 420ms;
   }
@@ -46,10 +47,12 @@
 
   /* the slider: a shelf of spines */
   .shelf { position: relative; width: var(--shelf-w); height: var(--hit-h); display: flex; align-items: center; justify-content: center; gap: var(--spine-gap); cursor: pointer; }
-  .spine { position: relative; flex: none; width: var(--spine-w); height: var(--spine-h); border-radius: var(--spine-r); filter: grayscale(1) brightness(.55); transition: width var(--settle) var(--ease-out), height var(--settle) var(--ease-out), filter .2s, transform .15s; }
-  .jacket { position: absolute; inset: 0; border-radius: inherit; background-size: cover; box-shadow: inset 1px 0 0 rgba(255,255,255,.18), inset -1px 0 0 rgba(0,0,0,.35); }
-  .spine.is-peek { width: var(--spine-peek); filter: grayscale(1) brightness(.85); }
-  .spine.is-face { width: var(--spine-face); height: var(--spine-face); filter: grayscale(1); }
+  .spine { position: relative; flex: none; width: var(--spine-w); height: var(--spine-h); border-radius: var(--spine-r); transition: width var(--settle) var(--ease-out), height var(--settle) var(--ease-out), transform .15s; }
+  .jacket { position: absolute; inset: 0; border-radius: inherit; background: var(--spine-grey); transition: background .2s; }
+  .spine.is-peek { width: var(--spine-peek); }
+  .spine.is-peek .jacket { background: var(--spine-grey-peek); }
+  .spine.is-face { width: var(--spine-face); height: var(--spine-face); }
+  .spine.is-face .jacket { background: var(--spine-grey-face); }
   .mini-disc { position: absolute; top: 50%; left: 50%; width: var(--mini-disc); height: var(--mini-disc); margin: calc(var(--mini-disc) / -2) 0 0 calc(var(--mini-disc) / -2); border-radius: 50%; background: radial-gradient(circle, var(--walnut) 0 8%, #8a8a8a 9% 32%, #151515 33%); opacity: 0; transition: transform var(--settle) var(--ease-out), opacity .2s; pointer-events: none; }
   .spine.is-face .mini-disc { opacity: 1; transform: translateX(11px); }
   .wrap.is-busy .spine.is-face .mini-disc { transform: none; }
@@ -74,7 +77,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: one stop per album, sixteen albums. The slider is the crate in miniature, a shelf of greyscale spines; the chosen one is turned face-on with its record peeking out. The album's name is the label, so the value is always on screen; where it sits in the crate shows only when the shelf is touched.</p>
+    <p>Read from the CSS this page runs on. Stepped: one stop per album, sixteen albums. The slider is the crate in miniature, a shelf of flat grey boxes, no artwork; the chosen one is turned face-on with its record peeking out. The album's name is the label, so the value is always on screen; where it sits in the crate shows only when the shelf is touched.</p>
 
     <h3>Sleeves</h3>
     <table>
@@ -90,13 +93,13 @@
     <h3>Shelf, the slider</h3>
     <table>
       <tr><td>Shelf width</td><td data-var="--shelf-w"></td></tr>
-      <tr><td>Spine, standing</td><td data-var="--spine-w,--spine-h" data-join=" × " data-after=", the album's own colours at 55% brightness"></td></tr>
+      <tr><td>Spine, standing</td><td data-var="--spine-w,--spine-h" data-join=" × " data-after=", flat grey"></td></tr>
       <tr><td>Spine corner</td><td data-var="--spine-r"></td></tr>
       <tr><td>Spines apart</td><td data-var="--spine-gap"></td></tr>
-      <tr><td>Chosen spine, face-on</td><td data-var="--spine-face,--spine-face" data-join=" × " data-after=", full colour"></td></tr>
+      <tr><td>Chosen spine, face-on</td><td data-var="--spine-face,--spine-face" data-join=" × " data-after=", lighter flat grey"></td></tr>
       <tr><td>Its record</td><td data-var="--mini-disc" data-after=", slides 11px out"></td></tr>
       <tr><td>Kept album, while previewing another</td><td>A 4px cream dot 7px under its spine</td></tr>
-      <tr><td>Spine colour</td><td>Greyscale: the colour lives in the big sleeves, the shelf only says where</td></tr>
+      <tr><td>Spine colour</td><td>Flat grey boxes, no artwork: <span class="swatch" style="background:#3f3f3f"></span>#3f3f3f standing, #6a6a6a under the pointer, #9a9a9a face-on. The colour lives in the big sleeves; the shelf only says where</td></tr>
       <tr><td>Position chip</td><td>“7 of 16” under the spine, only while the shelf is hovered or held; mono 11px / 14px on cream, 5px corner</td></tr>
       <tr><td>Hit area height</td><td data-var="--hit-h" data-after="; the whole crate can be dragged too"></td></tr>
     </table>
@@ -159,7 +162,7 @@
   });
   const spines = ALBUMS.map(al => {
     const s = document.createElement('div'); s.className = 'spine';
-    s.innerHTML = `<span class="mini-disc"></span><span class="jacket" style="background:${al.bg}"></span>`;   // the record sits behind its jacket
+    s.innerHTML = `<span class="mini-disc"></span><span class="jacket"></span>`;   // the record sits behind its jacket
     shelf.insertBefore(s, where); return s;
   });
   const last = ALBUMS.length - 1;
