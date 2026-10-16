@@ -6,11 +6,12 @@
   <title>Week 04 &middot; Field slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <style>
-  /* Field slider, one piece. On the left, a wireframe box with six mesh layers stacked inside it. The handle moves
-     freely over a layer, like a knob on a colour wheel, pressing a dent into the mesh where it is. Push it into a
-     corner and it slips onto the box's edge, a line you can ride up and down through the layers; pull it inward
-     again and it steps onto the face of whichever layer you stopped at. On the right, the layer you are on is laid
-     out flat, seen from straight above, for finer work. */
+  /* Field slider, one piece. On the left, a wireframe box with six mesh layers stacked inside it, threads hanging
+     between them. The handle moves freely over a layer, like a knob on a colour wheel, pressing a dent into the mesh.
+     Each thread starts and ends at a connection point on a layer: bring the handle onto one and it catches the
+     thread, and dragging up or down rides it to the layer at its other end; pull off sideways to step onto that
+     layer's face. The box's upright edges work the same way, through every layer. On the right, the layer you are
+     on is laid out flat, seen from straight above, its connection points marked, for finer work. */
   :root {
     --bg: #000; --fg: #fff; --dim: #6e6e6e; --line: #2e2e2e;
     --weak: #f1e4c8; --strong: #ff4a3a;
@@ -78,7 +79,10 @@
       <tr><td>Onto a line</td><td>Within 0.18 of a corner, the handle slips onto that upright edge; the edge lights white with a tick at each layer</td></tr>
       <tr><td>On a line</td><td>Up and down only, through the layers; it settles on the nearest one when let go</td></tr>
       <tr><td>Back to a face</td><td>Move 16px inward off the line and the handle steps onto the face of that layer</td></tr>
-      <tr><td>From above</td><td>The panel on the right shows the layer in use flat; dragging there moves the handle at 0.7 speed, for fine work; a press there jumps it to that point. Both handles are the same point</td></tr>
+      <tr><td>Threads</td><td>Ten threads hang between layers, each from a connection point on one layer to the same point on a layer one or two below; 0.6px white, brighter on the layers in use</td></tr>
+      <tr><td>Onto a thread</td><td>Bring the handle within 0.05 of a connection point on its layer and it catches the thread; or press the thread itself</td></tr>
+      <tr><td>On a thread</td><td>Up and down between the two layers it joins; pull 16px off sideways near either end to step onto that layer; let go and it settles on the nearer end</td></tr>
+      <tr><td>From above</td><td>The panel on the right shows the layer in use flat, its connection points ringed with a triangle pointing the way the thread goes; dragging there moves the handle at 0.7 speed, for fine work; a press there jumps it to that point. Both handles are the same point</td></tr>
     </table>
 
     <h3>Readout</h3>
@@ -123,6 +127,14 @@
   const Q = (u, v) => ({ x: PC.x + (u - v) * PA, y: PC.y - PA + (u + v) * PA });
   const fromQ = m => { const dx = (m.x - PC.x) / PA, dy = (m.y - PC.y + PA) / PA; return { u: (dy + dx) / 2, v: (dy - dx) / 2 }; };
 
+  // threads: a point (u v) joined from layer a down to layer b; their ends are the connection points
+  const THREADS = [
+    { u: .22, v: .30, a: 0, b: 1 }, { u: .70, v: .18, a: 0, b: 2 }, { u: .45, v: .62, a: 1, b: 2 }, { u: .80, v: .70, a: 1, b: 3 },
+    { u: .30, v: .78, a: 2, b: 3 }, { u: .58, v: .40, a: 2, b: 4 }, { u: .15, v: .55, a: 3, b: 4 }, { u: .62, v: .85, a: 3, b: 5 },
+    { u: .40, v: .20, a: 4, b: 5 }, { u: .85, v: .40, a: 4, b: 5 }
+  ];
+  const CATCH = .05, LETGO = 16;                                 // catch a thread within 0.05 of its point; leave it 16px off sideways
+  let thread = -1, armed = true;
   // state: layer p (continuous while riding a line), point u v, and mode
   let p = 2, u = .58, v = .42, mode = 'face', edge = 2;            // what is set
   let sp = p, su = u, sv = v;                                    // what is shown, chasing the set values
@@ -179,6 +191,20 @@
       mesh(L, alpha, (uu, vv, y) => P(uu, vv, layerY(L) + y), t);
     }
 
+    // the threads and their connection points
+    THREADS.forEach((th, i) => {
+      const ya = layerY(th.a) + depth(th.a, th.u, th.v, t).y, yb = layerY(th.b) + depth(th.b, th.u, th.v, t).y;
+      const a = P(th.u, th.v, ya), b = P(th.u, th.v, yb), on = mode === 'thread' && thread === i;
+      const lit = on || (hover && hover.type === 'thread' && hover.i === i), here = Math.round(sp) === th.a || Math.round(sp) === th.b;
+      edgeLine(a, b, on ? 1 : lit ? .8 : here ? .4 : .18, on ? 1.25 : .6);
+      [[a, th.a], [b, th.b]].forEach(([q, L]) => {
+        const cur = Math.round(sp) === L;
+        cx.strokeStyle = `rgba(255,255,255,${cur || on ? .95 : .3})`; cx.lineWidth = 1;
+        cx.beginPath(); cx.arc(q.x, q.y, cur ? 3 : 2, 0, 7); cx.stroke();
+        if (on) { edgeLine({ x: q.x - 5, y: q.y }, { x: q.x + 5, y: q.y }, .9); }
+      });
+    });
+
     // the upright edges: the one in use (or hovered) lit, with a tick at every layer
     for (let c = 0; c < 4; c++) {
       const lit = (mode === 'edge' && edge === c) || (hover && hover.type === 'edge' && hover.c === c);
@@ -197,10 +223,18 @@
     // the flat view: the layer in use, seen from straight above
     mesh(L, .9, (uu, vv) => Q(uu, vv), t);
     [0, .5, 1].forEach(f => { edgeLine(Q(f, 0), Q(f, 1), .12, .5); edgeLine(Q(0, f), Q(1, f), .12, .5); });
+    THREADS.forEach(th => {
+      if (th.a !== L && th.b !== L) return;
+      const q = Q(th.u, th.v), up = th.b === L;                  // this layer is the thread's lower end: it leads up
+      cx.fillStyle = 'rgba(0,0,0,.8)'; cx.beginPath(); cx.arc(q.x, q.y, 4.5, 0, 7); cx.fill();
+      cx.strokeStyle = 'rgba(255,255,255,.9)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(q.x, q.y, 4.5, 0, 7); cx.stroke();
+      cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(q.x - 2.2, q.y + (up ? 1.3 : -1.3)); cx.lineTo(q.x + 2.2, q.y + (up ? 1.3 : -1.3)); cx.lineTo(q.x, q.y + (up ? -1.8 : 1.8)); cx.fill();
+    });
 
     // the handle, sitting in its dent (or on its line), and its twin on the flat view
-    const onLine = mode === 'edge', hu = onLine ? CORNERS[edge][0] : su, hv = onLine ? CORNERS[edge][1] : sv;
-    const hd = onLine ? 0 : depth(L, hu, hv, t).y * (1 - Math.abs(sp - L));
+    const onLine = mode === 'edge' || mode === 'thread', th = THREADS[thread];
+    const hu = mode === 'edge' ? CORNERS[edge][0] : mode === 'thread' ? th.u : su, hv = mode === 'edge' ? CORNERS[edge][1] : mode === 'thread' ? th.v : sv;
+    const hd = mode === 'edge' ? 0 : depth(L, hu, hv, t).y * (1 - Math.abs(sp - L));
     knob(P(hu, hv, layerY(sp) + hd));
     knob(Q(hu, hv));
 
@@ -208,7 +242,7 @@
     const f = depth(L, hu, hv, t).s;
     field.querySelector('.v-l').textContent = `${String(L + 1).padStart(2, '0')}/${String(N).padStart(2, '0')}`;
     field.querySelector('.v-l2').textContent = String(L + 1).padStart(2, '0');
-    field.querySelector('.v-m').textContent = onLine ? 'ON LINE' : 'ON FACE';
+    field.querySelector('.v-m').textContent = mode === 'thread' ? 'ON THREAD' : mode === 'edge' ? 'ON LINE' : 'ON FACE';
     field.querySelector('.pos').textContent = `${hu.toFixed(2)}, ${hv.toFixed(2)}`;
     field.querySelector('.v-f').textContent = Math.round(f * 100) + '%';
     requestAnimationFrame(frame);
@@ -220,19 +254,41 @@
   const inside = q => q.u >= -.02 && q.u <= 1.02 && q.v >= -.02 && q.v <= 1.02;
   const clamp01 = x => Math.min(1, Math.max(0, x));
   const edgeAt = m => { let best = null; CORNERS.forEach(([a, b], c) => { const t0 = P(a, b, 0), dx = Math.abs(m.x - t0.x); if (dx < 9 && m.y > t0.y + TOPY - 14 && m.y < t0.y + BOXH - TOPY + 14 && (!best || dx < best.dx)) best = { type: 'edge', c, dx }; }); return best; };
-  const handlePt = () => { const onL = mode === 'edge'; return [onL ? CORNERS[edge][0] : su, onL ? CORNERS[edge][1] : sv]; };
+  // the thread whose line passes within 6px of the pointer
+  const threadAt = m => { let best = -1, bd = 6; THREADS.forEach((th, i) => { const a = P(th.u, th.v, layerY(th.a)), b = P(th.u, th.v, layerY(th.b)); if (m.y < a.y - 4 || m.y > b.y + 4) return; const d = Math.abs(m.x - a.x); if (d < bd) { bd = d; best = i; } }); return best; };
+  const handlePt = () => mode === 'edge' ? CORNERS[edge] : mode === 'thread' ? [THREADS[thread].u, THREADS[thread].v] : [su, sv];
   const handleAt = m => { const [hu, hv] = handlePt(), q = P(hu, hv, layerY(sp)); return Math.hypot(q.x - m.x, q.y - m.y) < 16; };
   const look = m => {
     if (m.x > 340) { const [hu, hv] = handlePt(), hq = Q(hu, hv); near = Math.hypot(hq.x - m.x, hq.y - m.y) < 13; const q = fromQ(m); return near ? { type: 'panel-handle' } : inside(q) ? { type: 'panel', u: clamp01(q.u), v: clamp01(q.v) } : null; }
-    near = handleAt(m); const e = edgeAt(m); if (e) return e; const q = onLayer(m, Math.round(sp)); return inside(q) ? { type: 'face', u: clamp01(q.u), v: clamp01(q.v) } : null;
+    near = handleAt(m); const e = edgeAt(m); if (e) return e;
+    const ti = threadAt(m); if (ti >= 0) return { type: 'thread', i: ti };
+    const q = onLayer(m, Math.round(sp)); return inside(q) ? { type: 'face', u: clamp01(q.u), v: clamp01(q.v) } : null;
   };
 
   // moving in the box: on a face the handle follows freely, and a push into a corner puts it on that line;
   // on a line it only rides up and down, and a move inward puts it back on the face of that layer
   function moveTo(m) {
+    if (mode === 'thread') {
+      const th = THREADS[thread], top = P(th.u, th.v, 0);
+      p = Math.min(th.b, Math.max(th.a, (m.y - top.y - TOPY) / GAP));                   // along the thread, between its two layers
+      const end = Math.abs(p - Math.round(p)) < .3 && (Math.round(p) === th.a || Math.round(p) === th.b);
+      if (Math.abs(m.x - top.x) > LETGO && end) {                                      // pulled off sideways at an end: onto that layer
+        p = Math.round(p); mode = 'face'; armed = false; const q = onLayer(m, p); u = clamp01(q.u); v = clamp01(q.v);
+      }
+      return;
+    }
     if (mode === 'face') {
       const q = onLayer(m, p), cu = clamp01(q.u), cvv = clamp01(q.v);
       u = cu; v = cvv;
+      // a connection point on this layer catches the handle (once it has been away from it)
+      let close = Infinity;
+      THREADS.forEach((th, i) => {
+        if (th.a !== Math.round(p) && th.b !== Math.round(p)) return;
+        const d = Math.hypot(cu - th.u, cvv - th.v); close = Math.min(close, d);
+        if (armed && d < CATCH) { mode = 'thread'; thread = i; u = th.u; v = th.v; }
+      });
+      if (close > .1) armed = true;
+      if (mode === 'thread') return;
       if (q.u < -.04 || q.u > 1.04 || q.v < -.04 || q.v > 1.04) {
         CORNERS.forEach(([a, b], c) => { if (Math.hypot(cu - a, cvv - b) < .18) { mode = 'edge'; edge = c; } });
       }
@@ -264,15 +320,21 @@
     field.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; hover = null;
     where = m.x > 340 ? 'panel' : 'box';
     if (where === 'panel') {
-      if (mode === 'edge') { mode = 'face'; u = CORNERS[edge][0]; v = CORNERS[edge][1]; }
+      if (mode !== 'face') { const [a, b] = handlePt(); mode = 'face'; u = a; v = b; }
       if (h && h.type === 'panel') { u = h.u; v = h.v; }        // a press on the flat view: the handle goes there
     } else if (!onHandle) {
       if (e2) { mode = 'edge'; edge = e2.c; moveTo(m); }       // a press on an upright edge: onto that line
+      else if (h && h.type === 'thread') { mode = 'thread'; thread = h.i; u = THREADS[h.i].u; v = THREADS[h.i].v; moveTo(m); }   // on a thread: onto it
       else { mode = 'face'; u = h.u; v = h.v; }                // a press on the face: the handle goes there
     }
     u0 = u; v0 = v; show();
   });
-  const release = e => { if (!down) return; down = drag = false; if (mode === 'edge') p = Math.round(p); where = null; hover = look(local(e)); show(); };
+  const release = e => {
+    if (!down) return; down = drag = false;
+    if (mode === 'edge') p = Math.round(p);
+    if (mode === 'thread') { p = Math.round(p); mode = 'face'; armed = false; }   // let go on a thread: down on the nearest of its ends
+    where = null; hover = look(local(e)); show();
+  };
   field.addEventListener('pointerup', release);
   field.addEventListener('pointercancel', release);
   field.addEventListener('wheel', e => { e.preventDefault(); p = Math.min(N - 1, Math.max(0, Math.round(p) + Math.sign(e.deltaY))); }, { passive: false });
@@ -280,7 +342,7 @@
     const step = .05, k = e.key;
     if (k === 'PageUp') p = Math.max(0, Math.round(p) - 1); else if (k === 'PageDown') p = Math.min(N - 1, Math.round(p) + 1);
     else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) {
-      if (mode === 'edge') { mode = 'face'; u = CORNERS[edge][0]; v = CORNERS[edge][1]; }
+      if (mode !== 'face') { const [a, b] = handlePt(); mode = 'face'; u = a; v = b; }
       if (k === 'ArrowRight') u = clamp01(u + step); if (k === 'ArrowLeft') u = clamp01(u - step);
       if (k === 'ArrowDown') v = clamp01(v + step); if (k === 'ArrowUp') v = clamp01(v - step);
     } else return;
