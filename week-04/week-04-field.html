@@ -65,7 +65,7 @@
     <h3>Box and layers</h3>
     <table>
       <tr><td>Field</td><td data-var="--w,--h" data-join=" × " data-after=", growing to 680px wide; the box on the left, the flat layer on the right"></td></tr>
-      <tr><td>Box</td><td>A wireframe box in isometric view, 1px white at 50%, its four upright edges the lines you ride</td></tr>
+      <tr><td>Box</td><td>None drawn: the layers stand in isometric view on their own; the four upright edges of the space they fill are lines you can ride, shown only when hovered or ridden</td></tr>
       <tr><td>Layers</td><td data-var="--layers" data-after=" meshes stacked 26px apart, each a grid of 18 × 18 cells, sagging deeper the lower they sit"></td></tr>
       <tr><td>Layer in use</td><td>Drawn at full strength; the others fade to 25%, the neighbours a little stronger</td></tr>
       <tr><td>Dent</td><td>Where the handle is, the mesh sinks up to 26px in a soft round dent, deepest while held</td></tr>
@@ -181,10 +181,8 @@
     press += ((down ? 1 : 0) - press) * .2;
     cx.clearRect(0, 0, W, H);
 
-    // back edges of the box first, then the layers top to bottom, then the front edges
+    // no box: the upright edges only show while one is hovered or ridden
     const top = CORNERS.map(([a, b]) => P(a, b, 0)), bot = CORNERS.map(([a, b]) => P(a, b, BOXH));
-    for (let i = 0; i < 4; i++) { edgeLine(top[i], top[(i + 1) % 4], .5); }
-    edgeLine(bot[3], bot[0], .3); edgeLine(bot[0], bot[1], .3); edgeLine(top[0], bot[0], .3);
 
     for (let L = 0; L < N; L++) {
       const w = Math.max(0, 1 - Math.abs(L - sp) / 1.4), alpha = .22 + .78 * Math.pow(w, 1.5);
@@ -208,10 +206,9 @@
     // the upright edges: the one in use (or hovered) lit, with a tick at every layer
     for (let c = 0; c < 4; c++) {
       const lit = (mode === 'edge' && edge === c) || (hover && hover.type === 'edge' && hover.c === c);
-      if (c !== 0) edgeLine(top[c], bot[c], lit ? 1 : .5, lit ? 1.25 : 1);
+      if (lit) edgeLine(top[c], bot[c], 1, 1.25);
       if (lit) for (let L = 0; L < N; L++) { const q = P(CORNERS[c][0], CORNERS[c][1], layerY(L)); edgeLine({ x: q.x - 4, y: q.y }, { x: q.x + 4, y: q.y }, .9); }
     }
-    edgeLine(bot[1], bot[2], .5); edgeLine(bot[2], bot[3], .5);
 
     // a cross under the pointer, on the face in use or on the flat view
     const L = Math.round(sp);
