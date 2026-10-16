@@ -419,7 +419,7 @@
 
       <h2>Deliverables</h2>
 
-      <p>Six components, three sets of one stepped slider and one continuous slider. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+      <p>Nine sliders in three sets, each set with at least one stepped and one continuous slider. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
 
       <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
            file names (week-04-TONE-{stepped,continuous}.html, images/process/TONE-KIND-N.png).
@@ -432,7 +432,7 @@
       <div class="set-grid">
         <div class="set-box" id="set-analog">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-analog">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/analog-album-3.png" alt="" loading="lazy" /><img src="images/process/analog-progress-1.png" alt="" loading="lazy" /><img src="images/process/analog-volume-1.png" alt="" loading="lazy" /></span>
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/analog-album-3.png" alt="" loading="lazy" /><img src="images/process/analog-progress-1.png" alt="" loading="lazy" /><img src="images/process/analog-volume-1.png?v=2" alt="" loading="lazy" /></span>
             <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Analog</span><span class="set-line">A record shop after closing, for a music app: walnut dark, cream paper, one burnt-orange lamp.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
@@ -464,7 +464,7 @@
                   <iframe src="week-04-music-volume.html?v=3" title="Analog volume slider, continuous: thin bars rising like the scale on an amp, a lamp needle at the level" loading="lazy"></iframe>
                   <figcaption>
                     <b>Volume, continuous</b>
-                    <span>Thin bars rise left to right like the scale on an old amp; cream fills them to the level and a lamp needle marks it. The level reads top right; the speaker mutes.</span>
+                    <span>Thin bars rise left to right like the scale on an old amp; cream fills them to the level and a lamp needle marks it. The number rides on the needle, hovering previews a level, and the speaker grows with the volume and mutes on tap.</span>
                     <button type="button" class="viewer-open" data-src="week-04-music-volume.html?v=3">View larger</button>
                   </figcaption>
                 </figure>
@@ -489,59 +489,133 @@
             </div>
           </dialog>
         </div>
-        <div class="set-box" id="set-2">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
-            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+        <div class="set-box" id="set-camera">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-camera">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/camera-zoom-1.png" alt="" loading="lazy" /><img src="images/process/camera-gallery-1.png" alt="" loading="lazy" /><img src="images/process/camera-exposure-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Camera</span><span class="set-line">A camera body at dusk: matte black, white type, one viewfinder yellow. Zoom, gallery and exposure.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
-          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+          <dialog class="set-dialog" id="dlg-camera" aria-labelledby="dlg-camera-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
-              <button type="button" class="set-close" aria-label="Close set 2"></button>
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-camera-title">Camera</span></span>
+              <button type="button" class="set-close" aria-label="Close the Camera set"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
-              <div class="proto-grid">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
-                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+              <div class="proto-grid is-three">
+                <figure class="proto">
+                  <iframe src="week-04-camera-zoom.html?v=1" title="Camera zoom, stepped slider: five lenses on a line, the chosen one carrying its number" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Zoom, stepped</b>
+                    <span>Five lenses, 0.5× to 5×, on one line like a phone camera’s lens buttons. The chosen lens is the knob and carries its number; hover shows the crop another lens would take, drag zooms smoothly between lenses and settles on the nearest.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-zoom.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
-                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                <figure class="proto">
+                  <iframe src="week-04-camera-gallery.html?v=1" title="Camera gallery, stepped slider: a scrubber on the right edge that jumps a month at a time" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Gallery, stepped</b>
+                    <span>A year of photos, newest on top. The scrubber on the right edge jumps a month at a time; the month heads the grid, and a bubble names it and its count while you scrub.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-gallery.html?v=1">View larger</button>
+                  </figcaption>
+                </figure>
+                <figure class="proto">
+                  <iframe src="week-04-camera-exposure.html?v=1" title="Camera exposure, continuous slider: a ruler from minus two to plus two sliding under a fixed needle" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Exposure, continuous</b>
+                    <span>A ruler from −2 to +2 EV slides under a fixed amber needle, the way a dial turns under its mark. The value rides on the needle and the view brightens or darkens live.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-exposure.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
               <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">Zoom</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/camera-zoom-1.png" alt="Camera zoom slider, step 1" loading="lazy" />
+                    <figcaption>First pass: lens stops on a line, the knob carries the lens, a dashed crop previews a tighter one on hover.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Gallery</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/camera-gallery-1.png" alt="Camera gallery slider, step 1" loading="lazy" />
+                    <figcaption>First pass: a month scrubber on the grid’s right edge, the bubble naming the month while touched.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Exposure</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/camera-exposure-1.png" alt="Camera exposure slider, step 1" loading="lazy" />
+                    <figcaption>First pass: a moving ruler under a fixed needle, the view brightening with the value.</figcaption>
+                  </figure>
+              </div>
             </div>
           </dialog>
         </div>
-        <div class="set-box" id="set-3">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-3">
-            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+        <div class="set-box" id="set-sleep">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-sleep">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/sleep-noise-1.png" alt="" loading="lazy" /><img src="images/process/sleep-lamp-1.png" alt="" loading="lazy" /><img src="images/process/sleep-timer-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Sleep</span><span class="set-line">A bedroom with the lights out: deep navy, moonlight type, one warm lamp glow. White noise, night lamp and a sleep timer.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
-          <dialog class="set-dialog" id="dlg-3" aria-labelledby="dlg-3-title">
+          <dialog class="set-dialog" id="dlg-sleep" aria-labelledby="dlg-sleep-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-3-title">Tone to pick</span></span>
-              <button type="button" class="set-close" aria-label="Close set 3"></button>
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-sleep-title">Sleep</span></span>
+              <button type="button" class="set-close" aria-label="Close the Sleep set"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
-              <div class="proto-grid">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
-                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+              <div class="proto-grid is-three">
+                <figure class="proto">
+                  <iframe src="week-04-sleep-noise.html?v=1" title="Sleep white noise, stepped slider: five sounds in a pill, the sound bar taking the chosen sound’s shape" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>White noise, stepped</b>
+                    <span>Five sounds in a pill: rain, ocean, fan, forest, brown noise. The sound bar above takes the chosen sound’s shape; hover outlines another sound’s shape over it, drag morphs from one to the next.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-sleep-noise.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
-                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                <figure class="proto">
+                  <iframe src="week-04-sleep-lamp.html?v=1" title="Sleep night lamp, continuous slider: the phone screen as the lamp, light filling it from the bottom" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Night lamp, continuous</b>
+                    <span>The phone on the bedside table is the lamp and its screen is the slider: slide up and the light fills it, warmer when low, paler when bright, spilling into the room. The level reads in the middle of the screen.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-sleep-lamp.html?v=1">View larger</button>
+                  </figcaption>
+                </figure>
+                <figure class="proto">
+                  <iframe src="week-04-sleep-timer.html?v=1" title="Sleep sleep timer, continuous slider: a round dial to 90 minutes with a moon for a knob" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Sleep timer, continuous</b>
+                    <span>When the sound stops, up to 90 minutes, to the minute. Drag the moon round the ring; the minutes and the clock time it stops at read in the middle. Hover previews another time on the ring.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-sleep-timer.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
               <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">White noise</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/sleep-noise-1.png" alt="Sleep white noise slider, step 1" loading="lazy" />
+                    <figcaption>First pass: an icon pill for the sound and a live sound bar shaped by it.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Night lamp</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/sleep-lamp-1.png" alt="Sleep night lamp slider, step 1" loading="lazy" />
+                    <figcaption>First pass: the screen as the slider, the reading in navy where the light covers it.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Sleep timer</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/sleep-timer-1.png" alt="Sleep sleep timer slider, step 1" loading="lazy" />
+                    <figcaption>First pass: a 90-minute ring that holds at its ends instead of wrapping.</figcaption>
+                  </figure>
+              </div>
             </div>
           </dialog>
         </div>

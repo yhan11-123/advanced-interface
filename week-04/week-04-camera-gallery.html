@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Camera gallery slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-camera.css?v=1" />
+  <style>
+  /* Gallery slider, stepped. A year of photos, newest on top. The scrubber on the right edge jumps a month
+     at a time; the month you land on heads the grid, and a bubble names it while you scrub. */
+  :root {
+    --gal-w: 280px; --gal-h: 250px; --gal-r: 12px; --gal-pad: 10px;
+    --cols: 4; --cell-gap: 3px; --cell-r: 3px;
+    --rail-hit: 24px; --rail-w: 2px; --rail-inset: 14px;
+    --tick: 4px;
+    --handle-w: 6px; --handle-h: 22px; --handle-w-held: 10px;
+    --head-h: 28px;
+    --scroll: .32s;
+  }
+  .gal { position: relative; width: var(--gal-w); height: var(--gal-h); border-radius: var(--gal-r); background: var(--panel); overflow: hidden; }
+  .sheet { position: absolute; left: 0; right: var(--rail-hit); top: 0; padding: 0 0 0 var(--gal-pad); transition: transform var(--scroll) var(--ease-out); }
+  .month h4 { height: var(--head-h); margin: 0; display: flex; align-items: center; gap: 6px; font: 600 var(--title-size)/var(--title-line) var(--sans); background: var(--panel); }
+  .month h4 span { font: 500 var(--label-size)/1 var(--mono); color: var(--mute); }
+  .cells { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: var(--cell-gap); padding-bottom: 8px; }
+  .cells i { aspect-ratio: 1; border-radius: var(--cell-r); }
+  /* fade the bottom edge so the grid reads as going on */
+  .gal::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28px; background: linear-gradient(transparent, var(--panel)); pointer-events: none; }
+
+  .rail { position: absolute; top: var(--rail-inset); bottom: var(--rail-inset); right: 0; width: var(--rail-hit); cursor: pointer; z-index: 2; }
+  .rail .line { position: absolute; top: 0; bottom: 0; left: 50%; width: var(--rail-w); margin-left: calc(var(--rail-w) / -2); background: var(--line); border-radius: 1px; transition: background .12s; }
+  .rail .tk { position: absolute; left: 50%; width: var(--tick); height: var(--tick); margin: calc(var(--tick) / -2) 0 0 calc(var(--tick) / -2); border-radius: 50%; background: #4a4a4f; transition: transform .12s, background .12s; }
+  .rail .tk.is-near { background: var(--ink); transform: scale(1.5); }
+  .handle { position: absolute; left: 50%; width: var(--handle-w); height: var(--handle-h); margin: calc(var(--handle-h) / -2) 0 0 calc(var(--handle-w) / -2); border-radius: 3px; background: var(--ink); transition: top var(--scroll) var(--ease-out), width .12s, margin .12s, background .12s, transform .12s; }
+  .bubble { position: absolute; right: calc(100% + 4px); transform: translate(6px, -50%); padding: 5px 8px; border-radius: 7px; background: var(--ink); color: var(--body); white-space: nowrap; font: 600 var(--value-size)/var(--value-line) var(--sans); opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; }
+  .bubble small { font: 500 var(--label-size)/1 var(--mono); opacity: .6; margin-left: 4px; }
+  .rail.is-hover .line, .rail.is-pressed .line, .rail.is-dragging .line { background: #4a4a4f; }
+  .rail.is-hover .bubble, .rail.is-pressed .bubble, .rail.is-dragging .bubble { opacity: 1; transform: translate(0, -50%); }
+  .rail.is-hover .handle { transform: scaleY(1.1); }
+  .rail.is-pressed .handle, .rail.is-dragging .handle { width: var(--handle-w-held); margin-left: calc(var(--handle-w-held) / -2); background: var(--amber); }
+  .rail.is-dragging .handle { transition: width .12s, margin .12s, background .12s; }
+  .rail.is-pressed .bubble, .rail.is-dragging .bubble { background: var(--amber); }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="gal" aria-label="Gallery">
+      <div class="sheet"></div>
+      <div class="rail" role="slider" tabindex="0" aria-label="Month"><div class="line"></div><div class="handle"></div><div class="bubble"></div></div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Stepped: one stop per month, twelve months, newest on top. The month you are on always heads the grid, so the value is on screen as a label; while the scrubber is touched a bubble beside it names the month and how many photos it holds.</p>
+
+    <h3>Scrubber</h3>
+    <table>
+      <tr><td>Hit area</td><td data-var="--rail-hit" data-after=" wide, the grid's full height less 14px top and bottom"></td></tr>
+      <tr><td>Rail</td><td data-var="--rail-w" data-after=", line colour"></td></tr>
+      <tr><td>Month tick</td><td data-var="--tick" data-after=" dot; 1.5× and white under the pointer"></td></tr>
+      <tr><td>Handle</td><td data-var="--handle-w,--handle-h" data-join=" × " data-after=", 3px corner"></td></tr>
+      <tr><td>Handle, held</td><td data-var="--handle-w-held" data-after=" wide, amber"></td></tr>
+      <tr><td>Bubble</td><td data-var="--value-size,--value-line" data-after=", sans 600, 5px × 8px padding, 7px corner, 4px left of the rail; count in mono 11px"></td></tr>
+      <tr><td>Scroll to a month</td><td data-var="--scroll" data-after=", ease out"></td></tr>
+    </table>
+
+    <h3>Grid</h3>
+    <table>
+      <tr><td>Card</td><td data-var="--gal-w,--gal-h" data-join=" × " data-after=", 12px corner"></td></tr>
+      <tr><td>Columns</td><td data-var="--cols" data-after=" columns, 3px apart, 3px corner"></td></tr>
+      <tr><td>Left padding</td><td data-var="--gal-pad"></td></tr>
+      <tr><td>Month heading</td><td data-var="--title-size,--title-line" data-after=", sans 600, in a 28px row; count in mono 11px"></td></tr>
+      <tr><td>Bottom fade</td><td>28px, to the card colour</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Card</td><td data-var="--panel" data-kind="color"></td></tr>
+      <tr><td>Rail</td><td data-var="--line" data-kind="color"></td></tr>
+      <tr><td>Handle and bubble</td><td data-var="--ink" data-kind="color"></td></tr>
+      <tr><td>Handle and bubble, held</td><td data-var="--amber" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>The rail brightens; the month tick under the pointer grows and the bubble names that month and its count, a preview. The grid stays put</td></tr>
+      <tr><td>Pressed</td><td>The handle widens to 10px and turns amber with the bubble; the grid jumps to the month under the finger</td></tr>
+      <tr><td>Drag</td><td>The handle snaps month to month under the finger, the grid scrolls with it, the bubble rides along</td></tr>
+      <tr><td>Keyboard</td><td>Arrows one month; Page Up and Down three; Home and End the newest and oldest</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+
+  <script>
+  // twelve months, newest first, with a made-up count of photos each
+  const NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS = [17, 12, 20, 31, 27, 16, 23, 18, 11, 6, 9, 14].map((n, i) => { const m = (9 - i + 24) % 12, y = i <= 9 ? 2026 : 2025; return { m, y, n }; });
+  const SEASON = m => [2, 3, 4].includes(m) ? ['#9cc58a', '#f2c6d0', '#5f8f6a', '#e8e3a6', '#c9dfb8']
+    : [5, 6, 7].includes(m) ? ['#3f8fc4', '#f4d35e', '#e98a5a', '#2b6f8a', '#9fd3e6']
+    : [8, 9, 10].includes(m) ? ['#c8743a', '#8e3b2a', '#e2b26b', '#5d4a3a', '#d9a066']
+    : ['#9fb4c8', '#e8eef2', '#4a5d73', '#2c3a4c', '#c4ced8'];
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const sheet = document.querySelector('.sheet');
+  MONTHS.forEach(mo => {
+    const sec = document.createElement('section'); sec.className = 'month';
+    const pal = SEASON(mo.m), cells = Array.from({ length: mo.n }, () => {
+      const a = pal[Math.floor(rnd() * 5)], b = pal[Math.floor(rnd() * 5)], h = 35 + Math.floor(rnd() * 40);
+      const sun = rnd() < .3 ? `radial-gradient(circle at ${20 + rnd() * 60}% ${15 + rnd() * 25}%, #fff6dc 0 7%, transparent 8%), ` : '';
+      return `<i style="background:${sun}linear-gradient(${a} 0 ${h}%, ${b} ${h}%)"></i>`;
+    }).join('');
+    sec.innerHTML = `<h4>${NAMES[mo.m]} ${mo.y}<span>${mo.n}</span></h4><div class="cells">${cells}</div>`;
+    sheet.append(sec);
+  });
+  const secs = [...sheet.children];
+
+  const rail = document.querySelector('.rail'), handle = rail.querySelector('.handle'), bubble = rail.querySelector('.bubble');
+  const ticks = MONTHS.map(() => { const t = document.createElement('div'); t.className = 'tk'; rail.insertBefore(t, handle); return t; });
+  const yOf = i => rail.clientHeight * i / (MONTHS.length - 1);
+  ticks.forEach((t, i) => t.style.top = yOf(i) + 'px');
+
+  let at = 0, near = null;
+  const short = mo => `${NAMES[mo.m].slice(0, 3)} ${mo.y}`;
+  function draw() {
+    handle.style.top = yOf(at) + 'px';
+    sheet.style.transform = `translateY(${-secs[at].offsetTop}px)`;
+    const b = down ? at : near ?? at;
+    bubble.innerHTML = `${short(MONTHS[b])}<small>${MONTHS[b].n}</small>`;
+    bubble.style.top = yOf(b) + 'px';
+    ticks.forEach((t, i) => t.classList.toggle('is-near', i === near && !down && i !== at));
+    rail.setAttribute('aria-valuenow', at); rail.setAttribute('aria-valuetext', `${NAMES[MONTHS[at].m]} ${MONTHS[at].y}, ${MONTHS[at].n} photos`);
+  }
+  const set = i => { at = Math.min(MONTHS.length - 1, Math.max(0, i)); draw(); };
+
+  let hover = false, down = false, drag = false, y0 = 0;
+  const show = () => { rail.classList.toggle('is-hover', hover && !down); rail.classList.toggle('is-pressed', down && !drag); rail.classList.toggle('is-dragging', drag); };
+  const iAt = e => { const r = rail.getBoundingClientRect(); return Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * (MONTHS.length - 1)); };
+  rail.addEventListener('pointerenter', e => { hover = true; near = iAt(e); show(); draw(); });
+  rail.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  rail.addEventListener('pointerdown', e => { rail.setPointerCapture(e.pointerId); y0 = e.clientY; down = true; drag = false; show(); set(iAt(e)); });
+  rail.addEventListener('pointermove', e => {
+    if (!rail.hasPointerCapture(e.pointerId)) { if (hover) { near = iAt(e); draw(); } return; }
+    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
+    set(iAt(e));
+  });
+  ['pointerup', 'pointercancel'].forEach(k => rail.addEventListener(k, e => { down = drag = false; near = hover ? iAt(e) : null; show(); draw(); }));
+  rail.setAttribute('aria-valuemin', 0); rail.setAttribute('aria-valuemax', MONTHS.length - 1);
+  rail.addEventListener('keydown', e => {
+    const m = { ArrowDown: at + 1, ArrowRight: at + 1, ArrowUp: at - 1, ArrowLeft: at - 1, PageDown: at + 3, PageUp: at - 3, Home: 0, End: MONTHS.length - 1 };
+    if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+  });
+  addEventListener('resize', () => { ticks.forEach((t, i) => t.style.top = yOf(i) + 'px'); draw(); });
+  draw();
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>

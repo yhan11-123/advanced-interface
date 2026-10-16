@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Sleep timer slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-sleep.css?v=1" />
+  <style>
+  /* Sleep timer slider, continuous. A round dial for when the sound stops, up to 90 minutes, to the minute.
+     Drag the moon around the ring; the minutes and the clock time it stops at read in the middle. */
+  :root {
+    --dial: 196px; --ring: 8px; --ring-inset: 22px;
+    --knob: 26px; --knob-held: 32px;
+    --tick: 3px; --max: 90;
+    --arc: #ffb867;
+  }
+  .timer { position: relative; width: var(--dial); height: var(--dial); }
+  .timer svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .track { fill: none; stroke: var(--line); stroke-width: var(--ring); }
+  .arc { fill: none; stroke: var(--arc); stroke-width: var(--ring); stroke-linecap: round; transition: stroke-dashoffset var(--slow) var(--ease-out); }
+  .ghost-arc { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transition: opacity .12s; }
+  .hit { position: absolute; inset: 0; border-radius: 50%; cursor: pointer; }
+  .knob { position: absolute; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); border-radius: 50%; background: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.4); display: grid; place-items: center; color: var(--night); transition: width .15s, height .15s, margin .15s, box-shadow .15s; pointer-events: none; }
+  .knob svg { width: 13px; height: 13px; fill: currentColor; }
+  .tk { position: absolute; width: var(--tick); height: var(--tick); margin: calc(var(--tick) / -2) 0 0 calc(var(--tick) / -2); border-radius: 50%; background: var(--mute); pointer-events: none; }
+  .tl { position: absolute; transform: translate(-50%, -50%); font: 500 9px/1 var(--mono); color: var(--mute); pointer-events: none; }
+  .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+  .mid b { font: 600 var(--big-size)/var(--big-line) var(--round); font-variant-numeric: tabular-nums; transition: color .15s, transform .15s; }
+  .mid b small { font-size: 13px; font-weight: 500; color: var(--mute); margin-left: 3px; }
+  .mid span { font: 500 var(--label-size)/var(--label-line) var(--round); color: var(--mute); margin-top: 2px; }
+  .peek { position: absolute; transform: translate(-50%, -50%); padding: 3px 6px; border-radius: 6px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); font: 600 10px/1 var(--mono); color: var(--ink); opacity: 0; transition: opacity .12s; pointer-events: none; white-space: nowrap; }
+  .timer.is-hover .ghost-arc, .timer.is-hover .peek { opacity: .85; }
+  .timer.is-hover .knob { box-shadow: 0 0 0 6px rgba(232,230,242,.08), 0 2px 8px rgba(0,0,0,.4); }
+  .timer.is-pressed .knob, .timer.is-dragging .knob { width: var(--knob-held); height: var(--knob-held); margin: calc(var(--knob-held) / -2) 0 0 calc(var(--knob-held) / -2); background: var(--glow); box-shadow: 0 0 0 8px rgba(255,184,103,.14), 0 0 20px rgba(255,184,103,.35); }
+  .timer.is-dragging .arc { transition: none; }
+  .timer.is-pressed .mid b, .timer.is-dragging .mid b { color: var(--glow); transform: scale(1.06); }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="timer" role="slider" tabindex="0" aria-label="Stop playing after">
+      <svg class="ring" viewBox="0 0 196 196"><circle class="track" cx="98" cy="98" r="76"/><circle class="arc" cx="98" cy="98" r="76" transform="rotate(-90 98 98)"/><circle class="ghost-arc" cx="98" cy="98" r="76" transform="rotate(-90 98 98)"/></svg>
+      <div class="mid"><b></b><span></span></div>
+      <div class="hit"></div>
+      <div class="knob"><svg viewBox="0 0 16 16"><path d="M10.5 1.5a6.5 6.5 0 1 0 4 11.6A5.5 5.5 0 0 1 10.5 1.5z"/></svg></div>
+      <span class="peek"></span>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 90 minutes, to the minute. One trip round the ring is 90 minutes, starting at the top; it stops at the ends rather than wrapping. The minutes and the time the sound stops read in the middle, always on screen.</p>
+
+    <h3>Dial</h3>
+    <table>
+      <tr><td>Dial</td><td data-var="--dial" data-after=" square, the whole circle is the hit area"></td></tr>
+      <tr><td>Ring</td><td data-var="--ring" data-after=" stroke, 76px radius, round caps on the arc"></td></tr>
+      <tr><td>Knob</td><td data-var="--knob" data-after=" circle with a 13px moon"></td></tr>
+      <tr><td>Knob, held</td><td data-var="--knob-held" data-after=", warm, 8px halo"></td></tr>
+      <tr><td>Ticks</td><td data-var="--tick" data-after=" dots every 15 minutes, 14px outside the ring; 0, 30 and 60 labelled in mono 500 9px"></td></tr>
+      <tr><td>Arc settle on tap</td><td data-var="--slow" data-after=", ease out; no lag while dragging"></td></tr>
+    </table>
+
+    <h3>Type</h3>
+    <table>
+      <tr><td>Minutes</td><td data-var="--big-size,--big-line" data-after=", rounded 600; “min” in 13px 500"></td></tr>
+      <tr><td>Stop time</td><td data-var="--label-size,--label-line" data-after=", rounded 500: “Stops at 12:25 AM”, or “Plays all night” at 0"></td></tr>
+      <tr><td>Hover chip</td><td>Mono 600 10px, 3px × 6px padding, 6px corner, sitting on the ring under the pointer</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Page</td><td data-var="--night" data-kind="color"></td></tr>
+      <tr><td>Ring</td><td data-var="--line" data-kind="color"></td></tr>
+      <tr><td>Arc, knob held, minutes held</td><td data-var="--arc" data-kind="color"></td></tr>
+      <tr><td>Knob</td><td data-var="--ink" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>A soft halo on the knob; a thin moonlight arc reaches to the pointer and a chip on the ring reads its minutes, a preview. The timer stays</td></tr>
+      <tr><td>Pressed</td><td>The knob grows to 32px and turns warm with a halo; the minutes turn warm and grow 1.06</td></tr>
+      <tr><td>Drag</td><td>Round the ring; the arc, minutes and stop time follow with no lag, and the knob stops at 0 and 90 instead of wrapping</td></tr>
+      <tr><td>Tap</td><td>Sets the time at the tapped point on the ring</td></tr>
+      <tr><td>Keyboard</td><td>Arrows a minute; Page Up and Down 15; Home and End 0 and 90</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+
+  <script>
+  const MAX = 90, NOW = { h: 23, m: 40 };   // it is 11:40 at night
+  const timer = document.querySelector('.timer'), knob = timer.querySelector('.knob'), peek = timer.querySelector('.peek');
+  const arc = timer.querySelector('.arc'), ghost = timer.querySelector('.ghost-arc');
+  const S = 196, C = S / 2, R = 76, L = 2 * Math.PI * R;
+  arc.style.strokeDasharray = `${L} ${L}`;
+  const pt = (min, r) => { const a = min / MAX * 2 * Math.PI - Math.PI / 2; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
+  for (let m = 0; m < MAX; m += 15) {
+    const [x, y] = pt(m, R + 14), d = document.createElement('div'); d.className = 'tk'; d.style.left = x + 'px'; d.style.top = y + 'px'; timer.append(d);
+    if (m % 30 === 0) { const [lx, ly] = pt(m, R + 26), t = document.createElement('span'); t.className = 'tl'; t.textContent = m === 0 ? '0' : m; t.style.left = lx + 'px'; t.style.top = ly + 'px'; timer.append(t); }
+  }
+  const clock = add => { const t = (NOW.h * 60 + NOW.m + add) % 1440, h = Math.floor(t / 60), m = t % 60; return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+
+  let v = 45, hv = null;
+  function draw() {
+    const m = Math.round(v);
+    arc.style.strokeDashoffset = L * (1 - v / MAX);
+    arc.style.opacity = v > 0 ? 1 : 0;
+    const [x, y] = pt(v, R); knob.style.left = x + 'px'; knob.style.top = y + 'px';
+    timer.querySelector('.mid b').innerHTML = m === 0 ? 'Off' : `${m}<small>min</small>`;
+    timer.querySelector('.mid span').textContent = m === 0 ? 'Plays all night' : `Stops at ${clock(m)}`;
+    if (hv !== null) {
+      const a = Math.min(v, hv), len = Math.abs(hv - v);   // a thin arc between the knob and the pointer
+      ghost.style.strokeDasharray = `0 ${L * a / MAX} ${L * len / MAX} ${L}`;
+      const [px, py] = pt(hv, R); peek.style.left = px + 'px'; peek.style.top = py + 'px'; peek.textContent = Math.round(hv) + ' min';
+      peek.style.visibility = Math.abs(hv - v) < 4 ? 'hidden' : '';   // nothing to preview on the knob itself
+    }
+    timer.setAttribute('aria-valuenow', m); timer.setAttribute('aria-valuetext', m === 0 ? 'Off' : `${m} minutes, stops at ${clock(m)}`);
+  }
+  const set = n => { v = Math.min(MAX, Math.max(0, n)); draw(); };
+  const angMin = e => { const r = timer.getBoundingClientRect(); let a = Math.atan2(e.clientY - r.top - C, e.clientX - r.left - C) + Math.PI / 2; if (a < 0) a += 2 * Math.PI; return a / (2 * Math.PI) * MAX; };
+
+  let hover = false, down = false, drag = false, p0 = null, last = 0;
+  const show = () => { timer.classList.toggle('is-hover', hover && !down); timer.classList.toggle('is-pressed', down && !drag); timer.classList.toggle('is-dragging', drag); };
+  timer.addEventListener('pointerenter', e => { hover = true; hv = angMin(e); show(); draw(); });
+  timer.addEventListener('pointerleave', () => { hover = false; hv = null; show(); draw(); });
+  timer.addEventListener('pointerdown', e => { timer.setPointerCapture(e.pointerId); p0 = [e.clientX, e.clientY]; down = true; drag = false; last = angMin(e); show(); });
+  timer.addEventListener('pointermove', e => {
+    if (!timer.hasPointerCapture(e.pointerId)) { if (hover) { hv = angMin(e); draw(); } return; }
+    if (!drag && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 3) { drag = true; v = last; show(); }
+    if (!drag) return;
+    // follow the angle, but never jump across the top: past 90 holds at 90, back past 0 holds at 0
+    let a = angMin(e), d = a - last; if (d > MAX / 2) d -= MAX; if (d < -MAX / 2) d += MAX; last = a;
+    set(v + d);
+  });
+  const release = e => { if (!down) return; if (!drag) set(angMin(e)); down = drag = false; hv = hover ? angMin(e) : null; show(); draw(); };
+  timer.addEventListener('pointerup', release);
+  timer.addEventListener('pointercancel', release);
+  timer.setAttribute('aria-valuemin', 0); timer.setAttribute('aria-valuemax', MAX);
+  timer.addEventListener('keydown', e => {
+    const m = { ArrowUp: v + 1, ArrowRight: v + 1, ArrowDown: v - 1, ArrowLeft: v - 1, PageUp: v + 15, PageDown: v - 15, Home: 0, End: MAX };
+    if (e.key in m) { e.preventDefault(); set(Math.round(m[e.key])); }
+  });
+  draw();
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>

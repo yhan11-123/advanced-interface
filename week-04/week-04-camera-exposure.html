@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Camera exposure slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-camera.css?v=1" />
+  <style>
+  /* Exposure slider, continuous. A ruler from -2 to +2 slides under a fixed amber needle, the way a camera
+     dial turns under its index mark. The value rides on the needle and the view brightens or darkens live. */
+  :root {
+    --ruler-w: 280px; --hit-h: 52px;
+    --step: 12px;                     /* between tenths */
+    --tick-w: 1px; --tick-h: 8px; --tick-h-major: 16px;
+    --needle-w: 2px; --needle-h: 22px;
+    --fade: 48px;
+    --tick: #5a5a5f;
+  }
+  .cam { display: grid; gap: 8px; justify-items: center; }
+  .frame .scene { transition: filter .05s linear; }
+  .ruler { position: relative; width: var(--ruler-w); height: var(--hit-h); overflow: hidden; cursor: ew-resize;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); mask: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); }
+  .tape { position: absolute; left: 50%; bottom: 8px; height: var(--tick-h-major); transition: transform .3s var(--ease-out); }
+  .ruler.is-live .tape { transition: none; }
+  .tape i { position: absolute; bottom: 0; width: var(--tick-w); height: var(--tick-h); margin-left: calc(var(--tick-w) / -2); background: var(--tick); transition: background .12s; }
+  .tape i.major { height: var(--tick-h-major); background: var(--mute); }
+  .tape i.zero { background: var(--ink); }
+  .tape b { position: absolute; bottom: calc(var(--tick-h-major) + 4px); transform: translateX(-50%); font: 500 9px/1 var(--mono); color: var(--mute); }
+  .tape i.ghost { background: var(--ink); height: var(--tick-h-major); opacity: 0; }
+  .ruler.is-hover .tape i.ghost { opacity: .9; }
+  .needle { position: absolute; left: 50%; bottom: 4px; width: var(--needle-w); height: var(--needle-h); margin-left: calc(var(--needle-w) / -2); background: var(--amber); border-radius: 1px; transform-origin: bottom; transition: transform .12s, width .12s; pointer-events: none; }
+  .value { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font: 600 var(--value-size)/var(--value-line) var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; transition: color .12s, transform .12s; pointer-events: none; }
+  .value small { font-size: 9px; color: var(--mute); margin-left: 2px; }
+  .ruler.is-hover .tape i:not(.ghost) { background: var(--mute); }
+  .ruler.is-hover .tape i.major { background: var(--ink); }
+  .ruler.is-pressed .needle, .ruler.is-dragging .needle { transform: scaleY(1.25); width: 3px; }
+  .ruler.is-pressed .value, .ruler.is-dragging .value { color: var(--amber); transform: translateX(-50%) scale(1.1); }
+  .hud svg { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="cam" aria-label="Camera exposure">
+      <div class="frame"><svg class="scene"></svg><div class="grid"></div><span class="hud"></span></div>
+      <div class="ruler" role="slider" tabindex="0" aria-label="Exposure"><div class="tape"></div><div class="needle"></div><span class="value"></span></div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Continuous, −2.0 to +2.0 EV. The ruler moves and the needle stays: drag left to brighten, right to darken, the way a dial turns under its mark. The value rides on the needle to a tenth, and the view shows it too, brightening or darkening as you go.</p>
+
+    <h3>Ruler</h3>
+    <table>
+      <tr><td>Ruler</td><td data-var="--ruler-w,--hit-h" data-join=" × " data-after=", the hit area"></td></tr>
+      <tr><td>Tenths apart</td><td data-var="--step" data-after="; 41 ticks, 480px of tape"></td></tr>
+      <tr><td>Tick</td><td data-var="--tick-w,--tick-h" data-join=" × "></td></tr>
+      <tr><td>Whole stop tick</td><td data-var="--tick-h-major" data-after=" tall, labelled in mono 500 9px; zero in white"></td></tr>
+      <tr><td>Needle</td><td data-var="--needle-w,--needle-h" data-join=" × " data-after="; 3px and 1.25× tall while held"></td></tr>
+      <tr><td>Edge fade</td><td data-var="--fade" data-after=" each side"></td></tr>
+      <tr><td>Value</td><td data-var="--value-size,--value-line" data-after=", mono 600, on top of the needle; “EV” in 9px"></td></tr>
+      <tr><td>Frame to ruler</td><td>8px</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Ticks</td><td data-var="--tick" data-kind="color"></td></tr>
+      <tr><td>Whole stops</td><td data-var="--mute" data-kind="color"></td></tr>
+      <tr><td>Zero, value</td><td data-var="--ink" data-kind="color"></td></tr>
+      <tr><td>Needle, value while held</td><td data-var="--amber" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>The tape brightens a step and a white tick marks the tenth under the pointer, a place a tap would go</td></tr>
+      <tr><td>Pressed</td><td>The needle grows 1.25× and 3px; the value turns amber and grows 1.1</td></tr>
+      <tr><td>Drag</td><td>The tape follows the finger with no lag; value and view change live</td></tr>
+      <tr><td>Tap</td><td>A tap on the tape brings that tenth to the needle; a double tap goes back to 0</td></tr>
+      <tr><td>Keyboard</td><td>Arrows a tenth; Page Up and Down a whole stop; Home and End −2 and +2</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+
+  <script src="week-04-camera.js?v=1"></script>
+  <script>
+  const ruler = document.querySelector('.ruler'), tape = ruler.querySelector('.tape'), val = ruler.querySelector('.value');
+  const scene = document.querySelector('.scene'), hud = document.querySelector('.hud');
+  const STEP = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--step'));
+  for (let t = -20; t <= 20; t++) {
+    const i = document.createElement('i'); i.style.left = t * STEP + 'px';
+    if (t % 10 === 0) { i.className = t === 0 ? 'major zero' : 'major'; const b = document.createElement('b'); b.style.left = t * STEP + 'px'; b.textContent = (t > 0 ? '+' : '') + t / 10; tape.append(b); }
+    tape.append(i);
+  }
+  const ghost = document.createElement('i'); ghost.className = 'ghost'; tape.append(ghost);
+  const SUN = '<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="2.2"/><path d="M6 .8v1.4M6 9.8v1.4M.8 6h1.4M9.8 6h1.4M2.3 2.3l1 1M8.7 8.7l1 1M2.3 9.7l1-1M8.7 3.3l1-1"/></svg>';
+
+  let ev = 0, hoverEv = null;
+  const fmt = v => (v > 0.04 ? '+' : v < -0.04 ? '−' : '±') + Math.abs(v).toFixed(1);
+  function draw() {
+    tape.style.transform = `translateX(${-ev * 10 * STEP}px)`;
+    val.innerHTML = `${fmt(ev)}<small>EV</small>`;
+    hud.innerHTML = SUN + fmt(ev);
+    scene.style.filter = `brightness(${Math.pow(2, ev * .6)}) saturate(${1 - Math.abs(ev) * .12})`;
+    if (hoverEv !== null) ghost.style.left = hoverEv * 10 * STEP + 'px';
+    ruler.setAttribute('aria-valuenow', ev.toFixed(2)); ruler.setAttribute('aria-valuetext', `${fmt(ev)} EV`.replace('−', 'minus ').replace('+', 'plus '));
+  }
+  const clamp = v => Math.min(2, Math.max(-2, v));
+  const set = v => { ev = clamp(v); draw(); };
+  const evUnder = e => { const r = ruler.getBoundingClientRect(); return clamp(Math.round((ev + (e.clientX - r.left - r.width / 2) / STEP / 10) * 10) / 10); };
+
+  let hover = false, down = false, drag = false, x0 = 0, ev0 = 0;
+  const show = () => { ruler.classList.toggle('is-hover', hover && !down); ruler.classList.toggle('is-pressed', down && !drag); ruler.classList.toggle('is-dragging', drag); ruler.classList.toggle('is-live', drag); };
+  ruler.addEventListener('pointerenter', e => { hover = true; hoverEv = evUnder(e); show(); draw(); });
+  ruler.addEventListener('pointerleave', () => { hover = false; hoverEv = null; show(); draw(); });
+  ruler.addEventListener('pointerdown', e => { ruler.setPointerCapture(e.pointerId); x0 = e.clientX; ev0 = ev; down = true; drag = false; show(); });
+  ruler.addEventListener('pointermove', e => {
+    if (!ruler.hasPointerCapture(e.pointerId)) { if (hover) { hoverEv = evUnder(e); draw(); } return; }
+    if (!drag && Math.abs(e.clientX - x0) > 3) { drag = true; show(); }
+    // the tape moves with the finger, so the value moves against it
+    if (drag) set(ev0 - (e.clientX - x0) / STEP / 10);
+  });
+  const release = e => { if (!down) return; if (!drag) set(evUnder(e)); down = drag = false; hoverEv = hover ? evUnder(e) : null; show(); draw(); };
+  ruler.addEventListener('pointerup', release);
+  ruler.addEventListener('pointercancel', release);
+  ruler.addEventListener('dblclick', () => set(0));
+  ruler.setAttribute('aria-valuemin', -2); ruler.setAttribute('aria-valuemax', 2);
+  ruler.addEventListener('keydown', e => {
+    const m = { ArrowRight: ev + .1, ArrowUp: ev + .1, ArrowLeft: ev - .1, ArrowDown: ev - .1, PageUp: ev + 1, PageDown: ev - 1, Home: -2, End: 2 };
+    if (e.key in m) { e.preventDefault(); set(Math.round(m[e.key] * 10) / 10); }
+  });
+  set(0.3);
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>
