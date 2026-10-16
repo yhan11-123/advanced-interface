@@ -18,7 +18,7 @@
     --face-gap: 74px;         /* extra room either side of the one facing you */
     --tilt: 64deg;            /* how far a standing sleeve turns away */
     --disc-out: 42%;          /* how far the record slides out of the chosen sleeve */
-    --shelf-w: 160px;         /* the miniature crate, the slider */
+    --shelf-w: 220px;         /* the miniature crate, the slider */
     --spine-w: 7px; --spine-h: 22px; --spine-gap: 4px; --spine-r: 1px;
     --spine-peek: 15px;       /* a spine under the pointer half turns */
     --spine-face: 28px;       /* the chosen one, square, face-on */
@@ -46,19 +46,19 @@
 
   /* the slider: a shelf of spines */
   .shelf { position: relative; width: var(--shelf-w); height: var(--hit-h); display: flex; align-items: center; justify-content: center; gap: var(--spine-gap); cursor: pointer; }
-  .spine { position: relative; flex: none; width: var(--spine-w); height: var(--spine-h); border-radius: var(--spine-r); filter: brightness(.55) saturate(.8); transition: width var(--settle) var(--ease-out), height var(--settle) var(--ease-out), filter .2s, transform .15s; }
+  .spine { position: relative; flex: none; width: var(--spine-w); height: var(--spine-h); border-radius: var(--spine-r); filter: grayscale(1) brightness(.55); transition: width var(--settle) var(--ease-out), height var(--settle) var(--ease-out), filter .2s, transform .15s; }
   .jacket { position: absolute; inset: 0; border-radius: inherit; background-size: cover; box-shadow: inset 1px 0 0 rgba(255,255,255,.18), inset -1px 0 0 rgba(0,0,0,.35); }
-  .spine.is-peek { width: var(--spine-peek); filter: brightness(.85); }
-  .spine.is-face { width: var(--spine-face); height: var(--spine-face); filter: none; }
-  .mini-disc { position: absolute; top: 50%; left: 50%; width: var(--mini-disc); height: var(--mini-disc); margin: calc(var(--mini-disc) / -2) 0 0 calc(var(--mini-disc) / -2); border-radius: 50%; background: radial-gradient(circle, var(--walnut) 0 8%, var(--lamp) 9% 32%, #151515 33%); opacity: 0; transition: transform var(--settle) var(--ease-out), opacity .2s; pointer-events: none; }
+  .spine.is-peek { width: var(--spine-peek); filter: grayscale(1) brightness(.85); }
+  .spine.is-face { width: var(--spine-face); height: var(--spine-face); filter: grayscale(1); }
+  .mini-disc { position: absolute; top: 50%; left: 50%; width: var(--mini-disc); height: var(--mini-disc); margin: calc(var(--mini-disc) / -2) 0 0 calc(var(--mini-disc) / -2); border-radius: 50%; background: radial-gradient(circle, var(--walnut) 0 8%, #8a8a8a 9% 32%, #151515 33%); opacity: 0; transition: transform var(--settle) var(--ease-out), opacity .2s; pointer-events: none; }
   .spine.is-face .mini-disc { opacity: 1; transform: translateX(11px); }
   .wrap.is-busy .spine.is-face .mini-disc { transform: none; }
-  .spine.is-chosen::before { content: ""; position: absolute; left: 50%; bottom: -7px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--lamp); }   /* the kept album, while another is previewed */
+  .spine.is-chosen::before { content: ""; position: absolute; left: 50%; bottom: -7px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--cream); }   /* the kept album, while another is previewed */
   .shelf.is-hover .spine.is-face { transform: translateY(-2px); }
   .shelf.is-pressed .spine.is-face { transform: scale(.9); }
-  .shelf.is-dragging .spine.is-face { outline: 2px solid var(--lamp); outline-offset: 2px; }
-  .count { position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); white-space: nowrap; }
-  .shelf.is-hover .count { color: var(--cream); }
+  .shelf.is-dragging .spine.is-face { outline: 1.5px solid var(--cream); outline-offset: 2px; }
+  .where { position: absolute; top: calc(100% + 2px); transform: translate(-50%, -4px); padding: 3px 7px; border-radius: 5px; background: var(--cream); color: var(--walnut); font: 600 var(--time-size)/var(--time-line) var(--mono); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s, left .2s var(--ease-out); }
+  .shelf.is-hover .where, .shelf.is-pressed .where, .shelf.is-dragging .where { opacity: 1; transform: translate(-50%, 0); }
   </style>
 </head>
 <body>
@@ -67,14 +67,14 @@
       <div class="crate" aria-hidden="true"></div>
       <div class="info"><p class="title"></p><p class="meta"></p></div>
       <div class="shelf" role="slider" tabindex="0" aria-label="Album">
-        <span class="time count"></span>
+        <span class="where" aria-hidden="true"></span>
       </div>
     </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: one stop per album. The slider is the crate in miniature, a shelf of spines in each album's colours; the chosen one is turned face-on with its record peeking out. The album's name is the label, so the value is always on screen.</p>
+    <p>Read from the CSS this page runs on. Stepped: one stop per album, sixteen albums. The slider is the crate in miniature, a shelf of greyscale spines; the chosen one is turned face-on with its record peeking out. The album's name is the label, so the value is always on screen; where it sits in the crate shows only when the shelf is touched.</p>
 
     <h3>Sleeves</h3>
     <table>
@@ -95,7 +95,9 @@
       <tr><td>Spines apart</td><td data-var="--spine-gap"></td></tr>
       <tr><td>Chosen spine, face-on</td><td data-var="--spine-face,--spine-face" data-join=" × " data-after=", full colour"></td></tr>
       <tr><td>Its record</td><td data-var="--mini-disc" data-after=", slides 11px out"></td></tr>
-      <tr><td>Kept album, while previewing another</td><td>A 4px lamp dot 7px under its spine</td></tr>
+      <tr><td>Kept album, while previewing another</td><td>A 4px cream dot 7px under its spine</td></tr>
+      <tr><td>Spine colour</td><td>Greyscale: the colour lives in the big sleeves, the shelf only says where</td></tr>
+      <tr><td>Position chip</td><td>“7 of 16” under the spine, only while the shelf is hovered or held; mono 11px / 14px on cream, 5px corner</td></tr>
       <tr><td>Hit area height</td><td data-var="--hit-h" data-after="; the whole crate can be dragged too"></td></tr>
     </table>
 
@@ -103,8 +105,7 @@
     <table>
       <tr><td>Album title</td><td data-var="--title-size,--title-line,--title-weight" data-after=", serif"></td></tr>
       <tr><td>Artist and year</td><td data-var="--meta-size,--meta-line" data-after=", sans"></td></tr>
-      <tr><td>Count</td><td data-var="--time-size,--time-line" data-after=", mono, 14px right of the shelf"></td></tr>
-      <tr><td>Crate to title, title to shelf</td><td>12px</td></tr>
+            <tr><td>Crate to title, title to shelf</td><td>12px</td></tr>
     </table>
 
     <h3>Colour</h3>
@@ -112,14 +113,14 @@
       <tr><td>Walnut, the page</td><td data-var="--walnut" data-kind="color"></td></tr>
       <tr><td>Cream, ink</td><td data-var="--cream" data-kind="color"></td></tr>
       <tr><td>Dust, quiet text</td><td data-var="--dust" data-kind="color"></td></tr>
-      <tr><td>Lamp, record labels and the dragging outline</td><td data-var="--lamp" data-kind="color"></td></tr>
+      <tr><td>Lamp, the record labels in the crate</td><td data-var="--lamp" data-kind="color"></td></tr>
     </table>
 
     <h3>States and motion</h3>
     <table>
-      <tr><td>Hover</td><td>Run along the shelf: the spine under the pointer turns face-on and the big crate leafs to that album, a preview; the details and count follow, and the kept album holds a lamp dot. Leave without clicking and everything goes back to the kept one</td></tr>
+      <tr><td>Hover</td><td>Run along the shelf: the spine under the pointer turns face-on and the big crate leafs to that album, a preview; the details follow, a chip under the spine says “7 of 16”, and the kept album holds a cream dot. Leave without clicking and everything goes back to the kept one</td></tr>
       <tr><td>Pressed</td><td>The spine turns face-on and dips to 0.9; the record slides home</td></tr>
-      <tr><td>Drag</td><td>Scrub along the shelf, or drag the crate itself: sleeves follow with no lag, the chosen spine gets a 2px lamp outline, details fade to 45%</td></tr>
+      <tr><td>Drag</td><td>Scrub along the shelf, or drag the crate itself: sleeves follow with no lag, the chosen spine gets a 1.5px cream outline and the position chip, details fade to 45%</td></tr>
       <tr><td>Let go</td><td>Settles on the nearest album in <span data-var="--settle"></span>, <span data-var="--ease-out"></span>; both records slide back out</td></tr>
       <tr><td>Keyboard</td><td>Arrows one album, Home and End the first and last</td></tr>
     </table>
@@ -138,11 +139,19 @@
     { t: 'Slow Bloom',     a: 'Ines Okafor',     y: 1985, n: 12, bg: 'conic-gradient(from 45deg,#e8b4b8,#f1e7d3,#9cc3a8,#e8b4b8)' },
     { t: 'Static Garden',  a: 'Pale Signal',     y: 1980, n: 9,  bg: 'repeating-linear-gradient(90deg,#1f3b2c 0 6px,#2f5a43 6px 12px)' },
     { t: 'Sunday Wire',    a: 'Dee Marlowe',     y: 1972, n: 10, bg: 'linear-gradient(#f1e7d3 0 50%,#17130f 50%)' },
+    { t: 'Harbour Lights', a: 'Nils Varga',      y: 1979, n: 9,  bg: 'radial-gradient(circle at 30% 70%,#f2c14e 0 12%,transparent 13%),linear-gradient(#1b2a3a,#33506b)' },
+    { t: 'Blue Kitchen',   a: 'Rosa Pell',       y: 1984, n: 11, bg: 'repeating-linear-gradient(45deg,#3f6fb0 0 8px,#f1e7d3 8px 16px)' },
+    { t: 'Tin Roof',       a: 'The Wardens',     y: 1971, n: 8,  bg: 'linear-gradient(#9a9a92 0 30%,#5f5f58 30% 60%,#2e2e2a 60%)' },
+    { t: 'Fever Glass',    a: 'Ada Quill',       y: 1986, n: 10, bg: 'radial-gradient(circle,#ffe2c4 0 18%,#e8603b 19% 46%,#3a1410 47%)' },
+    { t: 'Long Weekend',   a: 'Cass & Moreno',   y: 1977, n: 12, bg: 'linear-gradient(90deg,#e9d9b8 0 33%,#c97a4a 33% 66%,#6b3a2a 66%)' },
+    { t: 'Quiet Engine',   a: 'Tomas Reid',      y: 1982, n: 9,  bg: 'conic-gradient(from 0deg at 50% 50%,#202020 0 25%,#d8d0bf 0 50%,#202020 0 75%,#d8d0bf 0)' },
+    { t: 'Orchard Radio',  a: 'Wren Ashby',      y: 1975, n: 10, bg: 'radial-gradient(circle at 70% 30%,#c23b3b 0 16%,transparent 17%),#7c9a52' },
+    { t: 'Midnight Ferry', a: 'Lou Haddad',      y: 1987, n: 11, bg: 'linear-gradient(#0f1626 0 62%,#2b3c63 62% 70%,#0f1626 70%)' },
   ];
   const root = getComputedStyle(document.documentElement);
   const px = n => parseFloat(root.getPropertyValue(n));
   const GAP = px('--gap'), FACE = px('--face-gap'), TILT = px('--tilt');
-  const wrap = document.querySelector('.wrap'), crate = document.querySelector('.crate'), shelf = document.querySelector('.shelf'), count = shelf.querySelector('.count');
+  const wrap = document.querySelector('.wrap'), crate = document.querySelector('.crate'), shelf = document.querySelector('.shelf'), where = shelf.querySelector('.where');
   const sleeves = ALBUMS.map(al => {
     const s = document.createElement('div'); s.className = 'sleeve';
     s.innerHTML = `<div class="disc"></div><div class="cover" style="background:${al.bg}"></div>`;
@@ -151,7 +160,7 @@
   const spines = ALBUMS.map(al => {
     const s = document.createElement('div'); s.className = 'spine';
     s.innerHTML = `<span class="mini-disc"></span><span class="jacket" style="background:${al.bg}"></span>`;   // the record sits behind its jacket
-    shelf.insertBefore(s, count); return s;
+    shelf.insertBefore(s, where); return s;
   });
   const last = ALBUMS.length - 1;
   let chosen = 2;     // the value
@@ -180,7 +189,10 @@
     const al = ALBUMS[c];
     document.querySelector('.info .title').textContent = al.t;
     document.querySelector('.info .meta').innerHTML = `<b>${al.a}</b> · ${al.y} · ${al.n} tracks`;
-    count.textContent = `${String(c + 1).padStart(2, '0')} / ${String(ALBUMS.length).padStart(2, '0')}`;
+    // where this album sits in the whole crate, shown only while the shelf is hovered or held
+    where.textContent = `${c + 1} of ${ALBUMS.length}`;
+    const sp = spines[c], sr = shelf.getBoundingClientRect(), r = sp.getBoundingClientRect();
+    where.style.left = (r.left - sr.left + r.width / 2) + 'px';
     shelf.setAttribute('aria-valuenow', chosen + 1);
     shelf.setAttribute('aria-valuetext', `${ALBUMS[chosen].t} by ${ALBUMS[chosen].a}, album ${chosen + 1} of ${ALBUMS.length}`);
   }
