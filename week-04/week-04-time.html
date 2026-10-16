@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Time</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  :root { --bg: #e9e9e9; --fg: #111; --muted: #8e8e8e; --blue: #1f2fd6; color-scheme: light; }
+  .state b { color: var(--fg); }
+  .back-pill { color: #fff; background: rgba(0,0,0,.6); }
+  .card { background: #fff; border-radius: 28px; padding: 6px 34px; display: flex; align-items: center; gap: 10px; }
+  .drum { position: relative; width: 64px; height: 170px; overflow: hidden; cursor: ns-resize; -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); border-radius: 14px; transition: background .15s; }
+  .drum .n { position: absolute; left: 0; right: 0; top: 50%; height: 34px; margin-top: -17px; text-align: center; font: 400 34px/34px var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--fg); will-change: transform, opacity; }
+  .drum.snap .n { transition: transform .22s cubic-bezier(.2, .9, .3, 1.15), opacity .22s; }
+  .colon { font: 400 30px/1 var(--font); color: var(--fg); margin-top: -4px; }
+  .drum.is-hover { background: #f4f4f4; }
+  .drum.is-pressed { background: #ececf8; }
+  .drum.is-dragging { background: #ececf8; }
+  .drum.is-dragging .n.cur, .drum.is-pressed .n.cur { color: var(--blue); }
+
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="drum" id="h" role="slider" tabindex="0" aria-label="Hours" aria-orientation="vertical"></div>
+    <div class="colon">:</div>
+    <div class="drum" id="m" role="slider" tabindex="0" aria-label="Minutes" aria-orientation="vertical"></div>
+  </div>
+
+  <p class="state">state <b>rest</b></p>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  // Two vertical drums. Drag up or down; numbers glide with the finger, then settle on the nearest one.
+  // The middle row is the value; two neighbours above and below fade and shrink with distance.
+  const ROW = 34;
+  function drum(el, { min, max, value, unit }) {
+    let p = value; const st = track(el), items = [];
+    for (let i = 0; i < 7; i++) { const n = document.createElement('div'); n.className = 'n'; el.append(n); items.push(n); }
+    const draw = () => {
+      const c = Math.round(p);
+      items.forEach((n, k) => {
+        const val = c + k - 3, d = val - p;
+        n.textContent = val >= min && val <= max ? String(val).padStart(2, '0') : '';
+        n.style.transform = `translateY(${d * ROW}px) scale(${1 - Math.min(Math.abs(d), 3) * .12})`;
+        n.style.opacity = Math.max(0, 1 - Math.abs(d) * .38);
+        n.classList.toggle('cur', val === c);
+      });
+      el.setAttribute('aria-valuenow', c); el.setAttribute('aria-valuetext', `${c} ${unit}`);
+    };
+    const settle = n => { el.classList.add('snap'); p = Math.round(Math.min(max, Math.max(min, n))); draw(); };
+    let y0 = 0, p0 = 0;
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); y0 = e.clientY; p0 = p; el.classList.remove('snap'); st.down(); });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientY - y0) > 2) st.move();
+      p = Math.min(max + .4, Math.max(min - .4, p0 - (e.clientY - y0) / ROW)); draw();
+    });
+    const end = () => { settle(p); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const m = { ArrowUp: p - 1, ArrowDown: p + 1, ArrowLeft: p - 1, ArrowRight: p + 1, PageUp: p - 5, PageDown: p + 5, Home: min, End: max };
+      if (e.key in m) { e.preventDefault(); settle(m[e.key]); }
+    });
+    draw();
+  }
+  drum(document.getElementById('h'), { min: 0, max: 23, value: 17, unit: 'hours' });
+  drum(document.getElementById('m'), { min: 0, max: 59, value: 30, unit: 'minutes' });
+
+  </script>
+</body>
+</html>
