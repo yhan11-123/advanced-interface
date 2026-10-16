@@ -459,7 +459,7 @@
 
       <h2>Deliverables</h2>
 
-      <p>Nine sliders in three sets, each set with at least one stepped and one continuous slider. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+      <p>Nine sliders in three sets, each set with at least one stepped and one continuous slider, and a fourth set that is one slider whole. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
 
       <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
            file names (week-04-TONE-{stepped,continuous}.html, images/process/TONE-KIND-N.png).
@@ -739,6 +739,32 @@
                     <img src="images/process/sleep-timer-2.png" alt="Sleep timer slider, step 2" loading="lazy" />
                     <figcaption>With the lamp already round, the timer takes the whole screen: night rises from the bottom to the minutes.</figcaption>
                   </figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-field">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-field">
+            <span class="set-thumbs" style="grid-template-columns:1fr" aria-hidden="true"><img src="images/process/field-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 4</span><span class="set-name">Field</span><span class="set-line">One slider, whole: six mesh layers in a box. Move freely over a layer like a colour wheel, ride the box's edges between layers, and step back onto a face.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-field" aria-labelledby="dlg-field-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 4</span><span class="set-name" id="dlg-field-title">Field</span></span>
+              <button type="button" class="set-close" aria-label="Close the Field set"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototype</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe src="week-04-field.html?v=1" title="Field slider: six mesh layers in a box; the handle moves freely over a layer and rides the box's edges between layers" loading="lazy" style="height:440px"></iframe>
+                  <figcaption>
+                    <b>Field, faces and lines</b>
+                    <span>Three values in one handle: which layer, and where on it. On a face it moves freely, denting the mesh, weak to strong. Push it into a corner and it slips onto the box's upright edge, a line that steps through the layers; pull it inward to step onto the face of the layer you stopped at.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-field.html?v=1">View larger</button>
+                  </figcaption>
+                </figure>
               </div>
             </div>
           </dialog>

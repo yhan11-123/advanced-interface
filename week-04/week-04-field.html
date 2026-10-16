@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Field slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* Field slider, one piece. A wireframe box with six mesh layers stacked inside it. The handle moves freely over
+     a layer, like a knob on a colour wheel, pressing a dent into the mesh where it is. Push it into a corner and it
+     slips onto the box's edge, a line you can ride up and down through the layers; pull it inward again and it
+     steps onto the face of whichever layer you stopped at. Faces for the fine position, lines for the coarse one. */
+  :root {
+    --bg: #000; --fg: #fff; --edge: rgba(255,255,255,.5); --dim: #6e6e6e; --line: #2e2e2e;
+    --weak: #f1e4c8; --strong: #ff4a3a;
+    --mono: "SF Mono", ui-monospace, Menlo, monospace;
+    --w: 360px; --h: 340px;
+    --layers: 6; --gap: 26px; --grid: 18;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--mono); -webkit-font-smoothing: antialiased; }
+  .stage { min-height: 100vh; display: grid; place-items: center; padding: 12px; user-select: none; -webkit-user-select: none; overflow: hidden; }
+  .field { position: relative; width: min(94vw, calc(var(--w) * 1.25)); aspect-ratio: 360 / 340; touch-action: none; outline: none; }
+  .field:focus-visible { box-shadow: 0 0 0 1px var(--fg); }
+  .field canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .read { position: absolute; left: 0; top: 0; pointer-events: none; font: 500 9px/12px var(--mono); letter-spacing: .1em; color: var(--dim); }
+  .read .pos { display: inline-block; margin: 3px 0 2px; padding: 1px 3px; margin-left: -3px; font: 600 17px/1.1 var(--mono); letter-spacing: 0; color: var(--fg); font-variant-numeric: tabular-nums; transition: background .1s, color .1s; }
+  .read b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .field.is-pressed .read .pos, .field.is-dragging .read .pos { background: var(--fg); color: var(--bg); }
+  .legend { position: absolute; right: 0; top: 0; width: 34%; pointer-events: none; font: 500 7px/1 var(--mono); letter-spacing: .1em; color: var(--dim); }
+  .legend i { display: block; height: 3px; margin: 4px 0 3px; background: linear-gradient(90deg, var(--weak), var(--strong)); }
+  .legend span:last-child { float: right; }
+  .back-pill { position: fixed; z-index: 5; left: 12px; bottom: 12px; font: 11px/1 var(--mono); letter-spacing: .08em; color: var(--fg); background: var(--bg); border: 1px solid var(--fg); padding: 7px 11px; text-decoration: none; }
+
+  .spec { max-width: 620px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--line); font: 12px/1.55 var(--mono); }
+  .spec h2 { font: 600 16px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px; }
+  .spec h3 { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 24px 0 8px; }
+  .spec p { color: #a0a0a0; margin: 0 0 8px; }
+  .spec table { width: 100%; border-collapse: collapse; }
+  .spec td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .spec td:first-child { width: 40%; color: #a0a0a0; padding-right: 12px; }
+  .spec .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="field" role="slider" tabindex="0" aria-label="Position in the field: layer, then a point on it">
+      <canvas></canvas>
+      <div class="read"><span class="where">LAYER <b class="v-l"></b> · <b class="v-m"></b></span><br><span class="pos"></span><br>FORCE <b class="v-f"></b></div>
+      <div class="legend"><i></i><span>WEAK</span><span>STRONG</span></div>
+    </div>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. One slider with three values: which of six layers, and where on it, across and along. The handle moves freely over a layer, pressing a dent into the mesh where it is, the way a knob moves over a colour wheel. Push it into a corner of the layer and it slips onto that edge of the box: a line you can ride up or down through the layers, stepping from one to the next. Pull it inward and it steps onto the face of the layer you stopped at. The layer, the point and the force read in the corner, always on screen.</p>
+
+    <h3>Box and layers</h3>
+    <table>
+      <tr><td>Field</td><td data-var="--w,--h" data-join=" × " data-after=" at its smallest, growing to 450px wide; the whole of it the hit area"></td></tr>
+      <tr><td>Box</td><td>A wireframe box in isometric view, 1px white at 50%, its four upright edges the lines you ride</td></tr>
+      <tr><td>Layers</td><td data-var="--layers" data-after=" meshes stacked 26px apart, each a grid of 18 × 18 cells, sagging deeper the lower they sit"></td></tr>
+      <tr><td>Layer in use</td><td>Drawn at full strength; the others fade to 25%, the neighbours a little stronger</td></tr>
+      <tr><td>Dent</td><td>Where the handle is, the mesh sinks up to 26px in a soft round dent, deepest while held; the layers either side give a little</td></tr>
+      <tr><td>Colour</td><td>Each strand coloured by how far it is pressed down, weak to strong</td></tr>
+    </table>
+
+    <h3>Handle and lines</h3>
+    <table>
+      <tr><td>Handle</td><td>6px white dot with a dark rim, in a 10px ring; it sits on the mesh, in its dent</td></tr>
+      <tr><td>On a face</td><td>Moves freely: across and along the layer, to two decimals</td></tr>
+      <tr><td>Onto a line</td><td>Within 0.18 of a corner, the handle slips onto that upright edge; the edge lights white with a tick at each layer</td></tr>
+      <tr><td>On a line</td><td>Up and down only, through the layers; it settles on the nearest one when let go</td></tr>
+      <tr><td>Back to a face</td><td>Move 16px inward off the line and the handle steps onto the face of that layer</td></tr>
+    </table>
+
+    <h3>Readout</h3>
+    <table>
+      <tr><td>Where</td><td>Mono 500 9px: the layer out of six, and whether the handle is on a face or a line</td></tr>
+      <tr><td>Point</td><td>Mono 600 17px: across, along, from 0 to 1</td></tr>
+      <tr><td>Force</td><td>How hard the mesh is pressed where the handle is, 0 to 100%</td></tr>
+      <tr><td>Legend</td><td>Top right, a 3px bar from weak to strong</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Space</td><td data-var="--bg" data-kind="color"></td></tr>
+      <tr><td>Weak</td><td data-var="--weak" data-kind="color"></td></tr>
+      <tr><td>Strong</td><td data-var="--strong" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>Over the layer in use, a small cross marks the point under the pointer; near an upright edge, that edge lights; over the handle, its ring opens to 12px</td></tr>
+      <tr><td>Pressed</td><td>The dot tightens to 4.5px and the dent deepens; the point inverts, black on white</td></tr>
+      <tr><td>Drag</td><td>The ring opens to 13px and follows; the mesh dents under it as it goes, with no lag</td></tr>
+      <tr><td>Let go</td><td>Stays where it is on a face; on a line, settles on the nearest layer</td></tr>
+      <tr><td>Keyboard and wheel</td><td>Arrows move across and along by 0.05; Page Up and Down, or a scroll, change the layer</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
+
+  <script>
+  const field = document.querySelector('.field'), cv = field.querySelector('canvas'), cx = cv.getContext('2d');
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const W = 360, H = 340, N = +css('--layers'), GAP = parseFloat(css('--gap')), G = +css('--grid');
+  const WEAK = [241, 228, 200], STRONG = [255, 74, 58];
+  // isometric box: u runs to the lower right, v to the lower left, y downward from the top face
+  const O = { x: W / 2, y: 54 }, A = 118, B = 44, TOPY = 26, BOXH = TOPY * 2 + GAP * (N - 1);
+  const P = (u, v, y) => ({ x: O.x + (u - v) * A, y: O.y + (u + v) * B + y });
+  const layerY = p => TOPY + p * GAP;
+  const CORNERS = [[0, 0], [1, 0], [1, 1], [0, 1]];
+
+  // state: layer p (continuous while riding a line), point u v, and mode
+  let p = 2, u = .58, v = .42, mode = 'face', edge = 2;            // what is set
+  let sp = p, su = u, sv = v;                                    // what is shown, chasing the set values
+  let hover = null, down = false, drag = false, near = false, press = 0;
+
+  function resize() { const r = field.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.setTransform(r.width / W * d, 0, 0, r.height / H * d, 0, 0); }
+  const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+
+  // how far a layer is pressed down at u v: its resting waves, its sag, and the dent under the handle
+  function depth(k, uu, vv, t) {
+    const amp = 2 + k * 2.4;
+    const rest = amp * (Math.sin(uu * 5.1 + k * 1.3 + t * .35) * Math.cos(vv * 4.3 - k * .8) * .6 + Math.sin((uu + vv) * 3.2 + k + t * .2) * .4);
+    const sag = k * 3.2 * Math.sin(Math.PI * uu) * Math.sin(Math.PI * vv);
+    const w = Math.max(0, 1 - Math.abs(k - sp) / 1.4);
+    const dent = (14 + 12 * press) * w * Math.exp(-((uu - su) ** 2 + (vv - sv) ** 2) / (2 * .12 * .12));
+    return { y: rest + sag + dent, s: Math.min(1, Math.max(0, (sag + dent + Math.max(0, rest)) / 30)) };
+  }
+
+  function frame(now) {
+    const t = now / 1000;
+    // follow: the shown values chase the set ones, quickly while dragging, softly otherwise
+    const k = drag ? .45 : .2;
+    sp += (p - sp) * k; su += (u - su) * k; sv += (v - sv) * k;
+    press += ((down ? 1 : 0) - press) * .2;
+    cx.clearRect(0, 0, W, H);
+
+    // back edges of the box first, then the layers top to bottom, then the front edges
+    const edgeLine = (a, b, alpha, wdt = 1) => { cx.strokeStyle = `rgba(255,255,255,${alpha})`; cx.lineWidth = wdt; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); };
+    const top = CORNERS.map(([a, b]) => P(a, b, 0)), bot = CORNERS.map(([a, b]) => P(a, b, BOXH));
+    for (let i = 0; i < 4; i++) { edgeLine(top[i], top[(i + 1) % 4], .5); }
+    edgeLine(bot[3], bot[0], .3); edgeLine(bot[0], bot[1], .3); edgeLine(top[0], bot[0], .3);
+
+    for (let L = 0; L < N; L++) {
+      const w = Math.max(0, 1 - Math.abs(L - sp) / 1.4), alpha = .22 + .78 * Math.pow(w, 1.5);
+      const pts = [];
+      for (let i = 0; i <= G; i++) { pts[i] = []; for (let j = 0; j <= G; j++) { const uu = i / G, vv = j / G, d = depth(L, uu, vv, t), q = P(uu, vv, layerY(L) + d.y); pts[i][j] = { x: q.x, y: q.y, s: d.s }; } }
+      cx.lineWidth = .6;
+      for (let i = 0; i <= G; i++) for (let j = 0; j < G; j++) {
+        for (const [a, b] of [[pts[i][j], pts[i][j + 1]], [pts[j][i], pts[j + 1][i]]]) {
+          const c = mix(WEAK, STRONG, (a.s + b.s) / 2);
+          cx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(3)})`;
+          cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
+        }
+      }
+    }
+
+    // the upright edges: the one in use (or hovered) lit, with a tick at every layer
+    for (let c = 0; c < 4; c++) {
+      const lit = (mode === 'edge' && edge === c) || (hover && hover.type === 'edge' && hover.c === c);
+      if (c !== 0) edgeLine(top[c], bot[c], lit ? 1 : .5, lit ? 1.25 : 1);
+      if (lit) for (let L = 0; L < N; L++) { const q = P(CORNERS[c][0], CORNERS[c][1], layerY(L)); edgeLine({ x: q.x - 4, y: q.y }, { x: q.x + 4, y: q.y }, .9); }
+    }
+    edgeLine(bot[1], bot[2], .5); edgeLine(bot[2], bot[3], .5);
+
+    // a cross under the pointer on the face in use
+    if (hover && hover.type === 'face' && !down) {
+      const L = Math.round(sp), d = depth(L, hover.u, hover.v, t), q = P(hover.u, hover.v, layerY(L) + d.y);
+      edgeLine({ x: q.x - 5, y: q.y }, { x: q.x + 5, y: q.y }, .9); edgeLine({ x: q.x, y: q.y - 5 }, { x: q.x, y: q.y + 5 }, .9);
+    }
+
+    // the handle, sitting in its dent (or on its line)
+    const onLine = mode === 'edge', hu = onLine ? CORNERS[edge][0] : su, hv = onLine ? CORNERS[edge][1] : sv;
+    const hd = onLine ? 0 : depth(Math.round(sp), hu, hv, t).y * (1 - Math.abs(sp - Math.round(sp)));
+    const h = P(hu, hv, layerY(sp) + hd);
+    const ring = drag ? 13 : near && !down ? 12 : 10, dot = down && !drag ? 4.5 : 6;
+    cx.strokeStyle = 'rgba(255,255,255,.75)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(h.x, h.y, ring, 0, 7); cx.stroke();
+    cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 + 1.5, 0, 7); cx.fill();
+    cx.fillStyle = '#000'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 - .2, 0, 7); cx.fill();
+    cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 - 1.4, 0, 7); cx.fill();
+
+    // readout
+    const L = Math.round(sp), f = depth(L, hu, hv, t).s;
+    field.querySelector('.v-l').textContent = `${String(L + 1).padStart(2, '0')}/${String(N).padStart(2, '0')}`;
+    field.querySelector('.v-m').textContent = onLine ? 'ON LINE' : 'ON FACE';
+    field.querySelector('.pos').textContent = `${hu.toFixed(2)}, ${hv.toFixed(2)}`;
+    field.querySelector('.v-f').textContent = Math.round(f * 100) + '%';
+    requestAnimationFrame(frame);
+  }
+
+  // pointer to the box: the pointer in box units, the point on a layer under it, the upright edge near it
+  const local = e => { const r = field.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+  const onLayer = (m, L) => { const dx = (m.x - O.x) / A, dy = (m.y - O.y - layerY(L)) / B; return { u: (dy + dx) / 2, v: (dy - dx) / 2 }; };
+  const inside = q => q.u >= -.02 && q.u <= 1.02 && q.v >= -.02 && q.v <= 1.02;
+  const clamp01 = x => Math.min(1, Math.max(0, x));
+  const edgeAt = m => { let best = null; CORNERS.forEach(([a, b], c) => { const t0 = P(a, b, 0), dx = Math.abs(m.x - t0.x); if (dx < 9 && m.y > t0.y + TOPY - 14 && m.y < t0.y + BOXH - TOPY + 14 && (!best || dx < best.dx)) best = { type: 'edge', c, dx }; }); return best; };
+  const handleAt = m => { const onL = mode === 'edge', q = P(onL ? CORNERS[edge][0] : su, onL ? CORNERS[edge][1] : sv, layerY(sp)); return Math.hypot(q.x - m.x, q.y - m.y) < 16; };
+  const look = m => { near = handleAt(m); const e = edgeAt(m); if (e) return e; const q = onLayer(m, Math.round(sp)); return inside(q) ? { type: 'face', u: clamp01(q.u), v: clamp01(q.v) } : null; };
+
+  // moving: on a face the handle follows freely, and a push into a corner puts it on that line;
+  // on a line it only rides up and down, and a move inward puts it back on the face of that layer
+  function moveTo(m) {
+    if (mode === 'face') {
+      const q = onLayer(m, p), cu = clamp01(q.u), cvv = clamp01(q.v);
+      u = cu; v = cvv;
+      if (q.u < -.04 || q.u > 1.04 || q.v < -.04 || q.v > 1.04) {
+        CORNERS.forEach(([a, b], c) => { if (Math.hypot(cu - a, cvv - b) < .18) { mode = 'edge'; edge = c; } });
+      }
+    } else {
+      const t0 = P(CORNERS[edge][0], CORNERS[edge][1], 0);
+      p = Math.min(N - 1, Math.max(0, (m.y - t0.y - TOPY) / GAP));
+      const q = onLayer(m, Math.round(p)), [a, b] = CORNERS[edge];
+      const inward = Math.abs(m.x - t0.x) > 16 && inside(q) && Math.hypot(q.u - a, q.v - b) < .7;
+      if (inward) { p = Math.round(p); mode = 'face'; u = clamp01(q.u); v = clamp01(q.v); }
+    }
+  }
+
+  let x0 = 0, y0 = 0, grabbed = false;
+  const show = () => { field.classList.toggle('is-hover', !!hover && !down); field.classList.toggle('is-pressed', down && !drag); field.classList.toggle('is-dragging', drag); field.style.cursor = down ? 'grabbing' : (near || hover) ? 'grab' : 'default'; };
+  field.addEventListener('pointermove', e => {
+    const m = local(e);
+    if (!field.hasPointerCapture(e.pointerId)) { hover = look(m); show(); return; }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
+    if (drag) moveTo(m);
+  });
+  field.addEventListener('pointerleave', () => { hover = null; near = false; show(); });
+  field.addEventListener('pointerdown', e => {
+    const m = local(e), onHandle = handleAt(m), e2 = edgeAt(m), h = look(m);
+    if (!onHandle && !h) return;
+    field.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; grabbed = true; hover = null;
+    if (!onHandle) {
+      if (e2) { mode = 'edge'; edge = e2.c; moveTo(m); }       // a press on an upright edge: onto that line
+      else { mode = 'face'; u = h.u; v = h.v; }                // a press on the face: the handle goes there
+    }
+    show();
+  });
+  const release = e => { if (!down) return; down = drag = false; if (mode === 'edge') p = Math.round(p); hover = look(local(e)); show(); };
+  field.addEventListener('pointerup', release);
+  field.addEventListener('pointercancel', release);
+  field.addEventListener('wheel', e => { e.preventDefault(); p = Math.min(N - 1, Math.max(0, Math.round(p) + Math.sign(e.deltaY))); }, { passive: false });
+  field.addEventListener('keydown', e => {
+    const step = .05, k = e.key;
+    if (k === 'PageUp') p = Math.max(0, Math.round(p) - 1); else if (k === 'PageDown') p = Math.min(N - 1, Math.round(p) + 1);
+    else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) {
+      if (mode === 'edge') { mode = 'face'; u = CORNERS[edge][0]; v = CORNERS[edge][1]; }
+      if (k === 'ArrowRight') u = clamp01(u + step); if (k === 'ArrowLeft') u = clamp01(u - step);
+      if (k === 'ArrowDown') v = clamp01(v + step); if (k === 'ArrowUp') v = clamp01(v - step);
+    } else return;
+    e.preventDefault();
+    field.setAttribute('aria-valuetext', `layer ${Math.round(p) + 1} of ${N}, across ${u.toFixed(2)}, along ${v.toFixed(2)}`);
+  });
+  addEventListener('resize', resize); resize(); requestAnimationFrame(frame);
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>
