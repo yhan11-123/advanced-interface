@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Rotation</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  .s { position: relative; flex: 1; height: 52px; overflow: hidden; cursor: ew-resize; -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+  .ruler { position: absolute; top: 0; bottom: 0; left: 50%; }
+  .tick { position: absolute; bottom: 8px; width: 1.5px; height: 12px; margin-left: -.75px; background: #6a6a70; border-radius: 1px; }
+  .tick.major { height: 20px; background: #d8d8dc; }
+  .zero { position: absolute; top: 4px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--blue); }
+  .needle { position: absolute; left: 50%; bottom: 6px; width: 2px; height: 26px; margin-left: -1px; background: var(--blue); border-radius: 1px; transition: height .12s, width .12s; }
+  .deg { position: absolute; left: 50%; top: 2px; transform: translateX(-50%); font: 600 12px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--fg); opacity: 0; transition: opacity .12s; }
+  .s.is-hover .needle { height: 30px; }
+  .s.is-pressed .needle, .s.is-dragging .needle { width: 3px; height: 32px; }
+  .s.is-pressed .deg, .s.is-dragging .deg { opacity: 1; }
+  .s.is-pressed .zero, .s.is-dragging .zero { opacity: 0; }
+
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <div class="s" role="slider" tabindex="0" aria-label="Rotation"><div class="ruler"></div><div class="needle"></div><div class="deg"></div></div>
+  </div>
+
+  <p class="state">state <b>rest</b></p>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  // Drag the ruler, not a thumb: it slides under a fixed blue needle. 1 degree per tick, a major tick every 5.
+  const s = document.querySelector('.s'), ruler = s.querySelector('.ruler'), GAP = 7;
+  for (let d = -45; d <= 45; d++) { const t = document.createElement('div'); t.className = 'tick' + (d % 5 === 0 ? ' major' : ''); t.style.left = d * GAP + 'px'; ruler.append(t); }
+  const z = document.createElement('div'); z.className = 'zero'; z.style.left = '0px'; ruler.append(z);
+  slider(s, { min: -45, max: 45, value: -8, step: 1, relative: GAP, format: v => `${v} degrees`, render(v) {
+    ruler.style.transform = `translateX(${-v * GAP}px)`;
+    s.querySelector('.deg').textContent = (v > 0 ? '+' : '') + v + '°';
+  }});
+
+  </script>
+</body>
+</html>

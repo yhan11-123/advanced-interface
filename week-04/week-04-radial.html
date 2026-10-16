@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Radial</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  body { gap: 0; }
+  .pair { display: flex; gap: min(6vw, 28px); align-items: center; }
+  .dial { position: relative; width: min(40vmin, 168px); aspect-ratio: 1; border-radius: 50%; }
+  .dial svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .spoke { stroke: #2c2c2f; stroke-width: 1; }
+  .rim { fill: none; stroke: #2a2a2d; stroke-width: 10; transition: stroke .15s; }
+  .seg { fill: none; stroke-width: 10; stroke-linecap: butt; transition: stroke .12s, stroke-width .15s; }
+  .arc { fill: none; stroke: #ff6ad5; stroke-width: 10; stroke-linecap: butt; transition: stroke-width .15s; }
+  .knob { fill: #fff; transition: r .12s; }
+  .dial.is-hover .rim { stroke: #3a3a3e; }
+  .dial.is-pressed .knob, .dial.is-dragging .knob { r: 9; }
+  .dial.is-dragging .arc, .dial.is-dragging .seg.on { stroke-width: 14; }
+  .read { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+  .num { font-size: clamp(26px, 9vmin, 40px); font-weight: 600; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; transition: transform .15s; }
+  .dial.is-dragging .num { transform: scale(1.12); }
+  .unit { margin-top: 4px; font: 10px/1 var(--mono); color: var(--muted); letter-spacing: .04em; }
+  .cap { margin-top: 10px; text-align: center; font: 10px/1 var(--mono); color: var(--muted); }
+
+  </style>
+</head>
+<body>
+
+  <div class="pair">
+    <div>
+      <div class="dial" id="stepped" role="slider" tabindex="0" aria-label="Timer, stepped">
+        <svg viewBox="-60 -60 120 120" aria-hidden="true"><g class="spokes"></g><g class="segs"></g><circle class="knob" r="6"/></svg>
+        <div class="read"><div class="num">35</div><div class="unit">MIN</div></div>
+      </div>
+      <p class="cap">stepped &middot; 12 stops</p>
+    </div>
+    <div>
+      <div class="dial" id="cont" role="slider" tabindex="0" aria-label="Opacity, continuous">
+        <svg viewBox="-60 -60 120 120" aria-hidden="true"><g class="spokes"></g><circle class="rim" r="50"/><path class="arc"/><circle class="knob" r="6"/></svg>
+        <div class="read"><div class="num">71</div><div class="unit">%</div></div>
+      </div>
+      <p class="cap">continuous</p>
+    </div>
+  </div>
+
+  <p class="state">state <b>rest</b></p>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  const R = 50, NS = 'http://www.w3.org/2000/svg';
+  const pt = a => [Math.sin(a) * R, -Math.cos(a) * R];             // 0 rad = 12 o'clock, clockwise
+  const arcPath = (a0, a1) => { const [x0, y0] = pt(a0), [x1, y1] = pt(a1); return `M${x0} ${y0} A${R} ${R} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
+
+  // Ring slider: angle drives the value; it will not wrap from max to min across 12 o'clock.
+  function ring(el, { min, max, step, value, format, render }) {
+    let v = value; const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(3); };
+    const set = n => { v = snap(n); el.setAttribute('aria-valuenow', v); el.setAttribute('aria-valuetext', format(v)); render(v, (v - min) / (max - min)); };
+    const fromE = e => {
+      const r = el.getBoundingClientRect();
+      let a = Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2)));
+      if (a < 0) a += Math.PI * 2;
+      let t = a / (Math.PI * 2), tPrev = (v - min) / (max - min);
+      if (tPrev > .75 && t < .25) t = 1; else if (tPrev < .25 && t > .75) t = 0;   // no jump across the top
+      return min + t * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); st.down(); set(fromE(e)); });
+    el.addEventListener('pointermove', e => { if (!el.hasPointerCapture(e.pointerId)) return; st.move(); set(fromE(e)); });
+    const end = () => st.up(); el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100;
+      const m = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + (max - min) / 10, PageDown: v - (max - min) / 10, Home: min, End: max };
+      if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+    });
+    set(v);
+  }
+
+  // Spokes, like the reference wheel.
+  document.querySelectorAll('.spokes').forEach(g => {
+    for (let i = 0; i < 12; i++) { const [x, y] = pt(i / 12 * Math.PI * 2); const l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'spoke'); l.setAttribute('x2', x * .86); l.setAttribute('y2', y * .86); g.append(l); }
+  });
+
+  // Stepped: 12 wedges, each one a stop. Lit wedges alternate yellow and pink like the reference.
+  const sEl = document.getElementById('stepped'), segs = sEl.querySelector('.segs');
+  const N = 12, gap = 0.035;
+  const segEls = [...Array(N)].map((_, i) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('class', 'seg'); p.setAttribute('d', arcPath(i / N * Math.PI * 2 + gap, (i + 1) / N * Math.PI * 2 - gap)); segs.append(p); return p; });
+  ring(sEl, { min: 0, max: 60, step: 5, value: 35, format: v => `${v} minutes`, render(v, t) {
+    const on = Math.round(t * N);
+    segEls.forEach((p, i) => { p.classList.toggle('on', i < on); p.style.stroke = i < on ? (i % 3 === 2 ? '#ff6ad5' : '#e8ff3a') : '#2a2a2d'; });
+    const [x, y] = pt(t * Math.PI * 2); const k = sEl.querySelector('.knob'); k.setAttribute('cx', x); k.setAttribute('cy', y);
+    sEl.querySelector('.num').textContent = v;
+  }});
+
+  // Continuous: one pink arc, exact number inside.
+  const cEl = document.getElementById('cont');
+  ring(cEl, { min: 0, max: 100, step: 1, value: 71, format: v => `${v}%`, render(v, t) {
+    const a = Math.max(0.0001, Math.min(t, 0.9999)) * Math.PI * 2;
+    cEl.querySelector('.arc').setAttribute('d', arcPath(0, a));
+    const [x, y] = pt(a); const k = cEl.querySelector('.knob'); k.setAttribute('cx', x); k.setAttribute('cy', y);
+    cEl.querySelector('.num').textContent = v;
+  }});
+
+  </script>
+</body>
+</html>
