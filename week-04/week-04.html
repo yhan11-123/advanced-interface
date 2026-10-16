@@ -424,11 +424,19 @@
           </figcaption>
         </figure>
         <figure class="idea">
-          <iframe src="week-04-multi.html" title="Multi-handle sketch" loading="lazy"></iframe>
+          <iframe src="week-04-marks.html" title="Three marks sketch" loading="lazy"></iframe>
           <figcaption>
-            <b>Multi-handle</b>
-            <span>One track, more than one handle: three marks on one scale, each with its label, or a price range with one label for both ends. Handles never pass each other and labels that would touch merge; grab the track and the nearest handle comes.</span>
-            <button type="button" class="viewer-open" data-src="week-04-multi.html">View larger</button>
+            <b>Three marks</b>
+            <span>Three handles on one scale, each with its own label. They never pass each other, and labels that would touch merge into one; grab the track and the nearest handle comes.</span>
+            <button type="button" class="viewer-open" data-src="week-04-marks.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-04-range.html" title="Range sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Range</b>
+            <span>A low and a high end on one track, one label for both riding the middle of the fill. The ends keep a minimum gap so the range never closes.</span>
+            <button type="button" class="viewer-open" data-src="week-04-range.html">View larger</button>
           </figcaption>
         </figure>
       </div>
@@ -469,11 +477,11 @@
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-music-progress.html?v=3" title="Analog progress slider, continuous: one song, the time above the thumb and the lyrics rolling to the line sung there" loading="lazy"></iframe>
+                  <iframe src="week-04-music-progress.html?v=4" title="Analog progress slider, continuous: one song, the time above the thumb and the lyrics rolling to the line sung there" loading="lazy"></iframe>
                   <figcaption>
                     <b>Progress, continuous</b>
                     <span>One song. Drag and the exact time rides above the thumb while the lyrics roll to the line being sung at that second. Elapsed and remaining always show under the rail.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-music-progress.html?v=3">View larger</button>
+                    <button type="button" class="viewer-open" data-src="week-04-music-progress.html?v=4">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
@@ -505,78 +513,90 @@
             </div>
           </dialog>
         </div>
-        <div class="set-box" id="set-camera">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-camera">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/camera-zoom-2.png" alt="" loading="lazy" /><img src="images/process/camera-gallery-2.png" alt="" loading="lazy" /><img src="images/process/camera-exposure-2.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Camera</span><span class="set-line">An orbital imaging console: black glass, hairline cyan instruments, monospaced telemetry, amber for what you hold. Zoom, gallery and exposure.</span></span>
+        <div class="set-box" id="set-aero">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-aero">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/aero-altitude-1.png" alt="" loading="lazy" /><img src="images/process/aero-thrust-1.png" alt="" loading="lazy" /><img src="images/process/aero-docking-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Flight deck</span><span class="set-line">Looking out of a spacecraft window: deep black, real stars, Earth’s blue limb, hairline cyan instruments, amber for what you hold. Altitude, thrust and docking.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
-          <dialog class="set-dialog" id="dlg-camera" aria-labelledby="dlg-camera-title">
+          <dialog class="set-dialog" id="dlg-aero" aria-labelledby="dlg-aero-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-camera-title">Camera</span></span>
-              <button type="button" class="set-close" aria-label="Close the Camera set"></button>
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-aero-title">Flight deck</span></span>
+              <button type="button" class="set-close" aria-label="Close the Flight deck set"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
               <div class="proto-grid is-three">
                 <figure class="proto">
-                  <iframe src="week-04-camera-zoom.html?v=2" title="Camera zoom, stepped slider: an altimeter-style tape beside the imaging frame" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-altitude.html?v=1" title="Orbit altitude, stepped slider: an altimeter tape of five orbits beside a window onto the Earth" loading="lazy"></iframe>
                   <figcaption>
-                    <b>Zoom, stepped</b>
-                    <span>Five lens stops on a vertical tape like an altimeter, 0.5× at the bottom to 5× at the top. A readout box rides the tape and points at the stop; hover shows the crop another lens would take, drag zooms smoothly and settles on the nearest.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-zoom.html?v=2">View larger</button>
+                    <b>Altitude, stepped</b>
+                    <span>Five orbits on an altimeter tape, low Earth orbit to geostationary. Climb and the Earth falls away in the window, drawn at its true size; speed and period read in the corners.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-altitude.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-camera-gallery.html?v=2" title="Camera gallery, stepped slider: the orbit itself, a satellite snapping to each place a frame was taken" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-thrust.html?v=1" title="Main engine thrust, continuous slider: a throttle lever whose stars stream faster as you burn" loading="lazy"></iframe>
                   <figcaption>
-                    <b>Gallery, stepped</b>
-                    <span>Twelve frames from one orbit. The slider is the orbit: drag the satellite round the planet and it snaps to each place a frame was taken, the view above cutting to it. It loops, so the last leads back to the first.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-gallery.html?v=2">View larger</button>
+                    <b>Thrust, continuous</b>
+                    <span>A throttle lever, idle to full. Push it up and the stars ahead stream past faster and longer, an orange glow rising; the thrust reads big in the window.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-thrust.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-camera-exposure.html?v=2" title="Camera exposure, continuous slider: a cockpit half-gauge of 41 segments, zero at the top" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-docking.html?v=1" title="Docking approach, stepped slider: the approach corridor with five hold points to a station" loading="lazy"></iframe>
                   <figcaption>
-                    <b>Exposure, continuous</b>
-                    <span>A cockpit half-gauge from −2 to +2 EV, zero straight up. Swing the needle and the segments light from zero out to it; the readout under the hub and the view above follow live.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-exposure.html?v=2">View larger</button>
+                    <b>Docking, stepped</b>
+                    <span>The approach corridor, 200 m to capture. Slide the craft along it and the station grows in the window until its port meets the crosshair.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-docking.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
-              <p>How the set got here, one tried version at a time, the last one now.</p>
-              <p class="process-label">Zoom</p>
+              <p>The set began as a camera on an orbital console, then the topic moved to the spacecraft itself.</p>
+              <p class="process-label">Altitude</p>
               <div class="process-grid">
                   <figure>
-                    <img src="images/process/camera-zoom-1.png" alt="Camera zoom slider, step 1" loading="lazy" />
-                    <figcaption>First pass: lens stops on a line, the knob carries the lens, a dashed crop previews a tighter one on hover.</figcaption>
+                    <img src="images/process/camera-zoom-1.png" alt="Altitude slider, step 1" loading="lazy" />
+                    <figcaption>Camera zoom, first pass: lens stops on a line.</figcaption>
                   </figure>
                   <figure>
-                    <img src="images/process/camera-zoom-2.png" alt="Camera zoom slider, step 2" loading="lazy" />
-                    <figcaption>Rebuilt as an orbital console: the lens line becomes an altimeter tape beside the frame, a readout box riding it.</figcaption>
+                    <img src="images/process/camera-zoom-2.png" alt="Altitude slider, step 2" loading="lazy" />
+                    <figcaption>Lens stops on an altimeter tape beside the frame.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-altitude-1.png" alt="Altitude slider, step 3" loading="lazy" />
+                    <figcaption>New topic: the tape now climbs through orbits and the Earth falls away.</figcaption>
                   </figure>
               </div>
-              <p class="process-label">Gallery</p>
+              <p class="process-label">Thrust</p>
               <div class="process-grid">
                   <figure>
-                    <img src="images/process/camera-gallery-1.png" alt="Camera gallery slider, step 1" loading="lazy" />
-                    <figcaption>First pass: a month scrubber on the grid’s right edge, the bubble naming the month while touched.</figcaption>
+                    <img src="images/process/camera-exposure-1.png" alt="Thrust slider, step 1" loading="lazy" />
+                    <figcaption>Camera exposure, first pass: a moving ruler under a needle.</figcaption>
                   </figure>
                   <figure>
-                    <img src="images/process/camera-gallery-2.png" alt="Camera gallery slider, step 2" loading="lazy" />
-                    <figcaption>The month scrubber becomes the orbit itself: frames sit where they were taken, the satellite snaps between them.</figcaption>
+                    <img src="images/process/camera-exposure-2.png" alt="Thrust slider, step 2" loading="lazy" />
+                    <figcaption>A cockpit half-gauge, segments lighting to the needle.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-thrust-1.png" alt="Thrust slider, step 3" loading="lazy" />
+                    <figcaption>New topic: a throttle lever, the stars streaming with the burn.</figcaption>
                   </figure>
               </div>
-              <p class="process-label">Exposure</p>
+              <p class="process-label">Docking</p>
               <div class="process-grid">
                   <figure>
-                    <img src="images/process/camera-exposure-1.png" alt="Camera exposure slider, step 1" loading="lazy" />
-                    <figcaption>First pass: a moving ruler under a fixed needle, the view brightening with the value.</figcaption>
+                    <img src="images/process/camera-gallery-1.png" alt="Docking slider, step 1" loading="lazy" />
+                    <figcaption>Camera gallery, first pass: a month scrubber.</figcaption>
                   </figure>
                   <figure>
-                    <img src="images/process/camera-exposure-2.png" alt="Camera exposure slider, step 2" loading="lazy" />
-                    <figcaption>The sliding ruler becomes a cockpit half-gauge, segments lighting from zero out to the needle.</figcaption>
+                    <img src="images/process/camera-gallery-2.png" alt="Docking slider, step 2" loading="lazy" />
+                    <figcaption>The scrubber becomes the orbit, a satellite snapping to each frame.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-docking-1.png" alt="Docking slider, step 3" loading="lazy" />
+                    <figcaption>New topic: the corridor to a station, five hold points to capture.</figcaption>
                   </figure>
               </div>
             </div>

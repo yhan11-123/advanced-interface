@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Range</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  [role="slider"] { touch-action: none; outline: none; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  /* Multi-handle. One track, more than one handle: three marks on one scale, or a range with two ends.
+     Handles never pass each other; the track fills between the outermost two. Grab the track and the nearest handle comes. */
+  :root { --accent: #6a5cff; --track: #2c2c30; --knob: 18px; --track-h: 6px; }
+  .wrap { width: min(90vw, 380px); display: grid; gap: 44px; }
+  .row h3 { margin: 0 0 30px; font: 600 15px/1 var(--font); letter-spacing: -.01em; }
+  .row h3 small { margin-left: 8px; font: 500 10px/1 var(--mono); color: var(--muted); letter-spacing: .04em; }
+  .multi { position: relative; height: 28px; cursor: pointer; }
+  .multi .track { position: absolute; left: 0; right: 0; top: 50%; height: var(--track-h); margin-top: calc(var(--track-h) / -2); border-radius: 3px; background: var(--track); }
+  .multi .fill { position: absolute; top: 50%; height: var(--track-h); margin-top: calc(var(--track-h) / -2); border-radius: 3px; background: var(--accent); }
+  .multi .k { position: absolute; top: 50%; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 rgba(106,92,255,.25); transition: transform .12s, box-shadow .15s; }
+  .multi .k.is-near { box-shadow: 0 0 0 7px rgba(106,92,255,.22); }
+  .multi .k.is-held { transform: scale(.88); box-shadow: 0 0 0 9px rgba(106,92,255,.3); }
+  .multi.is-dragging .k.is-held { transform: scale(1.18); }
+  .multi .tip { position: absolute; bottom: calc(50% + 16px); transform: translateX(-50%); padding: 5px 8px; border-radius: 6px; background: #2b2b2f; font: 500 12px/1 var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; transition: background .12s, transform .12s; pointer-events: none; }
+  .multi .tip.is-held { background: var(--accent); transform: translateX(-50%) translateY(-3px); }
+  .range-read { position: absolute; bottom: calc(50% + 16px); transform: translateX(-50%); font: 600 14px/1 var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; transition: color .12s; }
+  .multi.is-dragging .range-read { color: #b9b1ff; }
+  .scale { display: flex; justify-content: space-between; margin-top: 8px; font: 10px/1 var(--mono); color: #5d5d63; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="row"><h3>Price <small>$0–200</small></h3>
+      <div class="multi" id="price" role="group" aria-label="Price range"><div class="track"></div><div class="fill"></div><span class="range-read"></span></div>
+      <div class="scale"><span>$0</span><span>$100</span><span>$200</span></div>
+    </section>
+  </main>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // One track, several handles. opts: min, max, step, values, gap (closest two handles may come), tips (a label over each), read (one label for the range)
+  function multi(el, o) {
+    const fill = el.querySelector('.fill'), read = el.querySelector('.range-read');
+    let v = o.values.slice(), held = -1, near = -1, drag = false, x0 = 0;
+    const span = o.max - o.min, pct = n => (n - o.min) / span * 100;
+    const ks = v.map((_, i) => {
+      const k = document.createElement('div'); k.className = 'k'; k.setAttribute('role', 'slider'); k.tabIndex = 0;
+      k.setAttribute('aria-valuemin', o.min); k.setAttribute('aria-valuemax', o.max); k.setAttribute('aria-label', o.names[i]); el.append(k); return k;
+    });
+    const tips = o.tips ? v.map(() => { const t = document.createElement('span'); t.className = 'tip'; el.append(t); return t; }) : [];
+    function draw() {
+      ks.forEach((k, i) => { k.style.left = pct(v[i]) + '%'; k.classList.toggle('is-held', i === held); k.classList.toggle('is-near', i === near && held < 0); k.setAttribute('aria-valuenow', v[i]); k.setAttribute('aria-valuetext', o.fmt(v[i])); });
+      tips.forEach((t, i) => { t.style.left = pct(v[i]) + '%'; t.textContent = o.fmt(v[i]); t.style.visibility = ''; t.classList.toggle('is-held', i === held); });
+      // two labels that would touch merge into one, centred between their handles
+      const W = el.clientWidth;
+      for (let i = 0; i < tips.length - 1; i++) if ((pct(v[i + 1]) - pct(v[i])) / 100 * W < 44) {
+        tips[i].textContent = `${o.fmt(v[i])} · ${o.fmt(v[i + 1])}`; tips[i].style.left = (pct(v[i]) + pct(v[i + 1])) / 2 + '%';
+        tips[i].classList.toggle('is-held', held === i || held === i + 1); tips[i + 1].style.visibility = 'hidden'; i++;
+      }
+      const lo = pct(v[0]), hi = pct(v[v.length - 1]);
+      fill.style.left = lo + '%'; fill.style.width = hi - lo + '%';
+      if (read) { read.style.left = (lo + hi) / 2 + '%'; read.textContent = `${o.fmt(v[0])} – ${o.fmt(v[v.length - 1])}`; }
+      el.classList.toggle('is-dragging', drag);
+    }
+    // a handle stays between its neighbours, at least `gap` from each
+    const put = (i, n) => {
+      const lo = i ? v[i - 1] + o.gap : o.min, hi = i < v.length - 1 ? v[i + 1] - o.gap : o.max;
+      v[i] = Math.min(hi, Math.max(lo, Math.round(n / o.step) * o.step)); draw();
+    };
+    const at = e => { const r = el.getBoundingClientRect(); return o.min + (e.clientX - r.left) / r.width * span; };
+    const nearest = n => v.reduce((b, x, i) => Math.abs(x - n) < Math.abs(v[b] - n) ? i : b, 0);
+    el.addEventListener('pointermove', e => {
+      if (held >= 0 && el.hasPointerCapture(e.pointerId)) { if (!drag && Math.abs(e.clientX - x0) > 2) drag = true; put(held, at(e)); return; }
+      near = nearest(at(e)); draw();
+    });
+    el.addEventListener('pointerleave', () => { if (held < 0) { near = -1; draw(); } });
+    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); x0 = e.clientX; held = nearest(at(e)); drag = false; draw(); });
+    const up = e => { if (held < 0) return; if (!drag) put(held, at(e)); held = -1; drag = false; near = nearest(at(e)); draw(); };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    ks.forEach((k, i) => k.addEventListener('keydown', e => {
+      const m = { ArrowRight: o.step, ArrowUp: o.step, ArrowLeft: -o.step, ArrowDown: -o.step, PageUp: o.step * 10, PageDown: -o.step * 10 };
+      if (e.key in m) { e.preventDefault(); put(i, v[i] + m[e.key]); }
+    }));
+    draw();
+  }
+  multi(document.getElementById('price'), { min: 0, max: 200, step: 5, gap: 10, values: [80, 150], tips: false, names: ['Lowest price', 'Highest price'], fmt: n => '$' + n });
+  if (window.top === window && !location.search.includes('thumb')) document.querySelector('.back-pill').hidden = false;
+  </script>
+</body>
+</html>

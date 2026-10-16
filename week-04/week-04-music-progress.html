@@ -17,7 +17,7 @@
     --thumb: 12px;
     --hit-h: 28px;
     --bubble-size: 12px;
-    --roll: 260ms;
+    --roll: 560ms; --roll-ease: cubic-bezier(.65, 0, .35, 1);
   }
   .card { width: min(100%, var(--card-w)); padding: var(--card-pad); background: var(--shelf); border-radius: var(--card-r); display: grid; gap: 12px; }
   .head { display: flex; align-items: center; gap: 12px; }
@@ -27,8 +27,8 @@
   .play svg { width: 14px; height: 14px; fill: currentColor; }
 
   .lyrics { height: calc(var(--lyric-line) * var(--lyric-rows)); overflow: hidden; position: relative; -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
-  .lines { transition: transform var(--roll) var(--ease-out); }
-  .lines p { margin: 0; height: var(--lyric-line); font: 500 var(--lyric-size)/var(--lyric-line) var(--serif); color: var(--dust); opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s, opacity .2s; }
+  .lines { transition: transform var(--roll) var(--roll-ease); will-change: transform; }
+  .lines p { margin: 0; height: var(--lyric-line); font: 500 var(--lyric-size)/var(--lyric-line) var(--serif); color: var(--dust); opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--roll) var(--roll-ease), opacity var(--roll) var(--roll-ease); }
   .lines p.now { color: var(--cream); opacity: 1; }
   .card:has(.rail.is-dragging) .lines p.now { color: var(--lamp); }
 
@@ -86,7 +86,7 @@
     <table>
       <tr><td>Line</td><td data-var="--lyric-size,--lyric-line" data-after=", serif 500"></td></tr>
       <tr><td>Window</td><td data-var="--lyric-rows" data-after=" lines, faded top and bottom"></td></tr>
-      <tr><td>Roll to a new line</td><td data-var="--roll"></td></tr>
+      <tr><td>Roll to a new line</td><td data-var="--roll" data-after=", ease in-out"></td></tr>
       <tr><td>Line being sung</td><td>Cream; lamp while dragging. Others dust at 50%</td></tr>
     </table>
 

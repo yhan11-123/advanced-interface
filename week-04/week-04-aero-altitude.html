@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Flight deck altitude slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-aero.css?v=1" />
+  <style>
+  /* Altitude slider, stepped. An altimeter tape beside the window: five orbits from low Earth orbit at the bottom
+     to geostationary at the top. Climb and the Earth falls away, from a curved blue horizon filling the window
+     to a small whole planet; the orbit's speed and period read in the window as you go. */
+  :root {
+    --win-w: 182px; --win-h: 172px;
+    --tape-w: 70px; --tape-gap: 14px;
+    --major: 10px; --minor: 5px;
+    --box-w: 56px; --box-h: 20px; --notch: 5px;
+    --settle: .32s;
+  }
+  .deck { position: relative; display: flex; gap: var(--tape-gap); align-items: stretch; }
+  .window { width: var(--win-w); height: var(--win-h); }
+  .earth { transition: transform var(--settle) var(--ease-out); }
+  .live .earth { transition: none; }
+  .tape { position: relative; width: var(--tape-w); height: var(--win-h); cursor: ns-resize; }
+  .tape .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+  .tk { position: absolute; left: 0; height: 1px; background: var(--dim); }
+  .tk.major { width: var(--major); background: var(--hud); opacity: .75; }
+  .tk.minor { width: var(--minor); }
+  .lb { position: absolute; left: 15px; transform: translateY(-50%); font: 500 var(--tag-size)/1.25 var(--mono); color: var(--dim); letter-spacing: .06em; transition: color .12s; }
+  .lb b { display: block; font-weight: 600; color: inherit; }
+  .lb.is-near { color: var(--text); }
+  .box { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2);
+    display: grid; place-items: center; background: rgba(4,10,18,.9); box-shadow: inset 0 0 0 1px var(--hud);
+    font: 600 11px/1 var(--mono); color: var(--hud); font-variant-numeric: tabular-nums; pointer-events: none;
+    transition: top var(--settle) var(--ease-out), box-shadow .12s, color .12s, transform .12s; }
+  .box::before { content: ""; position: absolute; right: 100%; top: 50%; margin-top: calc(var(--notch) * -1); border: var(--notch) solid transparent; border-right-color: var(--hud); transition: border-color .12s; }
+  .ghost { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2); outline: 1px dashed var(--dim); outline-offset: -1px; opacity: 0; transition: opacity .12s, top .12s; pointer-events: none; }
+  .tape.is-hover .ghost { opacity: 1; }
+  .tape.is-hover .box { box-shadow: inset 0 0 0 1px var(--hud), 0 0 12px rgba(127,225,255,.3); }
+  .tape.is-pressed .box, .tape.is-dragging .box { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 12px rgba(255,176,32,.35); color: var(--amber); }
+  .tape.is-pressed .box::before, .tape.is-dragging .box::before { border-right-color: var(--amber); }
+  .tape.is-pressed .box { transform: scale(.94); }
+  .tape.is-dragging .box { transition: box-shadow .12s, color .12s; }
+  .unit { position: absolute; left: 15px; top: -16px; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="sky"></div>
+    <section class="deck" aria-label="Orbit altitude">
+      <div class="window"><div class="stars"></div><svg class="view"></svg>
+        <div class="hud"><span style="left:12px;top:10px" class="t-alt"></span><span style="right:12px;top:10px" class="t-v"></span><span style="left:12px;bottom:10px" class="t-t"></span><span style="right:12px;bottom:10px" class="t-name"></span></div>
+      </div>
+      <div class="tape" role="slider" tabindex="0" aria-label="Orbit altitude"><span class="tag unit">ALT · KM</span><div class="spine"></div><div class="ghost"></div><div class="box"></div></div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Stepped: five orbits, 400 km to 35,786 km, on a vertical tape like an altimeter, low Earth orbit at the bottom and geostationary at the top. A readout box rides the tape and points at the orbit you are in, so the value is always on screen. The window shows it too: the Earth is drawn at the size it really looks from that height, a blue horizon filling the window down low, a small planet up high, and the orbit's speed and period read in its corners.</p>
+
+    <h3>Tape</h3>
+    <table>
+      <tr><td>Tape</td><td data-var="--tape-w,--win-h" data-join=" × " data-after=", the hit area; 14px right of the window"></td></tr>
+      <tr><td>Orbit stop tick</td><td data-var="--major" data-after=" long, 1px, cyan at 75%; four 5px minor ticks between stops"></td></tr>
+      <tr><td>Stop label</td><td data-var="--tag-size" data-after=" mono 500: orbit name in 600 over its height"></td></tr>
+      <tr><td>Readout box</td><td data-var="--box-w,--box-h" data-join=" × " data-after=", 1px cyan line, mono 600 11px, a 5px notch pointing at the tape"></td></tr>
+      <tr><td>Between stops</td><td>The height moves geometrically, so a drag between two orbits climbs smoothly in kilometres</td></tr>
+      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest orbit"></td></tr>
+    </table>
+
+    <h3>Window</h3>
+    <table>
+      <tr><td>Window</td><td data-var="--win-w,--win-h" data-join=" × " data-after=", 18px corner, a 6px frame, inner shadow and a faint reflection"></td></tr>
+      <tr><td>Earth</td><td>Drawn in code at its true apparent size: radius = 144 × tan(asin(R ÷ (R + h))); oceans, land, cloud, a night side and a blue glow at the limb</td></tr>
+      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan, 12px from the corners: altitude, orbital speed, period, orbit name"></td></tr>
+      <tr><td>Stars</td><td>Drawn in code, a few brighter ones twinkling over 4s</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Space</td><td data-var="--space" data-kind="color"></td></tr>
+      <tr><td>Window frame</td><td data-var="--frame" data-kind="color"></td></tr>
+      <tr><td>Spine, unlit ticks</td><td data-var="--grid" data-kind="color"></td></tr>
+      <tr><td>Labels</td><td data-var="--dim" data-kind="color"></td></tr>
+      <tr><td>Instruments</td><td data-var="--hud" data-kind="color"></td></tr>
+      <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>The box glows; a dashed box marks the orbit under the pointer and its label lights. Nothing moves yet</td></tr>
+      <tr><td>Pressed</td><td>The box and notch turn amber and dip to 0.94</td></tr>
+      <tr><td>Drag</td><td>Up to climb: the box follows the finger with no lag, the Earth shrinks away smoothly, and altitude, speed and period count as you go</td></tr>
+      <tr><td>Let go</td><td>Settles into the nearest orbit; the Earth settles with it</td></tr>
+      <tr><td>Keyboard</td><td>Up and Down one orbit; Home and End low Earth orbit and geostationary</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
+
+  <script src="week-04-aero.js?v=1"></script>
+  <script>
+  const ORBITS = [ { h: 400, name: 'LEO' }, { h: 2000, name: 'LEO+' }, { h: 8000, name: 'MEO' }, { h: 20200, name: 'GPS' }, { h: 35786, name: 'GEO' } ], N = ORBITS.length;
+  const RE = 6371, GM = 398600, F = 144;
+  const tape = document.querySelector('.tape'), box = tape.querySelector('.box'), ghost = tape.querySelector('.ghost'), deck = document.querySelector('.deck');
+  const win = document.querySelector('.window'), view = win.querySelector('.view');
+  const W = win.clientWidth, H = win.clientHeight;
+  view.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const earth = AERO.earth(view);
+  const PAD = 18, TH = () => tape.clientHeight - PAD * 2, yOf = p => PAD + TH() * (1 - p / (N - 1));   // low orbit at the bottom
+  const labels = ORBITS.map((o, i) => {
+    const t = document.createElement('div'); t.className = 'tk major'; t.style.top = yOf(i) + 'px'; tape.insertBefore(t, ghost);
+    const l = document.createElement('div'); l.className = 'lb'; l.innerHTML = `<b>${o.name}</b>${o.h.toLocaleString('en-US')}`; l.style.top = yOf(i) + 'px'; tape.insertBefore(l, ghost);
+    if (i < N - 1) for (let k = 1; k < 5; k++) { const m = document.createElement('div'); m.className = 'tk minor'; m.style.top = yOf(i + k / 5) + 'px'; tape.insertBefore(m, ghost); }
+    return l;
+  });
+  // between two orbits the height moves geometrically
+  const hAt = p => { const i = Math.min(N - 2, Math.floor(p)), f = p - i; return ORBITS[i].h * Math.pow(ORBITS[i + 1].h / ORBITS[i].h, f); };
+  const km = h => Math.round(h).toLocaleString('en-US');
+
+  let idx = 0, p = 0, near = null;
+  function draw() {
+    const h = hAt(p), r = F * Math.tan(Math.asin(RE / (RE + h))), cy = H * .55 + Math.max(0, r - H * .1);
+    earth.style.transform = `translate(${W / 2}px, ${cy}px) scale(${r / 100})`;
+    box.style.top = yOf(p) + 'px'; box.textContent = km(h);
+    labels.forEach((l, i) => { l.classList.toggle('is-near', i === near && i !== idx); l.style.visibility = Math.abs(i - p) < .5 ? 'hidden' : ''; });
+    if (near !== null) ghost.style.top = yOf(near) + 'px';
+    ghost.style.visibility = near === null || near === idx ? 'hidden' : '';
+    const v = Math.sqrt(GM / (RE + h)), T = 2 * Math.PI * Math.sqrt(Math.pow(RE + h, 3) / GM) / 60;
+    win.querySelector('.t-alt').textContent = `ALT ${km(h)} KM`;
+    win.querySelector('.t-v').textContent = `V ${v.toFixed(2)} KM/S`;
+    win.querySelector('.t-t').textContent = T < 120 ? `PERIOD ${Math.round(T)} MIN` : `PERIOD ${(T / 60).toFixed(1)} H`;
+    win.querySelector('.t-name').textContent = ORBITS[Math.round(p)].name;
+    tape.setAttribute('aria-valuenow', ORBITS[idx].h); tape.setAttribute('aria-valuetext', `${ORBITS[idx].name}, ${km(ORBITS[idx].h)} kilometres`);
+  }
+
+  let hover = false, down = false, drag = false, y0 = 0;
+  const show = () => { tape.classList.toggle('is-hover', hover && !down); tape.classList.toggle('is-pressed', down && !drag); tape.classList.toggle('is-dragging', drag); deck.classList.toggle('live', drag); };
+  const pAt = e => { const r = tape.getBoundingClientRect(); return Math.min(N - 1, Math.max(0, (1 - (e.clientY - r.top - PAD) / TH()) * (N - 1))); };
+  tape.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); draw(); });
+  tape.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  tape.addEventListener('pointerdown', e => { tape.setPointerCapture(e.pointerId); y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  tape.addEventListener('pointermove', e => {
+    if (!tape.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
+    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
+    if (drag) { p = pAt(e); draw(); }
+  });
+  const release = e => { if (!down) return; idx = Math.round(drag ? p : pAt(e)); p = idx; down = drag = false; near = hover ? idx : null; show(); draw(); };
+  tape.addEventListener('pointerup', release);
+  tape.addEventListener('pointercancel', release);
+  tape.setAttribute('aria-valuemin', ORBITS[0].h); tape.setAttribute('aria-valuemax', ORBITS[N - 1].h);
+  tape.addEventListener('keydown', e => {
+    const m = { ArrowUp: idx + 1, ArrowRight: idx + 1, ArrowDown: idx - 1, ArrowLeft: idx - 1, Home: 0, End: N - 1 };
+    if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); p = idx; draw(); }
+  });
+  draw();
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>
