@@ -7,98 +7,93 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-04-sleep.css?v=1" />
   <style>
-  /* White noise slider, stepped. Two sounds share one sound bar. A divider splits the bar between them:
-     slide it and one sound takes more of the bar and plays louder while the other gives way, in steps of ten,
-     so 30% rain is 70% ocean. Tap a sound's name to swap it for another. */
+  /* White noise slider, stepped. Two sounds share one bar, split by a thin divider with a gap either side.
+     Slide the divider and one sound's part of the bar grows while the other's gives way, in steps of ten:
+     30% rain is 70% ocean. Each part carries its sound, moving inside it. Tap a name to swap the sound. */
   :root {
-    --w: 280px;
-    --wave-h: 76px; --bars: 40; --bar-w: 3px; --bar-r: 1.5px; --bar-min: 3px;
-    --divider-w: 2px; --divider-over: 10px; --grip: 14px;
-    --tick: 4px; --steps: 10;
+    --w: 300px;
+    --bar-h: 28px; --bar-r: 8px; --gap: 14px;
+    --divider-w: 2px; --divider-h: 38px; --divider-held: 3px;
+    --wave-bars: 3px; --wave-gap: 3px;
     --a: #9db7ff; --b: #ffb867;               /* the left sound and the right sound */
-    --pct-size: 22px; --pct-line: 26px;
+    --off: #2a3150;                           /* a part's resting fill */
+    --type-size: 13px; --type-line: 16px; --type-track: .06em;
   }
-  .mix { width: var(--w); display: grid; gap: 12px; }
-  .top { display: flex; justify-content: space-between; align-items: baseline; }
-  .wave { position: relative; height: var(--wave-h); cursor: ew-resize; touch-action: none; }
-  .bars { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-  .bars i { width: var(--bar-w); min-height: var(--bar-min); border-radius: var(--bar-r); transition: background .2s, opacity .2s; }
-  /* the divider: a line through the bar with a grip under it */
-  .divider { position: absolute; top: calc(var(--divider-over) * -1); bottom: calc(var(--divider-over) * -1); width: var(--divider-w); margin-left: calc(var(--divider-w) / -2); background: var(--ink); border-radius: 1px; pointer-events: none; transition: left .22s var(--ease-out), box-shadow .15s; }
-  .divider::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--grip) / -2); width: var(--grip); height: var(--grip); margin-left: calc(var(--grip) / -2); border-radius: 50%; background: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.5); transition: transform .15s, background .15s; }
-  .ghost { position: absolute; top: calc(var(--divider-over) * -1); bottom: calc(var(--divider-over) * -1); width: 0; border-left: 1px dashed rgba(232,230,242,.6); opacity: 0; transition: opacity .12s; pointer-events: none; }
-  .wave.is-hover .ghost { opacity: 1; }
-  .wave.is-hover .divider::after { transform: scale(1.12); }
-  .wave.is-pressed .divider, .wave.is-dragging .divider { box-shadow: 0 0 12px rgba(232,230,242,.55); }
-  .wave.is-pressed .divider::after { transform: scale(.85); }
-  .wave.is-dragging .divider { transition: box-shadow .15s; }
-  .wave.is-dragging .divider::after { transform: scale(1.25); }
-  .ticks { position: relative; height: 6px; margin-top: 4px; }
-  .ticks i { position: absolute; top: 0; width: 1px; height: var(--tick); background: var(--mute); opacity: .5; }
-  .ticks i.mid { height: 6px; opacity: .9; }
-  /* the two sounds, one at each end */
-  .ends { display: flex; justify-content: space-between; align-items: flex-end; }
-  .end { all: unset; cursor: pointer; display: grid; gap: 2px; }
-  .end.b { text-align: right; justify-items: end; }
-  .end b { font: 600 var(--pct-size)/var(--pct-line) var(--round); font-variant-numeric: tabular-nums; transition: color .15s; }
-  .end span { font: 500 var(--label-size)/var(--label-line) var(--round); color: var(--mute); }
-  .end span::after { content: " ↻"; opacity: .5; }
-  .end:hover span, .end:focus-visible span { color: var(--ink); }
-  .end.a b { color: var(--a); } .end.b b { color: var(--b); }
-  .end small { display: block; height: 10px; font: 500 9px/10px var(--mono); color: var(--mute); opacity: 0; transition: opacity .12s; }
-  .mix.is-peek .end small { opacity: 1; }
+  .mix { width: var(--w); display: grid; gap: 10px; }
+  .labels { display: flex; justify-content: space-between; align-items: baseline; font: 500 var(--type-size)/var(--type-line) var(--mono); letter-spacing: var(--type-track); text-transform: uppercase; }
+  .side { all: unset; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+  .side .name { transition: opacity .15s; }
+  .side.a .name { color: var(--a); opacity: .7; } .side.b .name { color: var(--b); opacity: .7; }
+  .side:hover .name, .side:focus-visible .name { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+  .side .pct { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .side.a .pct { color: var(--a); } .side.b .pct { color: var(--b); }
+  .side .pre { color: var(--mute); font-weight: 500; opacity: 0; transition: opacity .12s; }
+  .mix.is-peek .side .pre { opacity: 1; }
+  .bar { position: relative; height: var(--bar-h); cursor: ew-resize; touch-action: none; }
+  .part { position: absolute; top: 0; height: 100%; border-radius: var(--bar-r); overflow: hidden; display: flex; align-items: center; gap: var(--wave-gap); padding-left: 8px; transition: left .22s var(--ease-out), width .22s var(--ease-out), opacity .15s; }
+  .part.a { left: 0; background: color-mix(in srgb, var(--a) 22%, var(--off)); }
+  .part.b { background: color-mix(in srgb, var(--b) 22%, var(--off)); }
+  .part i { flex: none; width: var(--wave-bars); border-radius: 1.5px; opacity: .85; }
+  .part.a i { background: var(--a); } .part.b i { background: var(--b); }
+  .divider { position: absolute; top: 50%; width: var(--divider-w); height: var(--divider-h); margin: calc(var(--divider-h) / -2) 0 0 calc(var(--divider-w) / -2); border-radius: 2px; background: var(--ink); pointer-events: none; transition: left .22s var(--ease-out), width .15s, margin .15s, box-shadow .15s, height .15s; }
+  .ghost { position: absolute; top: 50%; height: var(--divider-h); margin-top: calc(var(--divider-h) / -2); width: 0; border-left: 1px dashed rgba(232,230,242,.55); opacity: 0; transition: opacity .12s; pointer-events: none; }
+  .bar.is-hover .ghost { opacity: 1; }
+  .bar.is-hover .divider { box-shadow: 0 0 0 4px rgba(232,230,242,.08); }
+  .bar.is-pressed .divider, .bar.is-dragging .divider { width: var(--divider-held); margin-left: calc(var(--divider-held) / -2); box-shadow: 0 0 12px rgba(232,230,242,.6); }
+  .bar.is-pressed .divider { height: calc(var(--divider-h) - 6px); margin-top: calc((var(--divider-h) - 6px) / -2); }
+  .bar.is-dragging .part, .bar.is-dragging .divider { transition: width .15s, margin .15s, box-shadow .15s, height .15s; }
+  .ticks { position: relative; height: 5px; }
+  .ticks i { position: absolute; top: 0; width: 1px; height: 4px; background: var(--mute); opacity: .4; }
+  .ticks i.mid { height: 5px; opacity: .8; }
   </style>
 </head>
 <body>
   <main class="stage">
     <section class="mix" aria-label="White noise mix">
-      <div class="top"><p class="label" style="margin:0">White noise mix</p></div>
-      <div>
-        <div class="wave" role="slider" tabindex="0" aria-label="Balance between the two sounds"><div class="bars"></div><div class="ghost"></div><div class="divider"></div></div>
-        <div class="ticks"></div>
+      <div class="labels">
+        <button class="side a" type="button" aria-label="Change the left sound"><span class="name"></span><span class="pct"></span><span class="pre"></span></button>
+        <button class="side b" type="button" aria-label="Change the right sound"><span class="pre"></span><span class="pct"></span><span class="name"></span></button>
       </div>
-      <div class="ends">
-        <button class="end a" type="button" aria-label="Change the left sound"><small></small><b></b><span></span></button>
-        <button class="end b" type="button" aria-label="Change the right sound"><small></small><b></b><span></span></button>
-      </div>
+      <div class="bar" role="slider" tabindex="0" aria-label="Balance between the two sounds"><div class="part a"></div><div class="part b"></div><div class="ghost"></div><div class="divider"></div></div>
+      <div class="ticks"></div>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped, in tens: two sounds share one sound bar, and a divider sets how much of it each one gets. Left of the divider the bar takes the first sound's shape and colour, right of it the second's; the larger share also plays louder, so its bars stand taller. Both shares read below the bar, always on screen, and add up to 100. Tap a sound's name to swap in another: rain, ocean, wind, forest or brown noise.</p>
+    <p>Read from the CSS this page runs on. Stepped, in tens: two sounds share one bar, split by a thin divider with a gap either side. Each part is that sound's share of the bar and carries the sound itself, its bars moving inside it, louder the bigger the share. Both shares read above the bar, always on screen, and add up to 100. Tap a sound's name to swap in another: rain, ocean, wind, forest or brown noise.</p>
 
     <h3>Bar and divider</h3>
     <table>
-      <tr><td>Sound bar</td><td data-var="--w,--wave-h" data-join=" × " data-after=", the hit area"></td></tr>
-      <tr><td>Bars</td><td data-var="--bars" data-after=" bars, 3px wide, 1.5px corner, 3px at least"></td></tr>
-      <tr><td>Steps</td><td data-var="--steps" data-after=" of 10%, eleven stops; ticks under the bar, the middle one longer"></td></tr>
-      <tr><td>Divider</td><td data-var="--divider-w" data-after=" line, reaching 10px past the bar top and bottom"></td></tr>
-      <tr><td>Grip</td><td data-var="--grip" data-after=" circle at the divider's foot"></td></tr>
-      <tr><td>Bar height</td><td>Each side's own sound shape, scaled from 35% at a 0 share to full at 100</td></tr>
+      <tr><td>Bar</td><td data-var="--w,--bar-h" data-join=" × " data-after=", the hit area"></td></tr>
+      <tr><td>Part corner</td><td data-var="--bar-r"></td></tr>
+      <tr><td>Gap at the divider</td><td data-var="--gap" data-after=", half each side"></td></tr>
+      <tr><td>Divider</td><td data-var="--divider-w,--divider-h" data-join=" × " data-after="; 3px wide while held"></td></tr>
+      <tr><td>Sound inside a part</td><td data-var="--wave-bars" data-after=" bars, 3px apart, up to 70% of the bar's height, scaled by the share"></td></tr>
+      <tr><td>Steps</td><td>Eleven stops, 0 to 100 in tens; ticks under the bar, the middle one longer</td></tr>
       <tr><td>Settle</td><td>0.22s, ease out, to the nearest ten</td></tr>
     </table>
 
     <h3>Type</h3>
     <table>
-      <tr><td>Shares</td><td data-var="--pct-size,--pct-line" data-after=", rounded 600, in each sound's colour, at the bar's two ends"></td></tr>
-      <tr><td>Sound names</td><td data-var="--label-size,--label-line" data-after=", rounded 500, with a swap mark; tap to change the sound"></td></tr>
-      <tr><td>Hover preview</td><td>Mono 500 9px above each share: what it would become</td></tr>
+      <tr><td>Names and shares</td><td data-var="--type-size,--type-line" data-after=", mono, uppercase, 0.06em tracking; names 500 at 70%, shares 700, each in its sound's colour; 8px apart"></td></tr>
+      <tr><td>Placement</td><td>Above the bar, 10px: the left sound's name then share at the left end, the right sound's share then name at the right end</td></tr>
+      <tr><td>Hover preview</td><td>Beside each share in mute: what it would become, “→ 60%”</td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
       <tr><td>Left sound</td><td data-var="--a" data-kind="color"></td></tr>
       <tr><td>Right sound</td><td data-var="--b" data-kind="color"></td></tr>
-      <tr><td>Divider, grip</td><td data-var="--ink" data-kind="color"></td></tr>
-      <tr><td>Page</td><td data-var="--night" data-kind="color"></td></tr>
+      <tr><td>Part fill</td><td>Its sound's colour at 22% over <span class="swatch" style="background:#2a3150"></span>#2a3150</td></tr>
+      <tr><td>Divider</td><td data-var="--ink" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The grip grows 1.12; a dashed line marks the stop under the pointer and both shares preview what they would become, “→ 60%”. The mix stays</td></tr>
-      <tr><td>Pressed</td><td>The divider glows and the grip dips to 0.85; a tap moves the divider to the stop under the finger</td></tr>
-      <tr><td>Drag</td><td>The divider follows the finger, snapping ten by ten; the bars on each side re-shape and the shares count with it, the grip grown 1.25</td></tr>
+      <tr><td>Hover</td><td>A soft ring round the divider; a dashed line marks the stop under the pointer and both shares preview what they would become. The mix stays</td></tr>
+      <tr><td>Pressed</td><td>The divider thickens to 3px, shortens 6px and glows; a tap moves it to the stop under the finger</td></tr>
+      <tr><td>Drag</td><td>The divider follows the finger ten by ten; the two parts trade width, their sounds grow and shrink, and the shares count with it</td></tr>
       <tr><td>Keyboard</td><td>Left and Right ten; Home and End all one sound or all the other</td></tr>
     </table>
   </section>
@@ -106,68 +101,73 @@
   <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
 
   <script>
+  function hash(a, b) { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); }
   const SOUNDS = {
-    Rain:   (i, x, t) => .2 + .55 * hash(i, Math.floor(t * 12)) * (.7 + .3 * hash(i, 3)),
-    Ocean:  (i, x, t) => .16 + .7 * Math.pow(.5 + .5 * Math.sin(x * 5 - t * .9), 1.6),
-    Wind:   (i, x, t) => .25 + .35 * (.5 + .5 * Math.sin(x * 2.2 + t * 1.7)) * (.8 + .2 * Math.sin(t * 7 + i)),
-    Forest: (i, x, t) => { const bird = (t % 2.6) < .7 ? Math.exp(-Math.pow((x % .5 - .3) / .04, 2)) * (.45 + .25 * Math.sin(t * 40)) : 0; return .14 + .1 * hash(i, Math.floor(t * 3)) + bird; },
-    'Brown noise': (i, x, t) => .2 + .5 * (.85 + .15 * Math.sin(t * 1.4 + x * 2.5)) * (.7 + .3 * hash(i, 9)),
+    Rain:   (i, x, t) => .25 + .6 * hash(i, Math.floor(t * 12)),
+    Ocean:  (i, x, t) => .2 + .75 * Math.pow(.5 + .5 * Math.sin(x * 9 - t * .9), 1.6),
+    Wind:   (i, x, t) => .3 + .45 * (.5 + .5 * Math.sin(x * 4 + t * 1.7)) * (.8 + .2 * Math.sin(t * 7 + i)),
+    Forest: (i, x, t) => { const bird = (t % 2.6) < .7 && i % 9 === 4 ? .5 + .3 * Math.sin(t * 40) : 0; return .18 + .12 * hash(i, Math.floor(t * 3)) + bird; },
+    'Brown noise': (i, x, t) => .3 + .5 * (.85 + .15 * Math.sin(t * 1.4 + x * 2.5)) * (.7 + .3 * hash(i, 9)),
   };
   const NAMES = Object.keys(SOUNDS);
-  function hash(a, b) { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); }
-
-  const wave = document.querySelector('.wave'), divider = wave.querySelector('.divider'), ghost = wave.querySelector('.ghost'), mix = document.querySelector('.mix');
-  const css = getComputedStyle(document.documentElement), N = parseFloat(css.getPropertyValue('--bars')), H = parseFloat(css.getPropertyValue('--wave-h'));
-  const bars = Array.from({ length: N }, () => { const b = document.createElement('i'); wave.querySelector('.bars').append(b); return b; });
+  const css = getComputedStyle(document.documentElement), GAP = parseFloat(css.getPropertyValue('--gap')), BH = parseFloat(css.getPropertyValue('--bar-h'));
+  const bar = document.querySelector('.bar'), partA = bar.querySelector('.part.a'), partB = bar.querySelector('.part.b'), divider = bar.querySelector('.divider'), ghost = bar.querySelector('.ghost');
+  const mix = document.querySelector('.mix'), sideA = document.querySelector('.side.a'), sideB = document.querySelector('.side.b');
+  // fill each part with as many little sound bars as the whole bar could hold; the part's own width clips the rest
+  const fill = el => Array.from({ length: Math.floor(bar.clientWidth / 6) }, () => { const i = document.createElement('i'); el.append(i); return i; });
+  const barsA = fill(partA), barsB = fill(partB);
   document.querySelector('.ticks').innerHTML = Array.from({ length: 11 }, (_, k) => `<i class="${k === 5 ? 'mid' : ''}" style="left:${k * 10}%"></i>`).join('');
-  const endA = document.querySelector('.end.a'), endB = document.querySelector('.end.b');
 
-  let a = 'Rain', b = 'Ocean', share = 30, hv = null;     // share: the left sound's part, 0 to 100 in tens
-  function label() {
-    divider.style.left = share + '%';
-    endA.querySelector('b').textContent = share + '%'; endA.querySelector('span').textContent = a;
-    endB.querySelector('b').textContent = (100 - share) + '%'; endB.querySelector('span').textContent = b;
+  let a = 'Rain', b = 'Ocean', share = 30, hv = null;
+  const xOf = s => s / 100 * bar.clientWidth;
+  function layout() {
+    const W = bar.clientWidth, x = xOf(share);
+    // each part stops half a gap short of the divider; a part with no share disappears
+    const wa = Math.max(0, x - GAP / 2), wb = Math.max(0, W - x - GAP / 2);
+    partA.style.width = wa + 'px'; partA.style.opacity = share === 0 ? 0 : 1;
+    partB.style.left = (W - wb) + 'px'; partB.style.width = wb + 'px'; partB.style.opacity = share === 100 ? 0 : 1;
+    divider.style.left = x + 'px';
+    sideA.querySelector('.name').textContent = a; sideA.querySelector('.pct').textContent = share + '%';
+    sideB.querySelector('.name').textContent = b; sideB.querySelector('.pct').textContent = (100 - share) + '%';
     const peek = hv !== null && hv !== share && !down;
     mix.classList.toggle('is-peek', peek);
-    if (hv !== null) { ghost.style.left = hv + '%'; endA.querySelector('small').textContent = `→ ${hv}%`; endB.querySelector('small').textContent = `→ ${100 - hv}%`; }
+    if (hv !== null) { ghost.style.left = xOf(hv) + 'px'; sideA.querySelector('.pre').textContent = `→ ${hv}%`; sideB.querySelector('.pre').textContent = `${100 - hv}% ←`; }
     ghost.style.visibility = peek ? '' : 'hidden';
-    wave.setAttribute('aria-valuenow', share); wave.setAttribute('aria-valuetext', `${a} ${share} percent, ${b} ${100 - share} percent`);
+    bar.setAttribute('aria-valuenow', share); bar.setAttribute('aria-valuetext', `${a} ${share} percent, ${b} ${100 - share} percent`);
   }
   function frame(ms) {
-    const t = ms / 1000, ga = .35 + .65 * share / 100, gb = .35 + .65 * (100 - share) / 100;
-    bars.forEach((el, i) => {
-      const x = i / (N - 1), left = x * 100 < share;
-      el.style.height = Math.max(3, (left ? SOUNDS[a](i, x, t) * ga : SOUNDS[b](i, x, t + 3) * gb) * H) + 'px';
-      el.style.background = left ? 'var(--a)' : 'var(--b)';
-    });
+    const t = ms / 1000, ga = .4 + .6 * share / 100, gb = .4 + .6 * (100 - share) / 100, n = barsA.length;
+    barsA.forEach((el, i) => el.style.height = Math.max(2, SOUNDS[a](i, i / n, t) * ga * BH * .7) + 'px');
+    barsB.forEach((el, i) => el.style.height = Math.max(2, SOUNDS[b](i, i / n, t + 3) * gb * BH * .7) + 'px');
     requestAnimationFrame(frame);
   }
-  const set = n => { share = Math.max(0, Math.min(100, Math.round(n / 10) * 10)); label(); };
-  const pAt = e => { const r = wave.getBoundingClientRect(); return Math.max(0, Math.min(100, Math.round((e.clientX - r.left) / r.width * 10) * 10)); };
+  const set = n => { share = Math.max(0, Math.min(100, Math.round(n / 10) * 10)); layout(); };
+  const pAt = e => { const r = bar.getBoundingClientRect(); return Math.max(0, Math.min(100, Math.round((e.clientX - r.left) / r.width * 10) * 10)); };
 
   let hover = false, down = false, drag = false, x0 = 0;
-  const show = () => { wave.classList.toggle('is-hover', hover && !down); wave.classList.toggle('is-pressed', down && !drag); wave.classList.toggle('is-dragging', drag); label(); };
-  wave.addEventListener('pointerenter', e => { hover = true; hv = pAt(e); show(); });
-  wave.addEventListener('pointerleave', () => { hover = false; hv = null; show(); });
-  wave.addEventListener('pointerdown', e => { wave.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; show(); });
-  wave.addEventListener('pointermove', e => {
-    if (!wave.hasPointerCapture(e.pointerId)) { if (hover) { hv = pAt(e); label(); } return; }
+  const show = () => { bar.classList.toggle('is-hover', hover && !down); bar.classList.toggle('is-pressed', down && !drag); bar.classList.toggle('is-dragging', drag); layout(); };
+  bar.addEventListener('pointerenter', e => { hover = true; hv = pAt(e); show(); });
+  bar.addEventListener('pointerleave', () => { hover = false; hv = null; show(); });
+  bar.addEventListener('pointerdown', e => { bar.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; show(); });
+  bar.addEventListener('pointermove', e => {
+    if (!bar.hasPointerCapture(e.pointerId)) { if (hover) { hv = pAt(e); layout(); } return; }
     if (!drag && Math.abs(e.clientX - x0) > 3) { drag = true; show(); }
     if (drag) set(pAt(e));
   });
   const release = e => { if (!down) return; if (!drag) set(pAt(e)); down = drag = false; hv = hover ? pAt(e) : null; show(); };
-  wave.addEventListener('pointerup', release);
-  wave.addEventListener('pointercancel', release);
-  wave.setAttribute('aria-valuemin', 0); wave.setAttribute('aria-valuemax', 100);
-  wave.addEventListener('keydown', e => {
+  bar.addEventListener('pointerup', release);
+  bar.addEventListener('pointercancel', release);
+  bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', 100);
+  bar.addEventListener('keydown', e => {
     const m = { ArrowRight: share + 10, ArrowUp: share + 10, ArrowLeft: share - 10, ArrowDown: share - 10, Home: 0, End: 100 };
     if (e.key in m) { e.preventDefault(); set(m[e.key]); }
   });
   // tap a name to swap that sound for the next one the other side is not using
   const next = (cur, other) => { let k = NAMES.indexOf(cur); do { k = (k + 1) % NAMES.length; } while (NAMES[k] === other); return NAMES[k]; };
-  endA.addEventListener('click', () => { a = next(a, b); label(); });
-  endB.addEventListener('click', () => { b = next(b, a); label(); });
-  label(); requestAnimationFrame(frame);
+  sideA.addEventListener('click', () => { a = next(a, b); layout(); });
+  sideB.addEventListener('click', () => { b = next(b, a); layout(); });
+  addEventListener('resize', layout);
+  layout(); requestAnimationFrame(frame);
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
   <script src="week-04-spec.js?v=3"></script>
