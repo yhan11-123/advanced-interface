@@ -515,8 +515,8 @@
         </div>
         <div class="set-box" id="set-aero">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-aero">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/aero-altitude-mono.png" alt="" loading="lazy" /><img src="images/process/aero-thrust-mono.png" alt="" loading="lazy" /><img src="images/process/aero-ascent-1.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Flight deck</span><span class="set-line">A monochrome workspace: each slider in its own small window, white hairlines on a black grid, square handles, inverted when held. Altitude, thrust and trajectory.</span></span>
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/aero-altitude-3.png" alt="" loading="lazy" /><img src="images/process/aero-thrust-3.png" alt="" loading="lazy" /><img src="images/process/aero-ascent-2.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Flight deck</span><span class="set-line">Monochrome instruments: white hairlines on a black grid, square handles, inverted when held. Altitude, thrust and trajectory.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-aero" aria-labelledby="dlg-aero-title">
@@ -528,27 +528,27 @@
               <h4>Prototypes</h4>
               <div class="proto-grid is-three">
                 <figure class="proto">
-                  <iframe src="week-04-aero-altitude.html?v=3" title="Orbit altitude, stepped slider: five orbit rings round the Earth, the spacecraft dragged outward from ring to ring" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-altitude.html?v=4" title="Orbit altitude, stepped slider: five orbit rings round the Earth, the spacecraft dragged outward from ring to ring" loading="lazy"></iframe>
                   <figcaption>
                     <b>Altitude, stepped</b>
                     <span>The slider is the orbits: five rings round the Earth, LEO to GEO. Drag the spacecraft outward along its line and it climbs ring to ring, the altitude counting in the corner.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-aero-altitude.html?v=3">View larger</button>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-altitude.html?v=4">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-aero-thrust.html?v=4" title="Main engine thrust, continuous slider: a throttle lever whose stars stream faster as you burn" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-thrust.html?v=5" title="Main engine thrust, continuous slider: a throttle lever whose stars stream faster as you burn" loading="lazy"></iframe>
                   <figcaption>
                     <b>Thrust, continuous</b>
-                    <span>A throttle lever, idle to full. Push it up and the stars ahead stream past faster and longer, an orange glow rising; the thrust reads big in the window.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-aero-thrust.html?v=4">View larger</button>
+                    <span>A throttle lever, idle to full. Push it up and the stars ahead stream past faster and longer, the thrust reading big in the view.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-thrust.html?v=5">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-aero-ascent.html?v=2" title="Flight sequence, stepped slider: the vehicle dragged along its trajectory round the Earth, snapping to each mission event" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-ascent.html?v=3" title="Flight sequence, stepped slider: the vehicle dragged along its trajectory round the Earth, snapping to each mission event" loading="lazy"></iframe>
                   <figcaption>
                     <b>Trajectory, stepped</b>
                     <span>The flight path is the track: an ascent arcing round the Earth, five mission events marked along it. Drag the vehicle along its path and the mission clock, velocity and altitude run with it.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-aero-ascent.html?v=2">View larger</button>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-ascent.html?v=3">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -574,7 +574,11 @@
                   </figure>
                   <figure>
                     <img src="images/process/aero-altitude-mono.png" alt="Altitude slider, step 5" loading="lazy" />
-                    <figcaption>Restyled as a workspace window: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                    <figcaption>Restyled in monochrome: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-altitude-3.png" alt="Altitude slider, step 6" loading="lazy" />
+                    <figcaption>The window chrome comes off: the instrument sits straight on the grid.</figcaption>
                   </figure>
               </div>
               <p class="process-label">Thrust</p>
@@ -597,7 +601,11 @@
                   </figure>
                   <figure>
                     <img src="images/process/aero-thrust-mono.png" alt="Thrust slider, step 5" loading="lazy" />
-                    <figcaption>Restyled as a workspace window: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                    <figcaption>Restyled in monochrome: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-thrust-3.png" alt="Thrust slider, step 6" loading="lazy" />
+                    <figcaption>The window chrome comes off: the instrument sits straight on the grid.</figcaption>
                   </figure>
               </div>
               <p class="process-label">Docking → Trajectory</p>
@@ -620,11 +628,15 @@
                   </figure>
                   <figure>
                     <img src="images/process/aero-docking-mono.png" alt="Docking slider, step 5" loading="lazy" />
-                    <figcaption>Restyled as a workspace window: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                    <figcaption>Restyled in monochrome: no colour, white hairlines, square handle, inverted when held.</figcaption>
                   </figure>
                   <figure>
                     <img src="images/process/aero-ascent-1.png" alt="Trajectory slider, step 6" loading="lazy" />
                     <figcaption>The approach becomes the flight path itself: the vehicle rides its trajectory round the Earth, event to event.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-ascent-2.png" alt="Trajectory slider, step 7" loading="lazy" />
+                    <figcaption>The window chrome comes off: the instrument sits straight on the grid.</figcaption>
                   </figure>
               </div>
             </div>

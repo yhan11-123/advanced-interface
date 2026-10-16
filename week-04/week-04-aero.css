@@ -1,6 +1,5 @@
-/* Week 04, Set 2: Flight deck. A monochrome workspace: each slider lives in its own small application window
-   with a title bar, on a black desk ruled with a faint grid. White hairlines, small mono type, square handles;
-   no colour at all. What your hand is on turns inverted, white with black type. Shared by altitude, thrust, docking. */
+/* Week 04, Set 2: Flight deck. Monochrome instruments straight on a black desk ruled with a faint grid.
+   White hairlines, small mono type, square handles; no colour at all. What your hand is on turns inverted, white with black type. Shared by altitude, thrust, docking. */
 :root {
   --space: #000000;      /* the desk and the windows */
   --frame: #ffffff;      /* window frames, title bars */
@@ -13,7 +12,6 @@
 
   --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
   --tag-size: 9px; --tag-line: 12px; --tag-track: .12em;
-  --bar-h: 13px; --app-pad: 10px;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
   color-scheme: dark;
 }
@@ -27,14 +25,6 @@ body { background: var(--space); color: var(--text); font-family: var(--mono); -
 [role="slider"] { touch-action: none; outline: none; }
 [role="slider"]:focus-visible { box-shadow: 0 0 0 1px var(--space), 0 0 0 2px var(--frame); }
 .tag { font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: var(--tag-track); text-transform: uppercase; color: var(--dim); }
-
-/* an application window: 1px white frame, a title bar with its name and _ □ ×, small squares in the bottom corners */
-.app { position: relative; z-index: 1; background: var(--space); border: 1px solid var(--frame); padding: calc(var(--bar-h) + var(--app-pad)) var(--app-pad) var(--app-pad); }
-.app > .bar { position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); display: flex; align-items: center; justify-content: space-between; padding: 0 4px;
-  border-bottom: 1px solid var(--frame); font: 500 8px/1 var(--mono); letter-spacing: .04em; color: var(--text); }
-.app > .bar i { font-style: normal; letter-spacing: .3em; }
-.app::before, .app::after { content: ""; position: absolute; bottom: 3px; width: 4px; height: 4px; background: var(--frame); }
-.app::before { left: 3px; } .app::after { right: 3px; }
 
 /* a view inside a window: a black pane with a hairline edge */
 .window { position: relative; overflow: hidden; background: var(--space); box-shadow: inset 0 0 0 1px var(--line); }

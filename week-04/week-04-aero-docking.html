@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck docking slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=2" />
+  <link rel="stylesheet" href="week-04-aero.css?v=3" />
   <style>
   /* Docking slider, stepped. A tunnel-in-the-sky, the way a real approach display draws it: five hold points
      as gates hanging in perspective, 200 m out to capture, the docking target at the far end. Push up to fly
@@ -48,11 +48,11 @@
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div data-app="Docking"><div class="scene" role="slider" tabindex="0" aria-label="Docking approach stage">
+    <div class="scene" role="slider" tabindex="0" aria-label="Docking approach stage">
       <svg class="view"></svg>
       <div class="hud"><span style="left:16px;top:0" class="t-stage"></span><span style="right:16px;top:0" class="t-align"></span><span style="right:16px;bottom:0" class="t-rate"></span></div>
       <div class="read"><span class="tag">RANGE</span><span class="m chip"></span></div>
-    </div></div>
+    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -61,7 +61,6 @@
 
     <h3>Tunnel</h3>
     <table>
-      <tr><td>Window</td><td>A workspace window titled Docking: 1px white frame, 13px title bar</td></tr>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area; corner brackets mark its edge"></td></tr>
       <tr><td>Gate</td><td>1px rectangle, width 1.3 × its height; the gate you are at is 140px tall</td></tr>
       <tr><td>Perspective</td><td>Each gate further on is drawn at near ÷ (1 + 1.2 × stages ahead); gates you pass grow and fade out behind you</td></tr>
@@ -98,7 +97,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=2"></script>
+  <script src="week-04-aero.js?v=3"></script>
   <script>
   const STAGES = [ { d: 200, name: 'FAR' }, { d: 30, name: 'APPROACH' }, { d: 10, name: 'HOLD' }, { d: 3, name: 'FINAL' }, { d: 0, name: 'CAPTURE' } ], N = STAGES.length;
   const NS = 'http://www.w3.org/2000/svg';

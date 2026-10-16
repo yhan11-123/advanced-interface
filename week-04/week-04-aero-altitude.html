@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck altitude slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=2" />
+  <link rel="stylesheet" href="week-04-aero.css?v=3" />
   <style>
   /* Altitude slider, stepped. No window this time: the slider is the orbits themselves. The Earth sits in the
      corner with five orbit rings around it, low Earth orbit to geostationary; drag the spacecraft outward along
@@ -46,10 +46,10 @@
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div data-app="Orbit"><div class="scene" role="slider" tabindex="0" aria-label="Orbit altitude">
+    <div class="scene" role="slider" tabindex="0" aria-label="Orbit altitude">
       <svg class="view"></svg>
       <div class="read"><div class="km chip"></div><div class="sub t-v"></div><div class="sub t-t"></div></div>
-    </div></div>
+    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -94,7 +94,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=2"></script>
+  <script src="week-04-aero.js?v=3"></script>
   <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ORBITS = [ { h: 400, name: 'LEO' }, { h: 2000, name: 'LEO+' }, { h: 8000, name: 'MEO' }, { h: 20200, name: 'GPS' }, { h: 35786, name: 'GEO' } ], N = ORBITS.length;

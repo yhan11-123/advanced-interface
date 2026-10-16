@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck trajectory slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=2" />
+  <link rel="stylesheet" href="week-04-aero.css?v=3" />
   <style>
   /* Trajectory slider, stepped. The flight itself is the track: an ascent arcing up and round a wireframe Earth,
      with the mission's events marked along it, liftoff to spacecraft separation. Drag the vehicle along its
@@ -47,11 +47,11 @@
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div data-app="Trajectory"><div class="scene" role="slider" tabindex="0" aria-label="Flight sequence">
+    <div class="scene" role="slider" tabindex="0" aria-label="Flight sequence">
       <div class="stars"></div>
       <svg class="view"></svg>
       <div class="tele"><span class="k">Velocity<br><i>km/h</i></span><b class="v-vel"></b><span class="k">Altitude<br><i>km</i></span><b class="v-alt"></b><span class="clock chip"></span></div>
-    </div></div>
+    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -60,7 +60,6 @@
 
     <h3>Trajectory</h3>
     <table>
-      <tr><td>Window</td><td>A workspace window titled Trajectory: 1px white frame, 13px title bar</td></tr>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area"></td></tr>
       <tr><td>Earth</td><td>A wireframe globe drawn in code, radius 74, tilted 18°, rising from the bottom edge; it turns 40° for every event the vehicle moves, following the drag and the glide</td></tr>
       <tr><td>Path</td><td>An ellipse 236 × 124, turned −10°, leaving the Earth's surface at the lower right; flown part 1.5px white, the rest 1px grey</td></tr>
@@ -97,7 +96,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=2"></script>
+  <script src="week-04-aero.js?v=3"></script>
   <script>
   // One flight, five events. t is mission time in seconds; velocity in km/h, altitude in km.
   const EVENTS = [

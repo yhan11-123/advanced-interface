@@ -1,13 +1,7 @@
-// Week 04, Set 2: the workspace, drawn in code. Window chrome, stars, and a wireframe Earth.
+// Week 04, Set 2: drawn in code. Stars and a wireframe Earth.
 const AERO = (() => {
   const NS = 'http://www.w3.org/2000/svg';
   const rng = seed => () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-
-  // every [data-app] becomes a window: a title bar with its name and _ □ ×
-  document.querySelectorAll('[data-app]').forEach(el => {
-    el.classList.add('app');
-    el.insertAdjacentHTML('afterbegin', `<div class="bar" aria-hidden="true"><span>${el.dataset.app}</span><i>_□×</i></div>`);
-  });
 
   // a field of white pinpoints, a few brighter ones slowly pulsing
   function stars(el, n = 160, seed = 5) {

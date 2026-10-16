@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck thrust slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=2" />
+  <link rel="stylesheet" href="week-04-aero.css?v=3" />
   <style>
   /* Thrust slider, continuous. A throttle lever in its quadrant beside the forward view. Push it up and the
      engine answers: the stars ahead start to stream past, faster and longer the harder you burn, and the
@@ -46,14 +46,12 @@
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div data-app="Throttle">
     <section class="deck" aria-label="Main engine">
       <div class="window"><canvas></canvas><span class="big chip"></span>
         <div class="hud"><span style="left:10px;top:8px">MAIN ENGINE</span><span style="right:10px;top:8px" class="t-g"></span><span style="left:10px;bottom:8px" class="t-mode"></span><span style="right:10px;bottom:8px" class="t-dv"></span></div>
       </div>
       <div class="quad" role="slider" tabindex="0" aria-label="Thrust"><div class="slot"><div class="lit"></div></div><div class="ghost"><span></span></div><div class="handle"></div></div>
     </section>
-    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -62,7 +60,6 @@
 
     <h3>Quadrant</h3>
     <table>
-      <tr><td>Window</td><td>A workspace window titled Throttle: 1px white frame, 13px title bar, 10px padding</td></tr>
       <tr><td>Quadrant</td><td data-var="--quad-w,--win-h" data-join=" × " data-after=", the hit area; 12px right of the view"></td></tr>
       <tr><td>Slot</td><td data-var="--slot-w" data-after=" wide, 1px outline, 12px in from the top and bottom; filled white from below to the thrust"></td></tr>
       <tr><td>Ticks</td><td data-var="--tick,--tick-major" data-join=" and " data-after=" long, every 5% and 25%; quarters labelled, IDLE and MAX at the ends"></td></tr>
@@ -97,7 +94,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=2"></script>
+  <script src="week-04-aero.js?v=3"></script>
   <script>
   const quad = document.querySelector('.quad'), handle = quad.querySelector('.handle'), lit = quad.querySelector('.lit'), ghost = quad.querySelector('.ghost'), deck = document.querySelector('.deck');
   const win = document.querySelector('.window'), cv = win.querySelector('canvas'), cx = cv.getContext('2d');
