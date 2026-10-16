@@ -6,16 +6,17 @@
   <title>Week 04 &middot; Field slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <style>
-  /* Field slider, one piece, split by direction. On the left, six mesh layers float in the dark, threads and
-     bubbles drifting between them: there you only go up and down. Drag anywhere on the stack and the handle
-     lifts and rides a line through the layers, settling on one when you let go. On the right, the layer you
-     are on is laid out flat, seen from straight above: there you move across and along it, freely. */
+  /* Field slider, one piece. On the left, a wireframe box with six mesh layers stacked inside it. The handle moves
+     freely over a layer, like a knob on a colour wheel, pressing a dent into the mesh where it is. Push it into a
+     corner and it slips onto the box's edge, a line you can ride up and down through the layers; pull it inward
+     again and it steps onto the face of whichever layer you stopped at. On the right, the layer you are on is laid
+     out flat, seen from straight above, for finer work. */
   :root {
     --bg: #000; --fg: #fff; --dim: #6e6e6e; --line: #2e2e2e;
     --weak: #f1e4c8; --strong: #ff4a3a;
     --mono: "SF Mono", ui-monospace, Menlo, monospace;
     --w: 520px; --h: 340px;
-    --layers: 6; --gap: 28px;
+    --layers: 6; --gap: 26px; --grid: 18;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
@@ -58,28 +59,31 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. One slider with three values: which of six layers, and where on it, across and along. The two halves split the work by direction. The stack on the left is for going between layers: press anywhere on it and the handle lifts onto a line through all six, and dragging up or down carries it from layer to layer until you let go. The flat view on the right is the layer you are on, seen from straight above: there the handle moves freely across and along it, the way a knob moves over a colour wheel, pressing a dent into the mesh. The layer, the point and the force read in the corner, always on screen.</p>
+    <p>Read from the CSS this page runs on. One slider with three values: which of six layers, and where on it, across and along. In the box on the left the handle moves freely over a layer, pressing a dent into the mesh where it is, the way a knob moves over a colour wheel. Push it into a corner of the layer and it slips onto that edge of the box: a line you can ride up or down through the layers. Pull it inward and it steps onto the face of the layer you stopped at. On the right, the same layer seen from straight above, for fine work. The layer, the point and the force read in the corner, always on screen.</p>
 
-    <h3>Layers</h3>
+    <h3>Box and layers</h3>
     <table>
-      <tr><td>Field</td><td data-var="--w,--h" data-join=" × " data-after=", growing to 680px wide; the stack on the left, the flat layer on the right"></td></tr>
-      <tr><td>Stack</td><td data-var="--layers" data-after=" meshes, 28px apart in isometric view, no box round them"></td></tr>
-      <tr><td>Mesh</td><td>26 × 26 cells for the layer in use, 18 × 18 for the rest; the rest fade to 22%, the neighbours a little stronger</td></tr>
-      <tr><td>Floating</td><td>Each layer bobs 3px on its own slow beat and tilts a little; its waves drift; threads hang between layers and wire bubbles rise through them</td></tr>
-      <tr><td>Dent</td><td>Where the handle is, the mesh sinks up to 28px in a soft round dent, deepest while held</td></tr>
+      <tr><td>Field</td><td data-var="--w,--h" data-join=" × " data-after=", growing to 680px wide; the box on the left, the flat layer on the right"></td></tr>
+      <tr><td>Box</td><td>A wireframe box in isometric view, 1px white at 50%, its four upright edges the lines you ride</td></tr>
+      <tr><td>Layers</td><td data-var="--layers" data-after=" meshes stacked 26px apart, each a grid of 18 × 18 cells, sagging deeper the lower they sit"></td></tr>
+      <tr><td>Layer in use</td><td>Drawn at full strength; the others fade to 25%, the neighbours a little stronger</td></tr>
+      <tr><td>Dent</td><td>Where the handle is, the mesh sinks up to 26px in a soft round dent, deepest while held</td></tr>
       <tr><td>Colour</td><td>Each strand coloured by how far it is pressed down, weak to strong</td></tr>
     </table>
 
-    <h3>Moving</h3>
+    <h3>Handle and lines</h3>
     <table>
-      <tr><td>Stack: mostly between layers</td><td>Pointing at the stack shows a line through the layers at the handle's point, the layer you point at labelled; a tap goes to that layer. A drag that starts anywhere near vertical (steeper than 0.6) lifts the handle onto the line, 28px a layer, settling on the nearest; a clearly sideways drag moves it across the layer instead</td></tr>
-      <tr><td>Flat view: on a layer</td><td>Across and along, at 0.7 speed for fine work; a press jumps the handle to that point</td></tr>
-      <tr><td>Linked</td><td>The handle in the stack and the one in the flat view are the same point; each follows the other</td></tr>
+      <tr><td>Handle</td><td>6px white dot with a dark rim, in a 10px ring; it sits on the mesh, in its dent</td></tr>
+      <tr><td>On a face</td><td>Moves freely: across and along the layer, to two decimals</td></tr>
+      <tr><td>Onto a line</td><td>Within 0.18 of a corner, the handle slips onto that upright edge; the edge lights white with a tick at each layer</td></tr>
+      <tr><td>On a line</td><td>Up and down only, through the layers; it settles on the nearest one when let go</td></tr>
+      <tr><td>Back to a face</td><td>Move 16px inward off the line and the handle steps onto the face of that layer</td></tr>
+      <tr><td>From above</td><td>The panel on the right shows the layer in use flat; dragging there moves the handle at 0.7 speed, for fine work; a press there jumps it to that point. Both handles are the same point</td></tr>
     </table>
 
     <h3>Readout</h3>
     <table>
-      <tr><td>Where</td><td>Mono 500 9px: the layer out of six, and whether the handle is on the layer or lifted</td></tr>
+      <tr><td>Where</td><td>Mono 500 9px: the layer out of six, and whether the handle is on a face or a line</td></tr>
       <tr><td>Point</td><td>Mono 600 17px: across, along, from 0 to 1</td></tr>
       <tr><td>Force</td><td>How hard the mesh is pressed where the handle is, 0 to 100%</td></tr>
       <tr><td>Legend</td><td>Bottom right, a 3px bar from weak to strong</td></tr>
@@ -94,9 +98,10 @@
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>Over the stack, the line through the layers shows faintly and the layer pointed at is ticked and labelled; over the flat view, a small cross marks the point</td></tr>
-      <tr><td>Pressed</td><td>On the stack the handle lifts at once onto its line; on the flat view the dot tightens and the dent deepens; the point inverts, black on white</td></tr>
-      <tr><td>Drag</td><td>In the stack it rides the line and the layers it passes light up; on the flat view it follows and the mesh dents under it</td></tr>
+      <tr><td>Hover</td><td>Over the layer in use, or the flat view, a small cross marks the point under the pointer; near an upright edge, that edge lights; over the handle, its ring opens to 12px</td></tr>
+      <tr><td>Pressed</td><td>The dot tightens to 4.5px and the dent deepens; the point inverts, black on white</td></tr>
+      <tr><td>Drag</td><td>The ring opens to 13px and follows; the mesh dents under it as it goes, with no lag</td></tr>
+      <tr><td>Let go</td><td>Stays where it is on a face; on a line, settles on the nearest layer</td></tr>
       <tr><td>Keyboard and wheel</td><td>Arrows move across and along by 0.05; Page Up and Down, or a scroll, change the layer</td></tr>
     </table>
   </section>
@@ -106,174 +111,179 @@
   <script>
   const field = document.querySelector('.field'), cv = field.querySelector('canvas'), cx = cv.getContext('2d');
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const W = 520, H = 340, N = +css('--layers'), GAP = parseFloat(css('--gap'));
+  const W = 520, H = 340, N = +css('--layers'), GAP = parseFloat(css('--gap')), G = +css('--grid');
   const WEAK = [241, 228, 200], STRONG = [255, 74, 58];
-  // the stack, isometric: u to the lower right, v to the lower left, y downward
-  const O = { x: 176, y: 70 }, A = 104, B = 38, TOPY = 18;
+  // isometric box: u runs to the lower right, v to the lower left, y downward from the top face
+  const O = { x: 176, y: 50 }, A = 106, B = 40, TOPY = 26, BOXH = TOPY * 2 + GAP * (N - 1);
   const P = (u, v, y) => ({ x: O.x + (u - v) * A, y: O.y + (u + v) * B + y });
+  const layerY = p => TOPY + p * GAP;
+  const CORNERS = [[0, 0], [1, 0], [1, 1], [0, 1]];
   // the panel: the same layer seen from straight above, a diamond turned the same way
   const PC = { x: 440, y: 160 }, PA = 72;
   const Q = (u, v) => ({ x: PC.x + (u - v) * PA, y: PC.y - PA + (u + v) * PA });
   const fromQ = m => { const dx = (m.x - PC.x) / PA, dy = (m.y - PC.y + PA) / PA; return { u: (dy + dx) / 2, v: (dy - dx) / 2 }; };
 
-  let p = 2, u = .58, v = .42;                // the set values: layer and point
-  let sp = p, su = u, sv = v;                 // the shown values, chasing them
-  let lifted = false, holdT = 0, hold = 0, press = 0, lift = 0, t = 0;
-  let hover = null, down = false, drag = false, near = false, where = null;
-  const rnd = (s => () => (s = (s * 9301 + 49297) % 233280) / 233280)(11);
-  const THREADS = Array.from({ length: 46 }, () => ({ u: .08 + rnd() * .84, v: .08 + rnd() * .84, k: Math.floor(rnd() * (N - 1)), ph: rnd() * 6 }));
-  const BUBBLES = Array.from({ length: 16 }, () => ({ u: .1 + rnd() * .8, v: .1 + rnd() * .8, y: rnd(), r: 5 + rnd() * 9, sp: .02 + rnd() * .03, ph: rnd() * 6 }));
+  // state: layer p (continuous while riding a line), point u v, and mode
+  let p = 2, u = .58, v = .42, mode = 'face', edge = 2;            // what is set
+  let sp = p, su = u, sv = v;                                    // what is shown, chasing the set values
+  let hover = null, down = false, drag = false, near = false, press = 0, where = null;
 
   function resize() { const r = field.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.setTransform(r.width / W * d, 0, 0, r.height / H * d, 0, 0); }
-  const mix = (a, b, x) => a.map((c, i) => Math.round(c + (b[i] - c) * x));
-  const clamp01 = x => Math.min(1, Math.max(0, x));
-  // each layer floats on its own beat
-  const layerY = k => TOPY + k * GAP + 3 * Math.sin(t * .7 + k * 1.3);
-  // how far a layer is pressed down at u v: its drifting waves, a slow tilt, its sag, and the dent under the handle
-  function depth(k, uu, vv) {
-    const amp = 2.2 + k * 2.2;
-    const rest = amp * (Math.sin(uu * 5.1 + k * 1.3 + t * .5) * Math.cos(vv * 4.3 - k * .8 - t * .3) * .6 + Math.sin((uu + vv) * 3.2 + k + t * .35) * .4);
-    const tilt = 4 * (uu - vv) * Math.sin(t * .4 + k * .9);
-    const sag = k * 3 * Math.sin(Math.PI * uu) * Math.sin(Math.PI * vv);
-    const w = Math.max(0, 1 - Math.abs(k - sp) / 1.3) * (1 - lift * .6);
-    const dent = (16 + 12 * press) * w * Math.exp(-((uu - su) ** 2 + (vv - sv) ** 2) / (2 * .12 * .12));
-    return { y: rest + tilt + sag + dent, s: clamp01((sag + dent + Math.max(0, rest)) / 30) };
+  const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+
+  // how far a layer is pressed down at u v: its resting waves, its sag, and the dent under the handle
+  function depth(k, uu, vv, t) {
+    const amp = 2 + k * 2.4;
+    const rest = amp * (Math.sin(uu * 5.1 + k * 1.3 + t * .35) * Math.cos(vv * 4.3 - k * .8) * .6 + Math.sin((uu + vv) * 3.2 + k + t * .2) * .4);
+    const sag = k * 3.2 * Math.sin(Math.PI * uu) * Math.sin(Math.PI * vv);
+    const w = Math.max(0, 1 - Math.abs(k - sp) / 1.4);
+    const dent = (14 + 12 * press) * w * Math.exp(-((uu - su) ** 2 + (vv - sv) ** 2) / (2 * .12 * .12));
+    return { y: rest + sag + dent, s: Math.min(1, Math.max(0, (sag + dent + Math.max(0, rest)) / 30)) };
   }
-  const line = (a, b, style, w = 1) => { cx.strokeStyle = style; cx.lineWidth = w; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); };
-  function mesh(L, G, alpha, proj, yoff) {
+  const edgeLine = (a, b, alpha, wdt = 1) => { cx.strokeStyle = `rgba(255,255,255,${alpha})`; cx.lineWidth = wdt; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); };
+  function mesh(L, alpha, proj, t) {
     const pts = [];
-    for (let i = 0; i <= G; i++) { pts[i] = []; for (let j = 0; j <= G; j++) { const uu = i / G, vv = j / G, d = depth(L, uu, vv), q = proj(uu, vv, d.y + yoff); pts[i][j] = { x: q.x, y: q.y, s: d.s }; } }
-    cx.lineWidth = .55;
-    for (let i = 0; i <= G; i++) for (let j = 0; j < G; j++) for (const [a, b] of [[pts[i][j], pts[i][j + 1]], [pts[j][i], pts[j + 1][i]]]) {
-      const c = mix(WEAK, STRONG, (a.s + b.s) / 2);
-      cx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(3)})`; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
-    }
-  }
-
-  function frame(now) {
-    t = now / 1000;
-    const k = drag ? .45 : .18;
-    sp += (p - sp) * (lifted ? .35 : k); su += (u - su) * k; sv += (v - sv) * k;
-    press += ((down && !lifted ? 1 : 0) - press) * .2; lift += ((lifted ? 1 : 0) - lift) * .2;
-    cx.clearRect(0, 0, W, H);
-
-    // threads hanging between layers, swaying
-    THREADS.forEach(th => {
-      const a = P(th.u, th.v, layerY(th.k) + depth(th.k, th.u, th.v).y), b = P(th.u + .01 * Math.sin(t + th.ph), th.v, layerY(th.k + 1) + depth(th.k + 1, th.u, th.v).y);
-      line(a, b, 'rgba(255,255,255,.1)', .5);
-    });
-    // the layers, top to bottom
-    for (let L = 0; L < N; L++) {
-      const w = Math.max(0, 1 - Math.abs(L - sp) / 1.3), alpha = .22 + .78 * Math.pow(w, 1.5) * (lifted ? .75 : 1);
-      mesh(L, Math.abs(L - sp) < .5 ? 26 : 18, alpha, (uu, vv, y) => P(uu, vv, y), layerY(L));
-    }
-    // wire bubbles rising through the stack
-    BUBBLES.forEach(bb => {
-      bb.y -= bb.sp / 60; if (bb.y < 0) bb.y += 1;
-      const c = P(bb.u + .02 * Math.sin(t * .8 + bb.ph), bb.v, TOPY + bb.y * GAP * (N - 1));
-      cx.strokeStyle = `rgba(255,255,255,${(.18 * Math.sin(Math.PI * bb.y)).toFixed(3)})`; cx.lineWidth = .6;
-      cx.beginPath(); cx.ellipse(c.x, c.y, bb.r, bb.r * .92, 0, 0, 7); cx.stroke();
-      cx.beginPath(); cx.ellipse(c.x, c.y, bb.r, bb.r * .35, 0, 0, 7); cx.stroke();
-    });
-
-    // the line through the layers at the handle's point: faint on hover over the stack, full while riding it,
-    // a tick at each layer, the hovered one labelled
-    const Lr = Math.round(sp), show = Math.max(lift, hover && hover.type === 'layer' ? .45 : 0);
-    if (show > .02) {
-      const a = P(su, sv, layerY(0) - 12), b = P(su, sv, layerY(N - 1) + 12), al = (.9 * show).toFixed(3);
-      line(a, b, `rgba(255,255,255,${al})`, 1);
-      for (let L = 0; L < N; L++) {
-        const q = P(su, sv, layerY(L)), on = L === Lr, hv = hover && hover.type === 'layer' && hover.L === L;
-        line({ x: q.x - (on || hv ? 8 : 5), y: q.y }, { x: q.x + (on || hv ? 8 : 5), y: q.y }, `rgba(255,255,255,${hv ? 1 : al})`, on ? 1.5 : 1);
-        if (hv || (lifted && on)) { cx.fillStyle = '#fff'; cx.font = '600 8px ui-monospace, Menlo, monospace'; cx.fillText('L' + (L + 1), q.x + 12, q.y + 3); }
+    for (let i = 0; i <= G; i++) { pts[i] = []; for (let j = 0; j <= G; j++) { const uu = i / G, vv = j / G, d = depth(L, uu, vv, t), q = proj(uu, vv, d.y); pts[i][j] = { x: q.x, y: q.y, s: d.s }; } }
+    cx.lineWidth = .6;
+    for (let i = 0; i <= G; i++) for (let j = 0; j < G; j++) {
+      for (const [a, b] of [[pts[i][j], pts[i][j + 1]], [pts[j][i], pts[j + 1][i]]]) {
+        const c = mix(WEAK, STRONG, (a.s + b.s) / 2);
+        cx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(3)})`;
+        cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
       }
     }
-    // the cross under the pointer on the panel
-    if (down && axis === 'h') { const q = P(su, sv, layerY(Lr) + depth(Lr, su, sv).y); line({ x: q.x - 16, y: q.y }, { x: q.x + 16, y: q.y }, 'rgba(255,255,255,.5)'); }
-    if (hover && !down && hover.type === 'panel') {
-      const q = Q(hover.u, hover.v);
-      line({ x: q.x - 5, y: q.y }, { x: q.x + 5, y: q.y }, 'rgba(255,255,255,.9)'); line({ x: q.x, y: q.y - 5 }, { x: q.x, y: q.y + 5 }, 'rgba(255,255,255,.9)');
-    }
-
-    // the panel: the layer in use, flat, from straight above
-    mesh(Lr, 22, .9, (uu, vv) => Q(uu, vv), 0);
-    [0, .5, 1].forEach(f => { const a = Q(f, 0), b = Q(f, 1), c = Q(0, f), d = Q(1, f); line(a, b, 'rgba(255,255,255,.12)', .5); line(c, d, 'rgba(255,255,255,.12)', .5); });
-
-    // the handle, in the stack (in its dent, or lifted above it) and on the panel
-    const hd = depth(Lr, su, sv).y * (1 - Math.abs(sp - Lr)) * (1 - lift);
-    knob(P(su, sv, layerY(sp) + hd - lift * 8), true);
-    knob(Q(su, sv), false);
-
-    const f = depth(Lr, su, sv).s;
-    field.querySelector('.v-l').textContent = `${String(Lr + 1).padStart(2, '0')}/${String(N).padStart(2, '0')}`;
-    field.querySelector('.v-l2').textContent = String(Lr + 1).padStart(2, '0');
-    field.querySelector('.v-m').textContent = lifted ? 'LIFTED' : 'ON LAYER';
-    field.querySelector('.pos').textContent = `${su.toFixed(2)}, ${sv.toFixed(2)}`;
-    field.querySelector('.v-f').textContent = Math.round(f * 100) + '%';
-    requestAnimationFrame(frame);
   }
-  function knob(h, main) {
-    const ring = lifted ? 12 : drag ? 13 : near && !down ? 12 : 10, dot = down && !drag && !lifted ? 4.5 : 6;
-    cx.strokeStyle = 'rgba(255,255,255,.75)'; cx.lineWidth = 1; cx.setLineDash(lifted && main ? [2, 2] : []);
-    cx.beginPath(); cx.arc(h.x, h.y, ring, 0, 7); cx.stroke(); cx.setLineDash([]);
+  function knob(h) {
+    const ring = drag ? 13 : near && !down ? 12 : 10, dot = down && !drag ? 4.5 : 6;
+    cx.strokeStyle = 'rgba(255,255,255,.75)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(h.x, h.y, ring, 0, 7); cx.stroke();
     cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 + 1.5, 0, 7); cx.fill();
     cx.fillStyle = '#000'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 - .2, 0, 7); cx.fill();
     cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(h.x, h.y, dot / 2 - 1.4, 0, 7); cx.fill();
   }
 
-  // pointer: on the handle (stack or panel), on the layer in the stack, or on the panel
-  const local = e => { const r = field.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
-  const onLayer = (m, L) => { const dx = (m.x - O.x) / A, dy = (m.y - O.y - layerY(L)) / B; return { u: (dy + dx) / 2, v: (dy - dx) / 2 }; };
-  const inside = q => q.u >= -.03 && q.u <= 1.03 && q.v >= -.03 && q.v <= 1.03;
-  // which layer the pointer points at: read along the handle's own line, so higher picks a layer above
-  const layerAt = m => Math.min(N - 1, Math.max(0, Math.round((m.y - P(su, sv, TOPY).y) / GAP)));
-  function look(m) {
-    const hq = Q(su, sv);
-    near = false;
-    if (m.x > 340) {
-      if (Math.hypot(hq.x - m.x, hq.y - m.y) < 13) { near = true; return { type: 'panel-handle' }; }
-      const q = fromQ(m); return inside(q) ? { type: 'panel', u: clamp01(q.u), v: clamp01(q.v) } : null;
+  function frame(now) {
+    const t = now / 1000;
+    // follow: the shown values chase the set ones, quickly while dragging, softly otherwise
+    const k = drag ? .45 : .2;
+    sp += (p - sp) * k; su += (u - su) * k; sv += (v - sv) * k;
+    press += ((down ? 1 : 0) - press) * .2;
+    cx.clearRect(0, 0, W, H);
+
+    // back edges of the box first, then the layers top to bottom, then the front edges
+    const top = CORNERS.map(([a, b]) => P(a, b, 0)), bot = CORNERS.map(([a, b]) => P(a, b, BOXH));
+    for (let i = 0; i < 4; i++) { edgeLine(top[i], top[(i + 1) % 4], .5); }
+    edgeLine(bot[3], bot[0], .3); edgeLine(bot[0], bot[1], .3); edgeLine(top[0], bot[0], .3);
+
+    for (let L = 0; L < N; L++) {
+      const w = Math.max(0, 1 - Math.abs(L - sp) / 1.4), alpha = .22 + .78 * Math.pow(w, 1.5);
+      mesh(L, alpha, (uu, vv, y) => P(uu, vv, layerY(L) + y), t);
     }
-    const top = P(.5, .5, 0).y - B - 20, bot = P(.5, .5, layerY(N - 1)).y + B + 30;   // the stack, top to bottom
-    return m.y > top && m.y < bot && Math.abs(m.x - O.x) < A + 30 ? { type: 'layer', L: layerAt(m) } : null;
+
+    // the upright edges: the one in use (or hovered) lit, with a tick at every layer
+    for (let c = 0; c < 4; c++) {
+      const lit = (mode === 'edge' && edge === c) || (hover && hover.type === 'edge' && hover.c === c);
+      if (c !== 0) edgeLine(top[c], bot[c], lit ? 1 : .5, lit ? 1.25 : 1);
+      if (lit) for (let L = 0; L < N; L++) { const q = P(CORNERS[c][0], CORNERS[c][1], layerY(L)); edgeLine({ x: q.x - 4, y: q.y }, { x: q.x + 4, y: q.y }, .9); }
+    }
+    edgeLine(bot[1], bot[2], .5); edgeLine(bot[2], bot[3], .5);
+
+    // a cross under the pointer, on the face in use or on the flat view
+    const L = Math.round(sp);
+    if (hover && (hover.type === 'face' || hover.type === 'panel') && !down) {
+      const q = hover.type === 'panel' ? Q(hover.u, hover.v) : P(hover.u, hover.v, layerY(L) + depth(L, hover.u, hover.v, t).y);
+      edgeLine({ x: q.x - 5, y: q.y }, { x: q.x + 5, y: q.y }, .9); edgeLine({ x: q.x, y: q.y - 5 }, { x: q.x, y: q.y + 5 }, .9);
+    }
+
+    // the flat view: the layer in use, seen from straight above
+    mesh(L, .9, (uu, vv) => Q(uu, vv), t);
+    [0, .5, 1].forEach(f => { edgeLine(Q(f, 0), Q(f, 1), .12, .5); edgeLine(Q(0, f), Q(1, f), .12, .5); });
+
+    // the handle, sitting in its dent (or on its line), and its twin on the flat view
+    const onLine = mode === 'edge', hu = onLine ? CORNERS[edge][0] : su, hv = onLine ? CORNERS[edge][1] : sv;
+    const hd = onLine ? 0 : depth(L, hu, hv, t).y * (1 - Math.abs(sp - L));
+    knob(P(hu, hv, layerY(sp) + hd));
+    knob(Q(hu, hv));
+
+    // readout
+    const f = depth(L, hu, hv, t).s;
+    field.querySelector('.v-l').textContent = `${String(L + 1).padStart(2, '0')}/${String(N).padStart(2, '0')}`;
+    field.querySelector('.v-l2').textContent = String(L + 1).padStart(2, '0');
+    field.querySelector('.v-m').textContent = onLine ? 'ON LINE' : 'ON FACE';
+    field.querySelector('.pos').textContent = `${hu.toFixed(2)}, ${hv.toFixed(2)}`;
+    field.querySelector('.v-f').textContent = Math.round(f * 100) + '%';
+    requestAnimationFrame(frame);
   }
 
-  let x0 = 0, y0 = 0, p0 = 0, u0 = 0, v0 = 0, axis = null, tapL = null;
-  const showState = () => { field.classList.toggle('is-hover', !!hover && !down); field.classList.toggle('is-pressed', down && !drag); field.classList.toggle('is-dragging', drag); field.style.cursor = lifted ? 'ns-resize' : axis === 'h' ? 'ew-resize' : hover && hover.type === 'layer' ? 'move' : down ? 'grabbing' : hover ? (hover.type.includes('handle') ? 'grab' : 'crosshair') : 'default'; };
+  // pointer to the box: the pointer in box units, the point on a layer under it, the upright edge near it
+  const local = e => { const r = field.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+  const onLayer = (m, L) => { const dx = (m.x - O.x) / A, dy = (m.y - O.y - layerY(L)) / B; return { u: (dy + dx) / 2, v: (dy - dx) / 2 }; };
+  const inside = q => q.u >= -.02 && q.u <= 1.02 && q.v >= -.02 && q.v <= 1.02;
+  const clamp01 = x => Math.min(1, Math.max(0, x));
+  const edgeAt = m => { let best = null; CORNERS.forEach(([a, b], c) => { const t0 = P(a, b, 0), dx = Math.abs(m.x - t0.x); if (dx < 9 && m.y > t0.y + TOPY - 14 && m.y < t0.y + BOXH - TOPY + 14 && (!best || dx < best.dx)) best = { type: 'edge', c, dx }; }); return best; };
+  const handlePt = () => { const onL = mode === 'edge'; return [onL ? CORNERS[edge][0] : su, onL ? CORNERS[edge][1] : sv]; };
+  const handleAt = m => { const [hu, hv] = handlePt(), q = P(hu, hv, layerY(sp)); return Math.hypot(q.x - m.x, q.y - m.y) < 16; };
+  const look = m => {
+    if (m.x > 340) { const [hu, hv] = handlePt(), hq = Q(hu, hv); near = Math.hypot(hq.x - m.x, hq.y - m.y) < 13; const q = fromQ(m); return near ? { type: 'panel-handle' } : inside(q) ? { type: 'panel', u: clamp01(q.u), v: clamp01(q.v) } : null; }
+    near = handleAt(m); const e = edgeAt(m); if (e) return e; const q = onLayer(m, Math.round(sp)); return inside(q) ? { type: 'face', u: clamp01(q.u), v: clamp01(q.v) } : null;
+  };
+
+  // moving in the box: on a face the handle follows freely, and a push into a corner puts it on that line;
+  // on a line it only rides up and down, and a move inward puts it back on the face of that layer
+  function moveTo(m) {
+    if (mode === 'face') {
+      const q = onLayer(m, p), cu = clamp01(q.u), cvv = clamp01(q.v);
+      u = cu; v = cvv;
+      if (q.u < -.04 || q.u > 1.04 || q.v < -.04 || q.v > 1.04) {
+        CORNERS.forEach(([a, b], c) => { if (Math.hypot(cu - a, cvv - b) < .18) { mode = 'edge'; edge = c; } });
+      }
+    } else {
+      const t0 = P(CORNERS[edge][0], CORNERS[edge][1], 0);
+      p = Math.min(N - 1, Math.max(0, (m.y - t0.y - TOPY) / GAP));
+      const q = onLayer(m, Math.round(p)), [a, b] = CORNERS[edge];
+      const inward = Math.abs(m.x - t0.x) > 16 && inside(q) && Math.hypot(q.u - a, q.v - b) < .7;
+      if (inward) { p = Math.round(p); mode = 'face'; u = clamp01(q.u); v = clamp01(q.v); }
+    }
+  }
+
+  let x0 = 0, y0 = 0, u0 = 0, v0 = 0;
+  const show = () => { field.classList.toggle('is-hover', !!hover && !down); field.classList.toggle('is-pressed', down && !drag); field.classList.toggle('is-dragging', drag); field.style.cursor = down ? 'grabbing' : (near || hover) ? 'grab' : 'default'; };
   field.addEventListener('pointermove', e => {
     const m = local(e);
-    if (!field.hasPointerCapture(e.pointerId)) { hover = look(m); showState(); return; }
-    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) { drag = true; showState(); }
+    if (!field.hasPointerCapture(e.pointerId)) { hover = look(m); show(); return; }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
     if (!drag) return;
-    const r = field.getBoundingClientRect(), dy = (e.clientY - y0) * H / r.height, dx = (e.clientX - x0) * W / r.width;
-    if (where === 'stack' && !axis) axis = Math.abs(dy) >= Math.abs(dx) * .6 ? 'v' : 'h';     // the stack leans to up and down: anything near vertical goes between layers
-    if (where === 'stack' && axis === 'v') { lifted = true; p = Math.min(N - 1, Math.max(0, p0 + dy / GAP)); }
-    else if (where === 'stack') { const q = onLayer(m, Math.round(p)); u = clamp01(q.u); v = clamp01(q.v); }   // clearly sideways: across the layer                 // the stack: up and down only, 28px a layer
-    else { const a = fromQ({ x: PC.x + dx * .7, y: PC.y - PA + dy * .7 }); u = clamp01(u0 + a.u); v = clamp01(v0 + a.v); }   // the panel: across and along
+    if (where === 'panel') {                                    // the flat view: across and along, at 0.7 speed
+      const r = field.getBoundingClientRect(), dx = (e.clientX - x0) * W / r.width * .7, dy = (e.clientY - y0) * H / r.height * .7, a = fromQ({ x: PC.x + dx, y: PC.y - PA + dy });
+      u = clamp01(u0 + a.u); v = clamp01(v0 + a.v);
+    } else moveTo(m);
   });
-  field.addEventListener('pointerleave', () => { if (!down) { hover = null; near = false; showState(); } });
+  field.addEventListener('pointerleave', () => { hover = null; near = false; show(); });
   field.addEventListener('pointerdown', e => {
-    const m = local(e), h = look(m); if (!h) return;
-    field.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; p0 = p; down = true; drag = false; hover = null; holdT = performance.now();
-    where = h.type === 'layer' ? 'stack' : 'panel';
-    axis = null; tapL = h.type === 'layer' ? h.L : null;                                  // a press on the stack: lift onto the line, at the layer pointed to
-    if (h.type === 'panel') { u = h.u; v = h.v; }                                                // a press on the panel: the handle goes there
-    u0 = u; v0 = v; showState();
+    const m = local(e), h = look(m), onHandle = near, e2 = m.x <= 340 ? edgeAt(m) : null;
+    if (!onHandle && !h) return;
+    field.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; hover = null;
+    where = m.x > 340 ? 'panel' : 'box';
+    if (where === 'panel') {
+      if (mode === 'edge') { mode = 'face'; u = CORNERS[edge][0]; v = CORNERS[edge][1]; }
+      if (h && h.type === 'panel') { u = h.u; v = h.v; }        // a press on the flat view: the handle goes there
+    } else if (!onHandle) {
+      if (e2) { mode = 'edge'; edge = e2.c; moveTo(m); }       // a press on an upright edge: onto that line
+      else { mode = 'face'; u = h.u; v = h.v; }                // a press on the face: the handle goes there
+    }
+    u0 = u; v0 = v; show();
   });
-  const release = e => {
-    if (!down) return;
-    if (!drag && tapL !== null) p = tapL;                                                      // a tap on the stack goes to the layer pointed at
-    down = drag = false; if (lifted) { lifted = false; p = Math.round(p); } where = null; axis = null; hover = look(local(e)); showState();
-  };
+  const release = e => { if (!down) return; down = drag = false; if (mode === 'edge') p = Math.round(p); where = null; hover = look(local(e)); show(); };
   field.addEventListener('pointerup', release);
   field.addEventListener('pointercancel', release);
   field.addEventListener('wheel', e => { e.preventDefault(); p = Math.min(N - 1, Math.max(0, Math.round(p) + Math.sign(e.deltaY))); }, { passive: false });
   field.addEventListener('keydown', e => {
     const step = .05, k = e.key;
     if (k === 'PageUp') p = Math.max(0, Math.round(p) - 1); else if (k === 'PageDown') p = Math.min(N - 1, Math.round(p) + 1);
-    else if (k === 'ArrowRight') u = clamp01(u + step); else if (k === 'ArrowLeft') u = clamp01(u - step);
-    else if (k === 'ArrowDown') v = clamp01(v + step); else if (k === 'ArrowUp') v = clamp01(v - step);
-    else return;
+    else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) {
+      if (mode === 'edge') { mode = 'face'; u = CORNERS[edge][0]; v = CORNERS[edge][1]; }
+      if (k === 'ArrowRight') u = clamp01(u + step); if (k === 'ArrowLeft') u = clamp01(u - step);
+      if (k === 'ArrowDown') v = clamp01(v + step); if (k === 'ArrowUp') v = clamp01(v - step);
+    } else return;
     e.preventDefault();
     field.setAttribute('aria-valuetext', `layer ${Math.round(p) + 1} of ${N}, across ${u.toFixed(2)}, along ${v.toFixed(2)}`);
   });
