@@ -422,27 +422,43 @@
            Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
 
       <div class="set-grid">
-        <div class="set-box" id="set-1">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
-            <span class="set-thumbs" style="grid-template-columns: repeat(2, 1fr)" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+        <div class="set-box" id="set-analog">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-analog">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/analog-album-1.png" alt="" loading="lazy" /><img src="images/process/analog-progress-1.png" alt="" loading="lazy" /><img src="images/process/analog-volume-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Analog</span><span class="set-line">A record shop after closing, for a music app: walnut dark, cream paper, one burnt-orange lamp.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
-          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+          <dialog class="set-dialog" id="dlg-analog" aria-labelledby="dlg-analog-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
-              <button type="button" class="set-close" aria-label="Close set 1"></button>
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-analog-title">Analog</span></span>
+              <button type="button" class="set-close" aria-label="Close the Analog set"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
-              <div class="proto-grid">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-stepped.html</span></div>
-                  <figcaption><b>Stepped slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+              <div class="proto-grid is-three">
+                <figure class="proto">
+                  <iframe src="week-04-music-album.html?v=1" title="Analog album slider, stepped: LP sleeves standing in a crate, the chosen one turned to face you with its record half out" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Album, stepped</b>
+                    <span>Square LP sleeves stand edge-on in a crate. Drag the crate or the rail: the chosen sleeve turns to face you, its record slides half out, and its title, artist and year read below. One stop per album.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-music-album.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-04-TONE-continuous.html</span></div>
-                  <figcaption><b>Continuous slider</b><span>Not built yet.</span><span class="soon">Soon</span></figcaption>
+                <figure class="proto">
+                  <iframe src="week-04-music-progress.html?v=1" title="Analog progress slider, continuous: one song, the time above the thumb and the lyrics rolling to the line sung there" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Progress, continuous</b>
+                    <span>One song. Drag and the exact time rides above the thumb while the lyrics roll to the line being sung at that second. Elapsed and remaining always show under the rail.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-music-progress.html?v=1">View larger</button>
+                  </figcaption>
+                </figure>
+                <figure class="proto">
+                  <iframe src="week-04-music-volume.html?v=1" title="Analog volume slider, continuous: thin bars rising like the scale on an amp, a lamp needle at the level" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Volume, continuous</b>
+                    <span>Thin bars rise left to right like the scale on an old amp; cream fills them to the level and a lamp needle marks it. The level reads top right; the speaker mutes.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-music-volume.html?v=1">View larger</button>
+                  </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>

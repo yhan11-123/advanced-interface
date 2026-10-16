@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Analog album slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-music.css?v=1" />
+  <style>
+  /* Album slider, stepped. Square LP sleeves stand in a crate, edge-on. The chosen one turns to face you,
+     its record slides half out, and its details read underneath. One stop per album. */
+  :root {
+    --sleeve: 112px;          /* square */
+    --sleeve-r: 3px;
+    --gap: 34px;              /* distance between sleeves standing in the crate */
+    --face-gap: 74px;         /* extra room either side of the one facing you */
+    --tilt: 64deg;            /* how far a standing sleeve turns away */
+    --disc-out: 42%;          /* how far the record slides out of the chosen sleeve */
+    --rail-w: 220px; --rail-h: 2px;
+    --stop: 5px; --thumb: 13px; --thumb-ring: 2px;
+    --hit-h: 32px;
+    --settle: 420ms;
+  }
+  .wrap { display: grid; justify-items: center; gap: 12px; width: 100%; }
+  .crate { position: relative; width: 100%; height: calc(var(--sleeve) + 18px); perspective: 900px; cursor: grab; touch-action: none; }
+  .crate.is-dragging { cursor: grabbing; }
+  .sleeve { position: absolute; left: 50%; top: 6px; width: var(--sleeve); height: var(--sleeve); margin-left: calc(var(--sleeve) / -2); transform-style: preserve-3d; transition: transform var(--settle) var(--ease-out), filter var(--settle); }
+  .crate.is-dragging .sleeve { transition: none; }
+  .cover { position: absolute; inset: 0; border-radius: var(--sleeve-r); overflow: hidden; box-shadow: 0 8px 18px rgba(0,0,0,.45); }
+  .disc { position: absolute; top: 4%; left: 4%; width: 92%; height: 92%; border-radius: 50%; background: repeating-radial-gradient(circle, #111 0 1.4px, #1c1c1c 1.4px 2.8px); box-shadow: 0 2px 10px rgba(0,0,0,.5); transform: translateZ(-1px); transition: transform var(--settle) var(--ease-out); }
+  .disc::after { content: ""; position: absolute; inset: 34%; border-radius: 50%; background: var(--lamp); box-shadow: inset 0 0 0 9px rgba(0,0,0,.08); }
+  .disc::before { content: ""; position: absolute; inset: 48.5%; border-radius: 50%; background: var(--walnut); z-index: 1; }
+  .sleeve.is-face .disc { transform: translateX(var(--disc-out)) translateZ(-1px) rotate(40deg); }
+  .crate.is-dragging .sleeve.is-face .disc, .crate.is-pressed .sleeve.is-face .disc { transform: translateZ(-1px); }
+  .crate.is-hover .sleeve.is-face { filter: brightness(1.06); }
+  .crate.is-pressed .sleeve.is-face .cover { transform: scale(.96); transition: transform .12s; }
+
+  .info { text-align: center; min-height: 40px; transition: opacity .2s; }
+  .crate.is-dragging ~ .info { opacity: .45; }
+  .info .meta b { color: var(--cream); font-weight: 500; }
+
+  .rail { position: relative; width: var(--rail-w); height: var(--hit-h); cursor: pointer; }
+  .rail::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: var(--rail-h); margin-top: calc(var(--rail-h) / -2); background: var(--line); border-radius: 1px; }
+  .fill { position: absolute; left: 0; top: 50%; height: var(--rail-h); margin-top: calc(var(--rail-h) / -2); background: var(--cream); border-radius: 1px; transition: width var(--settle) var(--ease-out); }
+  .stopdot { position: absolute; top: 50%; width: var(--stop); height: var(--stop); margin: calc(var(--stop) / -2) 0 0 calc(var(--stop) / -2); border-radius: 50%; background: var(--line); }
+  .stopdot.on { background: var(--cream); }
+  .thumb { position: absolute; top: 50%; width: var(--thumb); height: var(--thumb); margin: calc(var(--thumb) / -2) 0 0 calc(var(--thumb) / -2); border-radius: 50%; background: var(--walnut); box-shadow: 0 0 0 var(--thumb-ring) var(--cream); transition: left var(--settle) var(--ease-out), transform .12s, box-shadow .12s; }
+  .crate.is-dragging ~ .rail .thumb, .crate.is-dragging ~ .rail .fill, .rail.is-dragging .thumb, .rail.is-dragging .fill { transition: transform .12s, box-shadow .12s; }
+  .rail.is-hover .thumb { transform: scale(1.15); }
+  .rail.is-pressed .thumb, .rail.is-dragging .thumb, .crate.is-dragging ~ .rail .thumb { transform: scale(1.3); box-shadow: 0 0 0 var(--thumb-ring) var(--lamp); }
+  .count { position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="wrap">
+      <div class="crate" aria-hidden="true"></div>
+      <div class="info"><p class="title"></p><p class="meta"></p></div>
+      <div class="rail" role="slider" tabindex="0" aria-label="Album">
+        <div class="fill"></div><div class="stops"></div><div class="thumb"></div>
+        <span class="time count"></span>
+      </div>
+    </div>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Stepped: one stop per album. The album's name is the label, so the value is always on screen; the count beside the rail says where in the crate you are.</p>
+
+    <h3>Sleeves</h3>
+    <table>
+      <tr><td>Sleeve</td><td data-var="--sleeve,--sleeve" data-join=" × "></td></tr>
+      <tr><td>Sleeve corner</td><td data-var="--sleeve-r"></td></tr>
+      <tr><td>Standing sleeves, apart</td><td data-var="--gap"></td></tr>
+      <tr><td>Room around the one facing you</td><td data-var="--face-gap" data-after=" each side"></td></tr>
+      <tr><td>Standing sleeves turn away</td><td data-var="--tilt" data-after=", and sink 90px back"></td></tr>
+      <tr><td>Record slides out</td><td data-var="--disc-out" data-after=" of the sleeve, turning 40°"></td></tr>
+      <tr><td>Perspective</td><td>900px</td></tr>
+    </table>
+
+    <h3>Rail</h3>
+    <table>
+      <tr><td>Rail</td><td data-var="--rail-w,--rail-h" data-join=" × "></td></tr>
+      <tr><td>Stops</td><td data-var="--stop" data-after=" dots, one per album; passed ones cream"></td></tr>
+      <tr><td>Thumb</td><td data-var="--thumb" data-after=", walnut with a 2px cream ring"></td></tr>
+      <tr><td>Hit area height</td><td data-var="--hit-h" data-after="; the whole crate can be dragged too"></td></tr>
+    </table>
+
+    <h3>Type</h3>
+    <table>
+      <tr><td>Album title</td><td data-var="--title-size,--title-line,--title-weight" data-after=", serif"></td></tr>
+      <tr><td>Artist and year</td><td data-var="--meta-size,--meta-line" data-after=", sans"></td></tr>
+      <tr><td>Count</td><td data-var="--time-size,--time-line" data-after=", mono"></td></tr>
+      <tr><td>Title to meta</td><td>0</td></tr>
+      <tr><td>Crate to title, title to rail</td><td>12px</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Walnut, the page</td><td data-var="--walnut" data-kind="color"></td></tr>
+      <tr><td>Cream, ink and fill</td><td data-var="--cream" data-kind="color"></td></tr>
+      <tr><td>Dust, quiet text</td><td data-var="--dust" data-kind="color"></td></tr>
+      <tr><td>Line, the rail</td><td data-var="--line" data-kind="color"></td></tr>
+      <tr><td>Lamp, the record label and pressed ring</td><td data-var="--lamp" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States and motion</h3>
+    <table>
+      <tr><td>Hover</td><td>Rail thumb grows 1.15; the facing sleeve brightens 6%</td></tr>
+      <tr><td>Pressed</td><td>Thumb 1.3 with a lamp ring; the facing sleeve dips to 0.96; its record slides home</td></tr>
+      <tr><td>Drag</td><td>Sleeves follow the finger with no lag; the details fade to 45% while browsing</td></tr>
+      <tr><td>Let go</td><td>Settles on the nearest album in <span data-var="--settle"></span>, <span data-var="--ease-out"></span>; the record slides back out</td></tr>
+      <tr><td>Keyboard</td><td>Arrows one album, Home and End the first and last</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+
+  <script>
+  // Albums are made up; covers are drawn in CSS, not borrowed.
+  const ALBUMS = [
+    { t: 'Low Tide',       a: 'Mara Lune',       y: 1978, n: 9,  bg: 'linear-gradient(160deg,#2d4a5a 0 55%,#e9d9b8 55%)' },
+    { t: 'Paper Moons',    a: 'The Fern Club',   y: 1981, n: 11, bg: 'radial-gradient(circle at 62% 38%,#f1e7d3 0 22%,transparent 23%),#3b2f63' },
+    { t: 'Night Bus',      a: 'Otis Grey',       y: 1974, n: 8,  bg: 'repeating-linear-gradient(0deg,#e86a33 0 10px,#17130f 10px 20px)' },
+    { t: 'Velvet Hours',   a: 'Juno & the Dials',y: 1983, n: 10, bg: 'linear-gradient(135deg,#7a1f2b,#c2484f)' },
+    { t: 'Copper Field',   a: 'Hal Brandt',      y: 1976, n: 7,  bg: 'radial-gradient(circle at 50% 120%,#e8a23a 0 45%,#5a3416 46%)' },
+    { t: 'Slow Bloom',     a: 'Ines Okafor',     y: 1985, n: 12, bg: 'conic-gradient(from 45deg,#e8b4b8,#f1e7d3,#9cc3a8,#e8b4b8)' },
+    { t: 'Static Garden',  a: 'Pale Signal',     y: 1980, n: 9,  bg: 'repeating-linear-gradient(90deg,#1f3b2c 0 6px,#2f5a43 6px 12px)' },
+    { t: 'Sunday Wire',    a: 'Dee Marlowe',     y: 1972, n: 10, bg: 'linear-gradient(#f1e7d3 0 50%,#17130f 50%)' },
+  ];
+  const root = getComputedStyle(document.documentElement);
+  const px = n => parseFloat(root.getPropertyValue(n));
+  const GAP = px('--gap'), FACE = px('--face-gap'), TILT = px('--tilt');
+  const crate = document.querySelector('.crate'), rail = document.querySelector('.rail'), stops = rail.querySelector('.stops');
+  const sleeves = ALBUMS.map(al => {
+    const s = document.createElement('div'); s.className = 'sleeve';
+    s.innerHTML = `<div class="disc"></div><div class="cover" style="background:${al.bg}"></div>`;
+    crate.append(s); return s;
+  });
+  ALBUMS.forEach((_, i) => { const d = document.createElement('div'); d.className = 'stopdot'; d.style.left = (i / (ALBUMS.length - 1) * 100) + '%'; stops.append(d); });
+  const last = ALBUMS.length - 1;
+  let p = 2;   // position, fractional while dragging
+
+  // Brief states, shared by the crate and the rail: hover, pressed, drag.
+  function states(el) {
+    let hover = false, down = false, drag = false;
+    const show = () => { el.classList.toggle('is-hover', hover && !down); el.classList.toggle('is-pressed', down && !drag); el.classList.toggle('is-dragging', drag); };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return { down() { down = true; drag = false; show(); }, move() { if (down && !drag) { drag = true; show(); } }, up() { down = drag = false; show(); } };
+  }
+
+  function draw() {
+    const c = Math.round(Math.min(last, Math.max(0, p)));
+    sleeves.forEach((s, i) => {
+      const d = i - p, a = Math.max(-1, Math.min(1, d));
+      const x = d * GAP + a * FACE, rot = -a * TILT, z = -Math.abs(a) * 90;
+      s.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${rot}deg)`;
+      s.style.zIndex = 100 - Math.round(Math.abs(d) * 10);
+      s.style.filter = `brightness(${1 - Math.min(Math.abs(d), 3) * .17})`;
+      s.classList.toggle('is-face', i === c && Math.abs(d) < .5);
+    });
+    const al = ALBUMS[c], t = Math.min(1, Math.max(0, p / last)) * 100 + '%';
+    document.querySelector('.info .title').textContent = al.t;
+    document.querySelector('.info .meta').innerHTML = `<b>${al.a}</b> · ${al.y} · ${al.n} tracks`;
+    rail.querySelector('.thumb').style.left = t; rail.querySelector('.fill').style.width = t;
+    rail.querySelectorAll('.stopdot').forEach((d, i) => d.classList.toggle('on', i <= c));
+    rail.querySelector('.count').textContent = `${String(c + 1).padStart(2, '0')} / ${String(ALBUMS.length).padStart(2, '0')}`;
+    rail.setAttribute('aria-valuenow', c + 1);
+    rail.setAttribute('aria-valuetext', `${al.t} by ${al.a}, album ${c + 1} of ${ALBUMS.length}`);
+  }
+  const settle = () => { p = Math.round(Math.min(last, Math.max(0, p))); draw(); };
+  rail.setAttribute('aria-valuemin', 1); rail.setAttribute('aria-valuemax', ALBUMS.length);
+
+  // Drag the crate: the sleeves follow the finger, one album per GAP+ pixels.
+  const cs = states(crate); let x0 = 0, p0 = 0;
+  crate.addEventListener('pointerdown', e => { crate.setPointerCapture(e.pointerId); x0 = e.clientX; p0 = p; cs.down(); });
+  crate.addEventListener('pointermove', e => {
+    if (!crate.hasPointerCapture(e.pointerId)) return;
+    if (Math.abs(e.clientX - x0) > 3) cs.move();
+    p = Math.min(last + .3, Math.max(-.3, p0 - (e.clientX - x0) / (GAP * 1.6))); draw();
+  });
+  ['pointerup', 'pointercancel'].forEach(t => crate.addEventListener(t, e => {
+    // a tap on a standing sleeve brings it forward
+    if (!crate.classList.contains('is-dragging')) { const hit = e.target.closest('.sleeve'); if (hit) p = sleeves.indexOf(hit); }
+    cs.up(); settle();
+  }));
+
+  // Drag the rail: absolute, like any slider.
+  const rs = states(rail);
+  const fromRail = e => { const r = rail.getBoundingClientRect(); return (e.clientX - r.left) / r.width * last; };
+  rail.addEventListener('pointerdown', e => { rail.setPointerCapture(e.pointerId); rs.down(); p = fromRail(e); settle(); });
+  rail.addEventListener('pointermove', e => { if (!rail.hasPointerCapture(e.pointerId)) return; rs.move(); p = Math.min(last, Math.max(0, fromRail(e))); draw(); });
+  ['pointerup', 'pointercancel'].forEach(t => rail.addEventListener(t, () => { rs.up(); settle(); }));
+  rail.addEventListener('keydown', e => {
+    const m = { ArrowRight: p + 1, ArrowUp: p + 1, ArrowLeft: p - 1, ArrowDown: p - 1, Home: 0, End: last, PageUp: p + 3, PageDown: p - 3 };
+    if (e.key in m) { e.preventDefault(); p = m[e.key]; settle(); }
+  });
+  draw();
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=1"></script>
+</body>
+</html>

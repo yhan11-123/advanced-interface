@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Analog progress slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-music.css?v=1" />
+  <style>
+  /* Progress slider, continuous. One song. Drag along it and the time rides above the thumb,
+     while the lyrics roll to the line being sung at that point. */
+  :root {
+    --card-w: 320px; --card-pad: 18px; --card-r: 14px;
+    --art: 44px; --art-r: 3px;
+    --lyric-size: 15px; --lyric-line: 28px; --lyric-rows: 3;
+    --rail-h: 3px; --rail-h-active: 5px;
+    --thumb: 12px;
+    --hit-h: 28px;
+    --bubble-size: 12px;
+    --roll: 260ms;
+  }
+  .card { width: min(100%, var(--card-w)); padding: var(--card-pad); background: var(--shelf); border-radius: var(--card-r); display: grid; gap: 12px; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .art { width: var(--art); height: var(--art); border-radius: var(--art-r); background: radial-gradient(circle at 62% 38%, var(--cream) 0 22%, transparent 23%), #3b2f63; flex: none; }
+  .head .title { font-size: 16px; line-height: 20px; }
+  .play { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--cream); color: var(--walnut); display: grid; place-items: center; cursor: pointer; }
+  .play svg { width: 14px; height: 14px; fill: currentColor; }
+
+  .lyrics { height: calc(var(--lyric-line) * var(--lyric-rows)); overflow: hidden; position: relative; -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .lines { transition: transform var(--roll) var(--ease-out); }
+  .lines p { margin: 0; height: var(--lyric-line); font: 500 var(--lyric-size)/var(--lyric-line) var(--serif); color: var(--dust); opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s, opacity .2s; }
+  .lines p.now { color: var(--cream); opacity: 1; }
+  .card:has(.rail.is-dragging) .lines p.now { color: var(--lamp); }
+
+  .rail { position: relative; height: var(--hit-h); cursor: pointer; }
+  .track, .fill { position: absolute; left: 0; top: 50%; height: var(--rail-h); transform: translateY(-50%); border-radius: 3px; transition: height .15s; }
+  .track { right: 0; background: var(--line); }
+  .fill { background: var(--cream); }
+  .thumb { position: absolute; top: 50%; width: var(--thumb); height: var(--thumb); margin: calc(var(--thumb) / -2) 0 0 calc(var(--thumb) / -2); border-radius: 50%; background: var(--cream); transform: scale(0); transition: transform .15s var(--ease-out); }
+  .bubble { position: absolute; bottom: calc(100% + 2px); transform: translate(-50%, 4px); padding: 4px 7px; border-radius: 6px; background: var(--cream); color: var(--walnut); font: 600 var(--bubble-size)/1 var(--mono); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .12s, transform .12s; pointer-events: none; white-space: nowrap; }
+  .rail.is-hover .thumb { transform: scale(1); }
+  .rail.is-hover .track, .rail.is-hover .fill { height: var(--rail-h-active); }
+  .rail.is-pressed .thumb, .rail.is-dragging .thumb { transform: scale(1.4); background: var(--lamp); }
+  .rail.is-pressed .track, .rail.is-pressed .fill, .rail.is-dragging .track, .rail.is-dragging .fill { height: var(--rail-h-active); }
+  .rail.is-dragging .fill { background: var(--lamp); }
+  .rail.is-pressed .bubble, .rail.is-dragging .bubble { opacity: 1; transform: translate(-50%, 0); }
+  .times { display: flex; justify-content: space-between; margin-top: -8px; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="card" aria-label="Now playing">
+      <div class="head">
+        <div class="art" aria-hidden="true"></div>
+        <div><p class="title">Hum It Low</p><p class="meta">The Fern Club · Paper Moons</p></div>
+        <button class="play" type="button" aria-label="Play"><svg viewBox="0 0 14 14"><path d="M3 1.5v11l9.5-5.5z"/></svg></button>
+      </div>
+      <div class="lyrics" aria-live="polite"><div class="lines"></div></div>
+      <div class="rail" role="slider" tabindex="0" aria-label="Song position">
+        <div class="track"></div><div class="fill"></div><div class="thumb"></div><div class="bubble"></div>
+      </div>
+      <div class="times"><span class="time el"></span><span class="time left"></span></div>
+    </section>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Continuous, to the second. The value shows three ways: elapsed and remaining always under the rail, the exact time above the thumb while it is held, and the lyric line that is sung there.</p>
+
+    <h3>Rail</h3>
+    <table>
+      <tr><td>Rail height, rest</td><td data-var="--rail-h"></td></tr>
+      <tr><td>Rail height, hover and held</td><td data-var="--rail-h-active"></td></tr>
+      <tr><td>Rail width</td><td>Card width less padding, 284px</td></tr>
+      <tr><td>Thumb</td><td data-var="--thumb" data-after=", hidden at rest, appears on hover"></td></tr>
+      <tr><td>Hit area height</td><td data-var="--hit-h"></td></tr>
+      <tr><td>Corner</td><td>3px, fully round at this height</td></tr>
+    </table>
+
+    <h3>Lyrics</h3>
+    <table>
+      <tr><td>Line</td><td data-var="--lyric-size,--lyric-line" data-after=", serif 500"></td></tr>
+      <tr><td>Window</td><td data-var="--lyric-rows" data-after=" lines, faded top and bottom"></td></tr>
+      <tr><td>Roll to a new line</td><td data-var="--roll"></td></tr>
+      <tr><td>Line being sung</td><td>Cream; lamp while dragging. Others dust at 50%</td></tr>
+    </table>
+
+    <h3>Card and type</h3>
+    <table>
+      <tr><td>Card</td><td data-var="--card-w" data-after=" wide"></td></tr>
+      <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
+      <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
+      <tr><td>Gaps inside</td><td>12px</td></tr>
+      <tr><td>Cover</td><td data-var="--art" data-after=" square"></td></tr>
+      <tr><td>Song title</td><td>16px / 20px, serif 500</td></tr>
+      <tr><td>Artist and album</td><td data-var="--meta-size,--meta-line" data-after=", sans"></td></tr>
+      <tr><td>Times</td><td data-var="--time-size,--time-line" data-after=", mono"></td></tr>
+      <tr><td>Time above the thumb</td><td data-var="--bubble-size" data-after=", mono 600, cream chip, 6px corner"></td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Card</td><td data-var="--shelf" data-kind="color"></td></tr>
+      <tr><td>Played</td><td data-var="--cream" data-kind="color"></td></tr>
+      <tr><td>Still to play</td><td data-var="--line" data-kind="color"></td></tr>
+      <tr><td>Held and dragging</td><td data-var="--lamp" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>Rail thickens to 5px, thumb appears</td></tr>
+      <tr><td>Pressed</td><td>Thumb grows 1.4 and turns lamp; time chip rises above it</td></tr>
+      <tr><td>Drag</td><td>Played part turns lamp; lyrics roll to the line at that second; playback waits until let go</td></tr>
+      <tr><td>Keyboard</td><td>Arrows 5 seconds, Page Up and Down 30, Home and End the ends</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+
+  <script>
+  // An invented song, so the lyrics are ours to print.
+  const DUR = 204;
+  const LYRICS = [
+    [0, '(intro)'], [12, 'Morning light on the record sleeve'], [22, 'Dust in the groove, it turns so slow'],
+    [33, 'You left the needle where we used to be'], [44, 'Side A was ours, side B I don’t know'],
+    [58, 'Hum it low, hum it low'], [70, 'Let the static say it for me'], [84, 'Every crackle is a word I owe'],
+    [98, 'Turn it over, turn it over'], [112, 'There’s a song I haven’t heard'], [126, 'Spinning quiet in the dark'],
+    [142, 'Hum it low, hum it low'], [158, 'Let the static say it for me'], [176, 'Lift the arm, the room goes still'], [192, '(outro)'],
+  ];
+  const rail = document.querySelector('.rail'), lines = document.querySelector('.lines');
+  LYRICS.forEach(([, l]) => { const p = document.createElement('p'); p.textContent = l; lines.append(p); });
+  const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lyric-line'));
+  const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  let t = 64, playing = false, last = 0;
+
+  function draw() {
+    const f = t / DUR * 100 + '%';
+    rail.querySelector('.fill').style.width = f; rail.querySelector('.thumb').style.left = f;
+    const b = rail.querySelector('.bubble'); b.style.left = f; b.textContent = fmt(t);
+    document.querySelector('.el').textContent = fmt(t);
+    document.querySelector('.left').textContent = '-' + fmt(DUR - t);
+    let i = 0; LYRICS.forEach(([s], k) => { if (t >= s) i = k; });
+    if (i !== last || !lines.dataset.ready) {
+      lines.querySelectorAll('p').forEach((p, k) => p.classList.toggle('now', k === i));
+      lines.style.transform = `translateY(${(1 - i) * LH}px)`;   // keep the sung line in the middle row
+      last = i; lines.dataset.ready = 1;
+    }
+    rail.setAttribute('aria-valuenow', Math.floor(t));
+    rail.setAttribute('aria-valuetext', `${fmt(t)} of ${fmt(DUR)}, “${LYRICS[i][1]}”`);
+  }
+  const set = n => { t = Math.min(DUR, Math.max(0, n)); draw(); };
+
+  let hover = false, down = false, drag = false;
+  const show = () => { rail.classList.toggle('is-hover', hover && !down); rail.classList.toggle('is-pressed', down && !drag); rail.classList.toggle('is-dragging', drag); };
+  rail.addEventListener('pointerenter', () => { hover = true; show(); });
+  rail.addEventListener('pointerleave', () => { hover = false; show(); });
+  const fromE = e => { const r = rail.getBoundingClientRect(); return (e.clientX - r.left) / r.width * DUR; };
+  let x0 = 0;
+  rail.addEventListener('pointerdown', e => { rail.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; show(); set(fromE(e)); });
+  rail.addEventListener('pointermove', e => { if (!rail.hasPointerCapture(e.pointerId)) return; if (Math.abs(e.clientX - x0) > 2 && !drag) { drag = true; show(); } set(fromE(e)); });
+  ['pointerup', 'pointercancel'].forEach(k => rail.addEventListener(k, () => { down = drag = false; show(); }));
+  rail.setAttribute('aria-valuemin', 0); rail.setAttribute('aria-valuemax', DUR);
+  rail.addEventListener('keydown', e => {
+    const m = { ArrowRight: t + 5, ArrowUp: t + 5, ArrowLeft: t - 5, ArrowDown: t - 5, PageUp: t + 30, PageDown: t - 30, Home: 0, End: DUR };
+    if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+  });
+
+  // Playback, so the lyrics also move on their own. It waits while the thumb is held.
+  const btn = document.querySelector('.play');
+  btn.addEventListener('click', () => {
+    playing = !playing;
+    btn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    btn.querySelector('path').setAttribute('d', playing ? 'M3 1.5h3v11H3zM8 1.5h3v11H8z' : 'M3 1.5v11l9.5-5.5z');
+  });
+  setInterval(() => { if (playing && !down) { t = t >= DUR ? 0 : t + .25; draw(); } }, 250);
+  lines.style.transition = 'none'; draw(); lines.offsetHeight; lines.style.transition = '';   // open on the right line, no roll
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=1"></script>
+</body>
+</html>
