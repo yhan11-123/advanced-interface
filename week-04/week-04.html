@@ -7,6 +7,24 @@
   <meta name="description" content="Six components are due: three sets of one stepped slider and one continuous slider, each set carrying a tone, each one telling you the value it holds." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../shared/site.css?v=20" />
+  <style>
+    /* Week 04 diagram kit: one slider drawn the same way everywhere.
+       Small picts (112 x 68): track 6, handle 2.5 x 18, gap 3, stop r 1.25, bubble 22 x 16, field stroke 1, labels 9 px.
+       Big cards (190 x 120): track 10, handle 4 x 28, gap 5, stop r 2, bubble 32 x 22, labels 11 px. */
+    .sl-on { fill: var(--accent); }
+    .sl-off { fill: var(--fg-muted); opacity: .3; }
+    .sl-stop { fill: var(--bg-elev); }
+    .sl-stop-off { fill: var(--fg-muted); }
+    .sl-bubble { fill: var(--fg); }
+    .sl-bubble-txt { fill: var(--bg-elev); font: 600 9px/1 var(--font); text-anchor: middle; }
+    .sl-field { fill: none; stroke: var(--fg-muted); stroke-width: 1; }
+    .sl-field-txt { fill: var(--fg); font: 9px/1 var(--font); text-anchor: middle; }
+    .sl-label { fill: var(--fg-muted); font: 9px/1 var(--font); }
+    .sl-guide { fill: none; stroke: var(--fg-muted); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+    .sl-target { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 2; }
+    .rv-art .sl-bubble-txt { font-size: 12px; }
+    .rv-art .sl-field-txt, .rv-art .sl-label { font-size: 11px; }
+  </style>
 </head>
 <body>
 
@@ -71,20 +89,7 @@
       <div class="rv-pair">
         <figure class="rv-card">
           <div class="rv-art">
-            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A stepped slider: a track with evenly spaced stop dots, the handle sitting on one of them, a value bubble reading 6 above it">
-              <rect x="12" y="62" width="104" height="12" rx="6" class="rv-acc"/>
-              <rect x="128" y="62" width="50" height="12" rx="6" class="rv-ink"/>
-              <rect x="120" y="52" width="4" height="32" rx="2" class="rv-acc"/>
-              <g fill="var(--bg-elev)">
-                <circle cx="20" cy="68" r="1.8"/><circle cx="36" cy="68" r="1.8"/><circle cx="52" cy="68" r="1.8"/><circle cx="68" cy="68" r="1.8"/><circle cx="84" cy="68" r="1.8"/><circle cx="100" cy="68" r="1.8"/>
-              </g>
-              <g fill="var(--fg-muted)">
-                <circle cx="138" cy="68" r="1.8"/><circle cx="154" cy="68" r="1.8"/><circle cx="170" cy="68" r="1.8"/>
-              </g>
-              <rect x="106" y="18" width="32" height="24" rx="12" fill="var(--fg)"/>
-              <text x="122" y="34" text-anchor="middle" class="rv-note" fill="var(--bg-elev)" style="fill: var(--bg-elev)">6</text>
-              <text x="12" y="104" class="rv-note">snaps from stop to stop</text>
-            </svg>
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A stepped slider: a track with seven stop dots, the handle sitting on the fifth, a value bubble reading 5 above it"><rect x="100.0" y="14" width="32" height="22" rx="11.0" class="sl-bubble"/><text x="116" y="29.0" class="sl-bubble-txt">5</text><rect x="12" y="57.0" width="97.0" height="10" rx="5.0" class="sl-on"/><rect x="123.0" y="57.0" width="53.0" height="10" rx="5.0" class="sl-off"/><circle cx="20" cy="62" r="2" class="sl-stop"/><circle cx="44" cy="62" r="2" class="sl-stop"/><circle cx="68" cy="62" r="2" class="sl-stop"/><circle cx="92" cy="62" r="2" class="sl-stop"/><circle cx="140" cy="62" r="2" class="sl-stop-off"/><circle cx="164" cy="62" r="2" class="sl-stop-off"/><rect x="114.0" y="48.0" width="4" height="28" rx="2.0" class="sl-on"/><text x="12" y="104" class="sl-label">snaps from stop to stop</text></svg>
           </div>
           <figcaption>
             <b>Stepped slider</b>
@@ -100,16 +105,7 @@
         </figure>
         <figure class="rv-card">
           <div class="rv-art">
-            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A continuous slider: a plain track with the handle part way, and a small field beside it reading 50%">
-              <rect x="10" y="62" width="64" height="12" rx="6" class="rv-acc"/>
-              <rect x="86" y="62" width="44" height="12" rx="6" class="rv-ink"/>
-              <circle cx="125" cy="68" r="1.8" fill="var(--fg-muted)"/>
-              <rect x="78" y="52" width="4" height="32" rx="2" class="rv-acc"/>
-              <rect x="140" y="56" width="42" height="24" rx="5" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
-              <text x="161" y="72" text-anchor="middle" class="rv-note">50%</text>
-              <path class="rv-mute" d="M30 40 H120 M115 35 L120 40 L115 45"/>
-              <text x="10" y="104" class="rv-note">any value, read beside it</text>
-            </svg>
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A continuous slider: a plain track with the handle part way, and a small field beside it reading 50%"><rect x="12" y="57.0" width="73.0" height="10" rx="5.0" class="sl-on"/><rect x="99.0" y="57.0" width="41.0" height="10" rx="5.0" class="sl-off"/><circle cx="135.0" cy="62" r="2" class="sl-stop-off"/><rect x="90.0" y="48.0" width="4" height="28" rx="2.0" class="sl-on"/><rect x="150" y="50" width="32" height="24" rx="4" class="sl-field"/><text x="166.0" y="66.0" class="sl-field-txt">50%</text><text x="12" y="104" class="sl-label">any value, read beside it</text></svg>
           </div>
           <figcaption>
             <b>Continuous slider</b>
@@ -131,47 +127,22 @@
 
       <div class="rv-rules">
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="24" y="2" width="22" height="14" rx="7" fill="var(--fg)"/>
-            <rect x="2" y="27" width="30" height="6" rx="3" class="rv-acc"/>
-            <rect x="34" y="22" width="2" height="16" rx="1" class="rv-acc"/>
-            <rect x="38" y="27" width="32" height="6" rx="3" class="rv-ink"/>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="45.0" y="10" width="22" height="16" rx="8.0" class="sl-bubble"/><text x="56" y="21.2" class="sl-bubble-txt">60</text><rect x="8" y="39.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="39.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="42" r="1.25" class="sl-stop-off"/><rect x="54.75" y="33.0" width="2.5" height="18" rx="1.25" class="sl-on"/></svg>
           <b>A bubble while dragging</b>
           <p>Material: a pill in the inverse colour, 12&nbsp;dp above the handle, there only while the handle is held. Above, so the finger cannot cover it.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="8" width="30" height="5" rx="2.5" class="rv-acc"/>
-            <rect x="34" y="8" width="36" height="5" rx="2.5" class="rv-ink"/>
-            <circle cx="32" cy="10.5" r="5" class="rv-surface"/>
-            <text x="2" y="32" class="rv-note">1m</text>
-            <text x="22" y="32" class="rv-note">1h</text>
-            <text x="50" y="32" class="rv-note">never</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="23.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="23.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="26" r="1.25" class="sl-stop"/><circle cx="28" cy="26" r="1.25" class="sl-stop"/><circle cx="42" cy="26" r="1.25" class="sl-stop"/><circle cx="70" cy="26" r="1.25" class="sl-stop-off"/><circle cx="84" cy="26" r="1.25" class="sl-stop-off"/><circle cx="98" cy="26" r="1.25" class="sl-stop-off"/><rect x="54.75" y="17.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="14" y="50" text-anchor="middle" class="sl-label">1m</text><text x="56" y="50" text-anchor="middle" class="sl-label">1h</text><text x="98" y="50" text-anchor="middle" class="sl-label">never</text></svg>
           <b>Words on the stops</b>
           <p>macOS: tick marks with labels under them. Label the ends, plus a few in between when the scale is not even, as in Energy Saver.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="18" width="20" height="5" rx="2.5" class="rv-acc"/>
-            <rect x="24" y="18" width="18" height="5" rx="2.5" class="rv-ink"/>
-            <circle cx="23" cy="20.5" r="5" class="rv-surface"/>
-            <rect x="48" y="12" width="22" height="17" rx="3" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
-            <text x="51" y="24" class="rv-note">50</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="27.75" height="6" rx="3.0" class="sl-on"/><rect x="44.25" y="31.0" width="27.75" height="6" rx="3.0" class="sl-off"/><circle cx="69.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="38.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="80" y="25" width="24" height="18" rx="4" class="sl-field"/><text x="92.0" y="37.2" class="sl-field-txt">50</text></svg>
           <b>A field beside it</b>
           <p>Apple and Carbon: the exact number in a text field, typed into when dragging is not precise enough. Apple adds a stepper for whole steps.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="4" y="4" width="10" height="10" rx="2" class="rv-ink"/>
-            <rect x="20" y="2" width="14" height="14" rx="2" class="rv-ink"/>
-            <rect x="40" y="0" width="18" height="18" rx="3" class="rv-acc"/>
-            <rect x="2" y="30" width="40" height="5" rx="2.5" class="rv-acc"/>
-            <rect x="44" y="30" width="26" height="5" rx="2.5" class="rv-ink"/>
-            <circle cx="43" cy="32.5" r="5" class="rv-surface"/>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="20" y="16" width="8" height="8" rx="2" class="sl-field"/><rect x="36" y="12" width="12" height="12" rx="2.5" class="sl-field"/><rect x="56" y="8" width="16" height="16" rx="3" class="sl-on"/><rect x="8" y="43.0" width="63.75" height="6" rx="3.0" class="sl-on"/><rect x="80.25" y="43.0" width="23.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="46" r="1.25" class="sl-stop-off"/><rect x="74.75" y="37.0" width="2.5" height="18" rx="1.25" class="sl-on"/></svg>
           <b>The result itself</b>
           <p>Apple: give live feedback, like the Dock icons growing as the Size slider moves. The thing being changed becomes the label.</p>
         </div>
@@ -221,7 +192,7 @@
           <svg viewBox="-6 -26 72 60" aria-hidden="true">
             <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
             <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--accent)"/>
-            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
           </svg>
           <figcaption><b>Rest</b><span>4 dp handle</span></figcaption>
         </figure>
@@ -230,7 +201,7 @@
             <circle cx="34.2" cy="4" r="12" class="an-layer"/>
             <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
             <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--accent)"/>
-            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
           </svg>
           <figcaption><b>Hover</b><span>8% layer, same width</span></figcaption>
         </figure>
@@ -238,7 +209,7 @@
           <svg viewBox="-6 -26 72 60" aria-hidden="true">
             <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
             <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
-            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
           </svg>
           <figcaption><b>Pressed</b><span>Handle to 2 dp</span></figcaption>
         </figure>
@@ -247,7 +218,7 @@
             <rect x="24" y="-25" width="20" height="13" rx="6.5" fill="var(--fg)"/>
             <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
             <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
-            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
             <path class="rv-mute" d="M10 26 H54 M50 23 L54 26 L50 29"/>
           </svg>
           <figcaption><b>Drag</b><span>Value shows above</span></figcaption>
@@ -257,7 +228,7 @@
             <rect x="-3" y="-10" width="66" height="28" rx="6" fill="none" stroke="var(--fg)" stroke-width="1.4"/>
             <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--accent)"/>
             <rect x="33.6" y="-7" width="1.2" height="22" rx=".6" fill="var(--accent)"/>
-            <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+            <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
           </svg>
           <figcaption><b>Focused</b><span>Ring, 2 dp handle</span></figcaption>
         </figure>
@@ -266,7 +237,7 @@
             <g opacity=".38">
               <rect x="0" y="0" width="30" height="8" rx="4" fill="var(--fg-muted)"/>
               <rect x="33" y="-7" width="2.4" height="22" rx="1.2" fill="var(--fg-muted)"/>
-              <rect x="38" y="0" width="22" height="8" rx="4" fill="var(--fg-muted)" opacity=".35"/>
+              <rect x="38" y="0" width="22" height="8" rx="4" class="sl-off"/><circle cx="56" cy="4" r="1.2" class="sl-stop-off"/>
             </g>
           </svg>
           <figcaption><b>Disabled</b><span>38%, no layer</span></figcaption>
@@ -311,72 +282,37 @@
 
       <div class="rv-rules">
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <text x="0" y="12" class="rv-note">min</text>
-            <text x="50" y="12" class="rv-note">max</text>
-            <rect x="0" y="20" width="34" height="6" rx="3" class="rv-acc"/>
-            <rect x="38" y="20" width="32" height="6" rx="3" class="rv-ink"/>
-            <path class="rv-mute" d="M8 38 H62 M58 35 L62 38 L58 41"/>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><text x="8" y="16" class="sl-label">min</text><text x="104" y="16" text-anchor="end" class="sl-label">max</text><rect x="8" y="29.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="29.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="32" r="1.25" class="sl-stop-off"/><rect x="54.75" y="23.0" width="2.5" height="18" rx="1.25" class="sl-on"/><path class="sl-guide" d="M30 56 H82 M78 52 L82 56 L78 60"/></svg>
           <b>Small on the left, big on the right</b>
           <p>Every system agrees: minimum on the leading side, maximum trailing; on a vertical slider, minimum at the bottom. A tone can redraw the track, never flip it.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="26" y="0" width="20" height="12" rx="6" fill="var(--fg)"/>
-            <rect x="2" y="20" width="68" height="5" rx="2.5" class="rv-ink"/>
-            <circle cx="36" cy="22.5" r="5" class="rv-acc"/>
-            <path d="M33 26 l0 13 l3.2 -3.2 l2.4 5 l2.4 -1.2 l-2.4 -5 l4.4 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="45.0" y="4" width="22" height="16" rx="8.0" class="sl-bubble"/><text x="56" y="15.2" class="sl-bubble-txt">60</text><rect x="8" y="29.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="29.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="32" r="1.25" class="sl-stop-off"/><rect x="54.75" y="23.0" width="2.5" height="18" rx="1.25" class="sl-on"/><path d="M57 44 l0 13 l3.2 -3.2 l2.4 5 l2.4 -1.2 l-2.4 -5 l4.4 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>
           <b>Above the finger, not under it</b>
           <p>NN/g: labels and the current value go above or beside the slider. Anything below the handle is under the hand while it drags.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="18" width="68" height="5" rx="2.5" class="rv-ink"/>
-            <rect x="34" y="14" width="3" height="13" rx="1.5" class="rv-acc"/>
-            <rect x="23" y="4" width="25" height="34" rx="4" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2"/>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="43.75" height="6" rx="3.0" class="sl-on"/><rect x="60.25" y="31.0" width="43.75" height="6" rx="3.0" class="sl-off"/><circle cx="101.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="54.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="40" y="16" width="32" height="36" rx="6" class="sl-target"/><text x="56" y="64" text-anchor="middle" class="sl-label">48 dp target</text></svg>
           <b>Thin to look at, wide to catch</b>
           <p>Material's handle is 4 dp drawn and 48 dp to touch; Apple asks 44 pt. The handle can be a hairline, the target cannot.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="16" width="68" height="6" rx="3" class="rv-ink"/>
-            <g class="rv-acc"><circle cx="8" cy="19" r="2.2"/><circle cx="22" cy="19" r="2.2"/><circle cx="36" cy="19" r="2.2"/><circle cx="50" cy="19" r="2.2"/><circle cx="64" cy="19" r="2.2"/></g>
-            <text x="36" y="40" text-anchor="middle" class="rv-note">about ten at most</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="25.0" width="29.75" height="6" rx="3.0" class="sl-on"/><rect x="46.25" y="25.0" width="57.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="28" r="1.25" class="sl-stop"/><circle cx="28" cy="28" r="1.25" class="sl-stop"/><circle cx="56" cy="28" r="1.25" class="sl-stop-off"/><circle cx="70" cy="28" r="1.25" class="sl-stop-off"/><circle cx="84" cy="28" r="1.25" class="sl-stop-off"/><circle cx="98" cy="28" r="1.25" class="sl-stop-off"/><rect x="40.75" y="19.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="56" y="56" text-anchor="middle" class="sl-label">about ten at most</text></svg>
           <b>Few stops, all drawn</b>
           <p>A stepped slider shows its choices before the drag. Past about ten stops it stops being stepped in practice; Apple suggests labelling only the ends then.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="4" width="16" height="12" rx="2" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
-            <path class="rv-ink" d="M6 10 L10 10 M8 8 L6 10 L8 12"/>
-            <rect x="22" y="4" width="16" height="12" rx="2" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
-            <path class="rv-ink" d="M27 10 L32 10 M30 8 L32 10 L30 12"/>
-            <text x="42" y="14" class="rv-note">Home</text>
-            <text x="2" y="34" class="rv-note">End &middot; PgUp &middot; PgDn</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="8" width="22" height="18" rx="4" class="sl-field"/><path class="sl-guide" d="M24 17 H14 M18 13 L14 17 L18 21"/><rect x="36" y="8" width="22" height="18" rx="4" class="sl-field"/><path class="sl-guide" d="M42 17 H52 M48 13 L52 17 L48 21"/><text x="66" y="21" class="sl-label">one step</text><text x="8" y="46" class="sl-label">Home &middot; End</text><text x="8" y="60" class="sl-label">PgUp &middot; PgDn</text></svg>
           <b>Works without dragging</b>
           <p>Arrows move one step, Home and End jump to the ends, Page Up and Down move further. Focus sits on the handle, and the value is read out with it.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <text x="0" y="14" class="rv-note">aria-valuenow</text>
-            <text x="0" y="24" class="rv-note">= 2</text>
-            <text x="0" y="38" class="rv-note">valuetext &ldquo;15 min&rdquo;</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="15.0" width="23.75" height="6" rx="3.0" class="sl-on"/><rect x="40.25" y="15.0" width="63.75" height="6" rx="3.0" class="sl-off"/><circle cx="14" cy="18" r="1.25" class="sl-stop"/><circle cx="58" cy="18" r="1.25" class="sl-stop-off"/><circle cx="80" cy="18" r="1.25" class="sl-stop-off"/><circle cx="98" cy="18" r="1.25" class="sl-stop-off"/><rect x="34.75" y="9.0" width="2.5" height="18" rx="1.25" class="sl-on"/><text x="8" y="44" class="sl-label">valuenow = 2</text><text x="8" y="60" class="sl-label">valuetext = &ldquo;15 min&rdquo;</text></svg>
           <b>Say the word, not the index</b>
           <p>When a stop is a word or a unit, <code>aria-valuetext</code> carries it. A screen reader should hear &ldquo;15 minutes&rdquo;, not &ldquo;2&rdquo;.</p>
         </div>
         <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="14" width="44" height="6" rx="3" class="rv-ink"/>
-            <circle cx="30" cy="17" r="5" class="rv-acc"/>
-            <rect x="52" y="8" width="18" height="18" rx="3" fill="none" stroke="var(--fg-muted)" stroke-width="1.2"/>
-            <text x="54" y="21" class="rv-note">72</text>
-          </svg>
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="31.0" width="37.75" height="6" rx="3.0" class="sl-on"/><rect x="54.25" y="31.0" width="21.75" height="6" rx="3.0" class="sl-off"/><circle cx="73.0" cy="34" r="1.25" class="sl-stop-off"/><rect x="48.75" y="25.0" width="2.5" height="18" rx="1.25" class="sl-on"/><rect x="82" y="25" width="22" height="18" rx="4" class="sl-field"/><text x="93.0" y="37.2" class="sl-field-txt">72</text></svg>
           <b>Rough by nature</b>
           <p>NN/g: sliders suit values where close enough is fine. When the exact number matters, pair it with a field so it can be typed.</p>
         </div>
