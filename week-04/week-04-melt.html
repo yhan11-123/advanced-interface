@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Melt</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  :root { --bg: #000; --panel: #131313; --ink: #dcdcdc; --dim: #4a4a4a; }
+  .box { position: relative; width: min(94vw, 460px); height: 170px; background: var(--panel); border-left: 10px solid #3c3c3c; border-right: 10px solid #3c3c3c; }
+  .end { position: absolute; top: 16px; font: 600 28px/1 var(--font); color: #fff; letter-spacing: -.01em; }
+  .end small { display: block; margin-bottom: 4px; font-size: 22px; color: var(--dim); }
+  .end.min { left: 12px; } .end.max { right: 12px; text-align: right; }
+  .cur { position: absolute; top: 34px; transform: translateX(-50%); font: 600 22px/1 var(--font); color: #fff; transition: opacity .15s; pointer-events: none; }
+  svg.s { position: absolute; left: 12px; right: 12px; top: 72px; width: calc(100% - 24px); height: 70px; overflow: visible; cursor: grab; }
+  svg.s.is-dragging { cursor: grabbing; }
+  .goo { fill: var(--ink); transition: fill .15s; }
+  .val { font: 700 22px/1 var(--font); fill: #111; text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; pointer-events: none; }
+  .arrow { fill: #111; transition: transform .2s; transform-box: fill-box; transform-origin: center; }
+  .arrow.down { transform: rotate(180deg); }
+  svg.s.is-hover .goo { fill: #ececec; }
+  svg.s.is-dragging .goo, svg.s.is-pressed .goo { fill: #fff; }
+
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <div class="end min"><small>1$</small>Min</div>
+    <div class="end max"><small>50$</small>Max</div>
+    <div class="cur">Current</div>
+    <svg class="s" role="slider" tabindex="0" aria-label="Amount, 1 to 50 dollars">
+      <path class="goo"/>
+      <g class="arrow-at"><path class="arrow" d="M-6 4 L0 -5 L6 4 Q6.5 6 4.5 6 H-4.5 Q-6.5 6 -6 4Z"/></g>
+      <text class="val"></text>
+    </svg>
+  </div>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  // One shape: the line and the pill are a single path, so the pill seems to bulge out of the line.
+  // Press and it squashes; drag and the necks where it meets the line stretch out behind it.
+  const svg = document.querySelector('.s'), goo = svg.querySelector('.goo'), arrow = svg.querySelector('.arrow'), arrowAt = svg.querySelector('.arrow-at'), val = svg.querySelector('.val'), cur = document.querySelector('.cur');
+  const st = track(svg);
+  const MIN = 1, MAX = 50, Y = 30, LINE = 1.6;
+  let v = 21, prev = 21, shape = { w: 96, h: 40, neck: 14 }, goal = { ...shape };
+  const W = () => svg.getBoundingClientRect().width;
+  function path(cx) {
+    const { w, h, neck } = shape, L = W(), r = h / 2, a = cx - w / 2, b = cx + w / 2;
+    return `M0 ${Y - LINE} H${a - neck} C${a - neck * .3} ${Y - LINE} ${a + 2} ${Y - r} ${a + r} ${Y - r} H${b - r} C${b - 2} ${Y - r} ${b + neck * .3} ${Y - LINE} ${b + neck} ${Y - LINE} H${L}`
+         + ` V${Y + LINE} H${b + neck} C${b + neck * .3} ${Y + LINE} ${b - 2} ${Y + r} ${b - r} ${Y + r} H${a + r} C${a + 2} ${Y + r} ${a - neck * .3} ${Y + LINE} ${a - neck} ${Y + LINE} H0 Z`;
+  }
+  const cxOf = v => { const L = W(), pad = 62; return pad + (v - MIN) / (MAX - MIN) * (L - pad * 2); };
+  function draw() {
+    const cx = cxOf(v);
+    goo.setAttribute('d', path(cx));
+    val.setAttribute('x', cx + 9); val.setAttribute('y', Y + 1); val.textContent = `+${v}$`;
+    const tw = val.getComputedTextLength();
+    arrowAt.setAttribute('transform', `translate(${cx + 9 - tw / 2 - 14} ${Y})`);
+    arrow.classList.toggle('down', v < prev);
+    cur.style.left = (12 + cx) + 'px';
+    cur.style.opacity = cx < 100 || cx > W() - 100 ? 0 : 1;   // make room for Min and Max
+    svg.setAttribute('aria-valuenow', v); svg.setAttribute('aria-valuetext', `${v} dollars`);
+  }
+  // the shape eases toward its goal each frame, so presses and stretches feel soft
+  (function tick() {
+    let moved = false;
+    for (const k in goal) { const d = goal[k] - shape[k]; if (Math.abs(d) > .05) { shape[k] += d * .25; moved = true; } }
+    if (moved) draw();
+    requestAnimationFrame(tick);
+  })();
+  const set = n => { const nv = Math.round(Math.min(MAX, Math.max(MIN, n))); if (nv !== v) { prev = v; v = nv; } draw(); };
+  const fromE = e => { const r = svg.getBoundingClientRect(), pad = 62; return MIN + (e.clientX - r.left - pad) / (r.width - pad * 2) * (MAX - MIN); };
+  let x0 = 0;
+  svg.setAttribute('aria-valuemin', MIN); svg.setAttribute('aria-valuemax', MAX);
+  svg.addEventListener('pointerenter', () => { if (!svg.hasPointerCapture?.(1)) goal = { w: 100, h: 42, neck: 14 }; });
+  svg.addEventListener('pointerleave', () => { goal = { w: 96, h: 40, neck: 14 }; });
+  svg.addEventListener('pointerdown', e => { svg.setPointerCapture(e.pointerId); x0 = e.clientX; st.down(); goal = { w: 110, h: 34, neck: 18 }; set(fromE(e)); });
+  svg.addEventListener('pointermove', e => {
+    if (!svg.hasPointerCapture(e.pointerId)) return;
+    if (Math.abs(e.clientX - x0) > 2) { st.move(); goal = { w: 104, h: 38, neck: 30 }; }
+    set(fromE(e));
+  });
+  ['pointerup', 'pointercancel'].forEach(t => svg.addEventListener(t, () => { st.up(); goal = { w: 100, h: 42, neck: 14 }; }));
+  svg.addEventListener('keydown', e => {
+    const m = { ArrowRight: v + 1, ArrowUp: v + 1, ArrowLeft: v - 1, ArrowDown: v - 1, PageUp: v + 5, PageDown: v - 5, Home: MIN, End: MAX };
+    if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+  });
+  addEventListener('resize', draw);
+  draw();
+
+  </script>
+</body>
+</html>
