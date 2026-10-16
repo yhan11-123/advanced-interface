@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck docking slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=1" />
+  <link rel="stylesheet" href="week-04-aero.css?v=2" />
   <style>
   /* Docking slider, stepped. A tunnel-in-the-sky, the way a real approach display draws it: five hold points
      as gates hanging in perspective, 200 m out to capture, the docking target at the far end. Push up to fly
      forward through the gates, pull down to back off; tap a gate to fly to it. Hairlines only. */
   :root {
-    --scene-w: 280px; --scene-h: 200px;
+    --scene-w: 264px; --scene-h: 196px;
     --gate-near: 70px; --gate-aspect: 1.3; --step-px: 36px;
     --settle: .38s;
   }
@@ -28,18 +28,18 @@
   .target circle, .target path { fill: none; stroke: var(--text); stroke-width: 1; }
   .target .port { stroke: var(--hud); }
   .bore path { fill: none; stroke: var(--hud); stroke-width: 1.25; }
-  .ladder circle { fill: var(--space); stroke: var(--dim); stroke-width: 1; }
-  .ladder circle.on { fill: var(--hud); stroke: var(--hud); }
+  .ladder rect { fill: var(--space); stroke: var(--dim); stroke-width: 1; }
+  .ladder rect.on { fill: var(--text); stroke: var(--text); }
   .ladder line { stroke: var(--grid); }
-  .read { position: absolute; left: 0; bottom: 0; pointer-events: none; }
+  .read { position: absolute; left: 16px; bottom: 0; pointer-events: none; }
   .read .tag { display: block; margin-bottom: 3px; }
-  .read .m { font: 600 20px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; transition: color .12s; }
-  .read .m small { font-size: 9px; color: var(--hud); margin-left: 3px; letter-spacing: .1em; }
+  .read .m { display: inline-block; font: 600 18px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; transition: color .12s; }
+  .read .m small { font-size: 9px; color: inherit; margin-left: 3px; letter-spacing: .1em; }
   .hud span { color: var(--hud); }
   .scene.is-hover .bracket { stroke: var(--hud); }
-  .scene.is-pressed .bracket, .scene.is-dragging .bracket { stroke: var(--amber); }
-  .scene.is-pressed .bore path, .scene.is-dragging .bore path { stroke: var(--amber); }
-  .scene.is-pressed .read .m, .scene.is-dragging .read .m { color: var(--amber); }
+  .scene.is-pressed .bracket, .scene.is-dragging .bracket { stroke: var(--text); stroke-width: 2; }
+  .scene.is-pressed .bore path, .scene.is-dragging .bore path { stroke: var(--text); }
+  .scene.is-pressed .read .m, .scene.is-dragging .read .m { background: var(--text); color: var(--space); }
   .scene.is-pressed .bore { transform: scale(.85); }
   .scene.is-dragging .bore { transform: scale(1.12); }
   .bore { transform-box: fill-box; transform-origin: center; transition: transform .12s; }
@@ -48,11 +48,11 @@
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div class="scene" role="slider" tabindex="0" aria-label="Docking approach stage">
+    <div data-app="Docking"><div class="scene" role="slider" tabindex="0" aria-label="Docking approach stage">
       <svg class="view"></svg>
-      <div class="hud"><span style="left:0;top:0" class="t-stage"></span><span style="right:16px;top:0" class="t-align"></span><span style="right:16px;bottom:0" class="t-rate"></span></div>
-      <div class="read"><span class="tag">RANGE</span><span class="m"></span></div>
-    </div>
+      <div class="hud"><span style="left:16px;top:0" class="t-stage"></span><span style="right:16px;top:0" class="t-align"></span><span style="right:16px;bottom:0" class="t-rate"></span></div>
+      <div class="read"><span class="tag">RANGE</span><span class="m chip"></span></div>
+    </div></div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -61,21 +61,22 @@
 
     <h3>Tunnel</h3>
     <table>
+      <tr><td>Window</td><td>A workspace window titled Docking: 1px white frame, 13px title bar</td></tr>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area; corner brackets mark its edge"></td></tr>
       <tr><td>Gate</td><td>1px rectangle, width 1.3 × its height; the gate you are at is 140px tall</td></tr>
       <tr><td>Perspective</td><td>Each gate further on is drawn at near ÷ (1 + 1.2 × stages ahead); gates you pass grow and fade out behind you</td></tr>
       <tr><td>Gate label</td><td data-var="--tag-size" data-after=" mono 500, its range, above the top left corner of the next two gates ahead"></td></tr>
       <tr><td>Target</td><td>The docking target at the far end: port ring, standoff cross; it drifts onto the boresight as you close</td></tr>
-      <tr><td>Boresight</td><td>Your own aim, fixed at the centre, 1.25px cyan</td></tr>
+      <tr><td>Boresight</td><td>Your own aim, fixed at the centre, 1.25px</td></tr>
       <tr><td>Drag</td><td data-var="--step-px" data-after=" of drag per stage, relative, so nothing jumps when you grab"></td></tr>
       <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest hold point"></td></tr>
     </table>
 
     <h3>Readout</h3>
     <table>
-      <tr><td>Range</td><td>Mono 600 20px, bottom left; “M” in 9px cyan</td></tr>
-      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan: stage, alignment, closing rate"></td></tr>
-      <tr><td>Ladder</td><td>Five 3px dots down the right edge, the current one filled</td></tr>
+      <tr><td>Range</td><td>Mono 600 18px, bottom left; “M” in 9px</td></tr>
+      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, light grey: stage, alignment, closing rate"></td></tr>
+      <tr><td>Ladder</td><td>Five 6px squares down the right edge, the current one filled</td></tr>
     </table>
 
     <h3>Colour</h3>
@@ -83,13 +84,12 @@
       <tr><td>Space</td><td data-var="--space" data-kind="color"></td></tr>
       <tr><td>Gates ahead, brackets</td><td data-var="--dim" data-kind="color"></td></tr>
       <tr><td>Next gate, boresight, port</td><td data-var="--hud" data-kind="color"></td></tr>
-      <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
-    </table>
+          </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The brackets light cyan; the gate under the pointer turns dashed white, ready to tap. Nothing moves yet</td></tr>
-      <tr><td>Pressed</td><td>Brackets, boresight and range turn amber; the boresight tightens to 0.85</td></tr>
+      <tr><td>Hover</td><td>The brackets brighten; the gate under the pointer turns dashed white, ready to tap. Nothing moves yet</td></tr>
+      <tr><td>Pressed</td><td>The brackets thicken to 2px and the range inverts, black on white; the boresight tightens to 0.85</td></tr>
       <tr><td>Drag</td><td>The tunnel flies with the finger, gates growing past you, the range counting with no lag; the boresight opens to 1.12</td></tr>
       <tr><td>Let go</td><td>Settles on the nearest hold point; a tap flies to the gate under the pointer</td></tr>
       <tr><td>Keyboard</td><td>Up and Right one stage in; Down and Left one out; Home and End 200 m and capture</td></tr>
@@ -98,7 +98,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=1"></script>
+  <script src="week-04-aero.js?v=2"></script>
   <script>
   const STAGES = [ { d: 200, name: 'FAR' }, { d: 30, name: 'APPROACH' }, { d: 10, name: 'HOLD' }, { d: 3, name: 'FINAL' }, { d: 0, name: 'CAPTURE' } ], N = STAGES.length;
   const NS = 'http://www.w3.org/2000/svg';
@@ -119,7 +119,7 @@
   el('path', { d: `M${CX - 14} ${CY} H${CX - 5} M${CX + 5} ${CY} H${CX + 14} M${CX} ${CY - 10} V${CY - 4} M${CX} ${CY + 4} V${CY + 10}` }, bore);
   const ladder = el('g', { class: 'ladder' });
   el('line', { x1: W - 4, x2: W - 4, y1: 40, y2: H - 40 }, ladder);
-  const dots = STAGES.map((_, i) => el('circle', { cx: W - 4, cy: H - 40 - (H - 80) * i / (N - 1), r: 3 }, ladder));
+  const dots = STAGES.map((_, i) => el('rect', { x: W - 7, y: H - 43 - (H - 80) * i / (N - 1), width: 6, height: 6 }, ladder));
 
   const dAt = p => { const i = Math.min(N - 2, Math.floor(p)), f = p - i; return STAGES[i].d + (STAGES[i + 1].d - STAGES[i].d) * (1 - Math.pow(1 - f, 1.4)); };
   const RATE = [0.5, 0.2, 0.1, 0.05, 0];

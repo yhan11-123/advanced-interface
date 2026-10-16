@@ -5,100 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck thrust slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=1" />
+  <link rel="stylesheet" href="week-04-aero.css?v=2" />
   <style>
-  /* Thrust slider, continuous. A throttle lever in its quadrant beside the forward window. Push it up and the
+  /* Thrust slider, continuous. A throttle lever in its quadrant beside the forward view. Push it up and the
      engine answers: the stars ahead start to stream past, faster and longer the harder you burn, and the
-     acceleration reads in the window. Pull it back to idle and space goes still again. */
+     acceleration reads in the view. Pull it back to idle and space goes still again. */
   :root {
-    --win-w: 182px; --win-h: 172px;
-    --quad-w: 70px; --quad-gap: 14px;
-    --slot-w: 6px; --tick: 6px; --tick-major: 11px;
-    --handle-w: 44px; --handle-h: 16px; --handle-r: 3px;
-    --burn: #ff9a3c;
+    --win-w: 176px; --win-h: 172px;
+    --quad-w: 62px; --quad-gap: 12px;
+    --slot-w: 6px; --tick: 5px; --tick-major: 10px;
+    --handle-w: 30px; --handle-h: 10px;
   }
   .deck { position: relative; display: flex; gap: var(--quad-gap); }
   .window { width: var(--win-w); height: var(--win-h); }
   .window canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .burn { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 120%, var(--burn), transparent 60%); opacity: 0; mix-blend-mode: screen; }
   .quad { position: relative; width: var(--quad-w); height: var(--win-h); cursor: ns-resize; }
-  .slot { position: absolute; left: 22px; top: 12px; bottom: 12px; width: var(--slot-w); margin-left: calc(var(--slot-w) / -2); border-radius: 3px; background: #050a10; box-shadow: inset 0 0 0 1px var(--grid); }
-  .slot .lit { position: absolute; left: 1px; right: 1px; bottom: 1px; border-radius: 2px; background: linear-gradient(var(--burn), #ffcf7a); opacity: .85; }
-  .tk { position: absolute; left: 30px; height: 1px; width: var(--tick); background: var(--dim); }
-  .tk.major { width: var(--tick-major); background: var(--hud); opacity: .7; }
-  .lb { position: absolute; left: 46px; transform: translateY(-50%); font: 500 var(--tag-size)/1 var(--mono); color: var(--dim); letter-spacing: .06em; }
-  /* the lever's handle: a T-bar with grip lines */
-  .handle { position: absolute; left: 22px; width: var(--handle-w); height: var(--handle-h); margin: calc(var(--handle-h) / -2) 0 0 calc(var(--handle-w) / -2); border-radius: var(--handle-r);
-    background: linear-gradient(#2a3a4a, #142030); box-shadow: inset 0 0 0 1px var(--hud), 0 3px 8px rgba(0,0,0,.6); pointer-events: none; transition: box-shadow .12s, transform .12s; }
-  .handle::before { content: ""; position: absolute; left: 10px; right: 10px; top: 5px; bottom: 5px; background: repeating-linear-gradient(90deg, var(--hud) 0 1px, transparent 1px 4px); opacity: .6; }
-  .ghost { position: absolute; left: 0; width: 44px; height: 0; border-top: 1px dashed var(--text); opacity: 0; transition: opacity .12s; pointer-events: none; }
-  .ghost span { position: absolute; left: 50px; top: -6px; font: 600 var(--tag-size)/1 var(--mono); color: var(--text); }
-  .quad.is-hover .ghost { opacity: .8; }
-  .quad.is-hover .handle { box-shadow: inset 0 0 0 1px var(--hud), 0 0 12px rgba(127,225,255,.35), 0 3px 8px rgba(0,0,0,.6); }
-  .quad.is-pressed .handle, .quad.is-dragging .handle { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 14px rgba(255,176,32,.45), 0 3px 8px rgba(0,0,0,.6); }
-  .quad.is-pressed .handle::before, .quad.is-dragging .handle::before { background: repeating-linear-gradient(90deg, var(--amber) 0 1px, transparent 1px 4px); }
-  .quad.is-pressed .handle { transform: scale(.94); }
-  .big { position: absolute; left: 12px; bottom: 26px; font: 600 26px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; z-index: 2; text-shadow: 0 0 10px rgba(0,0,0,.9); transition: color .12s; }
-  .big small { font-size: 11px; color: var(--hud); margin-left: 3px; }
-  .deck.held .big { color: var(--amber); }
+  .slot { position: absolute; left: 17px; top: 12px; bottom: 12px; width: var(--slot-w); margin-left: calc(var(--slot-w) / -2); box-shadow: inset 0 0 0 1px var(--hud); }
+  .slot .lit { position: absolute; left: 2px; right: 2px; bottom: 2px; background: var(--text); }
+  .tk { position: absolute; left: 25px; height: 1px; width: var(--tick); background: var(--dim); }
+  .tk.major { width: var(--tick-major); background: var(--hud); }
+  .lb { position: absolute; left: 39px; transform: translateY(-50%); font: 500 var(--tag-size)/1 var(--mono); color: var(--dim); letter-spacing: .06em; }
+  /* the lever's handle: a flat bar with a notch through it */
+  .handle { position: absolute; left: 17px; width: var(--handle-w); height: var(--handle-h); margin: calc(var(--handle-h) / -2) 0 0 calc(var(--handle-w) / -2);
+    background: var(--space); box-shadow: inset 0 0 0 1px var(--text); pointer-events: none; transition: transform .12s, background .1s; }
+  .handle::before { content: ""; position: absolute; left: 50%; top: 2px; bottom: 2px; width: 1px; background: var(--text); }
+  .ghost { position: absolute; left: 0; width: 36px; height: 0; border-top: 1px dashed var(--text); opacity: 0; transition: opacity .12s; pointer-events: none; }
+  .ghost span { position: absolute; left: 39px; top: -5px; padding: 0 2px; background: var(--space); font: 600 var(--tag-size)/1 var(--mono); color: var(--text); }
+  .quad.is-hover .ghost { opacity: 1; }
+  .quad.is-hover .handle { box-shadow: inset 0 0 0 1px var(--text), 0 0 0 3px var(--space), 0 0 0 4px var(--dim); }
+  .quad.is-pressed .handle, .quad.is-dragging .handle { background: var(--text); }
+  .quad.is-pressed .handle::before, .quad.is-dragging .handle::before { background: var(--space); }
+  .quad.is-pressed .handle { transform: scale(.9); }
+  .quad.is-dragging .handle { transform: scaleX(1.15); }
+  .big { position: absolute; left: 10px; bottom: 24px; z-index: 2; font: 600 24px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+  .big small { font-size: 10px; margin-left: 3px; }
+  .deck.held .big { background: var(--text); color: var(--space); }
+  .hud span { color: var(--hud); }
   </style>
 </head>
 <body>
   <main class="stage">
     <div class="sky"></div>
+    <div data-app="Throttle">
     <section class="deck" aria-label="Main engine">
-      <div class="window"><canvas></canvas><div class="burn"></div><span class="big"></span>
-        <div class="hud"><span style="left:12px;top:10px">MAIN ENGINE</span><span style="right:12px;top:10px" class="t-g"></span><span style="left:12px;bottom:10px" class="t-mode"></span><span style="right:12px;bottom:10px" class="t-dv"></span></div>
+      <div class="window"><canvas></canvas><span class="big chip"></span>
+        <div class="hud"><span style="left:10px;top:8px">MAIN ENGINE</span><span style="right:10px;top:8px" class="t-g"></span><span style="left:10px;bottom:8px" class="t-mode"></span><span style="right:10px;bottom:8px" class="t-dv"></span></div>
       </div>
       <div class="quad" role="slider" tabindex="0" aria-label="Thrust"><div class="slot"><div class="lit"></div></div><div class="ghost"><span></span></div><div class="handle"></div></div>
     </section>
+    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Continuous, 0 to 100% thrust, to the percent. A throttle lever in its quadrant: push the handle up the slot to burn harder. The thrust reads big in the window, always on screen, with the acceleration and the speed gained; the view shows it too, the stars ahead streaming past faster and longer as the engine works and an orange glow rising from below.</p>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 100% thrust, to the percent. A throttle lever in its quadrant: push the handle up the slot to burn harder. The thrust reads big in the view, always on screen, with the acceleration and the speed gained; the view shows it too, the stars ahead streaming past faster and longer as the engine works.</p>
 
     <h3>Quadrant</h3>
     <table>
-      <tr><td>Quadrant</td><td data-var="--quad-w,--win-h" data-join=" × " data-after=", the hit area; 14px right of the window"></td></tr>
-      <tr><td>Slot</td><td data-var="--slot-w" data-after=" wide, 12px in from the top and bottom, 1px grid ring; lit from below to the thrust"></td></tr>
+      <tr><td>Window</td><td>A workspace window titled Throttle: 1px white frame, 13px title bar, 10px padding</td></tr>
+      <tr><td>Quadrant</td><td data-var="--quad-w,--win-h" data-join=" × " data-after=", the hit area; 12px right of the view"></td></tr>
+      <tr><td>Slot</td><td data-var="--slot-w" data-after=" wide, 1px outline, 12px in from the top and bottom; filled white from below to the thrust"></td></tr>
       <tr><td>Ticks</td><td data-var="--tick,--tick-major" data-join=" and " data-after=" long, every 5% and 25%; quarters labelled, IDLE and MAX at the ends"></td></tr>
-      <tr><td>Handle</td><td data-var="--handle-w,--handle-h" data-join=" × " data-after=", 3px corner, 1px cyan line, grip lines 3px apart"></td></tr>
+      <tr><td>Handle</td><td data-var="--handle-w,--handle-h" data-join=" × " data-after=", 1px white outline, a notch through its centre"></td></tr>
       <tr><td>Drag</td><td>Relative: the handle moves with the finger from wherever you grabbed, so it never jumps</td></tr>
     </table>
 
-    <h3>Window</h3>
+    <h3>View</h3>
     <table>
-      <tr><td>Window</td><td data-var="--win-w,--win-h" data-join=" × " data-after=", 18px corner, a 6px frame"></td></tr>
-      <tr><td>Thrust</td><td>Mono 600 26px, bottom left; “%” in 11px cyan</td></tr>
-      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan: acceleration in g, mode, speed gained"></td></tr>
+      <tr><td>View</td><td data-var="--win-w,--win-h" data-join=" × " data-after=", 1px rule round it"></td></tr>
+      <tr><td>Thrust</td><td>Mono 600 24px, bottom left; “%” in 10px</td></tr>
+      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, light grey: acceleration in g, mode, speed gained"></td></tr>
       <tr><td>Stars</td><td>Drawn on a canvas, flying out from the centre; speed and streak length follow the thrust</td></tr>
-      <tr><td>Engine glow</td><td data-var="--burn" data-kind="color"></td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
-      <tr><td>Slot</td><td><span class="swatch" style="background:#050a10"></span>#050a10</td></tr>
-      <tr><td>Lit slot, glow</td><td data-var="--burn" data-kind="color"></td></tr>
-      <tr><td>Handle line, ticks</td><td data-var="--hud" data-kind="color"></td></tr>
-      <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
+      <tr><td>Desk, view, handle</td><td data-var="--space" data-kind="color"></td></tr>
+      <tr><td>Frame, fill, handle line</td><td data-var="--text" data-kind="color"></td></tr>
+      <tr><td>Ticks, telemetry</td><td data-var="--hud" data-kind="color"></td></tr>
+      <tr><td>Labels</td><td data-var="--dim" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The handle glows cyan; a dashed line across the slot follows the pointer with the thrust it would set beside it</td></tr>
-      <tr><td>Pressed</td><td>The handle's line and grip turn amber and it dips to 0.94; a tap moves it to the pointer</td></tr>
-      <tr><td>Drag</td><td>The handle rides the finger; the slot lights, the stars speed up, the glow rises and the numbers count, all with no lag</td></tr>
+      <tr><td>Hover</td><td>A second outline rings the handle; a dashed line across the slot follows the pointer with the thrust it would set beside it</td></tr>
+      <tr><td>Pressed</td><td>The handle fills white and dips to 0.9; the thrust inverts, black on white; a tap moves it to the pointer</td></tr>
+      <tr><td>Drag</td><td>The handle widens to 1.15 and rides the finger; the slot fills, the stars speed up and the numbers count, all with no lag</td></tr>
       <tr><td>Keyboard</td><td>Arrows 1%; Page Up and Down 10%; Home idle, End full</td></tr>
     </table>
   </section>
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=1"></script>
+  <script src="week-04-aero.js?v=2"></script>
   <script>
   const quad = document.querySelector('.quad'), handle = quad.querySelector('.handle'), lit = quad.querySelector('.lit'), ghost = quad.querySelector('.ghost'), deck = document.querySelector('.deck');
-  const win = document.querySelector('.window'), cv = win.querySelector('canvas'), cx = cv.getContext('2d'), burn = win.querySelector('.burn');
+  const win = document.querySelector('.window'), cv = win.querySelector('canvas'), cx = cv.getContext('2d');
   const TOP = 12, BOT = 12, span = () => quad.clientHeight - TOP - BOT, yOf = v => TOP + span() * (1 - v / 100);
   for (let v = 0; v <= 100; v += 5) {
     const t = document.createElement('div'); t.className = 'tk' + (v % 25 === 0 ? ' major' : ''); t.style.top = yOf(v) + 'px'; quad.insertBefore(t, ghost);
@@ -115,11 +117,11 @@
     dv += 11.8 * f * dt;                                   // about 1.2 g at full thrust
     cx.clearRect(0, 0, W, H);
     STARS.forEach(s => {
-      const d0 = s.d; s.d += speed * dt * (.3 + s.d);
+      s.d += speed * dt * (.3 + s.d);
       if (s.d > 1.3) { s.d = .02 + rnd() * .1; s.a = rnd() * Math.PI * 2; }
       const R = Math.hypot(W, H) / 2, x = W / 2 + Math.cos(s.a) * s.d * R, y = H / 2 + Math.sin(s.a) * s.d * R;
       const tail = Math.min(s.d, f * f * .25 * (.5 + s.d)), x0 = W / 2 + Math.cos(s.a) * (s.d - tail) * R, y0 = H / 2 + Math.sin(s.a) * (s.d - tail) * R;
-      cx.strokeStyle = `rgba(226,247,255,${s.b * Math.min(1, s.d * 2.5)})`; cx.lineWidth = .6 + s.d * 1.2; cx.lineCap = 'round';
+      cx.strokeStyle = `rgba(255,255,255,${s.b * Math.min(1, s.d * 2.5)})`; cx.lineWidth = .6 + s.d * 1.1; cx.lineCap = 'butt';
       cx.beginPath(); cx.moveTo(x0, y0); cx.lineTo(x + .01, y); cx.stroke();
     });
     win.querySelector('.t-dv').textContent = `ΔV +${Math.round(dv)} M/S`;
@@ -127,8 +129,7 @@
   }
   function draw() {
     const f = v / 100;
-    handle.style.top = yOf(v) + 'px'; lit.style.height = `calc(${f * 100}% - 2px)`;
-    burn.style.opacity = f * .55;
+    handle.style.top = yOf(v) + 'px'; lit.style.height = `calc(${f * 100}% - 4px)`;
     win.querySelector('.big').innerHTML = `${Math.round(v)}<small>%</small>`;
     win.querySelector('.t-g').textContent = `${(1.2 * f).toFixed(2)} G`;
     win.querySelector('.t-mode').textContent = v < 1 ? 'IDLE · COAST' : v < 60 ? 'CRUISE BURN' : 'FULL BURN';
@@ -148,7 +149,7 @@
     if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
     if (drag) set(v0 + (y0 - e.clientY) / span() * 100);
   });
-  const release = e => { if (!down) return; if (!drag) set(vAt(e)); down = drag = false; hv = hover ? vAt(e) : null; show(); draw(); };
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); if (!wasDrag) set(vAt(e)); hv = hover ? vAt(e) : null; draw(); };
   quad.addEventListener('pointerup', release);
   quad.addEventListener('pointercancel', release);
   quad.setAttribute('aria-valuemin', 0); quad.setAttribute('aria-valuemax', 100);

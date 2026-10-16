@@ -5,52 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Flight deck altitude slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-aero.css?v=1" />
+  <link rel="stylesheet" href="week-04-aero.css?v=2" />
   <style>
   /* Altitude slider, stepped. No window this time: the slider is the orbits themselves. The Earth sits in the
      corner with five orbit rings around it, low Earth orbit to geostationary; drag the spacecraft outward along
      its line and it climbs from ring to ring, settling on the nearest. */
   :root {
-    --scene-w: 280px; --scene-h: 230px;
+    --scene-w: 264px; --scene-h: 222px;
     --settle: .36s;
   }
   .scene { position: relative; width: var(--scene-w); height: var(--scene-h); overflow: hidden; cursor: nesw-resize; }
   .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .ring { fill: none; stroke: var(--grid); stroke-width: 1; transition: stroke .15s, stroke-width .15s; }
-  .ring.passed { stroke: rgba(127,225,255,.32); }
-  .ring.on { stroke: var(--hud); stroke-width: 1.25; }
+  .ring { fill: none; stroke: var(--line); stroke-width: 1; transition: stroke .15s; }
+  .ring.passed { stroke: var(--dim); }
+  .ring.on { stroke: var(--text); }
   .ring.is-near { stroke: var(--text); stroke-dasharray: 2 3; }
   .ray { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 1 3; }
-  .ray-lit { stroke: var(--hud); stroke-width: 1.25; }
+  .ray-lit { stroke: var(--text); stroke-width: 1; }
   .rl { font: 500 var(--tag-size) var(--mono); letter-spacing: .06em; fill: var(--dim); transition: fill .15s; }
-    .rl.on, .rl.is-near { fill: var(--text); }
+  .rl.on, .rl.is-near { fill: var(--text); }
+  .tick { stroke: var(--text); stroke-width: 1; }
+  /* the craft is a square handle; hover rings it, press shrinks it, drag grows it with crosshair arms */
   .craft { transition: transform var(--settle) var(--ease-out); }
   .live .craft { transition: none; }
-  .craft .glow { fill: var(--hud); opacity: 0; transition: opacity .15s; }
-  .craft .body { fill: var(--text); transition: fill .12s; }
-  .craft .wing { fill: #2a5a96; stroke: var(--hud); stroke-width: .6; transition: stroke .12s; }
   .craft .k { transition: transform .12s; }
-  .scene.is-hover .craft .glow { opacity: .22; }
-  .scene.is-pressed .craft .k { transform: scale(.86); }
-  .scene.is-dragging .craft .k { transform: scale(1.15); }
-  .scene.is-pressed .craft .body, .scene.is-dragging .craft .body { fill: var(--amber); }
-  .scene.is-pressed .craft .wing, .scene.is-dragging .craft .wing { stroke: var(--amber); }
-  .scene.is-pressed .craft .glow, .scene.is-dragging .craft .glow { fill: var(--amber); opacity: .28; }
-  .ray-lit { transition: none; }
-  .read { position: absolute; right: 4px; top: 2px; text-align: right; pointer-events: none; }
-  .read .km { font: 600 20px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; transition: color .12s; }
-  .read .km small { font-size: 9px; color: var(--hud); margin-left: 3px; letter-spacing: .1em; }
-  .read .sub { margin-top: 5px; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); font-variant-numeric: tabular-nums; }
-  .scene.is-pressed .read .km, .scene.is-dragging .read .km { color: var(--amber); }
+  .craft .body { fill: var(--text); }
+  .craft .ring2 { fill: none; stroke: var(--text); stroke-width: 1; opacity: 0; transition: opacity .12s; }
+  .craft .arms { stroke: var(--text); stroke-width: 1; opacity: 0; transition: opacity .12s; }
+  .scene.is-hover .craft .ring2 { opacity: 1; }
+  .scene.is-pressed .craft .k { transform: scale(.75); }
+  .scene.is-dragging .craft .k { transform: scale(1.2); }
+  .scene.is-dragging .craft .arms, .scene.is-dragging .craft .ring2 { opacity: 1; }
+  .read { position: absolute; right: 2px; top: 0; text-align: right; pointer-events: none; }
+  .read .km { display: inline-block; font: 600 18px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+  .read .km small { font-size: 9px; color: inherit; margin-left: 3px; letter-spacing: .1em; }
+  .read .sub { margin-top: 6px; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); font-variant-numeric: tabular-nums; }
+  .scene.is-pressed .read .km, .scene.is-dragging .read .km { background: var(--text); color: var(--space); }
   </style>
 </head>
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <div class="scene" role="slider" tabindex="0" aria-label="Orbit altitude">
+    <div data-app="Orbit"><div class="scene" role="slider" tabindex="0" aria-label="Orbit altitude">
       <svg class="view"></svg>
-      <div class="read"><div class="km"></div><div class="sub t-v"></div><div class="sub t-t"></div></div>
-    </div>
+      <div class="read"><div class="km chip"></div><div class="sub t-v"></div><div class="sub t-t"></div></div>
+    </div></div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
@@ -60,35 +59,34 @@
     <h3>Orbits</h3>
     <table>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area"></td></tr>
-      <tr><td>Earth</td><td>Drawn in code, radius 52, centred 34px in from the left and 18px up from the bottom, so only a quarter shows</td></tr>
-      <tr><td>Rings</td><td>Five, radius 76 to 200 every 31px; 1px grid, passed rings cyan at 32%, the current one solid cyan</td></tr>
-      <tr><td>Flight line</td><td>Out from the Earth at 50°, 1px dotted; the part climbed so far solid cyan</td></tr>
+      <tr><td>Earth</td><td>A wireframe globe drawn in code, radius 52, centred 34px in from the left and 18px up from the bottom, so only a quarter shows</td></tr>
+      <tr><td>Rings</td><td>Five, radius 76 to 200 every 31px; 1px, unreached dark, passed grey, the current one white</td></tr>
+      <tr><td>Flight line</td><td>Out from the Earth at 50°, 1px dotted, a 6px tick at each ring; the part climbed so far solid white</td></tr>
       <tr><td>Ring label</td><td data-var="--tag-size" data-after=" mono 500, the orbit name just outside each ring, 12° up"></td></tr>
-      <tr><td>Spacecraft</td><td>A body and two panels, 18px across, turned to face along the line</td></tr>
+      <tr><td>Handle</td><td>7px white square, the spacecraft</td></tr>
       <tr><td>Between rings</td><td>The height moves geometrically while dragging, so it counts smoothly in kilometres</td></tr>
       <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest ring"></td></tr>
     </table>
 
     <h3>Readout</h3>
     <table>
-      <tr><td>Altitude</td><td>Mono 600 20px, top right; “KM” in 9px cyan</td></tr>
-      <tr><td>Speed, period</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan, under it"></td></tr>
+      <tr><td>Altitude</td><td>Mono 600 18px, top right; “KM” in 9px</td></tr>
+      <tr><td>Speed, period</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, light grey, under it"></td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
       <tr><td>Space</td><td data-var="--space" data-kind="color"></td></tr>
-      <tr><td>Unreached rings</td><td data-var="--grid" data-kind="color"></td></tr>
+      <tr><td>Unreached rings</td><td data-var="--line" data-kind="color"></td></tr>
       <tr><td>Labels, line</td><td data-var="--dim" data-kind="color"></td></tr>
-      <tr><td>Current ring, readout</td><td data-var="--hud" data-kind="color"></td></tr>
-      <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
+      <tr><td>Current ring, handle, readout</td><td data-var="--text" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>A soft glow round the spacecraft; the ring under the pointer turns dashed white and its label lights. Nothing moves yet</td></tr>
-      <tr><td>Pressed</td><td>The spacecraft and the altitude turn amber; the craft dips to 0.86</td></tr>
-      <tr><td>Drag</td><td>The craft rides the pointer along its line, grown 1.15; rings light as it passes them and the altitude counts with no lag</td></tr>
+      <tr><td>Hover</td><td>A 15px square rings the handle; the ring under the pointer turns dashed and its label lights. Nothing moves yet</td></tr>
+      <tr><td>Pressed</td><td>The handle shrinks to 0.75; the altitude inverts, black on white</td></tr>
+      <tr><td>Drag</td><td>The handle rides the pointer along its line, grown 1.2 with crosshair arms; rings light as it passes and the altitude counts with no lag</td></tr>
       <tr><td>Let go</td><td>Settles on the nearest ring</td></tr>
       <tr><td>Keyboard</td><td>Up and Right one orbit out; Down and Left one in; Home and End LEO and GEO</td></tr>
     </table>
@@ -96,7 +94,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=1"></script>
+  <script src="week-04-aero.js?v=2"></script>
   <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ORBITS = [ { h: 400, name: 'LEO' }, { h: 2000, name: 'LEO+' }, { h: 8000, name: 'MEO' }, { h: 20200, name: 'GPS' }, { h: 35786, name: 'GEO' } ], N = ORBITS.length;
@@ -115,13 +113,13 @@
     const t = el('text', { class: 'rl', x: CX + Math.cos(LA) * R[i] + 4, y: CY - Math.sin(LA) * R[i] + 3 });
     t.textContent = o.name; return t;
   });
-  // the craft: CSS moves the outer group and scales the middle one; the inner one turns it to face along the line
-  const craft = el('g', { class: 'craft' }), k = el('g', { class: 'k' }, craft), turn = el('g', { transform: 'rotate(-50)' }, k);
-  el('circle', { class: 'glow', r: 13 }, turn);
-  el('rect', { class: 'wing', x: -3, y: -10, width: 6, height: 6 }, turn);
-  el('rect', { class: 'wing', x: -3, y: 4, width: 6, height: 6 }, turn);
-  el('rect', { class: 'body', x: -4, y: -3.5, width: 8, height: 7, rx: 1.5 }, turn);
-  el('rect', { class: 'body', x: 4, y: -1, width: 3, height: 2 }, turn);
+  // a short tick where each ring crosses the flight line
+  R.forEach(r => el('line', { class: 'tick', x1: CX + ux * r - uy * 3, y1: CY + uy * r + ux * 3, x2: CX + ux * r + uy * 3, y2: CY + uy * r - ux * 3 }));
+  // the craft: CSS moves the outer group and scales the inner one
+  const craft = el('g', { class: 'craft' }), k = el('g', { class: 'k' }, craft);
+  el('rect', { class: 'ring2', x: -7.5, y: -7.5, width: 15, height: 15 }, k);
+  el('path', { class: 'arms', d: 'M-16 0 H-10 M10 0 H16 M0 -16 V-10 M0 10 V16' }, k);
+  el('rect', { class: 'body', x: -3.5, y: -3.5, width: 7, height: 7 }, k);
 
   // ring index (continuous) <-> radius; between rings the height moves geometrically
   const rOf = p => { const i = Math.min(N - 2, Math.floor(p)); return R[i] + (R[i + 1] - R[i]) * (p - i); };

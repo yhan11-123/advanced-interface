@@ -1,52 +1,57 @@
-/* Week 04, Set 2: Flight deck. Looking out of a spacecraft window: deep black, real stars, Earth's blue limb,
-   hairline cyan instruments on dark glass, amber for whatever your hand is on. Shared by altitude, thrust and docking. */
+/* Week 04, Set 2: Flight deck. A monochrome workspace: each slider lives in its own small application window
+   with a title bar, on a black desk ruled with a faint grid. White hairlines, small mono type, square handles;
+   no colour at all. What your hand is on turns inverted, white with black type. Shared by altitude, thrust, docking. */
 :root {
-  --space: #010205;      /* the page, deep space */
-  --glass: rgba(10,18,28,.72); /* instrument glass over the view */
-  --frame: #0d141c;      /* the window frame */
-  --grid: #18283a;       /* hairlines, unlit ticks */
-  --dim: #4b6478;        /* quiet ticks and labels */
-  --hud: #7fe1ff;        /* the instrument colour */
-  --text: #e2f7ff;       /* readouts */
-  --amber: #ffb020;      /* held */
-  --earth: #2f7fd8;      /* oceans, for the planet drawing */
-  --air: #8fd8ff;        /* the atmosphere's glow at the limb */
+  --space: #000000;      /* the desk and the windows */
+  --frame: #ffffff;      /* window frames, title bars */
+  --grid: #161616;       /* the desk grid */
+  --line: #2e2e2e;       /* unlit rules inside a window */
+  --dim: #6e6e6e;        /* quiet ticks and labels */
+  --hud: #d6d6d6;        /* instruments */
+  --text: #ffffff;       /* readouts */
+  --amber: #ffffff;      /* held: shown by inverting, not by colour */
 
   --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
-  --tag-size: 9px; --tag-line: 12px; --tag-track: .14em;
-  --read-size: 13px; --read-line: 16px;
-
-  --window-r: 18px; --frame-w: 6px;
+  --tag-size: 9px; --tag-line: 12px; --tag-track: .12em;
+  --bar-h: 13px; --app-pad: 10px;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--space); color: var(--text); font-family: var(--mono); -webkit-font-smoothing: antialiased; }
-.stage { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 16px; user-select: none; -webkit-user-select: none; overflow: hidden; }
-/* the stars behind everything, drawn by week-04-aero.js */
-.sky { position: absolute; inset: 0; pointer-events: none; }
+.stage { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 16px; user-select: none; -webkit-user-select: none; overflow: hidden;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px; background-position: center center; }
+.sky { position: absolute; inset: 0; pointer-events: none; opacity: .55; }
 [role="slider"] { touch-action: none; outline: none; }
-[role="slider"]:focus-visible { box-shadow: 0 0 0 1px var(--space), 0 0 0 2px var(--amber); }
+[role="slider"]:focus-visible { box-shadow: 0 0 0 1px var(--space), 0 0 0 2px var(--frame); }
 .tag { font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: var(--tag-track); text-transform: uppercase; color: var(--dim); }
 
-/* a spacecraft window: thick rounded frame, a little inner bevel, a faint reflection across the glass */
-.window { position: relative; overflow: hidden; border-radius: var(--window-r); background: #000;
-  box-shadow: 0 0 0 var(--frame-w) var(--frame), 0 0 0 calc(var(--frame-w) + 1px) #22303d, inset 0 0 24px rgba(0,0,0,.9); }
-.window::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: linear-gradient(125deg, rgba(255,255,255,.07), transparent 38%, transparent 70%, rgba(255,255,255,.03)); }
+/* an application window: 1px white frame, a title bar with its name and _ □ ×, small squares in the bottom corners */
+.app { position: relative; z-index: 1; background: var(--space); border: 1px solid var(--frame); padding: calc(var(--bar-h) + var(--app-pad)) var(--app-pad) var(--app-pad); }
+.app > .bar { position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); display: flex; align-items: center; justify-content: space-between; padding: 0 4px;
+  border-bottom: 1px solid var(--frame); font: 500 8px/1 var(--mono); letter-spacing: .04em; color: var(--text); }
+.app > .bar i { font-style: normal; letter-spacing: .3em; }
+.app::before, .app::after { content: ""; position: absolute; bottom: 3px; width: 4px; height: 4px; background: var(--frame); }
+.app::before { left: 3px; } .app::after { right: 3px; }
+
+/* a view inside a window: a black pane with a hairline edge */
+.window { position: relative; overflow: hidden; background: var(--space); box-shadow: inset 0 0 0 1px var(--line); }
 .window svg.view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.hud span { position: absolute; z-index: 2; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .1em; color: var(--hud); text-shadow: 0 0 6px rgba(0,0,0,.95); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hud span { position: absolute; z-index: 2; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* held readouts invert */
+.chip { padding: 1px 3px; margin: -1px -3px; transition: background .1s, color .1s; }
 
 /* Spec, below the fold */
-.spec { position: relative; max-width: 620px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--grid); font: 12px/1.55 var(--mono); background: var(--space); }
-.spec h2 { font: 600 16px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px; color: var(--hud); }
+.spec { position: relative; max-width: 620px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--line); font: 12px/1.55 var(--mono); background: var(--space); }
+.spec h2 { font: 600 16px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px; color: var(--text); }
 .spec h3 { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 24px 0 8px; }
-.spec p { color: #8aa6b5; margin: 0 0 8px; }
+.spec p { color: #a0a0a0; margin: 0 0 8px; }
 .spec table { width: 100%; border-collapse: collapse; }
-.spec td { padding: 7px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
-.spec td:first-child { width: 40%; color: #8aa6b5; padding-right: 12px; }
-.spec .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
-.back-pill { position: fixed; z-index: 5; left: 12px; bottom: 12px; font: 11px/1 var(--mono); letter-spacing: .08em; color: var(--text); background: rgba(127,225,255,.1); padding: 8px 12px; border-radius: 2px; text-decoration: none; }
+.spec td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.spec td:first-child { width: 40%; color: #a0a0a0; padding-right: 12px; }
+.spec .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.back-pill { position: fixed; z-index: 5; left: 12px; bottom: 12px; font: 11px/1 var(--mono); letter-spacing: .08em; color: var(--text); background: var(--space); border: 1px solid var(--frame); padding: 7px 11px; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; } }
