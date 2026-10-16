@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Hue ring</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  :root { --bg: #000; }
+  .ring { position: relative; width: min(74vmin, 190px); aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, hsl(0 90% 60%), hsl(60 90% 60%), hsl(120 90% 60%), hsl(180 90% 60%), hsl(240 90% 60%), hsl(300 90% 60%), hsl(360 90% 60%)); -webkit-mask: radial-gradient(circle, transparent 58%, #000 59%); mask: radial-gradient(circle, transparent 58%, #000 59%); }
+  .wrap { position: relative; width: min(74vmin, 190px); aspect-ratio: 1; }
+  .ringhit { position: absolute; inset: 0; border-radius: 50%; }
+  .core { position: absolute; inset: 24%; border-radius: 50%; display: grid; place-content: center; text-align: center; transition: transform .15s; pointer-events: none; }
+  .deg { font: 600 clamp(18px, 7vmin, 26px)/1 var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: #111; }
+  .hex { margin-top: 5px; font: 10px/1 var(--mono); color: rgba(0,0,0,.6); letter-spacing: .04em; }
+  .knob { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,.5); transition: transform .12s; pointer-events: none; }
+  .ringhit.is-hover + .knob { transform: scale(1.1); }
+  .ringhit.is-pressed + .knob, .ringhit.is-dragging + .knob { transform: scale(1.35); }
+  .wrap:has(.is-dragging) .core { transform: scale(1.06); }
+
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="ring"></div>
+    <div class="core"><div class="deg"></div><div class="hex"></div></div>
+    <div class="ringhit" role="slider" tabindex="0" aria-label="Hue"></div>
+    <div class="knob"></div>
+  </div>
+
+  <p class="state">state <b>rest</b></p>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  function drag(el, { min, max, step, value, format, fromPointer, render, keyStep }) {
+    let v = value; const st = track(el);
+    const set = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round(n / step) * step; v = n; el.setAttribute('aria-valuenow', Math.round(v)); el.setAttribute('aria-valuetext', format(v)); render(v); };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); st.down(); set(fromPointer(e, v)); });
+    el.addEventListener('pointermove', e => { if (!el.hasPointerCapture(e.pointerId)) return; st.move(); set(fromPointer(e, v)); });
+    ['pointerup', 'pointercancel'].forEach(t => el.addEventListener(t, () => st.up()));
+    el.addEventListener('keydown', e => {
+      const k = keyStep || 1, m = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + k * 10, PageDown: v - k * 10, Home: min, End: max };
+      if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+    });
+    set(v); return { set };
+  }
+  const hex = (h, s, l) => { const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, '0'); }; return '#' + f(0) + f(8) + f(4); };
+
+  // Only the angle counts: drag anywhere and the knob stays on the ring. It stops at 0 and 359 rather than jumping across the top.
+  const hit = document.querySelector('.ringhit'), knob = document.querySelector('.knob'), core = document.querySelector('.core');
+  drag(hit, { min: 0, max: 359, step: 1, value: 210, format: v => `Hue ${v} degrees, ${hex(v, .9, .6)}`,
+    fromPointer(e, v) {
+      const r = hit.getBoundingClientRect();
+      let a = Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180 / Math.PI;
+      if (a < 0) a += 360;
+      if (v > 270 && a < 90) a = 359; else if (v < 90 && a > 270) a = 0;
+      return a;
+    },
+    render(v) {
+      const rad = v * Math.PI / 180, R = 41;   // percent of the box, centre of the band
+      knob.style.left = (50 + Math.sin(rad) * R) + '%'; knob.style.top = (50 - Math.cos(rad) * R) + '%';
+      const c = `hsl(${v} 90% 60%)`; knob.style.background = c; core.style.background = c;
+      core.querySelector('.deg').textContent = v + '°'; core.querySelector('.hex').textContent = hex(v, .9, .6).toUpperCase();
+    } });
+
+  </script>
+</body>
+</html>

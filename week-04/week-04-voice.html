@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Voice</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .panel { width: min(88vw, 360px); padding: 18px 20px; background: var(--panel); border-radius: 22px; display: flex; align-items: center; gap: 14px; }
+  .state { position: fixed; right: 12px; top: 10px; font: 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+  .state b { color: var(--fg); font-weight: 500; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  :root { --bg: #fbfbe9; --fg: #1a1a1a; --muted: #a3a39a; color-scheme: light; }
+  .state b { color: var(--fg); }
+  .back-pill { color: #fff; background: rgba(0,0,0,.6); }
+  svg.rib { width: 100vw; height: auto; max-height: 100vh; overflow: visible; }
+  .band { fill: none; stroke: var(--fg); stroke-width: 22; }
+  .said { fill: var(--muted); font: 400 13px/1 var(--font); }
+  .ahead { fill: #fff; font: 500 13px/1 var(--font); }
+  .pill rect { fill: var(--bg); stroke: var(--fg); stroke-width: 2; transition: transform .12s; transform-box: fill-box; transform-origin: center; }
+  .pill line { stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; transform-box: fill-box; transform-origin: center; }
+  .time { fill: var(--fg); font: 600 12px/1 var(--font); font-variant-numeric: tabular-nums; text-anchor: middle; opacity: 0; transition: opacity .12s; }
+  .rib.is-hover .pill rect { transform: scale(1.06); }
+  .rib.is-pressed .pill rect, .rib.is-dragging .pill rect { transform: scale(1.12); fill: #e7dcff; }
+  .rib.is-pressed .time, .rib.is-dragging .time { opacity: 1; }
+  .rib.is-dragging .pill line { animation: talk .5s ease-in-out infinite alternate; }
+  @keyframes talk { from { transform: scaleY(.4); } to { transform: scaleY(1.1); } }
+
+  </style>
+</head>
+<body>
+
+  <svg class="rib" viewBox="0 0 400 220" role="slider" tabindex="0" aria-label="Position in the recording">
+    <defs>
+      <path id="p" d="M-30 70 C 60 90, 120 170, 200 160 S 330 90, 440 70"/>
+      <mask id="mSaid" maskUnits="userSpaceOnUse"><use href="#p" class="mpath" fill="none" stroke="#fff" stroke-width="40" id="ms"/></mask>
+      <mask id="mAhead" maskUnits="userSpaceOnUse"><use href="#p" fill="none" stroke="#fff" stroke-width="40" id="ma"/></mask>
+    </defs>
+    <use href="#p" class="band" id="band"/>
+    <text class="said" mask="url(#mSaid)" dy="4"><textPath href="#p">can you check in with them and see if the notes from yesterday's meeting were sent out, or if they're still waiting on someone, because nobody really knows what's going on so far can you check in with them and see if the notes from yesterday's meeting were sent out, or if they're still waiting on someone, because nobody really knows what's going on so far </textPath></text>
+    <text class="ahead" mask="url(#mAhead)" dy="4"><textPath href="#p">can you check in with them and see if the notes from yesterday's meeting were sent out, or if they're still waiting on someone, because nobody really knows what's going on so far can you check in with them and see if the notes from yesterday's meeting were sent out, or if they're still waiting on someone, because nobody really knows what's going on so far </textPath></text>
+    <g class="pill"><rect x="-26" y="-15" width="52" height="30" rx="15"/><g class="bars"></g></g>
+    <text class="time"></text>
+  </svg>
+
+  <p class="state">state <b>rest</b></p>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  // State readout: rest / hover / pressed / drag, so the three brief states can be seen.
+  const stateEl = document.querySelector('.state b');
+  function track(el) {
+    let hover = false, pressed = false, drag = false;
+    const show = () => {
+      el.classList.toggle('is-hover', hover && !pressed);
+      el.classList.toggle('is-pressed', pressed && !drag);
+      el.classList.toggle('is-dragging', drag);
+      if (stateEl) stateEl.textContent = drag ? 'drag' : pressed ? 'pressed' : hover ? 'hover' : 'rest';
+    };
+    el.addEventListener('pointerenter', () => { hover = true; show(); });
+    el.addEventListener('pointerleave', () => { hover = false; show(); });
+    return {
+      down() { pressed = true; drag = false; show(); },
+      move() { if (pressed && !drag) { drag = true; show(); } },
+      up() { pressed = false; drag = false; show(); },
+    };
+  }
+  // A horizontal slider. opts: min, max, step, value, format(v), render(v, t), [fromPointer(e, rect, v0, x0)]
+  function slider(el, opts) {
+    const { min, max } = opts; const step = opts.step || 0;
+    let v = opts.value, x0 = 0, v0 = 0;
+    const st = track(el);
+    const snap = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round((n - min) / step) * step + min; return +n.toFixed(4); };
+    const set = n => {
+      v = snap(n);
+      el.setAttribute('aria-valuenow', v);
+      el.setAttribute('aria-valuetext', opts.format(v));
+      opts.render(v, (v - min) / (max - min));
+    };
+    const fromX = e => {
+      const r = (opts.hit || el).getBoundingClientRect();
+      if (opts.relative) return v0 - (e.clientX - x0) / opts.relative;   // px per unit, dragging the track itself
+      return min + (e.clientX - r.left) / r.width * (max - min);
+    };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => {
+      el.setPointerCapture(e.pointerId);
+      x0 = e.clientX; v0 = v; st.down();
+      if (!opts.relative) set(fromX(e));
+    });
+    el.addEventListener('pointermove', e => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      if (Math.abs(e.clientX - x0) > 2) st.move();
+      set(fromX(e));
+    });
+    const end = e => { if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); st.up(); };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const k = step || (max - min) / 100, big = (max - min) / 10;
+      const map = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + big, PageDown: v - big, Home: min, End: max };
+      if (e.key in map) { e.preventDefault(); set(map[e.key]); }
+    });
+    set(v);
+    return { set, get: () => v };
+  }
+  if (window.top === window) document.querySelector('.back-pill').hidden = false;
+
+  function drag(el, { min, max, step, value, format, fromPointer, render, keyStep }) {
+    let v = value; const st = track(el);
+    const set = n => { n = Math.min(max, Math.max(min, n)); if (step) n = Math.round(n / step) * step; v = n; el.setAttribute('aria-valuenow', Math.round(v)); el.setAttribute('aria-valuetext', format(v)); render(v); };
+    el.setAttribute('aria-valuemin', min); el.setAttribute('aria-valuemax', max);
+    el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); st.down(); set(fromPointer(e, v)); });
+    el.addEventListener('pointermove', e => { if (!el.hasPointerCapture(e.pointerId)) return; st.move(); set(fromPointer(e, v)); });
+    ['pointerup', 'pointercancel'].forEach(t => el.addEventListener(t, () => st.up()));
+    el.addEventListener('keydown', e => {
+      const k = keyStep || 1, m = { ArrowRight: v + k, ArrowUp: v + k, ArrowLeft: v - k, ArrowDown: v - k, PageUp: v + k * 10, PageDown: v - k * 10, Home: min, End: max };
+      if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+    });
+    set(v); return { set };
+  }
+  const hex = (h, s, l) => { const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, '0'); }; return '#' + f(0) + f(8) + f(4); };
+
+  // The transcript is the track. Behind the pill, what was said fades to grey on the page;
+  // ahead of it, what is still to come rides a black band. Drag the pill along the line to scrub.
+  const svg = document.querySelector('.rib'), path = document.getElementById('p'), L = path.getTotalLength(), DUR = 90;
+  const bars = svg.querySelector('.bars');
+  [5, 9, 13, 7, 11, 15, 8, 12, 6, 10].forEach((h, i) => bars.insertAdjacentHTML('beforeend', `<line x1="${-18 + i * 4}" x2="${-18 + i * 4}" y1="${-h / 2}" y2="${h / 2}" style="animation-delay:${i * -.07}s"/>`));
+  // Sample the line once, so a pointer can be matched to the nearest spot along it.
+  const N = 240, pts = [...Array(N + 1)].map((_, i) => { const q = path.getPointAtLength(i / N * L); return [q.x, q.y]; });
+  const toSvg = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+  const fmt = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+  const A = 0.12, B = 0.9;   // the part of the line inside the view
+  drag(svg, { min: 0, max: 100, step: 0, value: 46, keyStep: 1, format: v => `${fmt(v / 100 * DUR)} of ${fmt(DUR)}`,
+    fromPointer(e) {
+      const p = toSvg(e); let best = 0, bd = Infinity;
+      pts.forEach(([x, y], i) => { const d = (x - p.x) ** 2 + (y - p.y) ** 2; if (d < bd) { bd = d; best = i; } });
+      return (best / N - A) / (B - A) * 100;
+    },
+    render(v) {
+      const s = (A + v / 100 * (B - A)) * L, q = path.getPointAtLength(s), q2 = path.getPointAtLength(Math.min(L, s + 1));
+      const ang = Math.atan2(q2.y - q.y, q2.x - q.x) * 180 / Math.PI;
+      document.getElementById('band').style.strokeDasharray = `0 ${s + 26} ${L} ${L}`;
+      document.getElementById('ms').style.strokeDasharray = `${Math.max(0, s - 26)} ${L * 2}`;
+      document.getElementById('ma').style.strokeDasharray = `0 ${s + 26} ${L} ${L}`;
+      svg.querySelector('.pill').setAttribute('transform', `translate(${q.x} ${q.y}) rotate(${ang})`);
+      const t = svg.querySelector('.time'); t.setAttribute('x', q.x); t.setAttribute('y', q.y - 26); t.textContent = `${fmt(v / 100 * DUR)} / ${fmt(DUR)}`;
+    } });
+
+  </script>
+</body>
+</html>
