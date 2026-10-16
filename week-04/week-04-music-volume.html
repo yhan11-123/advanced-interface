@@ -80,7 +80,7 @@
       <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
       <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
       <tr><td>Number to meter</td><td>12px; the number is 54px wide</td></tr>
-      <tr><td>Speaker, the handle</td><td>Stands on the bars’ baseline at the level, 1.15 × the bar height there (12px at least), 1.7px stroke; the bars it covers step aside, and its waves drop out as the level falls</td></tr>
+      <tr><td>Speaker, the handle</td><td>Stands on the bars’ baseline at the level, 1.15 × the bar height there (12px at least), 1.7px stroke; centred on the level but held inside the row at either end; the bars it covers step aside, and its waves drop out as the level falls</td></tr>
       <tr><td>“Volume”</td><td data-var="--meta-size,--meta-line" data-after=", sans"></td></tr>
       <tr><td>Level, on the left</td><td data-var="--level-size,--level-line" data-after=", mono 500, “%” in 11px dust"></td></tr>
     </table>
@@ -130,8 +130,10 @@
     // the speaker stands in the row at the level, as tall as the bars there (a touch taller), so louder is bigger;
     // the bars it covers step aside
     const s = spk, bh = Math.max(12, (MIN + (MAX - MIN) * v / 100) * 1.15), bw = bh * 17.4 / 14.6;
-    s.style.height = bh + 'px'; s.style.width = bw + 'px'; s.style.left = (x - bw / 2) + 'px';
-    bars.forEach(b => { const c = b.offsetLeft + b.offsetWidth / 2; b.classList.toggle('under', c > x - bw / 2 - 3 && c < x + bw / 2 + 3); });
+    // centred on the level, but kept inside the row at both ends so it never leaves the card
+    const sl = Math.min(r.width - bw, Math.max(0, x - bw / 2));
+    s.style.height = bh + 'px'; s.style.width = bw + 'px'; s.style.left = sl + 'px';
+    bars.forEach(b => { const c = b.offsetLeft + b.offsetWidth / 2; b.classList.toggle('under', c > sl - 3 && c < sl + bw + 3); });
     s.querySelector('.w1').style.opacity = v > 0 ? 1 : 0;
     s.querySelector('.w2').style.opacity = v > 33 ? 1 : 0;
     s.querySelector('.w3').style.opacity = v > 66 ? 1 : 0;
