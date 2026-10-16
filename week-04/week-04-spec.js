@@ -21,7 +21,7 @@
 
 // In the "View larger" popup (the viewer sets window.__viewer), show only the component:
 // the spec stays on the page itself, but nothing below the fold to scroll to here.
-if (window.__viewer) {
+if (window.__viewer || window.self !== window.top) {   // any embed: the grid cards and the View larger popup
   document.querySelector('.spec')?.remove();
   document.documentElement.style.overflow = 'hidden';
 }
