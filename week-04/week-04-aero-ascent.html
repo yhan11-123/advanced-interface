@@ -15,7 +15,9 @@
     --scene-w: 264px; --scene-h: 204px;
     --stops: 16; --tick: 4px;
   }
-  .scene { position: relative; width: var(--scene-w); height: var(--scene-h); overflow: hidden; cursor: pointer; }
+  .scene { position: relative; width: var(--scene-w); height: var(--scene-h); overflow: hidden; cursor: default; }
+  .scene.can-grab { cursor: grab; }
+  .scene.is-dragging { cursor: grabbing; }
   .scene .stars { position: absolute; inset: 0; opacity: .7; }
   .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .orbit .ahead { fill: none; stroke: var(--line); stroke-width: 1; transition: stroke .15s; }
@@ -95,10 +97,10 @@
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The orbit nearest the pointer lights grey with its name; the halo opens to 10px. Nothing moves yet</td></tr>
-      <tr><td>Pressed</td><td>That orbit becomes the one in use and the globe tilts to it; the halo tightens to 5px and the clock inverts, black on white</td></tr>
-      <tr><td>Drag</td><td>The vehicle rides the orbit under the finger, the globe turning its way; ticks light as it passes and the numbers run with no lag</td></tr>
-      <tr><td>Let go</td><td>Glides to the nearest tick; a tap flies to the tick nearest the pointer</td></tr>
+      <tr><td>Hover</td><td>Within 10px of a visible line, that orbit lights grey with its name and the cursor becomes a hand; the halo opens to 10px. Nothing moves yet. The part of an orbit behind the globe can't be picked, and the orbit in use wins where lines cross</td></tr>
+      <tr><td>Pressed</td><td>On the vehicle, it is picked up where it is; on a line, that orbit becomes the one in use, the globe tilts to it and the vehicle glides to the point pressed. The halo tightens to 5px and the clock inverts. A press on empty space does nothing</td></tr>
+      <tr><td>Drag</td><td>The vehicle follows the finger along its own orbit only, searching 1.5 steps either side of where it is, so it never jumps across the ellipse or to another track; the globe turns its way and ticks light as it passes</td></tr>
+      <tr><td>Let go</td><td>Glides to the nearest tick</td></tr>
       <tr><td>Keyboard</td><td>Left and Right one tick; Up and Down the next or last orbit; Home and End its first and last tick</td></tr>
     </table>
   </section>
@@ -197,26 +199,48 @@
   const go = (k, tau = .12) => { const o = ORBITS[act]; o.S.to(Math.min(M - 1, Math.max(0, k)), tau); };
 
   const local = e => { const b = scene.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
-  // nearest orbit to the pointer, and the nearest point along it
-  const nearest = e => { const m = local(e); let best = { i: 0, p: 0, d: 1e9 }; ORBITS.forEach((o, i) => o.samples.forEach(q => { const d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < best.d) best = { i, p: q.p, d }; })); return best; };
+  // hit testing. Only what you can see counts: the part of an orbit hidden behind the globe can't be grabbed.
+  // The orbit in use wins ties, and nothing is picked more than HIT px from a line.
+  const HIT = 10, hidden = q => q.back && Math.hypot(q.x - GC.x, q.y - GC.y) < GR;
+  const nearest = e => {
+    const m = local(e); let best = null;
+    ORBITS.forEach((o, i) => o.samples.forEach(q => {
+      if (hidden(q)) return;
+      const d = Math.hypot(q.x - m.x, q.y - m.y) - (i === act ? 3 : 0);
+      if (d < HIT && (!best || d < best.d)) best = { i, p: q.p, d };
+    }));
+    return best;
+  };
+  // while dragging, look only a little way either side of where the vehicle is, so it follows the line
+  // continuously and never jumps across a thin ellipse or from one end of the track to the other
+  const along = (e, from) => {
+    const m = local(e), o = ORBITS[act]; let best = null, bd = 1e9;
+    o.samples.forEach(q => { if (Math.abs(q.p - from) > 1.5) return; const d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < bd) { bd = d; best = q; } });
+    return best ? best.p : from;
+  };
+  const onVehicle = e => { const m = local(e), o = ORBITS[act], q = o.pt(o.thOf(o.p)); return Math.hypot(q.x - m.x, q.y - m.y) < 14; };
 
-  let hover = false, down = false, drag = false, x0 = 0, y0 = 0;
-  const show = () => { scene.classList.toggle('is-hover', hover && !down); scene.classList.toggle('is-pressed', down && !drag); scene.classList.toggle('is-dragging', drag); };
-  scene.addEventListener('pointerenter', e => { hover = true; near = nearest(e).i; show(); draw(); });
-  scene.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
-  scene.addEventListener('pointerdown', e => { scene.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; use(nearest(e).i); show(); draw(); });
+  let hover = false, down = false, drag = false, grabbed = false, x0 = 0, y0 = 0, track = 0;
+  const show = () => { scene.classList.toggle('is-hover', hover && !down && near !== null); scene.classList.toggle('is-pressed', down && !drag); scene.classList.toggle('is-dragging', drag); };
+  const look = e => { const n = onVehicle(e) ? { i: act } : nearest(e); near = n ? n.i : null; scene.classList.toggle('can-grab', near !== null); show(); draw(); };
+  scene.addEventListener('pointerenter', e => { hover = true; look(e); });
+  scene.addEventListener('pointerleave', () => { hover = false; near = null; scene.classList.remove('can-grab'); show(); draw(); });
+  scene.addEventListener('pointerdown', e => {
+    // grab the vehicle itself, or a line: the orbit under the finger becomes the one in use and the vehicle
+    // glides to the point you took hold of. A press on empty space does nothing.
+    const hit = onVehicle(e) ? { i: act, p: ORBITS[act].S.target } : nearest(e);
+    if (!hit) return;
+    scene.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; grabbed = true; near = null;
+    use(hit.i); track = hit.p; go(track, .08); show(); draw();
+  });
   scene.addEventListener('pointermove', e => {
-    if (!scene.hasPointerCapture(e.pointerId)) { if (hover) { near = nearest(e).i; draw(); } return; }
+    if (!scene.hasPointerCapture(e.pointerId)) { if (hover) look(e); return; }
     if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
-    if (drag) {   // along the orbit in use only, so a drag never jumps to another track
-      const m = local(e), o = ORBITS[act]; let best = o.samples[0], bd = 1e9;
-      o.samples.forEach(q => { const d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < bd) { bd = d; best = q; } });
-      go(best.p, .045);
-    }
+    if (drag) { for (let k = 0; k < 10; k++) { const n = along(e, track); if (Math.abs(n - track) < 1e-3) break; track = n; } go(track, .045); }   // a fast flick walks along in a few hops
   });
   const release = e => {
-    if (!down) return; const wasDrag = drag; down = drag = false; show();
-    const o = ORBITS[act]; go(Math.round(wasDrag ? o.S.target : nearest(e).p));
+    if (!down) return; down = drag = grabbed = false; show();
+    go(Math.round(track)); if (hover) look(e);
   };
   scene.addEventListener('pointerup', release);
   scene.addEventListener('pointercancel', release);
