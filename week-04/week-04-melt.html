@@ -27,14 +27,14 @@
 
   :root { --bg: #000; --panel: #131313; --ink: #dcdcdc; --dim: #4a4a4a; }
   .box { position: relative; width: min(94vw, 460px); height: 170px; background: var(--panel); border-left: 10px solid #3c3c3c; border-right: 10px solid #3c3c3c; }
-  .end { position: absolute; top: 16px; font: 600 28px/1 var(--font); color: #fff; letter-spacing: -.01em; }
-  .end small { display: block; margin-bottom: 4px; font-size: 22px; color: var(--dim); }
+  .end { position: absolute; top: 16px; font: 600 17px/1 var(--font); color: #fff; letter-spacing: -.01em; }
+  .end small { display: block; margin-bottom: 3px; font-size: 12px; color: var(--dim); }
   .end.min { left: 12px; } .end.max { right: 12px; text-align: right; }
-  .cur { position: absolute; top: 34px; transform: translateX(-50%); font: 600 22px/1 var(--font); color: #fff; transition: opacity .15s; pointer-events: none; }
+  .cur { position: absolute; top: 62px; transform: translateX(-50%); font: 600 13px/1 var(--font); color: #fff; transition: opacity .15s; pointer-events: none; }
   svg.s { position: absolute; left: 12px; right: 12px; top: 72px; width: calc(100% - 24px); height: 70px; overflow: visible; cursor: grab; }
   svg.s.is-dragging { cursor: grabbing; }
   .goo { fill: var(--ink); transition: fill .15s; }
-  .val { font: 700 22px/1 var(--font); fill: #111; text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; pointer-events: none; }
+  .val { font: 700 14px/1 var(--font); fill: #111; text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; pointer-events: none; }
   .arrow { fill: #111; transition: transform .2s; transform-box: fill-box; transform-origin: center; }
   .arrow.down { transform: rotate(180deg); }
   svg.s.is-hover .goo { fill: #ececec; }
@@ -50,7 +50,7 @@
     <div class="cur">Current</div>
     <svg class="s" role="slider" tabindex="0" aria-label="Amount, 1 to 50 dollars">
       <path class="goo"/>
-      <g class="arrow-at"><path class="arrow" d="M-6 4 L0 -5 L6 4 Q6.5 6 4.5 6 H-4.5 Q-6.5 6 -6 4Z"/></g>
+      <g class="arrow-at"><path class="arrow" d="M-4 2.8 L0 -3.5 L4 2.8 Q4.4 4 3 4 H-3 Q-4.4 4 -4 2.8Z"/></g>
       <text class="val"></text>
     </svg>
   </div>
@@ -120,23 +120,23 @@
   const svg = document.querySelector('.s'), goo = svg.querySelector('.goo'), arrow = svg.querySelector('.arrow'), arrowAt = svg.querySelector('.arrow-at'), val = svg.querySelector('.val'), cur = document.querySelector('.cur');
   const st = track(svg);
   const MIN = 1, MAX = 50, Y = 30, LINE = 1.6;
-  let v = 21, prev = 21, shape = { w: 96, h: 40, neck: 14 }, goal = { ...shape };
+  let v = 21, prev = 21, shape = { w: 72, h: 30, neck: 12 }, goal = { ...shape };
   const W = () => svg.getBoundingClientRect().width;
   function path(cx) {
     const { w, h, neck } = shape, L = W(), r = h / 2, a = cx - w / 2, b = cx + w / 2;
     return `M0 ${Y - LINE} H${a - neck} C${a - neck * .3} ${Y - LINE} ${a + 2} ${Y - r} ${a + r} ${Y - r} H${b - r} C${b - 2} ${Y - r} ${b + neck * .3} ${Y - LINE} ${b + neck} ${Y - LINE} H${L}`
          + ` V${Y + LINE} H${b + neck} C${b + neck * .3} ${Y + LINE} ${b - 2} ${Y + r} ${b - r} ${Y + r} H${a + r} C${a + 2} ${Y + r} ${a - neck * .3} ${Y + LINE} ${a - neck} ${Y + LINE} H0 Z`;
   }
-  const cxOf = v => { const L = W(), pad = 62; return pad + (v - MIN) / (MAX - MIN) * (L - pad * 2); };
+  const cxOf = v => { const L = W(), pad = 48; return pad + (v - MIN) / (MAX - MIN) * (L - pad * 2); };
   function draw() {
     const cx = cxOf(v);
     goo.setAttribute('d', path(cx));
-    val.setAttribute('x', cx + 9); val.setAttribute('y', Y + 1); val.textContent = `+${v}$`;
+    val.setAttribute('x', cx + 6); val.setAttribute('y', Y + 1); val.textContent = `+${v}$`;
     const tw = val.getComputedTextLength();
-    arrowAt.setAttribute('transform', `translate(${cx + 9 - tw / 2 - 14} ${Y})`);
+    arrowAt.setAttribute('transform', `translate(${cx + 6 - tw / 2 - 9} ${Y})`);
     arrow.classList.toggle('down', v < prev);
     cur.style.left = (12 + cx) + 'px';
-    cur.style.opacity = cx < 100 || cx > W() - 100 ? 0 : 1;   // make room for Min and Max
+    cur.style.opacity = cx < 70 || cx > W() - 70 ? 0 : 1;   // make room for Min and Max
     svg.setAttribute('aria-valuenow', v); svg.setAttribute('aria-valuetext', `${v} dollars`);
   }
   // the shape eases toward its goal each frame, so presses and stretches feel soft
@@ -147,18 +147,18 @@
     requestAnimationFrame(tick);
   })();
   const set = n => { const nv = Math.round(Math.min(MAX, Math.max(MIN, n))); if (nv !== v) { prev = v; v = nv; } draw(); };
-  const fromE = e => { const r = svg.getBoundingClientRect(), pad = 62; return MIN + (e.clientX - r.left - pad) / (r.width - pad * 2) * (MAX - MIN); };
+  const fromE = e => { const r = svg.getBoundingClientRect(), pad = 48; return MIN + (e.clientX - r.left - pad) / (r.width - pad * 2) * (MAX - MIN); };
   let x0 = 0;
   svg.setAttribute('aria-valuemin', MIN); svg.setAttribute('aria-valuemax', MAX);
-  svg.addEventListener('pointerenter', () => { if (!svg.hasPointerCapture?.(1)) goal = { w: 100, h: 42, neck: 14 }; });
-  svg.addEventListener('pointerleave', () => { goal = { w: 96, h: 40, neck: 14 }; });
-  svg.addEventListener('pointerdown', e => { svg.setPointerCapture(e.pointerId); x0 = e.clientX; st.down(); goal = { w: 110, h: 34, neck: 18 }; set(fromE(e)); });
+  svg.addEventListener('pointerenter', () => { if (!svg.hasPointerCapture?.(1)) goal = { w: 75, h: 32, neck: 12 }; });
+  svg.addEventListener('pointerleave', () => { goal = { w: 72, h: 30, neck: 12 }; });
+  svg.addEventListener('pointerdown', e => { svg.setPointerCapture(e.pointerId); x0 = e.clientX; st.down(); goal = { w: 82, h: 25, neck: 15 }; set(fromE(e)); });
   svg.addEventListener('pointermove', e => {
     if (!svg.hasPointerCapture(e.pointerId)) return;
-    if (Math.abs(e.clientX - x0) > 2) { st.move(); goal = { w: 104, h: 38, neck: 30 }; }
+    if (Math.abs(e.clientX - x0) > 2) { st.move(); goal = { w: 78, h: 28, neck: 24 }; }
     set(fromE(e));
   });
-  ['pointerup', 'pointercancel'].forEach(t => svg.addEventListener(t, () => { st.up(); goal = { w: 100, h: 42, neck: 14 }; }));
+  ['pointerup', 'pointercancel'].forEach(t => svg.addEventListener(t, () => { st.up(); goal = { w: 75, h: 32, neck: 12 }; }));
   svg.addEventListener('keydown', e => {
     const m = { ArrowRight: v + 1, ArrowUp: v + 1, ArrowLeft: v - 1, ArrowDown: v - 1, PageUp: v + 5, PageDown: v - 5, Home: MIN, End: MAX };
     if (e.key in m) { e.preventDefault(); set(m[e.key]); }
