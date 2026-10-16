@@ -62,7 +62,7 @@
     <table>
       <tr><td>Window</td><td>A workspace window titled Trajectory: 1px white frame, 13px title bar</td></tr>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area"></td></tr>
-      <tr><td>Earth</td><td>A wireframe globe drawn in code, radius 74, tilted 18°, rising from the bottom edge</td></tr>
+      <tr><td>Earth</td><td>A wireframe globe drawn in code, radius 74, tilted 18°, rising from the bottom edge; it turns 40° for every event the vehicle moves, following the drag and the glide</td></tr>
       <tr><td>Path</td><td>An ellipse 236 × 124, turned −10°, leaving the Earth's surface at the lower right; flown part 1.5px white, the rest 1px grey</td></tr>
       <tr><td>Event marker</td><td data-var="--dot" data-after=" circle on the path; hollow ahead, filled once passed"></td></tr>
       <tr><td>Event label</td><td>Mono 500 7px on a dotted leader: mission time in grey, then the event; shown for the current event and the one under the pointer</td></tr>
@@ -118,6 +118,16 @@
   // the Earth, then the trajectory: an ellipse round it, flown from the launch site up and over to the left
   const GC = { x: W * .5, y: H * .8 }, GR = 74;
   const earth = AERO.earth(view); earth.setAttribute('transform', `translate(${GC.x} ${GC.y}) rotate(18) scale(${GR / 100})`);
+  // the globe turns with the flight: its fixed meridians are swapped for twelve that spin, drawn front half only
+  earth.querySelectorAll('ellipse, line[y1="-100"]').forEach(n => n.remove());
+  const MER = Array.from({ length: 12 }, () => { const m = document.createElementNS(NS, 'path'); m.setAttribute('fill', 'none'); m.setAttribute('stroke', '#fff'); m.setAttribute('vector-effect', 'non-scaling-stroke'); earth.querySelector('g[clip-path]').append(m); return m; });
+  const SPIN = 40;                                             // degrees of Earth turned per event
+  const spin = p => MER.forEach((m, k) => {
+    const lam = (k * 30 + p * SPIN) * Math.PI / 180, c = Math.cos(lam), sn = Math.sin(lam), rx = Math.abs(100 * sn);
+    if (c <= 0) { m.setAttribute('opacity', 0); return; }
+    m.setAttribute('d', rx < .5 ? 'M0 -100 V100' : `M0 -100 A${rx.toFixed(2)} 100 0 0 ${sn > 0 ? 1 : 0} 0 100`);
+    m.setAttribute('opacity', (.38 * Math.min(1, c * 4)).toFixed(3));
+  });
   const EC = { x: W * .5, y: H * .62 }, RX = 118, RY = 62, ROT = -10 * Math.PI / 180;
   const pt = deg => { const a = deg * Math.PI / 180, x = RX * Math.cos(a), y = RY * Math.sin(a); return { x: EC.x + x * Math.cos(ROT) - y * Math.sin(ROT), y: EC.y + x * Math.sin(ROT) + y * Math.cos(ROT) }; };
   // launch from where the path leaves the Earth's surface on the lower right
@@ -151,6 +161,7 @@
   let idx = N - 1, p = N - 1, near = null;
   function draw() {
     const th = thOf(p), q = pt(th);
+    spin(p);
     vehicle.setAttribute('transform', `translate(${q.x} ${q.y})`);
     flown.setAttribute('points', poly(TH0, th) + ` ${q.x.toFixed(1)},${q.y.toFixed(1)}`);
     evs.forEach((g, i) => { g.classList.toggle('passed', i < p - .01); g.classList.toggle('on', i === Math.round(p) && near === null); g.classList.toggle('is-near', i === near); });
