@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 sketch &middot; Tilt</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* A sketch page of its own, so its styles stay in this file. */
+  :root {
+    --bg: #0b0b0c; --panel: #1f1f21; --line: #2e2e31;
+    --fg: #f2f2f2; --muted: #8b8b90; --blue: #3b7cff;
+    --font: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); display: grid; place-items: center; -webkit-font-smoothing: antialiased; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  [role="slider"] { touch-action: none; outline: none; cursor: grab; }
+  [role="slider"].is-dragging { cursor: grabbing; }
+  [role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(255,255,255,.12); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+
+  /* Tilt. You never touch the value: you tilt the bar, and a ball rolls along it.
+     Grab either side of the bar and push it down or lift it up; let go and the bar levels out, the ball coasts to a stop. */
+  :root { --bar-h: 8px; --ball: 18px; --accent: #c6ff3d; }
+  .box { position: relative; width: min(94vw, 460px); height: 224px; border-radius: 22px; background: var(--panel); }
+  .read { position: absolute; left: 20px; top: 16px; }
+  .read small { display: block; font: 10px/1 var(--mono); letter-spacing: .06em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .read b { font: 600 34px/1 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .angle { position: absolute; right: 20px; top: 18px; font: 11px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; transition: color .15s; }
+  .stage-area { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; }
+  /* the beam rotates round the pivot; the ball rides on it */
+  .beam { position: absolute; left: 50%; top: 62px; width: 0; height: 0; }
+  .bar { position: absolute; top: calc(var(--bar-h) / -2); height: var(--bar-h); border-radius: 4px; background: #3a3a3e; transition: background .15s, box-shadow .15s; }
+  .tick { position: absolute; top: 50%; width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%; background: #6a6a70; }
+  .ball { position: absolute; top: calc(var(--bar-h) / -2 - var(--ball)); width: var(--ball); height: var(--ball); margin-left: calc(var(--ball) / -2); border-radius: 50%; background: var(--accent); box-shadow: 0 2px 10px rgba(198,255,61,.35); }
+  .ball::after { content: ""; position: absolute; left: 4px; top: 3px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  .chip { position: absolute; top: calc(var(--bar-h) / -2 - var(--ball) - 24px); transform: translateX(-50%); font: 600 11px/1 var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .arrow { position: absolute; top: -26px; font: 12px/1 var(--mono); color: var(--muted); opacity: 0; transition: opacity .15s; transform: translateX(-50%); }
+  .pivot { position: absolute; left: 50%; top: 66px; width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 14px solid #48484d; transform: translateX(-50%); transition: border-bottom-color .15s; }
+  .floor { position: absolute; left: 30px; right: 30px; top: 80px; height: 1px; background: var(--line); }
+  .hint { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font: 10px/1 var(--mono); color: #5a5a60; letter-spacing: .04em; }
+  .hint button { all: unset; cursor: pointer; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  .box.is-hover .bar { background: #4a4a50; }
+  .box.is-hover .arrow { opacity: 1; }
+  .box.is-pressed .bar, .box.is-dragging .bar { background: #5c5c62; box-shadow: 0 0 0 1px rgba(198,255,61,.35); }
+  .box.is-pressed .pivot, .box.is-dragging .pivot { border-bottom-color: var(--accent); }
+  .box.is-dragging .angle { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <section class="box" role="slider" tabindex="0" aria-label="Level, set by tilting the bar">
+    <div class="read"><small>Level</small><b>50</b></div>
+    <span class="angle">0.0°</span>
+    <div class="stage-area">
+      <div class="floor"></div>
+      <div class="pivot"></div>
+      <div class="beam"><div class="bar"></div><span class="arrow l">↕</span><span class="arrow r">↕</span><div class="ball"></div><span class="chip"></span></div>
+    </div>
+    <p class="hint">grab a side and tilt &middot; let go to level <span class="phone" hidden>&middot; <button type="button">use phone tilt</button></span></p>
+  </section>
+  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <script>
+  const box = document.querySelector('.box'), beam = box.querySelector('.beam'), bar = box.querySelector('.bar'), ball = box.querySelector('.ball'), chip = box.querySelector('.chip');
+  const num = box.querySelector('.read b'), angleEl = box.querySelector('.angle');
+  const BALL = 18, MAXDEG = 14, G = 700;             // px/s² along a fully vertical bar
+  let L = 0, s = 0, vel = 0, deg = 0, target = 0;     // s: ball position from the pivot, px
+  function layout() {
+    L = Math.min(box.clientWidth - 80, 360);
+    bar.style.left = -L / 2 + 'px'; bar.style.width = L + 'px';
+    bar.querySelectorAll('.tick').forEach(t => t.remove());
+    for (let k = 0; k <= 4; k++) { const t = document.createElement('i'); t.className = 'tick'; t.style.left = (k / 4) * L + 'px'; bar.append(t); }
+    box.querySelector('.arrow.l').style.left = -L / 2 + 14 + 'px'; box.querySelector('.arrow.r').style.left = L / 2 - 14 + 'px';
+  }
+  const lim = () => L / 2 - BALL / 2;
+  const value = () => Math.round((s + lim()) / (2 * lim()) * 100);
+
+  // drag: the side you grab follows your pointer up or down
+  let hover = false, down = false, drag = false, gx = 0, y0 = 0, d0 = 0, phone = false;
+  const show = () => { box.classList.toggle('is-hover', hover && !down); box.classList.toggle('is-pressed', down && !drag); box.classList.toggle('is-dragging', drag); };
+  box.addEventListener('pointerenter', () => { hover = true; show(); });
+  box.addEventListener('pointerleave', () => { hover = false; show(); });
+  box.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    box.setPointerCapture(e.pointerId);
+    const r = beam.getBoundingClientRect();
+    gx = e.clientX - r.left; if (Math.abs(gx) < 30) gx = 30 * (Math.sign(gx) || 1);   // grabbing the middle still tilts, gently
+    y0 = e.clientY; d0 = deg; down = true; drag = false; show();
+  });
+  box.addEventListener('pointermove', e => {
+    if (!box.hasPointerCapture(e.pointerId)) return;
+    const dy = e.clientY - y0;
+    if (!drag && Math.abs(dy) > 2) { drag = true; show(); }
+    // pushing the right side down tips the bar clockwise; pushing the left side down, anticlockwise
+    target = Math.max(-MAXDEG, Math.min(MAXDEG, d0 + Math.atan2(dy * Math.sign(gx), Math.abs(gx)) * 180 / Math.PI));
+  });
+  const end = () => { down = drag = false; if (!phone) target = 0; show(); };
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+  // keyboard: hold an arrow to tip that way
+  const keyTilt = { ArrowRight: 8, ArrowUp: 8, ArrowLeft: -8, ArrowDown: -8 };
+  box.addEventListener('keydown', e => { if (e.key in keyTilt) { e.preventDefault(); target = keyTilt[e.key]; } });
+  box.addEventListener('keyup', e => { if (e.key in keyTilt && !phone) target = 0; });
+  // on a phone: tilt the phone itself
+  if ('DeviceOrientationEvent' in window && matchMedia('(pointer: coarse)').matches) {
+    const wrap = box.querySelector('.phone'); wrap.hidden = false;
+    wrap.querySelector('button').addEventListener('click', async () => {
+      try { if (DeviceOrientationEvent.requestPermission) await DeviceOrientationEvent.requestPermission(); } catch (e) { return; }
+      phone = true; wrap.querySelector('button').textContent = 'phone tilt on';
+      addEventListener('deviceorientation', ev => { if (ev.gamma != null) target = Math.max(-MAXDEG, Math.min(MAXDEG, ev.gamma * .6)); });
+    });
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.033, (now - last) / 1000); last = now;
+    deg += (target - deg) * Math.min(1, dt * (down ? 18 : 7));          // the bar follows the hand, and levels out softly
+    const a = deg * Math.PI / 180;
+    vel += G * Math.sin(a) * dt;                                         // gravity along the bar
+    vel *= Math.exp(-(Math.abs(deg) < .4 ? 3.2 : 1.1) * dt);             // rolling friction, stronger once level
+    if (Math.abs(deg) < .4 && Math.abs(vel) < 4) vel = 0;
+    s += vel * dt;
+    if (s > lim()) { s = lim(); vel *= -.35; } if (s < -lim()) { s = -lim(); vel *= -.35; }   // a small bounce off the ends
+    beam.style.transform = `rotate(${deg}deg)`;
+    ball.style.left = s + 'px'; ball.style.transform = `rotate(${s / (BALL / 2) * 57.3}deg)` + (box.classList.contains('is-pressed') ? ' scale(.92)' : '');
+    chip.style.left = s + 'px'; chip.textContent = value(); chip.style.transform = `translateX(-50%) rotate(${-deg}deg)`;   // the number stays upright
+    num.textContent = value();
+    angleEl.textContent = (deg >= 0 ? '+' : '−') + Math.abs(deg).toFixed(1) + '°';
+    box.setAttribute('aria-valuenow', value()); box.setAttribute('aria-valuetext', value() + ' percent');
+    requestAnimationFrame(frame);
+  }
+  box.setAttribute('aria-valuemin', 0); box.setAttribute('aria-valuemax', 100);
+  addEventListener('resize', layout);
+  layout(); requestAnimationFrame(frame);
+  if (window.top === window && !location.search.includes('thumb')) document.querySelector('.back-pill').hidden = false;
+  </script>
+</body>
+</html>
