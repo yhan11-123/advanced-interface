@@ -28,7 +28,7 @@
   .s { position: relative; flex: 1; height: 28px; display: flex; align-items: center; }
   .rail { position: absolute; left: 0; right: 0; height: 4px; border-radius: 2px; background: #3a3a3d; }
   .fill { position: absolute; left: 0; height: 4px; border-radius: 2px; background: var(--blue); }
-  .stop { position: absolute; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #fff; }
+  .stop { position: absolute; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; }
   .thumb { position: absolute; width: 28px; height: 28px; margin-left: -14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); transition: left .16s cubic-bezier(.2, .9, .3, 1.2), transform .12s, box-shadow .15s; }
   .s.is-dragging .thumb, .s.is-dragging .fill { transition: transform .12s; }
   .fill { transition: width .16s cubic-bezier(.2, .9, .3, 1.2); }
