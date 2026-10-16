@@ -7,154 +7,166 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-04-sleep.css?v=1" />
   <style>
-  /* White noise slider, stepped. Five sounds in a pill: rain, ocean, fan, forest, brown noise.
-     The sound bar above takes the shape of the chosen sound; drag between two and it morphs from one to the next. */
+  /* White noise slider, stepped. Two sounds share one sound bar. A divider splits the bar between them:
+     slide it and one sound takes more of the bar and plays louder while the other gives way, in steps of ten,
+     so 30% rain is 70% ocean. Tap a sound's name to swap it for another. */
   :root {
     --w: 280px;
-    --wave-h: 72px; --bars: 36; --bar-w: 3px; --bar-r: 1.5px; --bar-min: 3px;
-    --pill-h: 48px; --pill-pad: 4px; --knob: 40px; --icon: 18px;
-    --knob-fill: rgba(255,184,103,.16);
+    --wave-h: 76px; --bars: 40; --bar-w: 3px; --bar-r: 1.5px; --bar-min: 3px;
+    --divider-w: 2px; --divider-over: 10px; --grip: 14px;
+    --tick: 4px; --steps: 10;
+    --a: #9db7ff; --b: #ffb867;               /* the left sound and the right sound */
+    --pct-size: 22px; --pct-line: 26px;
   }
-  .noise { width: var(--w); display: grid; gap: 14px; }
-  .wave { position: relative; height: var(--wave-h); }
-  .bars { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; }
-  .bars i { width: var(--bar-w); min-height: var(--bar-min); border-radius: var(--bar-r); background: var(--ink); }
-  .bars.ghost i { background: none; box-shadow: inset 0 0 0 1px var(--glow); opacity: 0; transition: opacity .2s; }
-  .noise.is-peek .bars.ghost i { opacity: .55; }
-  .noise.is-peek .bars.live i { opacity: .35; }
-  .name { display: flex; align-items: baseline; justify-content: space-between; }
-  .name b { font: 600 var(--name-size)/var(--name-line) var(--round); }
-  .name span { font: 500 var(--label-size)/var(--label-line) var(--round); color: var(--mute); }
-  .pill { position: relative; height: var(--pill-h); border-radius: calc(var(--pill-h) / 2); background: var(--panel); cursor: pointer; }
-  .knob { position: absolute; top: 50%; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); border-radius: 50%; background: var(--knob-fill); box-shadow: inset 0 0 0 1px rgba(255,184,103,.45); transition: left var(--slow) var(--ease-out), transform .15s, box-shadow .15s; pointer-events: none; }
-  .ico { position: absolute; top: 50%; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); display: grid; place-items: center; color: var(--mute); transition: color .2s, transform .15s; pointer-events: none; }
-  .ico svg { width: var(--icon); height: var(--icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  .ico.on { color: var(--glow); }
-  .ico.is-near { color: var(--ink); transform: scale(1.12); }
-  .pill.is-pressed .knob { transform: scale(.9); }
-  .pill.is-dragging .knob { transition: transform .15s, box-shadow .15s; transform: scale(1.08); box-shadow: inset 0 0 0 1.5px var(--glow), 0 0 18px rgba(255,184,103,.35); }
+  .mix { width: var(--w); display: grid; gap: 12px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .wave { position: relative; height: var(--wave-h); cursor: ew-resize; touch-action: none; }
+  .bars { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+  .bars i { width: var(--bar-w); min-height: var(--bar-min); border-radius: var(--bar-r); transition: background .2s, opacity .2s; }
+  /* the divider: a line through the bar with a grip under it */
+  .divider { position: absolute; top: calc(var(--divider-over) * -1); bottom: calc(var(--divider-over) * -1); width: var(--divider-w); margin-left: calc(var(--divider-w) / -2); background: var(--ink); border-radius: 1px; pointer-events: none; transition: left .22s var(--ease-out), box-shadow .15s; }
+  .divider::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--grip) / -2); width: var(--grip); height: var(--grip); margin-left: calc(var(--grip) / -2); border-radius: 50%; background: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.5); transition: transform .15s, background .15s; }
+  .ghost { position: absolute; top: calc(var(--divider-over) * -1); bottom: calc(var(--divider-over) * -1); width: 0; border-left: 1px dashed rgba(232,230,242,.6); opacity: 0; transition: opacity .12s; pointer-events: none; }
+  .wave.is-hover .ghost { opacity: 1; }
+  .wave.is-hover .divider::after { transform: scale(1.12); }
+  .wave.is-pressed .divider, .wave.is-dragging .divider { box-shadow: 0 0 12px rgba(232,230,242,.55); }
+  .wave.is-pressed .divider::after { transform: scale(.85); }
+  .wave.is-dragging .divider { transition: box-shadow .15s; }
+  .wave.is-dragging .divider::after { transform: scale(1.25); }
+  .ticks { position: relative; height: 6px; margin-top: 4px; }
+  .ticks i { position: absolute; top: 0; width: 1px; height: var(--tick); background: var(--mute); opacity: .5; }
+  .ticks i.mid { height: 6px; opacity: .9; }
+  /* the two sounds, one at each end */
+  .ends { display: flex; justify-content: space-between; align-items: flex-end; }
+  .end { all: unset; cursor: pointer; display: grid; gap: 2px; }
+  .end.b { text-align: right; justify-items: end; }
+  .end b { font: 600 var(--pct-size)/var(--pct-line) var(--round); font-variant-numeric: tabular-nums; transition: color .15s; }
+  .end span { font: 500 var(--label-size)/var(--label-line) var(--round); color: var(--mute); }
+  .end span::after { content: " ↻"; opacity: .5; }
+  .end:hover span, .end:focus-visible span { color: var(--ink); }
+  .end.a b { color: var(--a); } .end.b b { color: var(--b); }
+  .end small { display: block; height: 10px; font: 500 9px/10px var(--mono); color: var(--mute); opacity: 0; transition: opacity .12s; }
+  .mix.is-peek .end small { opacity: 1; }
   </style>
 </head>
 <body>
   <main class="stage">
-    <section class="noise" aria-label="White noise">
-      <p class="label" style="margin:0">White noise</p>
-      <div class="wave" aria-hidden="true"><div class="bars ghost"></div><div class="bars live"></div></div>
-      <div class="name"><b></b><span></span></div>
-      <div class="pill" role="slider" tabindex="0" aria-label="Sound"><div class="knob"></div></div>
+    <section class="mix" aria-label="White noise mix">
+      <div class="top"><p class="label" style="margin:0">White noise mix</p></div>
+      <div>
+        <div class="wave" role="slider" tabindex="0" aria-label="Balance between the two sounds"><div class="bars"></div><div class="ghost"></div><div class="divider"></div></div>
+        <div class="ticks"></div>
+      </div>
+      <div class="ends">
+        <button class="end a" type="button" aria-label="Change the left sound"><small></small><b></b><span></span></button>
+        <button class="end b" type="button" aria-label="Change the right sound"><small></small><b></b><span></span></button>
+      </div>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: five sounds. The sound's name and a few words on it are the label, always on screen, and the sound bar above takes that sound's shape: rain spits, the ocean swells, the fan holds steady, the forest sits low until a bird calls, brown noise rumbles heavy on the left.</p>
+    <p>Read from the CSS this page runs on. Stepped, in tens: two sounds share one sound bar, and a divider sets how much of it each one gets. Left of the divider the bar takes the first sound's shape and colour, right of it the second's; the larger share also plays louder, so its bars stand taller. Both shares read below the bar, always on screen, and add up to 100. Tap a sound's name to swap in another: rain, ocean, wind, forest or brown noise.</p>
 
-    <h3>Pill</h3>
+    <h3>Bar and divider</h3>
     <table>
-      <tr><td>Pill</td><td data-var="--w,--pill-h" data-join=" × " data-after=", fully round"></td></tr>
-      <tr><td>Stops</td><td>Five, the first and last 24px in from the ends, 58px apart</td></tr>
-      <tr><td>Knob</td><td data-var="--knob" data-after=" circle, warm at 16% with a 1px ring at 45%"></td></tr>
-      <tr><td>Icon</td><td data-var="--icon" data-after=", 1.6px round stroke"></td></tr>
-      <tr><td>Settle</td><td data-var="--slow" data-after=", ease out"></td></tr>
+      <tr><td>Sound bar</td><td data-var="--w,--wave-h" data-join=" × " data-after=", the hit area"></td></tr>
+      <tr><td>Bars</td><td data-var="--bars" data-after=" bars, 3px wide, 1.5px corner, 3px at least"></td></tr>
+      <tr><td>Steps</td><td data-var="--steps" data-after=" of 10%, eleven stops; ticks under the bar, the middle one longer"></td></tr>
+      <tr><td>Divider</td><td data-var="--divider-w" data-after=" line, reaching 10px past the bar top and bottom"></td></tr>
+      <tr><td>Grip</td><td data-var="--grip" data-after=" circle at the divider's foot"></td></tr>
+      <tr><td>Bar height</td><td>Each side's own sound shape, scaled from 35% at a 0 share to full at 100</td></tr>
+      <tr><td>Settle</td><td>0.22s, ease out, to the nearest ten</td></tr>
     </table>
 
-    <h3>Sound bar and type</h3>
+    <h3>Type</h3>
     <table>
-      <tr><td>Sound bar</td><td data-var="--bars" data-after=" bars in the full width"></td></tr>
-      <tr><td>Bar</td><td data-var="--bar-w" data-after=" wide, 1.5px corner, 3px at least, up to 72px"></td></tr>
-      <tr><td>“White noise”</td><td data-var="--label-size,--label-line" data-after=", rounded 500"></td></tr>
-      <tr><td>Sound name</td><td data-var="--name-size,--name-line" data-after=", rounded 600"></td></tr>
-      <tr><td>Its description</td><td data-var="--label-size,--label-line" data-after=", rounded 500, right aligned"></td></tr>
-      <tr><td>Gaps</td><td>14px between rows</td></tr>
+      <tr><td>Shares</td><td data-var="--pct-size,--pct-line" data-after=", rounded 600, in each sound's colour, at the bar's two ends"></td></tr>
+      <tr><td>Sound names</td><td data-var="--label-size,--label-line" data-after=", rounded 500, with a swap mark; tap to change the sound"></td></tr>
+      <tr><td>Hover preview</td><td>Mono 500 9px above each share: what it would become</td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
+      <tr><td>Left sound</td><td data-var="--a" data-kind="color"></td></tr>
+      <tr><td>Right sound</td><td data-var="--b" data-kind="color"></td></tr>
+      <tr><td>Divider, grip</td><td data-var="--ink" data-kind="color"></td></tr>
       <tr><td>Page</td><td data-var="--night" data-kind="color"></td></tr>
-      <tr><td>Pill</td><td data-var="--panel" data-kind="color"></td></tr>
-      <tr><td>Bars, name</td><td data-var="--ink" data-kind="color"></td></tr>
-      <tr><td>Icons, description</td><td data-var="--mute" data-kind="color"></td></tr>
-      <tr><td>Chosen icon, knob, preview outline</td><td data-var="--glow" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The icon under the pointer brightens and grows 1.12; the sound bar dims and that sound's shape shows over it in a warm outline, a preview. The sound does not change</td></tr>
-      <tr><td>Pressed</td><td>The knob dips to 0.9</td></tr>
-      <tr><td>Drag</td><td>The knob follows the finger and glows; the sound bar morphs between the two sounds it sits between, and the name switches at the halfway point</td></tr>
-      <tr><td>Let go</td><td>Settles on the nearest sound</td></tr>
-      <tr><td>Keyboard</td><td>Arrows one sound; Home and End the first and last</td></tr>
+      <tr><td>Hover</td><td>The grip grows 1.12; a dashed line marks the stop under the pointer and both shares preview what they would become, “→ 60%”. The mix stays</td></tr>
+      <tr><td>Pressed</td><td>The divider glows and the grip dips to 0.85; a tap moves the divider to the stop under the finger</td></tr>
+      <tr><td>Drag</td><td>The divider follows the finger, snapping ten by ten; the bars on each side re-shape and the shares count with it, the grip grown 1.25</td></tr>
+      <tr><td>Keyboard</td><td>Left and Right ten; Home and End all one sound or all the other</td></tr>
     </table>
   </section>
 
   <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
 
   <script>
-  const SOUNDS = [
-    { name: 'Rain', about: 'steady, on a window', icon: '<path d="M7 13a4 4 0 1 1 1.2-7.8A5 5 0 0 1 17.5 8 3.5 3.5 0 0 1 17 15H8"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2"/>' },
-    { name: 'Ocean', about: 'slow swells, far off', icon: '<path d="M3 10c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>' },
-    { name: 'Fan', about: 'even, all night', icon: '<circle cx="12" cy="12" r="1.6"/><path d="M12 10.4C11 7 12 4 14.5 4.5S15 9 12 10.4zM13.6 12.8c3.4.6 5.7 2.8 4.6 5S14 17.5 13.6 12.8zM10.4 12.6c-2.4 2.6-5.5 3.2-6.4 1s2.4-4.3 6.4-1z"/>' },
-    { name: 'Forest', about: 'leaves, a bird now and then', icon: '<path d="M12 3l5 7h-3l4 6H6l4-6H7z"/><path d="M12 16v5"/>' },
-    { name: 'Brown noise', about: 'deep and low', icon: '<path d="M3 16c1.5 0 1.5-6 3-6s1.5 6 3 6 1.5-4 3-4 1.5 4 3 4 1.5-2 3-2 1.5 2 3 2"/>' },
-  ];
+  const SOUNDS = {
+    Rain:   (i, x, t) => .2 + .55 * hash(i, Math.floor(t * 12)) * (.7 + .3 * hash(i, 3)),
+    Ocean:  (i, x, t) => .16 + .7 * Math.pow(.5 + .5 * Math.sin(x * 5 - t * .9), 1.6),
+    Wind:   (i, x, t) => .25 + .35 * (.5 + .5 * Math.sin(x * 2.2 + t * 1.7)) * (.8 + .2 * Math.sin(t * 7 + i)),
+    Forest: (i, x, t) => { const bird = (t % 2.6) < .7 ? Math.exp(-Math.pow((x % .5 - .3) / .04, 2)) * (.45 + .25 * Math.sin(t * 40)) : 0; return .14 + .1 * hash(i, Math.floor(t * 3)) + bird; },
+    'Brown noise': (i, x, t) => .2 + .5 * (.85 + .15 * Math.sin(t * 1.4 + x * 2.5)) * (.7 + .3 * hash(i, 9)),
+  };
+  const NAMES = Object.keys(SOUNDS);
+  function hash(a, b) { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); }
+
+  const wave = document.querySelector('.wave'), divider = wave.querySelector('.divider'), ghost = wave.querySelector('.ghost'), mix = document.querySelector('.mix');
   const css = getComputedStyle(document.documentElement), N = parseFloat(css.getPropertyValue('--bars')), H = parseFloat(css.getPropertyValue('--wave-h'));
-  const mk = sel => Array.from({ length: N }, () => { const i = document.createElement('i'); document.querySelector(sel).append(i); return i; });
-  const live = mk('.bars.live'), ghostBars = mk('.bars.ghost');
-  const hash = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); };
-  // each sound's shape, bar i of N at time t, 0 to 1
-  const SHAPE = [
-    (i, x, t) => .18 + .55 * hash(i, Math.floor(t * 12)) * (.7 + .3 * hash(i, 3)),
-    (i, x, t) => .14 + .72 * Math.pow(.5 + .5 * Math.sin(x * 3.4 - t * .9), 1.6),
-    (i, x, t) => .42 + .05 * Math.sin(t * 18 + i * 1.7),
-    (i, x, t) => { const bird = (t % 2.6) < .7 ? Math.exp(-Math.pow((x - .62) / .05, 2)) * (.45 + .25 * Math.sin(t * 40)) : 0; return .12 + .1 * hash(i, Math.floor(t * 3)) + bird; },
-    (i, x, t) => .1 + .66 * Math.pow(1 - x, 1.3) * (.85 + .15 * Math.sin(t * 1.4 + x * 2.5)),
-  ];
-  const shapeAt = (p, i, x, t) => { const a = Math.floor(p), f = p - a, b = Math.min(SOUNDS.length - 1, a + 1); return SHAPE[a](i, x, t) * (1 - f) + SHAPE[b](i, x, t) * f; };
+  const bars = Array.from({ length: N }, () => { const b = document.createElement('i'); wave.querySelector('.bars').append(b); return b; });
+  document.querySelector('.ticks').innerHTML = Array.from({ length: 11 }, (_, k) => `<i class="${k === 5 ? 'mid' : ''}" style="left:${k * 10}%"></i>`).join('');
+  const endA = document.querySelector('.end.a'), endB = document.querySelector('.end.b');
 
-  const noise = document.querySelector('.noise'), pill = document.querySelector('.pill'), knob = pill.querySelector('.knob');
-  const icos = SOUNDS.map(s => { const d = document.createElement('div'); d.className = 'ico'; d.innerHTML = `<svg viewBox="0 0 24 24">${s.icon}</svg>`; pill.append(d); return d; });
-  const INSET = 24, xOf = p => INSET + (pill.clientWidth - INSET * 2) * p / (SOUNDS.length - 1);
-  icos.forEach((d, i) => d.style.left = xOf(i) + 'px');
-
-  let idx = 1, p = 1, near = null;
+  let a = 'Rain', b = 'Ocean', share = 30, hv = null;     // share: the left sound's part, 0 to 100 in tens
   function label() {
-    const s = SOUNDS[Math.round(p)];
-    noise.querySelector('.name b').textContent = s.name; noise.querySelector('.name span').textContent = s.about;
-    knob.style.left = xOf(p) + 'px';
-    icos.forEach((d, i) => { d.classList.toggle('on', i === Math.round(p)); d.classList.toggle('is-near', i === near && i !== idx && !down); });
-    noise.classList.toggle('is-peek', near !== null && near !== idx && !down);
-    pill.setAttribute('aria-valuenow', idx); pill.setAttribute('aria-valuetext', SOUNDS[idx].name);
+    divider.style.left = share + '%';
+    endA.querySelector('b').textContent = share + '%'; endA.querySelector('span').textContent = a;
+    endB.querySelector('b').textContent = (100 - share) + '%'; endB.querySelector('span').textContent = b;
+    const peek = hv !== null && hv !== share && !down;
+    mix.classList.toggle('is-peek', peek);
+    if (hv !== null) { ghost.style.left = hv + '%'; endA.querySelector('small').textContent = `→ ${hv}%`; endB.querySelector('small').textContent = `→ ${100 - hv}%`; }
+    ghost.style.visibility = peek ? '' : 'hidden';
+    wave.setAttribute('aria-valuenow', share); wave.setAttribute('aria-valuetext', `${a} ${share} percent, ${b} ${100 - share} percent`);
   }
   function frame(ms) {
-    const t = ms / 1000;
-    for (let i = 0; i < N; i++) {
-      const x = i / (N - 1);
-      live[i].style.height = Math.max(3, shapeAt(p, i, x, t) * H) + 'px';
-      if (near !== null) ghostBars[i].style.height = Math.max(3, SHAPE[near](i, x, t) * H) + 'px';
-    }
+    const t = ms / 1000, ga = .35 + .65 * share / 100, gb = .35 + .65 * (100 - share) / 100;
+    bars.forEach((el, i) => {
+      const x = i / (N - 1), left = x * 100 < share;
+      el.style.height = Math.max(3, (left ? SOUNDS[a](i, x, t) * ga : SOUNDS[b](i, x, t + 3) * gb) * H) + 'px';
+      el.style.background = left ? 'var(--a)' : 'var(--b)';
+    });
     requestAnimationFrame(frame);
   }
+  const set = n => { share = Math.max(0, Math.min(100, Math.round(n / 10) * 10)); label(); };
+  const pAt = e => { const r = wave.getBoundingClientRect(); return Math.max(0, Math.min(100, Math.round((e.clientX - r.left) / r.width * 10) * 10)); };
 
   let hover = false, down = false, drag = false, x0 = 0;
-  const show = () => { pill.classList.toggle('is-hover', hover && !down); pill.classList.toggle('is-pressed', down && !drag); pill.classList.toggle('is-dragging', drag); };
-  const pAt = e => { const r = pill.getBoundingClientRect(); return Math.min(SOUNDS.length - 1, Math.max(0, (e.clientX - r.left - INSET) / (r.width - INSET * 2) * (SOUNDS.length - 1))); };
-  pill.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); label(); });
-  pill.addEventListener('pointerleave', () => { hover = false; near = null; show(); label(); });
-  pill.addEventListener('pointerdown', e => { pill.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; show(); label(); });
-  pill.addEventListener('pointermove', e => {
-    if (!pill.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); label(); } return; }
+  const show = () => { wave.classList.toggle('is-hover', hover && !down); wave.classList.toggle('is-pressed', down && !drag); wave.classList.toggle('is-dragging', drag); label(); };
+  wave.addEventListener('pointerenter', e => { hover = true; hv = pAt(e); show(); });
+  wave.addEventListener('pointerleave', () => { hover = false; hv = null; show(); });
+  wave.addEventListener('pointerdown', e => { wave.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; show(); });
+  wave.addEventListener('pointermove', e => {
+    if (!wave.hasPointerCapture(e.pointerId)) { if (hover) { hv = pAt(e); label(); } return; }
     if (!drag && Math.abs(e.clientX - x0) > 3) { drag = true; show(); }
-    if (drag) { p = pAt(e); label(); }
+    if (drag) set(pAt(e));
   });
-  const release = e => { if (!down) return; idx = Math.round(drag ? p : pAt(e)); p = idx; down = drag = false; near = hover ? Math.round(pAt(e)) : null; show(); label(); };
-  pill.addEventListener('pointerup', release);
-  pill.addEventListener('pointercancel', release);
-  pill.setAttribute('aria-valuemin', 0); pill.setAttribute('aria-valuemax', SOUNDS.length - 1);
-  pill.addEventListener('keydown', e => {
-    const m = { ArrowRight: idx + 1, ArrowUp: idx + 1, ArrowLeft: idx - 1, ArrowDown: idx - 1, Home: 0, End: SOUNDS.length - 1 };
-    if (e.key in m) { e.preventDefault(); idx = Math.min(SOUNDS.length - 1, Math.max(0, m[e.key])); p = idx; label(); }
+  const release = e => { if (!down) return; if (!drag) set(pAt(e)); down = drag = false; hv = hover ? pAt(e) : null; show(); };
+  wave.addEventListener('pointerup', release);
+  wave.addEventListener('pointercancel', release);
+  wave.setAttribute('aria-valuemin', 0); wave.setAttribute('aria-valuemax', 100);
+  wave.addEventListener('keydown', e => {
+    const m = { ArrowRight: share + 10, ArrowUp: share + 10, ArrowLeft: share - 10, ArrowDown: share - 10, Home: 0, End: 100 };
+    if (e.key in m) { e.preventDefault(); set(m[e.key]); }
   });
-  addEventListener('resize', () => { icos.forEach((d, i) => d.style.left = xOf(i) + 'px'); label(); });
+  // tap a name to swap that sound for the next one the other side is not using
+  const next = (cur, other) => { let k = NAMES.indexOf(cur); do { k = (k + 1) % NAMES.length; } while (NAMES[k] === other); return NAMES[k]; };
+  endA.addEventListener('click', () => { a = next(a, b); label(); });
+  endB.addEventListener('click', () => { b = next(b, a); label(); });
   label(); requestAnimationFrame(frame);
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
