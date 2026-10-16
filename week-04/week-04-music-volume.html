@@ -8,36 +8,38 @@
   <link rel="stylesheet" href="week-04-music.css?v=1" />
   <style>
   /* Volume slider, continuous. A row of thin bars that rise from left to right, like the scale on an old amp.
-     Cream fills them up to the level; a lamp-coloured needle marks it, and the number rides on top of the needle.
-     The speaker grows and shrinks with the level, and mutes on tap. */
+     Cream fills them up to the level and a lamp-coloured needle marks it. The speaker is the handle: it rides
+     the needle, so it shows where you are, and it grows and shrinks with the level; tap it to mute.
+     The number sits on the left, where the speaker used to be. */
   :root {
     --card-w: 320px; --card-pad: 18px; --card-r: 14px;
     --bars: 28; --bar-w: 3px; --bar-gap: 4px; --bar-min: 6px; --bar-max: 30px; --bar-r: 1.5px;
     --needle-w: 2px; --needle-h: 38px;
     --icon: 22px; --icon-min: .7; --icon-max: 1.25;
-    --hit-h: 72px;
+    --hit-h: 76px; --num-w: 54px;
     --level-size: 18px; --level-line: 22px;
     --preview: #6b5f52;
   }
   .card { width: min(100%, var(--card-w)); padding: var(--card-pad); background: var(--shelf); border-radius: var(--card-r); display: grid; gap: 2px; }
   .row { display: flex; align-items: flex-end; gap: 12px; }
-  .spk { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border: 0; background: none; color: var(--cream); border-radius: 50%; cursor: pointer; margin-bottom: 1px; }
-  .spk:hover { background: rgba(255,255,255,.06); }
-  .spk svg { width: var(--icon); height: var(--icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s var(--ease-out); }
+  .num { width: var(--num-w); flex: none; padding-bottom: 5px; font: 500 var(--level-size)/var(--level-line) var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: var(--cream); transition: color .15s; }
+  .num small { font-size: 11px; color: var(--dust); margin-left: 1px; }
+  /* the speaker is the handle: it sits on top of the needle and scales from its foot */
+  .spk { position: absolute; top: 9px; width: 34px; height: 34px; margin-left: -17px; display: grid; place-items: center; border-radius: 50%; color: var(--cream); pointer-events: none; transition: background .15s, color .15s; }
+  .spk svg { width: var(--icon); height: var(--icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transform-origin: 50% 80%; }
   .spk .w { transition: opacity .15s; }
   .meter { position: relative; flex: 1; height: var(--hit-h); display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 7px; cursor: pointer; }
   .bar { width: var(--bar-w); border-radius: var(--bar-r); background: var(--line); transition: background .08s; }
   .bar.on { background: var(--cream); }
   .bar.pre { background: var(--preview); }
-  .needle { position: absolute; bottom: 3px; width: var(--needle-w); height: var(--needle-h); margin-left: calc(var(--needle-w) / -2); background: var(--lamp); border-radius: 1px; transform-origin: bottom; transform: scaleY(.55); transition: transform .15s var(--ease-out), width .12s; }
+  .needle { position: absolute; bottom: 3px; width: var(--needle-w); height: var(--needle-h); margin-left: calc(var(--needle-w) / -2); background: var(--lamp); border-radius: 1px; transition: width .12s; }
   /* the number sits on the needle, in the middle of the slider */
-  .level { position: absolute; top: 0; font: 500 var(--level-size)/var(--level-line) var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: var(--cream); white-space: nowrap; pointer-events: none; transform: translate(-50%, 13px); transition: color .15s, transform .15s var(--ease-out); }
   .ghost { position: absolute; bottom: 3px; width: 1px; height: var(--needle-h); margin-left: -.5px; background: var(--dust); opacity: 0; transform-origin: bottom; transform: scaleY(.55); transition: opacity .12s; pointer-events: none; }
-  .meter.is-hover .needle { transform: scaleY(.8); }
-  .meter.is-hover .level { transform: translate(-50%, 6px); }
+  .meter.is-hover .spk, .meter.on-spk .spk { background: rgba(255,255,255,.07); }
   .meter.is-hover .ghost { opacity: 1; }
-  .meter.is-pressed .needle, .meter.is-dragging .needle { transform: scaleY(1); width: 3px; }
-  .meter.is-pressed .level, .meter.is-dragging .level { color: var(--lamp); transform: translate(-50%, 0); }
+  .meter.is-pressed .needle, .meter.is-dragging .needle { width: 3px; }
+  .meter.is-pressed .spk, .meter.is-dragging .spk { color: var(--lamp); background: rgba(232,120,74,.12); }
+  .row.held .num { color: var(--lamp); }
   .meter.is-dragging .bar.on { background: var(--lamp); }
   </style>
 </head>
@@ -46,17 +48,17 @@
     <section class="card" aria-label="Volume">
       <p class="meta">Volume</p>
       <div class="row">
-        <button class="spk" type="button" aria-label="Mute">
-          <svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="w w1" d="M15 9.8a3 3 0 0 1 0 4.4"/><path class="w w2" d="M17.4 7.6a6.2 6.2 0 0 1 0 8.8"/><path class="w w3" d="M19.8 5.4a9.4 9.4 0 0 1 0 13.2"/><path class="x" d="M15.5 9.5l5 5M20.5 9.5l-5 5" style="display:none"/></svg>
-        </button>
-        <div class="meter" role="slider" tabindex="0" aria-label="Volume"><span class="level" aria-hidden="true"></span><div class="ghost"></div><div class="needle"></div></div>
+        <span class="num" aria-hidden="true"></span>
+        <div class="meter" role="slider" tabindex="0" aria-label="Volume"><div class="ghost"></div><div class="needle"></div>
+          <span class="spk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="w w1" d="M15 9.8a3 3 0 0 1 0 4.4"/><path class="w w2" d="M17.4 7.6a6.2 6.2 0 0 1 0 8.8"/><path class="w w3" d="M19.8 5.4a9.4 9.4 0 0 1 0 13.2"/><path class="x" d="M15.5 9.5l5 5M20.5 9.5l-5 5" style="display:none"/></svg></span>
+        </div>
       </div>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Continuous, 0 to 100. The level is a number that rides on the needle, in the middle of the slider, always on screen; it rises and warms to lamp while the meter is held. The bars rise like the scale on an amp, and the speaker grows with the level, so the shape itself says louder to the right.</p>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 100. The speaker is the handle: it rides the needle, so it shows where you are, and grows with the level, so the shape itself says louder to the right. The level reads as a number on the left, always on screen, warming to lamp while held. Tap the speaker to mute.</p>
 
     <h3>Meter</h3>
     <table>
@@ -64,8 +66,8 @@
       <tr><td>Bar width</td><td data-var="--bar-w"></td></tr>
       <tr><td>Bar height, first to last</td><td data-var="--bar-min,--bar-max" data-join=" → " data-after=", rising evenly"></td></tr>
       <tr><td>Bar corner</td><td data-var="--bar-r"></td></tr>
-      <tr><td>Needle</td><td data-var="--needle-w,--needle-h" data-join=" × " data-after="; 55% tall at rest, 80% on hover, full and 3px while held"></td></tr>
-      <tr><td>Meter width</td><td>Card width less padding, speaker and gap: 238px</td></tr>
+      <tr><td>Needle</td><td data-var="--needle-w,--needle-h" data-join=" × " data-after=", running up to the foot of the speaker; 3px while held"></td></tr>
+      <tr><td>Meter width</td><td>Card width less padding, number and gap: 218px</td></tr>
       <tr><td>Hit area height</td><td data-var="--hit-h" data-after=", the number's row included"></td></tr>
       <tr><td>Partly filled bar</td><td>Fills from the left in proportion, so the level reads to the percent</td></tr>
     </table>
@@ -75,10 +77,10 @@
       <tr><td>Card</td><td data-var="--card-w" data-after=" wide"></td></tr>
       <tr><td>Card padding</td><td data-var="--card-pad"></td></tr>
       <tr><td>Card corner</td><td data-var="--card-r"></td></tr>
-      <tr><td>Speaker to meter</td><td>12px</td></tr>
-      <tr><td>Speaker icon</td><td data-var="--icon" data-after=", 1.6px stroke, 34px target; scales from 0.7 at 0 to 1.25 at 100, and its waves drop out as the level falls"></td></tr>
+      <tr><td>Number to meter</td><td>12px; the number is 54px wide</td></tr>
+      <tr><td>Speaker, the handle</td><td data-var="--icon" data-after=", 1.6px stroke, 34px target, on top of the needle; scales from its foot, 0.7 at 0 to 1.25 at 100, and its waves drop out as the level falls"></td></tr>
       <tr><td>“Volume”</td><td data-var="--meta-size,--meta-line" data-after=", sans"></td></tr>
-      <tr><td>Level, on the needle</td><td data-var="--level-size,--level-line" data-after=", mono 500, centred on the needle and kept inside the meter"></td></tr>
+      <tr><td>Level, on the left</td><td data-var="--level-size,--level-line" data-after=", mono 500, “%” in 11px dust"></td></tr>
     </table>
 
     <h3>Colour</h3>
@@ -93,10 +95,10 @@
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The needle rises to 80% and the number lifts 7px; a thin dust line follows the pointer and the bars between the level and the pointer light to a preview colour, without changing the volume</td></tr>
-      <tr><td>Pressed</td><td>Needle full height and 3px; the number lifts again and turns lamp</td></tr>
-      <tr><td>Drag</td><td>Filled bars turn lamp; the number, needle and speaker size follow the finger</td></tr>
-      <tr><td>Mute</td><td>Tap the speaker: level to 0, an X replaces the waves; tap again for the level before</td></tr>
+      <tr><td>Hover</td><td>A faint circle shows behind the speaker; a thin dust line follows the pointer and the bars between the level and the pointer light to a preview colour, without changing the volume</td></tr>
+      <tr><td>Pressed</td><td>Needle 3px; the speaker and the number turn lamp</td></tr>
+      <tr><td>Drag</td><td>Filled bars turn lamp; the speaker rides the finger, growing or shrinking, and the number counts. Grab the speaker itself and it moves from where it is, without a jump</td></tr>
+      <tr><td>Mute</td><td>Tap the speaker without moving it, or press M: level to 0, an X replaces the waves; again for the level before</td></tr>
       <tr><td>Keyboard</td><td>Arrows 2, Page Up and Down 10, Home and End 0 and 100</td></tr>
     </table>
   </section>
@@ -106,8 +108,8 @@
   <script>
   const css = getComputedStyle(document.documentElement), num = n => parseFloat(css.getPropertyValue(n));
   const N = num('--bars'), MIN = num('--bar-min'), MAX = num('--bar-max'), IMIN = num('--icon-min'), IMAX = num('--icon-max');
-  const meter = document.querySelector('.meter'), needle = meter.querySelector('.needle'), ghost = meter.querySelector('.ghost'), level = meter.querySelector('.level'), bars = [];
-  for (let i = 0; i < N; i++) { const b = document.createElement('div'); b.className = 'bar'; b.style.height = (MIN + (MAX - MIN) * i / (N - 1)) + 'px'; meter.insertBefore(b, level); bars.push(b); }
+  const meter = document.querySelector('.meter'), needle = meter.querySelector('.needle'), ghost = meter.querySelector('.ghost'), spk = meter.querySelector('.spk'), num_ = document.querySelector('.num'), row = document.querySelector('.row'), bars = [];
+  for (let i = 0; i < N; i++) { const b = document.createElement('div'); b.className = 'bar'; b.style.height = (MIN + (MAX - MIN) * i / (N - 1)) + 'px'; meter.insertBefore(b, ghost); bars.push(b); }
   let v = 64, before = 64, hv = null;   // hv: the value under the pointer while hovering
 
   const span = () => { const r = meter.getBoundingClientRect(), a = bars[0].getBoundingClientRect(), z = bars[N - 1].getBoundingClientRect(); return { r, x0: a.left - r.left, w: z.right - a.left }; };
@@ -122,40 +124,40 @@
     });
     const { r, x0, w } = span(), x = x0 + w * v / 100;
     needle.style.left = x + 'px';
-    level.textContent = Math.round(v) + '%';
-    // the number centres on the needle but never leaves the meter
-    const lw = level.offsetWidth / 2;
-    level.style.left = Math.min(r.width - lw, Math.max(lw, x)) + 'px';
+    num_.innerHTML = `${Math.round(v)}<small>%</small>`;
     if (hv !== null) ghost.style.left = x0 + w * hv / 100 + 'px';
-    const s = document.querySelector('.spk');
-    s.querySelector('svg').style.transform = `scale(${IMIN + (IMAX - IMIN) * v / 100})`;   // louder, bigger
+    // the speaker rides the needle, so it marks where you are; louder, bigger
+    const s = spk; s.style.left = x + 'px';
+    s.querySelector('svg').style.transform = `scale(${IMIN + (IMAX - IMIN) * v / 100})`;
     s.querySelector('.w1').style.opacity = v > 0 ? 1 : 0;
     s.querySelector('.w2').style.opacity = v > 33 ? 1 : 0;
     s.querySelector('.w3').style.opacity = v > 66 ? 1 : 0;
     s.querySelector('.x').style.display = v === 0 ? '' : 'none';
-    s.setAttribute('aria-label', v === 0 ? 'Unmute' : 'Mute');
     meter.setAttribute('aria-valuenow', Math.round(v)); meter.setAttribute('aria-valuetext', v === 0 ? 'Muted' : `${Math.round(v)} percent`);
   }
   const set = n => { v = Math.round(Math.min(100, Math.max(0, n))); draw(); };
 
-  let hover = false, down = false, drag = false, sx = 0;
-  const show = () => { meter.classList.toggle('is-hover', hover && !down); meter.classList.toggle('is-pressed', down && !drag); meter.classList.toggle('is-dragging', drag); };
+  let hover = false, down = false, drag = false, sx = 0, onSpk = false, v0 = 0;
+  const show = () => { meter.classList.toggle('is-hover', hover && !down); meter.classList.toggle('is-pressed', down && !drag); meter.classList.toggle('is-dragging', drag); row.classList.toggle('held', down); };
+  const overSpk = e => { const b = spk.getBoundingClientRect(); return e.clientX > b.left - 4 && e.clientX < b.right + 4 && e.clientY > b.top - 4 && e.clientY < b.bottom + 4; };
+  const mute = () => { if (v > 0) { before = v; set(0); } else set(before); };
   const fromE = e => { const { r, x0, w } = span(); return Math.min(100, Math.max(0, (e.clientX - r.left - x0) / w * 100)); };
   meter.addEventListener('pointerenter', e => { hover = true; hv = fromE(e); show(); draw(); });
   meter.addEventListener('pointerleave', () => { hover = false; hv = null; show(); draw(); });
-  meter.addEventListener('pointerdown', e => { meter.setPointerCapture(e.pointerId); sx = e.clientX; down = true; drag = false; hv = null; show(); set(fromE(e)); });
+  // on the speaker: pick it up where it is (a tap mutes); anywhere else on the meter: jump there
+  meter.addEventListener('pointerdown', e => { meter.setPointerCapture(e.pointerId); sx = e.clientX; down = true; drag = false; hv = null; onSpk = overSpk(e); v0 = v; show(); if (!onSpk) set(fromE(e)); else draw(); });
   meter.addEventListener('pointermove', e => {
-    if (!meter.hasPointerCapture(e.pointerId)) { if (hover && !down) { hv = fromE(e); draw(); } return; }
+    if (!meter.hasPointerCapture(e.pointerId)) { if (hover && !down) { hv = fromE(e); meter.classList.toggle('on-spk', overSpk(e)); draw(); } return; }
     if (Math.abs(e.clientX - sx) > 2 && !drag) { drag = true; show(); }
-    set(fromE(e));
+    if (onSpk) { if (drag) { const { w } = span(); set(v0 + (e.clientX - sx) / w * 100); } } else set(fromE(e));
   });
-  ['pointerup', 'pointercancel'].forEach(k => meter.addEventListener(k, e => { down = drag = false; if (hover) hv = fromE(e); show(); if (v > 0) before = v; draw(); }));
+  ['pointerup', 'pointercancel'].forEach(k => meter.addEventListener(k, e => { const tap = onSpk && !drag && k === 'pointerup'; down = drag = onSpk = false; if (hover) hv = fromE(e); show(); if (tap) mute(); else { if (v > 0) before = v; draw(); } }));
   meter.setAttribute('aria-valuemin', 0); meter.setAttribute('aria-valuemax', 100);
   meter.addEventListener('keydown', e => {
     const m = { ArrowRight: v + 2, ArrowUp: v + 2, ArrowLeft: v - 2, ArrowDown: v - 2, PageUp: v + 10, PageDown: v - 10, Home: 0, End: 100 };
     if (e.key in m) { e.preventDefault(); set(m[e.key]); if (v > 0) before = v; }
+    else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); mute(); }
   });
-  document.querySelector('.spk').addEventListener('click', () => set(v === 0 ? before : 0));
   addEventListener('resize', draw);
   draw();
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
