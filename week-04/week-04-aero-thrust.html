@@ -19,10 +19,10 @@
   .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .hull { fill: var(--space); stroke: var(--text); stroke-width: 1; }
   .hull-in { fill: none; stroke: var(--line); stroke-width: 1; }
-  .nozzle .bell { fill: var(--space); stroke: var(--dim); stroke-width: 1; stroke-dasharray: 2 2; transition: stroke .2s; }
+  .nozzle .bell { fill: var(--space); stroke: var(--line); stroke-width: 1; transition: stroke .2s; }
   .nozzle .throat { fill: none; stroke: var(--line); stroke-width: 1; }
   .nozzle .core { fill: var(--text); opacity: 0; }
-  .nozzle .wave { fill: none; stroke: var(--text); stroke-width: 1; opacity: 0; }
+  .nozzle .wave { fill: none; stroke: var(--text); stroke-width: .75; opacity: 0; }
   .nozzle.lit .bell { stroke: var(--text); stroke-dasharray: none; }
   .nozzle .n { font: 500 5.5px var(--mono); fill: var(--dim); text-anchor: middle; dominant-baseline: central; }
   .nozzle.lit .n { opacity: 0; }
@@ -45,7 +45,7 @@
   .trace .frame { fill: none; stroke: var(--line); stroke-width: 1; }
   .trace .grid { stroke: var(--grid); stroke-width: 1; }
   .trace .line { fill: none; stroke: var(--text); stroke-width: 1; }
-  .trace .area { fill: url(#tr-dots); opacity: .45; }
+  .trace .area { fill: none; }
   .read { position: absolute; left: 176px; right: 0; pointer-events: none; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); font-variant-numeric: tabular-nums; }
   .read .big { display: inline-block; font: 600 22px/1 var(--mono); color: var(--text); letter-spacing: -.01em; margin: 2px 0 6px; }
   .read .big small { font-size: 10px; margin-left: 2px; }
@@ -60,40 +60,37 @@
     <div class="sky"></div>
     <div class="scene" role="slider" tabindex="0" aria-label="Thrust">
       <svg class="view"></svg>
-      <span class="cap">THRUST · 6 S</span>
-      <div class="read" style="top:78px"><span class="tag">THRUST</span><br><span class="big chip"></span>
+      <div class="read" style="top:86px"><span class="big chip"></span>
         <div class="row"><span>ENGINES</span><b class="v-eng"></b></div>
-        <div class="row"><span>FORCE kN</span><b class="v-kn"></b></div>
-        <div class="row"><span>ACCEL</span><b class="v-g"></b></div>
       </div>
     </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Continuous, 0 to 100% thrust, to the percent. The same throttle as before, seen from a different point of view: behind the ship, looking at the base of the booster. The throttle is a ring around its nine engines; turn it clockwise and the engines light one by one, the centre first and then round the outside, each the moment its share of the thrust is reached. The thrust reads big on the right, always on screen, under a six-second trace of how it has moved.</p>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 100% thrust, to the percent. The same throttle as before, seen from a different point of view: behind the ship, looking at the base of the booster. The throttle is a ring around its nine engines; turn it clockwise and the engines light one by one, the centre first and then round the outside, each the moment its share of the thrust is reached. The thrust reads big on the right, always on screen, under a six-second trace of how it has moved and over the count of engines lit.</p>
 
     <h3>Ring</h3>
     <table>
       <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the ring the hit area"></td></tr>
       <tr><td>Ring</td><td data-var="--ring-r" data-after=" radius, 270° from the lower left round the top to the lower right; 1px, the part turned up 1.5px white"></td></tr>
-      <tr><td>Ticks</td><td>Every 5%, 3px; every 25%, 6px and labelled IDLE, 25, 50, 75, MAX</td></tr>
+      <tr><td>Ticks</td><td>Every 25%, 4px; only IDLE and MAX labelled</td></tr>
       <tr><td>Handle</td><td data-var="--handle" data-after=" white square on the ring"></td></tr>
       <tr><td>Drag</td><td>Round the centre, relative: the handle turns by the angle your finger turns, so it never jumps</td></tr>
     </table>
 
     <h3>Engines</h3>
     <table>
-      <tr><td>Booster base</td><td data-var="--hull-r" data-after=" radius, 1px white, an inner ring at 46px"></td></tr>
-      <tr><td>Nozzles</td><td data-var="--nozzle-r" data-after=" radius: one in the centre, eight round it at 34px, numbered until lit"></td></tr>
-      <tr><td>Lighting</td><td>Each engine carries a ninth of the thrust. Unlit: dashed grey; lit: solid white, a white core sized to its own throttle, and a ring breathing out from it</td></tr>
+      <tr><td>Booster base</td><td data-var="--hull-r" data-after=" radius, 1px white"></td></tr>
+      <tr><td>Nozzles</td><td data-var="--nozzle-r" data-after=" radius: one in the centre, eight round it at 34px"></td></tr>
+      <tr><td>Lighting</td><td>Each engine carries a ninth of the thrust. Unlit: a dark outline; lit: white, a white core sized to its own throttle, and a fine ring breathing out from it</td></tr>
     </table>
 
     <h3>Readouts</h3>
     <table>
-      <tr><td>Trace</td><td>The last six seconds of thrust, 88 × 56, a dotted area under a 1px line</td></tr>
+      <tr><td>Trace</td><td>The last six seconds of thrust, 88 × 40, a 1px line over a baseline</td></tr>
       <tr><td>Thrust</td><td>Mono 600 22px; “%” in 10px</td></tr>
-      <tr><td>Rows</td><td data-var="--tag-size,--tag-line" data-after=" mono 500 between 1px rules: engines lit, force in kN, acceleration in g"></td></tr>
+      <tr><td>Engines lit</td><td data-var="--tag-size,--tag-line" data-after=" mono 500 under a 1px rule"></td></tr>
     </table>
 
     <h3>Colour</h3>
@@ -132,24 +129,22 @@
 
   // the base of the booster and its nine engines: the centre one first, then the outer eight, top going clockwise
   el('circle', { class: 'hull', cx: C.x, cy: C.y, r: HR });
-  el('circle', { class: 'hull-in', cx: C.x, cy: C.y, r: HR - 14 });
   const ENG = [{ x: C.x, y: C.y }].concat(Array.from({ length: 8 }, (_, k) => at(-90 + k * 45, 34)));
   const order = [0, 1, 5, 3, 7, 2, 6, 4, 8];                  // lights opposite pairs, so the push stays balanced
   const engines = ENG.map((p, i) => {
     const g = el('g', { class: 'nozzle', transform: `translate(${p.x} ${p.y})` });
-    el('circle', { class: 'bell', r: NR }, g); el('circle', { class: 'throat', r: NR * .45 }, g);
+    el('circle', { class: 'bell', r: NR }, g);
     const wave = el('circle', { class: 'wave', r: NR }, g), core = el('circle', { class: 'core', r: 1 }, g);
-    el('text', { class: 'n' }, g).textContent = order.indexOf(i) + 1;
     return { g, wave, core, rank: order.indexOf(i), ph: i * .37 };
   });
 
   // the ring
   el('path', { class: 'track', d: arc(A0, A0 + SWEEP, RR) });
   const fill = el('path', { class: 'fill' });
-  for (let v = 0; v <= 100; v += 5) {
-    const a = A0 + SWEEP * v / 100, major = v % 25 === 0, p = at(a, RR + 2), q = at(a, RR + (major ? 8 : 5));
-    el('line', { class: 'tk' + (major ? ' major' : ''), x1: p.x, y1: p.y, x2: q.x, y2: q.y });
-    if (major) { const t = at(a, RR + 15); el('text', { class: 'tl', x: t.x, y: t.y }).textContent = v === 0 ? 'IDLE' : v === 100 ? 'MAX' : v; }
+  for (let v = 0; v <= 100; v += 25) {
+    const a = A0 + SWEEP * v / 100, p = at(a, RR + 3), q = at(a, RR + 7);
+    el('line', { class: 'tk', x1: p.x, y1: p.y, x2: q.x, y2: q.y });
+    if (v === 0 || v === 100) { const t = at(a, RR + 15); el('text', { class: 'tl', x: t.x, y: t.y }).textContent = v ? 'MAX' : 'IDLE'; }
   }
   const ghost = el('g', { class: 'ghost' }), gl = el('line', {}, ghost), gt = el('text', {}, ghost);
   const handle = el('g', { class: 'handle' });
@@ -157,11 +152,10 @@
   el('rect', { x: -HS / 2, y: -HS / 2, width: HS, height: HS }, handle);
 
   // the trace
-  const TX = 176, TY = 10, TW = 88, TH = 56;
+  const TX = 176, TY = 34, TW = 88, TH = 40;
   const trace = el('g', { class: 'trace' });
-  [.25, .5, .75].forEach(f => el('line', { class: 'grid', x1: TX, x2: TX + TW, y1: TY + TH * f, y2: TY + TH * f }, trace));
   const area = el('path', { class: 'area' }, trace), line = el('path', { class: 'line' }, trace);
-  el('rect', { class: 'frame', x: TX, y: TY, width: TW, height: TH }, trace);
+  el('line', { class: 'frame', x1: TX, x2: TX + TW, y1: TY + TH, y2: TY + TH }, trace);
   const HIST = Array(90).fill(40);
 
   let v = 40, sv = 40, hv = null;
@@ -174,8 +168,6 @@
     engines.forEach(e => e.g.classList.toggle('lit', e.rank < lit));
     scene.querySelector('.big').innerHTML = `${Math.round(sv)}<small>%</small>`;
     scene.querySelector('.v-eng').textContent = `${lit}/9`;
-    scene.querySelector('.v-kn').textContent = Math.round(f * 7605).toLocaleString('en-US');
-    scene.querySelector('.v-g').textContent = `${(1.4 * f).toFixed(2)} G`;
     scene.setAttribute('aria-valuenow', Math.round(v)); scene.setAttribute('aria-valuetext', `${Math.round(v)} percent thrust, ${lit} of 9 engines lit`);
   }
   // the engines breathe and the trace scrolls on their own clock
