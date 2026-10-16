@@ -13,7 +13,6 @@
   :root {
     --edge: 2px; --edge-held: 3px; --edge-glow: 28px;
     --scale-w: 26px; --tick: 8px; --tick-major: 14px;
-    --chip-pad: 4px 8px; --chip-r: 8px;
     --deep: #05081a; --dusk: #10183a;
   }
   .stage { position: relative; padding: 0; }
@@ -28,10 +27,6 @@
   .edge { position: absolute; left: 0; right: 0; height: var(--edge); margin-bottom: calc(var(--edge) / -2); background: var(--glow); box-shadow: 0 0 var(--edge-glow) rgba(255,184,103,.55); transition: height .12s, box-shadow .12s; }
   .sky.is-hover .edge { box-shadow: 0 0 calc(var(--edge-glow) * 1.4) rgba(255,184,103,.7); }
   .sky.is-pressed .edge, .sky.is-dragging .edge { height: var(--edge-held); box-shadow: 0 0 calc(var(--edge-glow) * 1.8) rgba(255,184,103,.85); }
-  .chip { position: absolute; right: 12px; transform: translateY(50%); padding: var(--chip-pad); border-radius: var(--chip-r); background: var(--glow); color: var(--night); font: 600 var(--label-size)/var(--label-line) var(--mono); white-space: nowrap; pointer-events: none; transform-origin: right center; }
-  .sky.ready .chip { transition: bottom var(--slow) var(--ease-out), transform .12s; }
-  .sky.is-live .chip { transition: transform .12s; }
-  .sky.is-pressed .chip, .sky.is-dragging .chip { transform: translateY(50%) scale(1.1); }
   /* hover: a dashed line at the pointer and what it would set */
   .ghost { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(232,230,242,.55); opacity: 0; transition: opacity .12s; pointer-events: none; }
   .ghost span { position: absolute; right: 12px; bottom: 4px; font: 600 var(--label-size)/var(--label-line) var(--mono); color: var(--ink); }
@@ -58,13 +53,12 @@
       <div class="scale"></div>
       <div class="ghost"><span></span></div>
       <div class="mid"><b></b><span></span></div>
-      <span class="chip"></span>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Continuous, 0 to 90 minutes, to the minute. The whole screen is the slider: night rises from the bottom, its starry dark climbing to the level, a warm horizon riding its edge; the top of the screen is 90 minutes. The minutes and the time the sound stops ride the horizon in big type, always on screen, above it, or below it once the night nears the top; a chip on the horizon's right end repeats the minutes.</p>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 90 minutes, to the minute. The whole screen is the slider: night rises from the bottom, its starry dark climbing to the level, a warm horizon riding its edge; the top of the screen is 90 minutes. The minutes and the time the sound stops ride the horizon in big type, always on screen, above it, or below it once the night nears the top.</p>
 
     <h3>Slider</h3>
     <table>
@@ -72,7 +66,6 @@
       <tr><td>Range</td><td>Bottom edge 0, top edge 90; one minute is 1/90 of the screen's height</td></tr>
       <tr><td>Horizon</td><td data-var="--edge" data-after=" warm line, 28px glow; 3px and a wider glow while held"></td></tr>
       <tr><td>Scale</td><td data-var="--tick,--tick-major" data-join=" and " data-after=" ticks on the left edge, every 5 and 15 minutes; 15s labelled in mono 500 9px"></td></tr>
-      <tr><td>Horizon chip</td><td data-var="--label-size,--label-line" data-after=" mono 600, warm, 4px × 8px padding, 8px corner, 12px from the right edge, sitting on the horizon"></td></tr>
       <tr><td>Stars</td><td>2px, inside the night only, twinkling 25% to 90% over 3s</td></tr>
       <tr><td>Settle on tap</td><td data-var="--slow" data-after=", ease out; no lag while dragging"></td></tr>
     </table>
@@ -87,7 +80,7 @@
     <table>
       <tr><td>Sky above the night</td><td data-var="--dusk" data-kind="color"></td></tr>
       <tr><td>Night</td><td data-var="--deep" data-kind="color"></td></tr>
-      <tr><td>Horizon, chip</td><td data-var="--glow" data-kind="color"></td></tr>
+      <tr><td>Horizon</td><td data-var="--glow" data-kind="color"></td></tr>
       <tr><td>Type, stars</td><td data-var="--ink" data-kind="color"></td></tr>
       <tr><td>Scale, quiet type</td><td data-var="--mute" data-kind="color"></td></tr>
     </table>
@@ -95,8 +88,8 @@
     <h3>States</h3>
     <table>
       <tr><td>Hover</td><td>The horizon's glow widens; a dashed line follows the pointer across the screen with the minutes it would set at its right end. The timer stays</td></tr>
-      <tr><td>Pressed</td><td>The horizon thickens to 3px and glows brighter; the chip grows 1.1 and the minutes grow 1.05 with a warm glow</td></tr>
-      <tr><td>Drag</td><td>Up and down anywhere, relative to where you pressed; the night, horizon, chip and numbers follow with no lag</td></tr>
+      <tr><td>Pressed</td><td>The horizon thickens to 3px and glows brighter; the minutes grow 1.05 with a warm glow</td></tr>
+      <tr><td>Drag</td><td>Up and down anywhere, relative to where you pressed; the night, horizon and numbers follow with no lag</td></tr>
       <tr><td>Tap</td><td>Sets the minutes at the tapped height</td></tr>
       <tr><td>Keyboard</td><td>Arrows a minute; Page Up and Down 15; Home and End 0 and 90</td></tr>
     </table>
@@ -106,7 +99,7 @@
 
   <script>
   const MAX = 90, NOW = { h: 23, m: 40 };   // it is 11:40 at night
-  const sky = document.querySelector('.sky'), night = sky.querySelector('.night'), edge = sky.querySelector('.edge'), chip = sky.querySelector('.chip'), ghost = sky.querySelector('.ghost');
+  const sky = document.querySelector('.sky'), night = sky.querySelector('.night'), edge = sky.querySelector('.edge'), ghost = sky.querySelector('.ghost');
   let seed = 3; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
   sky.querySelector('.stars').innerHTML = Array.from({ length: 70 }, () => `<i style="left:${(rnd() * 100).toFixed(1)}%;top:${(rnd() * 100).toFixed(1)}%;animation-delay:${(rnd() * 3).toFixed(2)}s;transform:scale(${(.5 + rnd() * .8).toFixed(2)})"></i>`).join('');
   sky.querySelector('.scale').innerHTML = Array.from({ length: MAX / 5 + 1 }, (_, i) => { const m = i * 5, y = 100 - m / MAX * 100, major = m % 15 === 0; return `<i class="${major ? 'major' : ''}" style="top:${y}%"></i>` + (major && m > 0 && m < MAX ? `<b style="top:${y}%">${m}</b>` : ''); }).join('');
@@ -116,8 +109,6 @@
   function draw() {
     const m = Math.round(v), pct = v / MAX * 100;
     night.style.height = pct + '%'; edge.style.bottom = pct + '%';
-    // the chip sits on the horizon, tucked inside the screen at either end
-    chip.style.bottom = `clamp(14px, ${pct}%, calc(100% - 14px))`; chip.textContent = m === 0 ? 'OFF' : `${m} MIN`;
     sky.querySelector('.mid b').innerHTML = m === 0 ? 'Off' : `${m}<small>min</small>`;
     sky.querySelector('.mid span').textContent = m === 0 ? 'Plays all night' : `Stops at ${clock(m)}`;
     const mid = sky.querySelector('.mid'), below = pct > 72;
