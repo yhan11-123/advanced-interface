@@ -5,142 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 04 &middot; Camera zoom slider</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-04-camera.css?v=1" />
+  <link rel="stylesheet" href="week-04-camera.css?v=2" />
   <style>
-  /* Zoom slider, stepped. Five lenses on one line, like the lens buttons on a phone camera.
-     The chosen lens is the knob and carries its number; drag between lenses and the view zooms smoothly,
-     let go and it settles on the nearest lens. */
+  /* Zoom slider, stepped. An altimeter-style tape beside the imaging frame: five lens stops from 0.5× at
+     the bottom to 5× at the top, and a readout box that rides the tape and points at the stop you are on. */
   :root {
-    --dial-w: 280px; --hit-h: 44px; --track-h: 2px; --inset: 22px;
-    --stop: 26px; --knob: 34px; --knob-stroke: 1.5px;
-    --hover-fill: #2a2a2d;
-    --settle: .26s;
+    --frame-w: 212px; --frame-h: 172px;
+    --tape-w: 56px; --tape-gap: 12px;
+    --major: 10px; --minor: 5px;
+    --box-w: 44px; --box-h: 18px; --notch: 5px;
+    --settle: .24s;
   }
-  .cam { display: grid; gap: 14px; justify-items: center; }
-  .dial { position: relative; width: var(--dial-w); height: var(--hit-h); cursor: pointer; }
-  .dial .track { position: absolute; left: var(--inset); right: var(--inset); top: 50%; height: var(--track-h); margin-top: calc(var(--track-h) / -2); background: var(--line); border-radius: 1px; }
-  .stop { position: absolute; top: 50%; width: var(--stop); height: var(--stop); margin: calc(var(--stop) / -2) 0 0 calc(var(--stop) / -2); border-radius: 50%; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; font: 500 10px/1 var(--mono); color: var(--mute); transition: background .12s, color .12s, transform .12s; }
-  .stop.is-near { background: var(--hover-fill); color: var(--ink); transform: scale(1.08); }
-  .knob { position: absolute; top: 50%; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); border-radius: 50%; background: #000; box-shadow: inset 0 0 0 var(--knob-stroke) var(--amber); display: grid; place-items: center; font: 700 11px/1 var(--mono); color: var(--amber); font-variant-numeric: tabular-nums; transition: left var(--settle) var(--ease-out), transform .12s, box-shadow .12s; pointer-events: none; }
-  .dial.is-hover .knob { transform: scale(1.05); }
-  .dial.is-pressed .knob { transform: scale(.9); }
-  .dial.is-dragging .knob { transition: none; box-shadow: inset 0 0 0 2.5px var(--amber), 0 0 0 5px rgba(255,210,63,.14); transform: scale(1.1); }
+  .cam { display: flex; gap: var(--tape-gap); align-items: stretch; }
+  .frame { width: var(--frame-w); height: var(--frame-h); }
   .frame .scene { transition: transform var(--settle) var(--ease-out); }
   .frame.is-live .scene { transition: none; }
-  /* hover preview: the crop that lens would take, drawn in the current view */
-  .crop { position: absolute; left: 50%; top: 50%; border: 1px dashed var(--amber); border-radius: 3px; transform: translate(-50%, -50%); opacity: 0; transition: opacity .12s, width .18s var(--ease-out), height .18s var(--ease-out); pointer-events: none; }
-  .crop.on { opacity: 1; }
-  .crop b { position: absolute; right: 3px; top: 2px; font: 600 10px/1 var(--mono); color: var(--amber); }
-  .hud .to { color: var(--amber); }
+  .tape { position: relative; width: var(--tape-w); height: var(--frame-h); cursor: ns-resize; }
+  .tape .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+  .tk { position: absolute; left: 0; height: 1px; background: var(--dim); }
+  .tk.major { width: var(--major); background: var(--hud); opacity: .7; }
+  .tk.minor { width: var(--minor); }
+  .lb { position: absolute; left: 15px; transform: translateY(-50%); font: 500 var(--tag-size)/1 var(--mono); color: var(--dim); letter-spacing: .06em; transition: color .12s; }
+  .lb.is-near { color: var(--text); }
+  /* the readout box, with a notch pointing at the tape */
+  .box { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2);
+    display: grid; place-items: center; background: var(--glass); box-shadow: inset 0 0 0 1px var(--hud);
+    font: 600 11px/1 var(--mono); color: var(--hud); font-variant-numeric: tabular-nums; pointer-events: none;
+    transition: top var(--settle) var(--ease-out), box-shadow .12s, color .12s, transform .12s; }
+  .box::before { content: ""; position: absolute; right: 100%; top: 50%; margin-top: calc(var(--notch) * -1); border: var(--notch) solid transparent; border-right-color: var(--hud); transition: border-color .12s; }
+  .ghost { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2); outline: 1px dashed var(--dim); outline-offset: -1px; opacity: 0; transition: opacity .12s, top .12s; pointer-events: none; }
+  .tape.is-hover .ghost { opacity: 1; }
+  .tape.is-hover .box { box-shadow: inset 0 0 0 1px var(--hud), 0 0 10px rgba(111,227,255,.25); }
+  .tape.is-pressed .box, .tape.is-dragging .box { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 12px rgba(255,176,32,.3); color: var(--amber); }
+  .tape.is-pressed .box::before, .tape.is-dragging .box::before { border-right-color: var(--amber); }
+  .tape.is-pressed .box { transform: scale(.94); }
+  .tape.is-dragging .box { transition: box-shadow .12s, color .12s; }
+  .crop { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); outline: 1px dashed var(--hud); opacity: 0; transition: opacity .12s, width .18s var(--ease-out), height .18s var(--ease-out); pointer-events: none; }
+  .crop.on { opacity: .9; }
+  .crop em { position: absolute; right: 3px; top: 3px; font: 500 var(--tag-size)/1 var(--mono); font-style: normal; color: var(--hud); }
   </style>
 </head>
 <body>
   <main class="stage">
-    <section class="cam" aria-label="Camera zoom">
-      <div class="frame"><svg class="scene"></svg><div class="grid"></div><div class="crop"><b></b></div><span class="hud"></span></div>
-      <div class="dial" role="slider" tabindex="0" aria-label="Zoom"><div class="track"></div><div class="knob"></div></div>
+    <section class="cam" aria-label="Orbital camera zoom">
+      <div class="frame"><svg class="scene"></svg><div class="scan"></div><div class="crop"><em></em></div>
+        <div class="hud"><i></i><i></i><i></i><i></i><b></b>
+          <span style="left:10px;top:20px" class="t-lens"></span><span style="left:10px;bottom:20px">ALT 412 KM</span><span style="right:10px;bottom:20px" class="t-gsd"></span><span style="right:10px;top:20px">EO-2 ● REC</span></div>
+      </div>
+      <div class="tape" role="slider" tabindex="0" aria-label="Zoom"><div class="spine"></div><div class="ghost"></div><div class="box"></div></div>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: five lenses, 0.5×, 1×, 2×, 3× and 5×. The chosen lens is the knob and carries its own number, so the value is always on screen; the focal length reads top left in the viewfinder.</p>
+    <p>Read from the CSS this page runs on. Stepped: five lens stops, 0.5× to 5×, on a vertical tape like an altimeter, the widest at the bottom. A readout box rides the tape and points at the stop you are on, so the value is always on screen; the frame reads the focal length and the ground sample distance too.</p>
 
-    <h3>Dial</h3>
+    <h3>Tape</h3>
     <table>
-      <tr><td>Dial</td><td data-var="--dial-w,--hit-h" data-join=" × " data-after=", the hit area"></td></tr>
-      <tr><td>Track</td><td data-var="--track-h" data-after=", line colour, inset 22px each end"></td></tr>
-      <tr><td>Lens stop</td><td data-var="--stop" data-after=" circle, 1px line ring, mono 500 10px number"></td></tr>
-      <tr><td>Stops apart</td><td>59px, evenly spread</td></tr>
-      <tr><td>Knob</td><td data-var="--knob" data-after=" circle, black, amber ring and number, mono 700 11px"></td></tr>
-      <tr><td>Knob ring</td><td data-var="--knob-stroke" data-after="; 2.5px with a 5px glow while dragging"></td></tr>
-      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest lens"></td></tr>
+      <tr><td>Tape</td><td data-var="--tape-w,--frame-h" data-join=" × " data-after=", the hit area; 12px right of the frame"></td></tr>
+      <tr><td>Spine</td><td>1px, grid colour, down the tape's left edge</td></tr>
+      <tr><td>Lens stop tick</td><td data-var="--major" data-after=" long, 1px, cyan at 70%; four 5px minor ticks between stops"></td></tr>
+      <tr><td>Stop label</td><td data-var="--tag-size" data-after=" mono 500, 15px from the spine"></td></tr>
+      <tr><td>Readout box</td><td data-var="--box-w,--box-h" data-join=" × " data-after=", 1px cyan line, mono 600 11px, a 5px notch pointing at the tape"></td></tr>
+      <tr><td>Stops apart</td><td>34px, evenly spread over the frame's height less 18px top and bottom</td></tr>
+      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest stop"></td></tr>
     </table>
 
-    <h3>Viewfinder</h3>
+    <h3>Frame</h3>
     <table>
-      <tr><td>Frame</td><td data-var="--frame-w,--frame-h" data-join=" × " data-after=", 10px corner, thirds grid at 18% white"></td></tr>
-      <tr><td>Frame to dial</td><td>14px</td></tr>
-      <tr><td>Focal length</td><td data-var="--label-size,--label-line" data-after=", mono 600, 10px in from the top left"></td></tr>
-      <tr><td>Crop preview</td><td>1px dashed amber, 3px corner, the lens number inside its top right</td></tr>
+      <tr><td>Frame</td><td data-var="--frame-w,--frame-h" data-join=" × " data-after=", 2px corner, 1px grid ring, 3px scan lines"></td></tr>
+      <tr><td>Corner brackets</td><td>10px, 1px cyan, 6px in</td></tr>
+      <tr><td>Reticle</td><td>18px cross, 6px arms, centre open</td></tr>
+      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan, 10px in from the edges"></td></tr>
+      <tr><td>Crop preview</td><td>1px dashed cyan, the stop's number in its top right</td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
-      <tr><td>Page</td><td data-var="--body" data-kind="color"></td></tr>
-      <tr><td>Stops</td><td data-var="--panel" data-kind="color"></td></tr>
-      <tr><td>Stop under the pointer</td><td data-var="--hover-fill" data-kind="color"></td></tr>
-      <tr><td>Track and rings</td><td data-var="--line" data-kind="color"></td></tr>
-      <tr><td>Knob, crop preview</td><td data-var="--amber" data-kind="color"></td></tr>
+      <tr><td>Page</td><td data-var="--void" data-kind="color"></td></tr>
+      <tr><td>Box face</td><td data-var="--glass" data-kind="color"></td></tr>
+      <tr><td>Spine, minor ticks off</td><td data-var="--grid" data-kind="color"></td></tr>
+      <tr><td>Minor ticks, labels</td><td data-var="--dim" data-kind="color"></td></tr>
+      <tr><td>Instruments</td><td data-var="--hud" data-kind="color"></td></tr>
+      <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The lens under the pointer lights and grows 1.08; a dashed amber box shows the crop it would take, and the focal length shows where it would go. Nothing zooms yet</td></tr>
-      <tr><td>Pressed</td><td>The knob dips to 0.9</td></tr>
-      <tr><td>Drag</td><td>The knob follows the finger with no lag and grows 1.1 with a thicker ring and glow; the view zooms smoothly between lenses and the number reads to a tenth, 2.4×</td></tr>
-      <tr><td>Let go</td><td>Settles on the nearest lens; the view settles with it</td></tr>
-      <tr><td>Keyboard</td><td>Arrows step one lens; Home and End go to 0.5× and 5×</td></tr>
+      <tr><td>Hover</td><td>The box glows; a dashed box marks the stop under the pointer, its label lights, and a dashed crop in the frame shows what that lens would take. Nothing zooms yet</td></tr>
+      <tr><td>Pressed</td><td>The box and notch turn amber and dip to 0.94</td></tr>
+      <tr><td>Drag</td><td>Up for closer: the box follows the finger with no lag, the frame zooms smoothly between stops and the readout runs to a tenth, 2.4×</td></tr>
+      <tr><td>Let go</td><td>Settles on the nearest stop; the frame settles with it</td></tr>
+      <tr><td>Keyboard</td><td>Up and Down one stop; Home and End 0.5× and 5×</td></tr>
     </table>
   </section>
 
-  <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
+  <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-camera.js?v=1"></script>
+  <script src="week-04-camera.js?v=2"></script>
   <script>
-  const LENS = [0.5, 1, 2, 3, 5], MM = { 0.5: 13, 1: 26, 2: 52, 3: 77, 5: 120 };
-  const dial = document.querySelector('.dial'), knob = dial.querySelector('.knob'), frame = document.querySelector('.frame');
-  const scene = frame.querySelector('.scene'), hud = frame.querySelector('.hud'), crop = frame.querySelector('.crop');
-  const stops = LENS.map(z => { const s = document.createElement('div'); s.className = 'stop'; s.textContent = z; dial.insertBefore(s, knob); return s; });
-  const css = getComputedStyle(document.documentElement), INSET = parseFloat(css.getPropertyValue('--inset'));
-  const W = () => dial.clientWidth - INSET * 2, xOf = p => INSET + W() * p / (LENS.length - 1);
-  stops.forEach((s, i) => s.style.left = xOf(i) + 'px');
-
-  // p is a position along the dial, 0 to 4; between two lenses the zoom moves geometrically
-  const zoomAt = p => { const i = Math.min(LENS.length - 2, Math.floor(p)), f = p - i; return LENS[i] * Math.pow(LENS[i + 1] / LENS[i], f); };
-  const mmAt = z => Math.round(26 * z);
-  const fmt = z => (z < 1 ? z.toFixed(1) : (Math.round(z * 10) / 10).toString().replace(/\.0$/, '')) + '×';
+  const LENS = [0.5, 1, 2, 3, 5], N = LENS.length;
+  const tape = document.querySelector('.tape'), box = tape.querySelector('.box'), ghost = tape.querySelector('.ghost');
+  const frame = document.querySelector('.frame'), scene = frame.querySelector('.scene'), crop = frame.querySelector('.crop');
+  const PAD = 18, H = () => tape.clientHeight - PAD * 2, yOf = p => PAD + H() * (1 - p / (N - 1));   // 0.5x at the bottom
+  const labels = LENS.map((z, i) => {
+    const t = document.createElement('div'); t.className = 'tk major'; t.style.top = yOf(i) + 'px'; tape.insertBefore(t, ghost);
+    const l = document.createElement('div'); l.className = 'lb'; l.textContent = z + '×'; l.style.top = yOf(i) + 'px'; tape.insertBefore(l, ghost);
+    if (i < N - 1) for (let k = 1; k < 5; k++) { const m = document.createElement('div'); m.className = 'tk minor'; m.style.top = yOf(i + k / 5) + 'px'; tape.insertBefore(m, ghost); }
+    return l;
+  });
+  const zoomAt = p => { const i = Math.min(N - 2, Math.floor(p)), f = p - i; return LENS[i] * Math.pow(LENS[i + 1] / LENS[i], f); };
+  const fmt = z => z.toFixed(1) + '×';
+  const base = () => frame.clientWidth / 280;   // 0.5x shows the whole 560-wide scene
 
   let idx = 2, p = 2, near = null;
   function draw() {
     const z = zoomAt(p);
-    knob.style.left = xOf(p) + 'px';
-    knob.textContent = fmt(z);
-    scene.style.transform = `scale(${z})`;
-    stops.forEach((s, i) => { s.classList.toggle('is-near', i === near && i !== idx); s.style.visibility = Math.abs(i - p) < .5 ? 'hidden' : ''; });
-    // hover preview: a tighter lens shows its crop inside the view; a wider one shows only its focal length
+    box.style.top = yOf(p) + 'px'; box.textContent = fmt(z);
+    scene.style.transform = `translate(-50%, -50%) scale(${z * base()})`;
+    labels.forEach((l, i) => { l.classList.toggle('is-near', i === near && i !== idx); l.style.visibility = Math.abs(i - p) < .55 ? 'hidden' : ''; });
+    if (near !== null) ghost.style.top = yOf(near) + 'px';
+    ghost.style.visibility = near === null || near === idx ? 'hidden' : '';
     const showCrop = near !== null && near !== idx && LENS[near] > z && !down;
     crop.classList.toggle('on', showCrop);
-    if (showCrop) { const k = z / LENS[near]; crop.style.width = frame.clientWidth * k + 'px'; crop.style.height = frame.clientHeight * k + 'px'; crop.querySelector('b').textContent = fmt(LENS[near]); }
-    hud.innerHTML = `${mmAt(z)} mm` + (near !== null && near !== idx && !down ? ` <span class="to">→ ${MM[LENS[near]]} mm</span>` : '');
-    dial.setAttribute('aria-valuenow', LENS[idx]); dial.setAttribute('aria-valuetext', `${fmt(LENS[idx])}, ${MM[LENS[idx]]} millimetre`);
+    if (showCrop) { const k = z / LENS[near]; crop.style.width = frame.clientWidth * k + 'px'; crop.style.height = frame.clientHeight * k + 'px'; crop.querySelector('em').textContent = fmt(LENS[near]); }
+    frame.querySelector('.t-lens').textContent = `FL ${Math.round(26 * z)} MM`;
+    frame.querySelector('.t-gsd').textContent = `GSD ${(2.4 / z).toFixed(1)} M`;
+    tape.setAttribute('aria-valuenow', LENS[idx]); tape.setAttribute('aria-valuetext', `${fmt(LENS[idx])} zoom`);
   }
 
-  let hover = false, down = false, drag = false, x0 = 0;
-  const show = () => { dial.classList.toggle('is-hover', hover && !down); dial.classList.toggle('is-pressed', down && !drag); dial.classList.toggle('is-dragging', drag); frame.classList.toggle('is-live', drag); };
-  const pAt = e => { const r = dial.getBoundingClientRect(); return Math.min(LENS.length - 1, Math.max(0, (e.clientX - r.left - INSET) / W() * (LENS.length - 1))); };
-  dial.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); draw(); });
-  dial.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
-  dial.addEventListener('pointerdown', e => { dial.setPointerCapture(e.pointerId); x0 = e.clientX; down = true; drag = false; near = null; show(); draw(); });
-  dial.addEventListener('pointermove', e => {
-    if (!dial.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
-    if (!drag && Math.abs(e.clientX - x0) > 3) { drag = true; show(); }
+  let hover = false, down = false, drag = false, y0 = 0;
+  const show = () => { tape.classList.toggle('is-hover', hover && !down); tape.classList.toggle('is-pressed', down && !drag); tape.classList.toggle('is-dragging', drag); frame.classList.toggle('is-live', drag); };
+  const pAt = e => { const r = tape.getBoundingClientRect(); return Math.min(N - 1, Math.max(0, (1 - (e.clientY - r.top - PAD) / H()) * (N - 1))); };
+  tape.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); draw(); });
+  tape.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  tape.addEventListener('pointerdown', e => { tape.setPointerCapture(e.pointerId); y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  tape.addEventListener('pointermove', e => {
+    if (!tape.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
+    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
     if (drag) { p = pAt(e); draw(); }
   });
-  const release = e => {
-    if (!down) return;
-    // a tap picks the lens under it; a drag settles on the nearest
-    idx = Math.round(drag ? p : pAt(e)); p = idx;
-    down = drag = false; near = hover ? idx : null; show(); draw();
-  };
-  dial.addEventListener('pointerup', release);
-  dial.addEventListener('pointercancel', release);
-  dial.setAttribute('aria-valuemin', 0.5); dial.setAttribute('aria-valuemax', 5);
-  dial.addEventListener('keydown', e => {
-    const m = { ArrowRight: idx + 1, ArrowUp: idx + 1, ArrowLeft: idx - 1, ArrowDown: idx - 1, Home: 0, End: LENS.length - 1 };
-    if (e.key in m) { e.preventDefault(); idx = Math.min(LENS.length - 1, Math.max(0, m[e.key])); p = idx; draw(); }
+  const release = e => { if (!down) return; idx = Math.round(drag ? p : pAt(e)); p = idx; down = drag = false; near = hover ? idx : null; show(); draw(); };
+  tape.addEventListener('pointerup', release);
+  tape.addEventListener('pointercancel', release);
+  tape.setAttribute('aria-valuemin', 0.5); tape.setAttribute('aria-valuemax', 5);
+  tape.addEventListener('keydown', e => {
+    const m = { ArrowUp: idx + 1, ArrowRight: idx + 1, ArrowDown: idx - 1, ArrowLeft: idx - 1, Home: 0, End: N - 1 };
+    if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); p = idx; draw(); }
   });
-  addEventListener('resize', () => { stops.forEach((s, i) => s.style.left = xOf(i) + 'px'); draw(); });
   draw();
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>

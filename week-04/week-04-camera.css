@@ -1,49 +1,58 @@
-/* Week 04, Set 2: Camera. A camera body at dusk: matte black, white type, one viewfinder yellow.
-   Shared by the zoom, gallery and exposure prototypes. */
+/* Week 04, Set 2: Camera, as an orbital imaging console. Black glass, hairline cyan instruments,
+   monospaced telemetry, one amber for what you are holding. Shared by zoom, gallery and exposure. */
 :root {
-  --body: #0b0b0c;       /* the page */
-  --panel: #161618;      /* raised surfaces */
-  --line: #2c2c2f;       /* rails and hairlines */
-  --ink: #f2f2ef;        /* type and fill */
-  --mute: #8a8a8f;       /* quiet text */
-  --amber: #ffd23f;      /* the one accent, like a focus box */
+  --void: #04070b;       /* the page */
+  --glass: #0a1017;      /* instrument faces */
+  --grid: #13202b;       /* hairlines, unlit ticks */
+  --dim: #3d5566;        /* quiet ticks and labels */
+  --hud: #6fe3ff;        /* the instrument colour */
+  --text: #d9f6ff;       /* readouts */
+  --amber: #ffb020;      /* held, or about to be */
 
-  --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  --tag-size: 9px; --tag-line: 12px; --tag-track: .14em;     /* uppercase labels */
+  --read-size: 13px; --read-line: 16px;                        /* readouts */
+  --big-size: 20px; --big-line: 24px;
 
-  --label-size: 11px; --label-line: 14px;
-  --value-size: 13px; --value-line: 16px;
-  --title-size: 15px; --title-line: 20px;
-
-  --frame-w: 280px; --frame-h: 170px; --frame-r: 10px;
+  --hair: 1px;
+  --frame-r: 2px;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--body); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
-.stage { min-height: 100vh; display: grid; place-items: center; padding: 16px; user-select: none; -webkit-user-select: none; overflow: hidden; }
+body { background: var(--void); color: var(--text); font-family: var(--mono); -webkit-font-smoothing: antialiased; }
+.stage { min-height: 100vh; display: grid; place-items: center; padding: 16px; user-select: none; -webkit-user-select: none; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, rgba(111,227,255,.05), transparent 60%), var(--void); }
 [role="slider"] { touch-action: none; outline: none; }
-[role="slider"]:focus-visible { box-shadow: 0 0 0 2px var(--body), 0 0 0 4px var(--amber); border-radius: 8px; }
-.label { font: 500 var(--label-size)/var(--label-line) var(--mono); color: var(--mute); font-variant-numeric: tabular-nums; }
+[role="slider"]:focus-visible { box-shadow: 0 0 0 1px var(--void), 0 0 0 2px var(--amber); }
+.tag { font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: var(--tag-track); text-transform: uppercase; color: var(--dim); }
+.read { font: 500 var(--read-size)/var(--read-line) var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
 
-/* the viewfinder, shared by zoom and exposure */
-.frame { position: relative; width: var(--frame-w); height: var(--frame-h); border-radius: var(--frame-r); overflow: hidden; background: #000; }
-.frame .scene { position: absolute; left: 50%; top: 50%; width: calc(var(--frame-w) * 2); height: calc(var(--frame-h) * 2); margin: calc(var(--frame-h) * -1) 0 0 calc(var(--frame-w) * -1); display: block; }
-.frame .grid { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg, transparent calc(33.33% - .5px), rgba(255,255,255,.18) 0 calc(33.33% + .5px), transparent 0 calc(66.66% - .5px), rgba(255,255,255,.18) 0 calc(66.66% + .5px), transparent 0),
-              linear-gradient(transparent calc(33.33% - .5px), rgba(255,255,255,.18) 0 calc(33.33% + .5px), transparent 0 calc(66.66% - .5px), rgba(255,255,255,.18) 0 calc(66.66% + .5px), transparent 0); }
-.frame .hud { position: absolute; left: 10px; top: 8px; font: 600 var(--label-size)/var(--label-line) var(--mono); color: var(--ink); text-shadow: 0 1px 2px rgba(0,0,0,.6); font-variant-numeric: tabular-nums; }
+/* the imaging frame: a view from orbit, with corner brackets and a reticle */
+.frame { position: relative; overflow: hidden; background: #02060a; border-radius: var(--frame-r); box-shadow: inset 0 0 0 var(--hair) var(--grid); }
+.frame .scene { position: absolute; left: 50%; top: 50%; display: block; }
+.frame .hud { position: absolute; inset: 0; pointer-events: none; }
+.frame .hud i { position: absolute; width: 10px; height: 10px; border: var(--hair) solid var(--hud); opacity: .8; }
+.frame .hud i:nth-child(1) { left: 6px; top: 6px; border-right: 0; border-bottom: 0; }
+.frame .hud i:nth-child(2) { right: 6px; top: 6px; border-left: 0; border-bottom: 0; }
+.frame .hud i:nth-child(3) { left: 6px; bottom: 6px; border-right: 0; border-top: 0; }
+.frame .hud i:nth-child(4) { right: 6px; bottom: 6px; border-left: 0; border-top: 0; }
+.frame .hud b { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; opacity: .85;
+  background: linear-gradient(var(--hud), var(--hud)) 50% 0 / 1px 6px no-repeat, linear-gradient(var(--hud), var(--hud)) 50% 100% / 1px 6px no-repeat,
+              linear-gradient(var(--hud), var(--hud)) 0 50% / 6px 1px no-repeat, linear-gradient(var(--hud), var(--hud)) 100% 50% / 6px 1px no-repeat; }
+.frame .hud span { position: absolute; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); text-shadow: 0 0 6px rgba(0,0,0,.9); font-variant-numeric: tabular-nums; }
+.frame .scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(transparent 0 2px, rgba(0,0,0,.18) 2px 3px); }
 
 /* Spec, below the fold */
-.spec { max-width: 620px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.5; }
-.spec h2 { font: 600 20px/1.2 var(--sans); margin: 0 0 6px; }
-.spec h3 { font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 24px 0 8px; }
-.spec p { color: var(--mute); margin: 0 0 8px; }
+.spec { max-width: 620px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--grid); font: 12px/1.55 var(--mono); }
+.spec h2 { font: 600 16px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6px; color: var(--hud); }
+.spec h3 { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 24px 0 8px; }
+.spec p { color: #8aa6b5; margin: 0 0 8px; }
 .spec table { width: 100%; border-collapse: collapse; }
-.spec td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-.spec td:first-child { width: 42%; color: var(--mute); padding-right: 12px; }
-.spec .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 7px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
-.back-pill { position: fixed; left: 12px; bottom: 12px; font: 12px/1 var(--sans); color: var(--ink); background: rgba(255,255,255,.1); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+.spec td { padding: 7px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.spec td:first-child { width: 40%; color: #8aa6b5; padding-right: 12px; }
+.spec .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
+.back-pill { position: fixed; left: 12px; bottom: 12px; font: 11px/1 var(--mono); letter-spacing: .08em; color: var(--text); background: rgba(111,227,255,.1); padding: 8px 12px; border-radius: 2px; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; } }

@@ -491,8 +491,8 @@
         </div>
         <div class="set-box" id="set-camera">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-camera">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/camera-zoom-1.png" alt="" loading="lazy" /><img src="images/process/camera-gallery-1.png" alt="" loading="lazy" /><img src="images/process/camera-exposure-1.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Camera</span><span class="set-line">A camera body at dusk: matte black, white type, one viewfinder yellow. Zoom, gallery and exposure.</span></span>
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/camera-zoom-2.png" alt="" loading="lazy" /><img src="images/process/camera-gallery-2.png" alt="" loading="lazy" /><img src="images/process/camera-exposure-2.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Camera</span><span class="set-line">An orbital imaging console: black glass, hairline cyan instruments, monospaced telemetry, amber for what you hold. Zoom, gallery and exposure.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-camera" aria-labelledby="dlg-camera-title">
@@ -504,27 +504,27 @@
               <h4>Prototypes</h4>
               <div class="proto-grid is-three">
                 <figure class="proto">
-                  <iframe src="week-04-camera-zoom.html?v=1" title="Camera zoom, stepped slider: five lenses on a line, the chosen one carrying its number" loading="lazy"></iframe>
+                  <iframe src="week-04-camera-zoom.html?v=2" title="Camera zoom, stepped slider: an altimeter-style tape beside the imaging frame" loading="lazy"></iframe>
                   <figcaption>
                     <b>Zoom, stepped</b>
-                    <span>Five lenses, 0.5× to 5×, on one line like a phone camera’s lens buttons. The chosen lens is the knob and carries its number; hover shows the crop another lens would take, drag zooms smoothly between lenses and settles on the nearest.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-zoom.html?v=1">View larger</button>
+                    <span>Five lens stops on a vertical tape like an altimeter, 0.5× at the bottom to 5× at the top. A readout box rides the tape and points at the stop; hover shows the crop another lens would take, drag zooms smoothly and settles on the nearest.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-zoom.html?v=2">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-camera-gallery.html?v=1" title="Camera gallery, stepped slider: a scrubber on the right edge that jumps a month at a time" loading="lazy"></iframe>
+                  <iframe src="week-04-camera-gallery.html?v=2" title="Camera gallery, stepped slider: the orbit itself, a satellite snapping to each place a frame was taken" loading="lazy"></iframe>
                   <figcaption>
                     <b>Gallery, stepped</b>
-                    <span>A year of photos, newest on top. The scrubber on the right edge jumps a month at a time; the month heads the grid, and a bubble names it and its count while you scrub.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-gallery.html?v=1">View larger</button>
+                    <span>Twelve frames from one orbit. The slider is the orbit: drag the satellite round the planet and it snaps to each place a frame was taken, the view above cutting to it. It loops, so the last leads back to the first.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-gallery.html?v=2">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-camera-exposure.html?v=1" title="Camera exposure, continuous slider: a ruler from minus two to plus two sliding under a fixed needle" loading="lazy"></iframe>
+                  <iframe src="week-04-camera-exposure.html?v=2" title="Camera exposure, continuous slider: a cockpit half-gauge of 41 segments, zero at the top" loading="lazy"></iframe>
                   <figcaption>
                     <b>Exposure, continuous</b>
-                    <span>A ruler from −2 to +2 EV slides under a fixed amber needle, the way a dial turns under its mark. The value rides on the needle and the view brightens or darkens live.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-camera-exposure.html?v=1">View larger</button>
+                    <span>A cockpit half-gauge from −2 to +2 EV, zero straight up. Swing the needle and the segments light from zero out to it; the readout under the hub and the view above follow live.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-camera-exposure.html?v=2">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -536,12 +536,20 @@
                     <img src="images/process/camera-zoom-1.png" alt="Camera zoom slider, step 1" loading="lazy" />
                     <figcaption>First pass: lens stops on a line, the knob carries the lens, a dashed crop previews a tighter one on hover.</figcaption>
                   </figure>
+                  <figure>
+                    <img src="images/process/camera-zoom-2.png" alt="Camera zoom slider, step 2" loading="lazy" />
+                    <figcaption>Rebuilt as an orbital console: the lens line becomes an altimeter tape beside the frame, a readout box riding it.</figcaption>
+                  </figure>
               </div>
               <p class="process-label">Gallery</p>
               <div class="process-grid">
                   <figure>
                     <img src="images/process/camera-gallery-1.png" alt="Camera gallery slider, step 1" loading="lazy" />
                     <figcaption>First pass: a month scrubber on the grid’s right edge, the bubble naming the month while touched.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/camera-gallery-2.png" alt="Camera gallery slider, step 2" loading="lazy" />
+                    <figcaption>The month scrubber becomes the orbit itself: frames sit where they were taken, the satellite snaps between them.</figcaption>
                   </figure>
               </div>
               <p class="process-label">Exposure</p>
@@ -550,13 +558,17 @@
                     <img src="images/process/camera-exposure-1.png" alt="Camera exposure slider, step 1" loading="lazy" />
                     <figcaption>First pass: a moving ruler under a fixed needle, the view brightening with the value.</figcaption>
                   </figure>
+                  <figure>
+                    <img src="images/process/camera-exposure-2.png" alt="Camera exposure slider, step 2" loading="lazy" />
+                    <figcaption>The sliding ruler becomes a cockpit half-gauge, segments lighting from zero out to the needle.</figcaption>
+                  </figure>
               </div>
             </div>
           </dialog>
         </div>
         <div class="set-box" id="set-sleep">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-sleep">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/sleep-noise-1.png" alt="" loading="lazy" /><img src="images/process/sleep-lamp-2.png" alt="" loading="lazy" /><img src="images/process/sleep-timer-1.png" alt="" loading="lazy" /></span>
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/sleep-noise-1.png" alt="" loading="lazy" /><img src="images/process/sleep-lamp-2.png" alt="" loading="lazy" /><img src="images/process/sleep-timer-2.png" alt="" loading="lazy" /></span>
             <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Sleep</span><span class="set-line">A bedroom with the lights out: deep navy, moonlight type, one warm lamp glow. White noise, night lamp and a sleep timer.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
@@ -585,11 +597,11 @@
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-sleep-timer.html?v=2" title="Sleep sleep timer, continuous slider: a round dial to 90 minutes with a moon for a knob" loading="lazy"></iframe>
+                  <iframe src="week-04-sleep-timer.html?v=3" title="Sleep sleep timer, continuous slider: the whole screen, night rising from the bottom" loading="lazy"></iframe>
                   <figcaption>
                     <b>Sleep timer, continuous</b>
-                    <span>When the sound stops, up to 90 minutes, to the minute. Drag the moon round the ring; the minutes and the clock time it stops at read in the middle. Hover previews another time on the ring.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-sleep-timer.html?v=2">View larger</button>
+                    <span>The whole screen is the slider. Slide up anywhere and the starry night climbs the screen, a warm horizon on its edge; the top is 90 minutes. The minutes and the stop time ride the horizon.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-sleep-timer.html?v=3">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -618,6 +630,10 @@
                   <figure>
                     <img src="images/process/sleep-timer-1.png" alt="Sleep sleep timer slider, step 1" loading="lazy" />
                     <figcaption>First pass: a 90-minute ring that holds at its ends instead of wrapping.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/sleep-timer-2.png" alt="Sleep timer slider, step 2" loading="lazy" />
+                    <figcaption>With the lamp already round, the timer takes the whole screen: night rises from the bottom to the minutes.</figcaption>
                   </figure>
               </div>
             </div>
