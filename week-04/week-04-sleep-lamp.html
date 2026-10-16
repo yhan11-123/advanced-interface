@@ -7,90 +7,91 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-04-sleep.css?v=1" />
   <style>
-  /* Night lamp slider, continuous. The phone on the bedside table is the lamp, and its screen is the slider:
-     slide up and the light fills the screen and spills into the room, warmer when low, paler when bright. */
+  /* Night lamp slider, continuous. A capsule lamp, and the slider is a track that wraps all the way round it.
+     Run the knob round the capsule from the bottom, up the right side, over the top and down the left:
+     the further round, the brighter the lamp, warmer when low and paler when bright. */
   :root {
-    --phone-w: 112px; --phone-h: 220px; --phone-r: 24px; --bezel: 5px;
-    --glow-size: 340px;
-    --mark-w: 28px; --mark-h: 2px;
-    --peek-gap: 10px;
+    --lamp-w: 92px; --lamp-h: 188px;          /* the capsule */
+    --gap: 16px;                              /* capsule to track */
+    --track: 4px; --knob: 22px; --knob-held: 28px;
+    --dot: 3px;
+    --glow-size: 320px;
     --warm-low: #ff8a3d; --warm-high: #ffe7b8;
+    --glass: #161d33;
   }
-  .lamp { position: relative; display: grid; justify-items: center; }
-  .room { position: absolute; left: 50%; top: 50%; width: var(--glow-size); height: var(--glow-size); margin: calc(var(--glow-size) / -2) 0 0 calc(var(--glow-size) / -2); border-radius: 50%; pointer-events: none; transition: opacity .1s; }
-  .phone { position: relative; width: var(--phone-w); height: var(--phone-h); padding: var(--bezel); border-radius: var(--phone-r); background: #05070e; box-shadow: inset 0 0 0 1px var(--line); cursor: ns-resize; transition: transform .15s; }
-  .screen { position: relative; height: 100%; border-radius: calc(var(--phone-r) - var(--bezel)); background: #0e1324; overflow: hidden; }
-  .fill { position: absolute; left: 0; right: 0; bottom: 0; transition: height var(--slow) var(--ease-out); }
-  .phone.is-live .fill { transition: none; }
-  .read { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; mix-blend-mode: normal; pointer-events: none; }
-  .read b { display: block; font: 600 var(--big-size)/var(--big-line) var(--round); font-variant-numeric: tabular-nums; transition: color .2s, transform .15s; }
+  .lamp { position: relative; width: 160px; height: 256px; }
+  .room { position: absolute; left: 50%; top: 50%; width: var(--glow-size); height: var(--glow-size); margin: calc(var(--glow-size) / -2) 0 0 calc(var(--glow-size) / -2); border-radius: 50%; pointer-events: none; }
+  .capsule { position: absolute; left: 50%; top: 50%; width: var(--lamp-w); height: var(--lamp-h); margin: calc(var(--lamp-h) / -2) 0 0 calc(var(--lamp-w) / -2); border-radius: calc(var(--lamp-w) / 2); background: var(--glass); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; pointer-events: none; }
+  .light { position: absolute; inset: 0; border-radius: inherit; }
+  .shine { position: absolute; left: 14px; top: 16px; width: 10px; height: 56px; border-radius: 5px; background: linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,0)); }
+  .read { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; transition: color .25s; }
+  .read b { font: 600 var(--big-size)/var(--big-line) var(--round); font-variant-numeric: tabular-nums; transition: transform .15s; }
   .read span { font: 500 var(--label-size)/var(--label-line) var(--round); opacity: .7; }
-  .read svg { width: 16px; height: 16px; display: block; margin: 0 auto 4px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  /* the same reading again, in night navy, clipped to the light, so it reads on both */
-  .lit { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; transition: height var(--slow) var(--ease-out); }
-  .phone.is-live .lit { transition: none; }
-  .lit .read { top: auto; bottom: 0; transform: translateY(50%); color: var(--night); }
-  .notch { position: absolute; left: 50%; top: 9px; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px; background: #05070e; z-index: 2; }
-  /* hover: a line at the pointer and the level it would set, beside the phone */
-  .mark { position: absolute; left: 50%; width: var(--mark-w); height: var(--mark-h); margin-left: calc(var(--mark-w) / -2); border-radius: 1px; background: var(--ink); opacity: 0; transition: opacity .12s; pointer-events: none; z-index: 2; }
-  .peek { position: absolute; left: calc(100% + var(--peek-gap)); transform: translateY(-50%); font: 600 var(--label-size)/var(--label-line) var(--mono); color: var(--ink); opacity: 0; white-space: nowrap; transition: opacity .12s; pointer-events: none; }
-  .phone.is-hover .mark, .phone.is-hover .peek { opacity: .9; }
-  .phone.is-pressed { transform: scale(.98); }
-  .phone.is-pressed .read b, .phone.is-dragging .read b { transform: scale(1.08); }
-  .phone.is-dragging { transform: scale(1.02); }
+  svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; cursor: pointer; }
+  .ring .track { fill: none; stroke: var(--line); stroke-width: var(--track); stroke-linecap: round; }
+  .ring .fill { fill: none; stroke-width: var(--track); stroke-linecap: round; transition: stroke-dashoffset var(--slow) var(--ease-out); }
+  .ring .ghost { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transition: opacity .12s; }
+  .ring .hit { fill: none; stroke: transparent; stroke-width: 30px; pointer-events: stroke; }
+  .ring .dot { fill: var(--mute); }
+  .knob { position: absolute; width: var(--knob); height: var(--knob); margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2); border-radius: 50%; background: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.45); pointer-events: none; transition: width .15s, height .15s, margin .15s, background .15s, box-shadow .15s; }
+  .peek { position: absolute; transform: translate(-50%, -50%); padding: 3px 6px; border-radius: 6px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); font: 600 10px/1 var(--mono); color: var(--ink); opacity: 0; transition: opacity .12s; pointer-events: none; white-space: nowrap; }
+  .lamp.is-hover .ghost, .lamp.is-hover .peek { opacity: .85; }
+  .lamp.is-hover .knob { box-shadow: 0 0 0 6px rgba(232,230,242,.08), 0 2px 8px rgba(0,0,0,.45); }
+  .lamp.is-pressed .knob, .lamp.is-dragging .knob { width: var(--knob-held); height: var(--knob-held); margin: calc(var(--knob-held) / -2) 0 0 calc(var(--knob-held) / -2); background: var(--glow); box-shadow: 0 0 0 8px rgba(255,184,103,.14), 0 0 20px rgba(255,184,103,.4); }
+  .lamp.is-dragging .fill { transition: none; }
+  .lamp.is-pressed .read b, .lamp.is-dragging .read b { transform: scale(1.08); }
   </style>
 </head>
 <body>
   <main class="stage">
-    <section class="lamp" aria-label="Night lamp">
+    <section class="lamp" role="slider" tabindex="0" aria-label="Night lamp brightness">
       <div class="room"></div>
-      <div class="phone" role="slider" tabindex="0" aria-label="Night lamp brightness">
-        <div class="screen"><div class="fill"></div><div class="notch"></div>
-          <div class="read"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><b></b><span></span></div>
-          <div class="lit"></div>
-          <div class="mark"></div>
-        </div>
-        <span class="peek"></span>
-      </div>
+      <div class="capsule"><div class="light"></div><div class="shine"></div><div class="read"><b></b><span></span></div></div>
+      <svg class="ring" viewBox="0 0 160 256"><path class="track"/><path class="fill"/><path class="ghost"/><g class="dots"></g><path class="hit"/></svg>
+      <div class="knob"></div>
+      <span class="peek"></span>
     </section>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Continuous, 0 to 100. The phone's screen is the slider: the light fills it from the bottom to the level, and the number sits in the middle of the screen, always on screen. The light is warmer when low and paler when bright, and it spills into the room as it rises.</p>
+    <p>Read from the CSS this page runs on. Continuous, 0 to 100. The track wraps the whole capsule: it starts at the bottom, climbs the right side, crosses the top and comes down the left, so one trip round is off to full. The level and a mood word read inside the lamp, always on screen, and the lamp itself shows it too: warmer and dimmer when low, paler and brighter when high, glowing into the room.</p>
 
-    <h3>Phone</h3>
+    <h3>Lamp and track</h3>
     <table>
-      <tr><td>Phone</td><td data-var="--phone-w,--phone-h" data-join=" × " data-after=", the hit area"></td></tr>
-      <tr><td>Corner</td><td data-var="--phone-r" data-after="; the screen 19px"></td></tr>
-      <tr><td>Bezel</td><td data-var="--bezel" data-after=", 1px line ring"></td></tr>
+      <tr><td>Capsule</td><td data-var="--lamp-w,--lamp-h" data-join=" × " data-after=", fully round ends, 1px line ring, a soft highlight top left"></td></tr>
+      <tr><td>Capsule to track</td><td data-var="--gap" data-after="; the track is a 124 × 220 stadium round it"></td></tr>
+      <tr><td>Track</td><td data-var="--track" data-after=" stroke, round caps; the filled part takes the lamp's colour"></td></tr>
+      <tr><td>Hit area</td><td>30px along the track</td></tr>
+      <tr><td>Knob</td><td data-var="--knob" data-after=" circle"></td></tr>
+      <tr><td>Knob, held</td><td data-var="--knob-held" data-after=", warm, 8px halo"></td></tr>
+      <tr><td>Marks</td><td data-var="--dot" data-after=" dots every 10%, 9px outside the track"></td></tr>
       <tr><td>Room glow</td><td data-var="--glow-size" data-after=" circle; its strength follows the level"></td></tr>
-      <tr><td>Fill settle on tap</td><td data-var="--slow" data-after=", ease out; no lag while dragging"></td></tr>
+      <tr><td>Settle on tap</td><td data-var="--slow" data-after=", ease out; no lag while dragging"></td></tr>
     </table>
 
     <h3>Type</h3>
     <table>
-      <tr><td>Level</td><td data-var="--big-size,--big-line" data-after=", rounded 600, centred in the screen"></td></tr>
+      <tr><td>Level</td><td data-var="--big-size,--big-line" data-after=", rounded 600, centred in the lamp"></td></tr>
       <tr><td>Mood word</td><td data-var="--label-size,--label-line" data-after=", rounded 500 at 70%: Off, Ember, Candle, Reading, Bright"></td></tr>
-      <tr><td>Bulb icon</td><td>16px, 1.6px stroke, 4px above the level</td></tr>
-      <tr><td>Hover line</td><td data-var="--mark-w,--mark-h" data-join=" × "></td></tr>
-      <tr><td>Hover level</td><td data-var="--label-size,--label-line" data-after=", mono 600, 10px right of the phone"></td></tr>
+      <tr><td>Hover chip</td><td>Mono 600 10px, 3px × 6px padding, 6px corner, on the track under the pointer</td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
-      <tr><td>Screen, off</td><td><span class="swatch" style="background:#0e1324"></span>#0e1324</td></tr>
+      <tr><td>Lamp, off</td><td data-var="--glass" data-kind="color"></td></tr>
       <tr><td>Light, low</td><td data-var="--warm-low" data-kind="color"></td></tr>
       <tr><td>Light, high</td><td data-var="--warm-high" data-kind="color"></td></tr>
-      <tr><td>Type on the light</td><td>Night navy wherever the light covers it, moonlight above; the number reads on both</td></tr>
+      <tr><td>Track</td><td data-var="--line" data-kind="color"></td></tr>
+      <tr><td>Type in the lamp</td><td>Moonlight while the lamp is dim, night navy once it is bright</td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>A white line sits at the pointer's height in the screen and the level it would set reads beside the phone. The light stays</td></tr>
-      <tr><td>Pressed</td><td>The phone dips to 0.98 and the level grows 1.08</td></tr>
-      <tr><td>Drag</td><td>Up and down anywhere on the screen, relative to where you pressed; the light, colour, room glow and number follow with no lag, and the phone lifts to 1.02</td></tr>
-      <tr><td>Tap</td><td>Sets the level at the tapped height</td></tr>
+      <tr><td>Hover</td><td>A soft halo on the knob; a thin moonlight line runs along the track to the pointer and a chip there reads the level it would set. The lamp stays</td></tr>
+      <tr><td>Pressed</td><td>The knob grows to 28px and turns warm with a halo; the level grows 1.08</td></tr>
+      <tr><td>Drag</td><td>Round the capsule; the lamp, its colour, the room glow and the number follow with no lag, and the knob holds at off and full instead of wrapping</td></tr>
+      <tr><td>Tap</td><td>Sets the level at the tapped point on the track</td></tr>
       <tr><td>Keyboard</td><td>Arrows 5; Page Up and Down 25; Home and End off and full</td></tr>
     </table>
   </section>
@@ -98,50 +99,79 @@
   <a class="back-pill" href="week-04.html" hidden>&larr; Week 04</a>
 
   <script>
-  const phone = document.querySelector('.phone'), screen = phone.querySelector('.screen'), fill = phone.querySelector('.fill');
-  const room = document.querySelector('.room'), read = phone.querySelector('.read'), mark = phone.querySelector('.mark'), peek = phone.querySelector('.peek');
+  // the track: a stadium round the capsule, from the bottom centre, up the right, over the top, down the left
+  const CX = 80, CY = 128, W = 124, H = 220, R = W / 2, yTop = CY - H / 2 + R, yBot = CY + H / 2 - R;
+  const D = `M${CX} ${CY + H / 2} A${R} ${R} 0 0 0 ${CX + R} ${yBot} L${CX + R} ${yTop} A${R} ${R} 0 0 0 ${CX - R} ${yTop} L${CX - R} ${yBot} A${R} ${R} 0 0 0 ${CX} ${CY + H / 2}`;
+  const lamp = document.querySelector('.lamp'), svg = lamp.querySelector('svg');
+  ['track', 'fill', 'ghost', 'hit'].forEach(c => svg.querySelector('.' + c).setAttribute('d', D));
+  const path = svg.querySelector('.track'), fill = svg.querySelector('.fill'), ghost = svg.querySelector('.ghost'), L = path.getTotalLength();
+  fill.style.strokeDasharray = `${L} ${L}`;
+  // sample the track once, for drawing marks and for finding the point under the pointer
+  const N = 400, SAMPLES = Array.from({ length: N + 1 }, (_, i) => { const p = path.getPointAtLength(L * i / N); return [p.x, p.y]; });
+  const at = v => SAMPLES[Math.round(v / 100 * N)];
+  const dots = svg.querySelector('.dots');
+  for (let v = 10; v < 100; v += 10) {
+    // push each mark 9 units outward, square to the track
+    const [x, y] = at(v), cy = y < yTop ? yTop : y > yBot ? yBot : y, nx = x - CX, ny = y - cy, k = 9 / Math.hypot(nx, ny), ox = nx * k, oy = ny * k;
+    dots.insertAdjacentHTML('beforeend', `<circle class="dot" cx="${x + ox}" cy="${y + oy}" r="1.5"/>`);
+  }
+
+  const knob = lamp.querySelector('.knob'), peek = lamp.querySelector('.peek'), room = lamp.querySelector('.room');
+  const light = lamp.querySelector('.light'), read = lamp.querySelector('.read');
   const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const css = getComputedStyle(document.documentElement), LOW = hex(css.getPropertyValue('--warm-low').trim()), HIGH = hex(css.getPropertyValue('--warm-high').trim());
   const mix = (a, b, f) => a.map((c, i) => Math.round(c + (b[i] - c) * f));
-  const lit = phone.querySelector('.lit'), litRead = read.cloneNode(true); lit.append(litRead);
   const MOOD = v => v === 0 ? 'Off' : v < 25 ? 'Ember' : v < 55 ? 'Candle' : v < 85 ? 'Reading' : 'Bright';
+  const px = () => lamp.clientWidth / 160;   // svg units to pixels
 
   let v = 35, hv = null;
   function draw() {
-    const f = v / 100, c = mix(LOW, HIGH, f), rgb = `rgb(${c})`;
-    fill.style.height = v + '%';
-    fill.style.background = `linear-gradient(rgba(${c},.55), ${rgb} 24px)`;
-    room.style.background = `radial-gradient(closest-side, rgba(${c},${.5 * f}), rgba(${c},${.14 * f}) 55%, transparent)`;
+    const f = v / 100, c = mix(LOW, HIGH, f);
+    light.style.background = `radial-gradient(120% 70% at 50% 40%, rgba(${c},${Math.min(1, .5 + f * .8)}), rgba(${c},${.3 + f * .6}))`;
+    light.style.opacity = f === 0 ? 0 : 1;
+    fill.style.stroke = `rgb(${c})`;
+    fill.style.strokeDashoffset = L * (1 - f);
+    fill.style.opacity = f === 0 ? 0 : 1;
+    room.style.background = `radial-gradient(closest-side, rgba(${c},${.45 * f}), rgba(${c},${.12 * f}) 55%, transparent)`;
     read.querySelector('b').textContent = Math.round(v) + '%';
     read.querySelector('span').textContent = MOOD(Math.round(v));
-    lit.style.height = v + '%';
-    litRead.style.bottom = screen.clientHeight / 2 + 'px';   // same place as the reading above it
-    litRead.querySelector('b').textContent = read.querySelector('b').textContent; litRead.querySelector('span').textContent = read.querySelector('span').textContent;
-    if (hv !== null) { const y = screen.clientHeight * (1 - hv / 100); mark.style.top = y - 1 + 'px'; peek.style.top = y + 5 + 'px'; peek.textContent = Math.round(hv) + '%'; }
-    phone.setAttribute('aria-valuenow', Math.round(v)); phone.setAttribute('aria-valuetext', `${Math.round(v)} percent, ${MOOD(Math.round(v))}`);
+    read.style.color = f > .45 ? 'var(--night)' : 'var(--ink)';
+    const [x, y] = at(v); knob.style.left = x * px() + 'px'; knob.style.top = y * px() + 'px';
+    if (hv !== null) {
+      const a = Math.min(v, hv), len = Math.abs(hv - v);
+      ghost.style.strokeDasharray = `0 ${L * a / 100} ${L * len / 100} ${L}`;
+      const [gx, gy] = at(hv); peek.style.left = gx * px() + 'px'; peek.style.top = gy * px() + 'px'; peek.textContent = Math.round(hv) + '%';
+      peek.style.visibility = Math.abs(hv - v) < 5 ? 'hidden' : '';
+    }
+    lamp.setAttribute('aria-valuenow', Math.round(v)); lamp.setAttribute('aria-valuetext', `${Math.round(v)} percent, ${MOOD(Math.round(v))}`);
   }
-  const set = n => { v = Math.round(Math.min(100, Math.max(0, n)) * 10) / 10; draw(); };
-  const vAt = e => { const r = screen.getBoundingClientRect(); return Math.min(100, Math.max(0, (r.bottom - e.clientY) / r.height * 100)); };
+  const set = n => { v = Math.min(100, Math.max(0, n)); draw(); };
+  // the point on the track nearest the pointer, as a value 0 to 100
+  const vAt = e => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / px(), y = (e.clientY - r.top) / px(); let best = 0, bd = Infinity; SAMPLES.forEach(([sx, sy], i) => { const d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; best = i; } }); return best / N * 100; };
 
-  let hover = false, down = false, drag = false, y0 = 0, v0 = 0;
-  const show = () => { phone.classList.toggle('is-hover', hover && !down); phone.classList.toggle('is-pressed', down && !drag); phone.classList.toggle('is-dragging', drag); phone.classList.toggle('is-live', drag); };
-  phone.addEventListener('pointerenter', e => { hover = true; hv = vAt(e); show(); draw(); });
-  phone.addEventListener('pointerleave', () => { hover = false; hv = null; show(); draw(); });
-  phone.addEventListener('pointerdown', e => { phone.setPointerCapture(e.pointerId); y0 = e.clientY; v0 = v; down = true; drag = false; show(); });
-  phone.addEventListener('pointermove', e => {
-    if (!phone.hasPointerCapture(e.pointerId)) { if (hover) { hv = vAt(e); draw(); } return; }
-    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
-    // relative, like a control-centre slider: the light moves with the finger from wherever you pressed
-    if (drag) set(v0 + (y0 - e.clientY) / screen.clientHeight * 100);
+  let hover = false, down = false, drag = false, p0 = null, last = 0;
+  const show = () => { lamp.classList.toggle('is-hover', hover && !down); lamp.classList.toggle('is-pressed', down && !drag); lamp.classList.toggle('is-dragging', drag); };
+  const hit = svg.querySelector('.hit');
+  hit.addEventListener('pointerenter', e => { hover = true; hv = vAt(e); show(); draw(); });
+  hit.addEventListener('pointerleave', () => { if (down) return; hover = false; hv = null; show(); draw(); });
+  hit.addEventListener('pointerdown', e => { lamp.setPointerCapture(e.pointerId); p0 = [e.clientX, e.clientY]; down = true; drag = false; last = vAt(e); show(); });
+  lamp.addEventListener('pointermove', e => {
+    if (!lamp.hasPointerCapture(e.pointerId)) { if (hover) { hv = vAt(e); draw(); } return; }
+    if (!drag && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 3) { drag = true; v = last; show(); }
+    if (!drag) return;
+    // follow the track, but never jump across the bottom: past full holds at full, back past off holds at off
+    let a = vAt(e), d = a - last; if (d > 50) d -= 100; if (d < -50) d += 100; last = a;
+    set(v + d);
   });
-  const release = e => { if (!down) return; if (!drag) set(vAt(e)); down = drag = false; hv = hover ? vAt(e) : null; show(); draw(); };
-  phone.addEventListener('pointerup', release);
-  phone.addEventListener('pointercancel', release);
-  phone.setAttribute('aria-valuemin', 0); phone.setAttribute('aria-valuemax', 100);
-  phone.addEventListener('keydown', e => {
+  const release = e => { if (!down) return; if (!drag) set(vAt(e)); down = drag = false; const over = e.target === hit; hover = over; hv = over ? vAt(e) : null; show(); draw(); };
+  lamp.addEventListener('pointerup', release);
+  lamp.addEventListener('pointercancel', release);
+  lamp.setAttribute('aria-valuemin', 0); lamp.setAttribute('aria-valuemax', 100);
+  lamp.addEventListener('keydown', e => {
     const m = { ArrowUp: v + 5, ArrowRight: v + 5, ArrowDown: v - 5, ArrowLeft: v - 5, PageUp: v + 25, PageDown: v - 25, Home: 0, End: 100 };
-    if (e.key in m) { e.preventDefault(); set(m[e.key]); }
+    if (e.key in m) { e.preventDefault(); set(Math.round(m[e.key])); }
   });
+  addEventListener('resize', draw);
   draw();
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
