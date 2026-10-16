@@ -18,3 +18,10 @@
     cell.append(text);
   }
 })();
+
+// In the "View larger" popup (the viewer sets window.__viewer), show only the component:
+// the spec stays on the page itself, but nothing below the fold to scroll to here.
+if (window.__viewer) {
+  document.querySelector('.spec')?.remove();
+  document.documentElement.style.overflow = 'hidden';
+}
