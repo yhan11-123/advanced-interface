@@ -46,7 +46,6 @@
   .box.is-hover .bar { background: #4a4a50; }
   .box.is-hover .arrow { opacity: 1; }
   .box.is-pressed .bar, .box.is-dragging .bar { background: #5c5c62; box-shadow: 0 0 0 1px rgba(198,255,61,.35); }
-  .box.is-pressed .pivot, .box.is-dragging .pivot { border-bottom-color: var(--accent); }
   .box.is-dragging .angle { color: var(--accent); }
   </style>
 </head>
@@ -56,7 +55,6 @@
     <span class="angle">0.0°</span>
     <div class="stage-area">
       <div class="floor"></div>
-      <div class="pivot"></div>
       <div class="beam"><div class="bar"></div><span class="arrow l">↕</span><span class="arrow r">↕</span><div class="ball"></div><span class="chip"></span></div>
     </div>
     <p class="hint">grab a side and tilt &middot; let go to level <span class="phone" hidden>&middot; <button type="button">use phone tilt</button></span></p>
