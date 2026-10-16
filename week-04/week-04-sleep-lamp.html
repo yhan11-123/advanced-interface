@@ -23,7 +23,6 @@
   .room { position: absolute; left: 50%; top: 50%; width: var(--glow-size); height: var(--glow-size); margin: calc(var(--glow-size) / -2) 0 0 calc(var(--glow-size) / -2); border-radius: 50%; pointer-events: none; }
   .capsule { position: absolute; left: 50%; top: 50%; width: var(--lamp-w); height: var(--lamp-h); margin: calc(var(--lamp-h) / -2) 0 0 calc(var(--lamp-w) / -2); border-radius: calc(var(--lamp-w) / 2); background: var(--glass); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; pointer-events: none; }
   .light { position: absolute; inset: 0; border-radius: inherit; }
-  .shine { position: absolute; left: 14px; top: 16px; width: 10px; height: 56px; border-radius: 5px; background: linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,0)); }
   .read { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; transition: color .25s; }
   .read b { font: 600 var(--big-size)/var(--big-line) var(--round); font-variant-numeric: tabular-nums; transition: transform .15s; }
   .read span { font: 500 var(--label-size)/var(--label-line) var(--round); opacity: .7; }
@@ -47,7 +46,7 @@
   <main class="stage">
     <section class="lamp" role="slider" tabindex="0" aria-label="Night lamp brightness">
       <div class="room"></div>
-      <div class="capsule"><div class="light"></div><div class="shine"></div><div class="read"><b></b><span></span></div></div>
+      <div class="capsule"><div class="light"></div><div class="read"><b></b><span></span></div></div>
       <svg class="ring" viewBox="0 0 160 256"><path class="track"/><path class="fill"/><path class="ghost"/><g class="dots"></g><path class="hit"/></svg>
       <div class="knob"></div>
       <span class="peek"></span>
@@ -60,7 +59,7 @@
 
     <h3>Lamp and track</h3>
     <table>
-      <tr><td>Capsule</td><td data-var="--lamp-w,--lamp-h" data-join=" × " data-after=", fully round ends, 1px line ring, a soft highlight top left"></td></tr>
+      <tr><td>Capsule</td><td data-var="--lamp-w,--lamp-h" data-join=" × " data-after=", fully round ends, 1px line ring"></td></tr>
       <tr><td>Capsule to track</td><td data-var="--gap" data-after="; the track is a 124 × 220 stadium round it"></td></tr>
       <tr><td>Track</td><td data-var="--track" data-after=" stroke, round caps; the filled part takes the lamp's colour"></td></tr>
       <tr><td>Hit area</td><td>30px along the track</td></tr>
