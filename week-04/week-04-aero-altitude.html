@@ -7,93 +7,90 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-04-aero.css?v=1" />
   <style>
-  /* Altitude slider, stepped. An altimeter tape beside the window: five orbits from low Earth orbit at the bottom
-     to geostationary at the top. Climb and the Earth falls away, from a curved blue horizon filling the window
-     to a small whole planet; the orbit's speed and period read in the window as you go. */
+  /* Altitude slider, stepped. No window this time: the slider is the orbits themselves. The Earth sits in the
+     corner with five orbit rings around it, low Earth orbit to geostationary; drag the spacecraft outward along
+     its line and it climbs from ring to ring, settling on the nearest. */
   :root {
-    --win-w: 182px; --win-h: 172px;
-    --tape-w: 70px; --tape-gap: 14px;
-    --major: 10px; --minor: 5px;
-    --box-w: 56px; --box-h: 20px; --notch: 5px;
-    --settle: .32s;
+    --scene-w: 280px; --scene-h: 230px;
+    --settle: .36s;
   }
-  .deck { position: relative; display: flex; gap: var(--tape-gap); align-items: stretch; }
-  .window { width: var(--win-w); height: var(--win-h); }
-  .earth { transition: transform var(--settle) var(--ease-out); }
-  .live .earth { transition: none; }
-  .tape { position: relative; width: var(--tape-w); height: var(--win-h); cursor: ns-resize; }
-  .tape .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--grid); }
-  .tk { position: absolute; left: 0; height: 1px; background: var(--dim); }
-  .tk.major { width: var(--major); background: var(--hud); opacity: .75; }
-  .tk.minor { width: var(--minor); }
-  .lb { position: absolute; left: 15px; transform: translateY(-50%); font: 500 var(--tag-size)/1.25 var(--mono); color: var(--dim); letter-spacing: .06em; transition: color .12s; }
-  .lb b { display: block; font-weight: 600; color: inherit; }
-  .lb.is-near { color: var(--text); }
-  .box { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2);
-    display: grid; place-items: center; background: rgba(4,10,18,.9); box-shadow: inset 0 0 0 1px var(--hud);
-    font: 600 11px/1 var(--mono); color: var(--hud); font-variant-numeric: tabular-nums; pointer-events: none;
-    transition: top var(--settle) var(--ease-out), box-shadow .12s, color .12s, transform .12s; }
-  .box::before { content: ""; position: absolute; right: 100%; top: 50%; margin-top: calc(var(--notch) * -1); border: var(--notch) solid transparent; border-right-color: var(--hud); transition: border-color .12s; }
-  .ghost { position: absolute; left: calc(var(--major) + 2px); width: var(--box-w); height: var(--box-h); margin-top: calc(var(--box-h) / -2); outline: 1px dashed var(--dim); outline-offset: -1px; opacity: 0; transition: opacity .12s, top .12s; pointer-events: none; }
-  .tape.is-hover .ghost { opacity: 1; }
-  .tape.is-hover .box { box-shadow: inset 0 0 0 1px var(--hud), 0 0 12px rgba(127,225,255,.3); }
-  .tape.is-pressed .box, .tape.is-dragging .box { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 12px rgba(255,176,32,.35); color: var(--amber); }
-  .tape.is-pressed .box::before, .tape.is-dragging .box::before { border-right-color: var(--amber); }
-  .tape.is-pressed .box { transform: scale(.94); }
-  .tape.is-dragging .box { transition: box-shadow .12s, color .12s; }
-  .unit { position: absolute; left: 15px; top: -16px; }
+  .scene { position: relative; width: var(--scene-w); height: var(--scene-h); overflow: hidden; cursor: nesw-resize; }
+  .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .ring { fill: none; stroke: var(--grid); stroke-width: 1; transition: stroke .15s, stroke-width .15s; }
+  .ring.passed { stroke: rgba(127,225,255,.32); }
+  .ring.on { stroke: var(--hud); stroke-width: 1.25; }
+  .ring.is-near { stroke: var(--text); stroke-dasharray: 2 3; }
+  .ray { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 1 3; }
+  .ray-lit { stroke: var(--hud); stroke-width: 1.25; }
+  .rl { font: 500 var(--tag-size) var(--mono); letter-spacing: .06em; fill: var(--dim); transition: fill .15s; }
+    .rl.on, .rl.is-near { fill: var(--text); }
+  .craft { transition: transform var(--settle) var(--ease-out); }
+  .live .craft { transition: none; }
+  .craft .glow { fill: var(--hud); opacity: 0; transition: opacity .15s; }
+  .craft .body { fill: var(--text); transition: fill .12s; }
+  .craft .wing { fill: #2a5a96; stroke: var(--hud); stroke-width: .6; transition: stroke .12s; }
+  .craft .k { transition: transform .12s; }
+  .scene.is-hover .craft .glow { opacity: .22; }
+  .scene.is-pressed .craft .k { transform: scale(.86); }
+  .scene.is-dragging .craft .k { transform: scale(1.15); }
+  .scene.is-pressed .craft .body, .scene.is-dragging .craft .body { fill: var(--amber); }
+  .scene.is-pressed .craft .wing, .scene.is-dragging .craft .wing { stroke: var(--amber); }
+  .scene.is-pressed .craft .glow, .scene.is-dragging .craft .glow { fill: var(--amber); opacity: .28; }
+  .ray-lit { transition: none; }
+  .read { position: absolute; right: 4px; top: 2px; text-align: right; pointer-events: none; }
+  .read .km { font: 600 20px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; transition: color .12s; }
+  .read .km small { font-size: 9px; color: var(--hud); margin-left: 3px; letter-spacing: .1em; }
+  .read .sub { margin-top: 5px; font: 500 var(--tag-size)/var(--tag-line) var(--mono); letter-spacing: .08em; color: var(--hud); font-variant-numeric: tabular-nums; }
+  .scene.is-pressed .read .km, .scene.is-dragging .read .km { color: var(--amber); }
   </style>
 </head>
 <body>
   <main class="stage">
     <div class="sky"></div>
-    <section class="deck" aria-label="Orbit altitude">
-      <div class="window"><div class="stars"></div><svg class="view"></svg>
-        <div class="hud"><span style="left:12px;top:10px" class="t-alt"></span><span style="right:12px;top:10px" class="t-v"></span><span style="left:12px;bottom:10px" class="t-t"></span><span style="right:12px;bottom:10px" class="t-name"></span></div>
-      </div>
-      <div class="tape" role="slider" tabindex="0" aria-label="Orbit altitude"><span class="tag unit">ALT · KM</span><div class="spine"></div><div class="ghost"></div><div class="box"></div></div>
-    </section>
+    <div class="scene" role="slider" tabindex="0" aria-label="Orbit altitude">
+      <svg class="view"></svg>
+      <div class="read"><div class="km"></div><div class="sub t-v"></div><div class="sub t-t"></div></div>
+    </div>
   </main>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: five orbits, 400 km to 35,786 km, on a vertical tape like an altimeter, low Earth orbit at the bottom and geostationary at the top. A readout box rides the tape and points at the orbit you are in, so the value is always on screen. The window shows it too: the Earth is drawn at the size it really looks from that height, a blue horizon filling the window down low, a small planet up high, and the orbit's speed and period read in its corners.</p>
+    <p>Read from the CSS this page runs on. Stepped: five orbits, 400 km to 35,786 km. The slider is the orbits: the Earth in the corner, a ring for each orbit, and the spacecraft on a line running out from the planet. Drag it outward and it climbs ring to ring; the altitude reads big in the corner, always on screen, with that orbit's speed and period under it.</p>
 
-    <h3>Tape</h3>
+    <h3>Orbits</h3>
     <table>
-      <tr><td>Tape</td><td data-var="--tape-w,--win-h" data-join=" × " data-after=", the hit area; 14px right of the window"></td></tr>
-      <tr><td>Orbit stop tick</td><td data-var="--major" data-after=" long, 1px, cyan at 75%; four 5px minor ticks between stops"></td></tr>
-      <tr><td>Stop label</td><td data-var="--tag-size" data-after=" mono 500: orbit name in 600 over its height"></td></tr>
-      <tr><td>Readout box</td><td data-var="--box-w,--box-h" data-join=" × " data-after=", 1px cyan line, mono 600 11px, a 5px notch pointing at the tape"></td></tr>
-      <tr><td>Between stops</td><td>The height moves geometrically, so a drag between two orbits climbs smoothly in kilometres</td></tr>
-      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest orbit"></td></tr>
+      <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area"></td></tr>
+      <tr><td>Earth</td><td>Drawn in code, radius 52, centred 34px in from the left and 18px up from the bottom, so only a quarter shows</td></tr>
+      <tr><td>Rings</td><td>Five, radius 76 to 200 every 31px; 1px grid, passed rings cyan at 32%, the current one solid cyan</td></tr>
+      <tr><td>Flight line</td><td>Out from the Earth at 50°, 1px dotted; the part climbed so far solid cyan</td></tr>
+      <tr><td>Ring label</td><td data-var="--tag-size" data-after=" mono 500, the orbit name just outside each ring, 12° up"></td></tr>
+      <tr><td>Spacecraft</td><td>A body and two panels, 18px across, turned to face along the line</td></tr>
+      <tr><td>Between rings</td><td>The height moves geometrically while dragging, so it counts smoothly in kilometres</td></tr>
+      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest ring"></td></tr>
     </table>
 
-    <h3>Window</h3>
+    <h3>Readout</h3>
     <table>
-      <tr><td>Window</td><td data-var="--win-w,--win-h" data-join=" × " data-after=", 18px corner, a 6px frame, inner shadow and a faint reflection"></td></tr>
-      <tr><td>Earth</td><td>Drawn in code at its true apparent size: radius = 144 × tan(asin(R ÷ (R + h))); oceans, land, cloud, a night side and a blue glow at the limb</td></tr>
-      <tr><td>Telemetry</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan, 12px from the corners: altitude, orbital speed, period, orbit name"></td></tr>
-      <tr><td>Stars</td><td>Drawn in code, a few brighter ones twinkling over 4s</td></tr>
+      <tr><td>Altitude</td><td>Mono 600 20px, top right; “KM” in 9px cyan</td></tr>
+      <tr><td>Speed, period</td><td data-var="--tag-size,--tag-line" data-after=" mono 500, cyan, under it"></td></tr>
     </table>
 
     <h3>Colour</h3>
     <table>
       <tr><td>Space</td><td data-var="--space" data-kind="color"></td></tr>
-      <tr><td>Window frame</td><td data-var="--frame" data-kind="color"></td></tr>
-      <tr><td>Spine, unlit ticks</td><td data-var="--grid" data-kind="color"></td></tr>
-      <tr><td>Labels</td><td data-var="--dim" data-kind="color"></td></tr>
-      <tr><td>Instruments</td><td data-var="--hud" data-kind="color"></td></tr>
+      <tr><td>Unreached rings</td><td data-var="--grid" data-kind="color"></td></tr>
+      <tr><td>Labels, line</td><td data-var="--dim" data-kind="color"></td></tr>
+      <tr><td>Current ring, readout</td><td data-var="--hud" data-kind="color"></td></tr>
       <tr><td>Held</td><td data-var="--amber" data-kind="color"></td></tr>
     </table>
 
     <h3>States</h3>
     <table>
-      <tr><td>Hover</td><td>The box glows; a dashed box marks the orbit under the pointer and its label lights. Nothing moves yet</td></tr>
-      <tr><td>Pressed</td><td>The box and notch turn amber and dip to 0.94</td></tr>
-      <tr><td>Drag</td><td>Up to climb: the box follows the finger with no lag, the Earth shrinks away smoothly, and altitude, speed and period count as you go</td></tr>
-      <tr><td>Let go</td><td>Settles into the nearest orbit; the Earth settles with it</td></tr>
-      <tr><td>Keyboard</td><td>Up and Down one orbit; Home and End low Earth orbit and geostationary</td></tr>
+      <tr><td>Hover</td><td>A soft glow round the spacecraft; the ring under the pointer turns dashed white and its label lights. Nothing moves yet</td></tr>
+      <tr><td>Pressed</td><td>The spacecraft and the altitude turn amber; the craft dips to 0.86</td></tr>
+      <tr><td>Drag</td><td>The craft rides the pointer along its line, grown 1.15; rings light as it passes them and the altitude counts with no lag</td></tr>
+      <tr><td>Let go</td><td>Settles on the nearest ring</td></tr>
+      <tr><td>Keyboard</td><td>Up and Right one orbit out; Down and Left one in; Home and End LEO and GEO</td></tr>
     </table>
   </section>
 
@@ -101,60 +98,72 @@
 
   <script src="week-04-aero.js?v=1"></script>
   <script>
+  const NS = 'http://www.w3.org/2000/svg';
   const ORBITS = [ { h: 400, name: 'LEO' }, { h: 2000, name: 'LEO+' }, { h: 8000, name: 'MEO' }, { h: 20200, name: 'GPS' }, { h: 35786, name: 'GEO' } ], N = ORBITS.length;
-  const RE = 6371, GM = 398600, F = 144;
-  const tape = document.querySelector('.tape'), box = tape.querySelector('.box'), ghost = tape.querySelector('.ghost'), deck = document.querySelector('.deck');
-  const win = document.querySelector('.window'), view = win.querySelector('.view');
-  const W = win.clientWidth, H = win.clientHeight;
+  const RE = 6371, GM = 398600;
+  const scene = document.querySelector('.scene'), view = scene.querySelector('svg');
+  const W = scene.clientWidth, H = scene.clientHeight, CX = 34, CY = H - 18, R = [76, 107, 138, 169, 200];
+  const A = 50 * Math.PI / 180, LA = 12 * Math.PI / 180, ux = Math.cos(A), uy = -Math.sin(A);
   view.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  const earth = AERO.earth(view);
-  const PAD = 18, TH = () => tape.clientHeight - PAD * 2, yOf = p => PAD + TH() * (1 - p / (N - 1));   // low orbit at the bottom
+  const el = (tag, attrs, parent = view) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };
+
+  const earth = AERO.earth(view); earth.setAttribute('transform', `translate(${CX} ${CY}) scale(.52)`);
+  const rings = R.map(r => el('circle', { class: 'ring', cx: CX, cy: CY, r }));
+  el('line', { class: 'ray', x1: CX + ux * 56, y1: CY + uy * 56, x2: CX + ux * 214, y2: CY + uy * 214 });
+  const lit = el('line', { class: 'ray-lit', x1: CX + ux * 56, y1: CY + uy * 56 });
   const labels = ORBITS.map((o, i) => {
-    const t = document.createElement('div'); t.className = 'tk major'; t.style.top = yOf(i) + 'px'; tape.insertBefore(t, ghost);
-    const l = document.createElement('div'); l.className = 'lb'; l.innerHTML = `<b>${o.name}</b>${o.h.toLocaleString('en-US')}`; l.style.top = yOf(i) + 'px'; tape.insertBefore(l, ghost);
-    if (i < N - 1) for (let k = 1; k < 5; k++) { const m = document.createElement('div'); m.className = 'tk minor'; m.style.top = yOf(i + k / 5) + 'px'; tape.insertBefore(m, ghost); }
-    return l;
+    const t = el('text', { class: 'rl', x: CX + Math.cos(LA) * R[i] + 4, y: CY - Math.sin(LA) * R[i] + 3 });
+    t.textContent = o.name; return t;
   });
-  // between two orbits the height moves geometrically
+  // the craft: CSS moves the outer group and scales the middle one; the inner one turns it to face along the line
+  const craft = el('g', { class: 'craft' }), k = el('g', { class: 'k' }, craft), turn = el('g', { transform: 'rotate(-50)' }, k);
+  el('circle', { class: 'glow', r: 13 }, turn);
+  el('rect', { class: 'wing', x: -3, y: -10, width: 6, height: 6 }, turn);
+  el('rect', { class: 'wing', x: -3, y: 4, width: 6, height: 6 }, turn);
+  el('rect', { class: 'body', x: -4, y: -3.5, width: 8, height: 7, rx: 1.5 }, turn);
+  el('rect', { class: 'body', x: 4, y: -1, width: 3, height: 2 }, turn);
+
+  // ring index (continuous) <-> radius; between rings the height moves geometrically
+  const rOf = p => { const i = Math.min(N - 2, Math.floor(p)); return R[i] + (R[i + 1] - R[i]) * (p - i); };
+  const pOfR = r => { if (r <= R[0]) return 0; for (let i = 0; i < N - 1; i++) if (r <= R[i + 1]) return i + (r - R[i]) / (R[i + 1] - R[i]); return N - 1; };
   const hAt = p => { const i = Math.min(N - 2, Math.floor(p)), f = p - i; return ORBITS[i].h * Math.pow(ORBITS[i + 1].h / ORBITS[i].h, f); };
   const km = h => Math.round(h).toLocaleString('en-US');
 
   let idx = 0, p = 0, near = null;
   function draw() {
-    const h = hAt(p), r = F * Math.tan(Math.asin(RE / (RE + h))), cy = H * .55 + Math.max(0, r - H * .1);
-    earth.style.transform = `translate(${W / 2}px, ${cy}px) scale(${r / 100})`;
-    box.style.top = yOf(p) + 'px'; box.textContent = km(h);
-    labels.forEach((l, i) => { l.classList.toggle('is-near', i === near && i !== idx); l.style.visibility = Math.abs(i - p) < .5 ? 'hidden' : ''; });
-    if (near !== null) ghost.style.top = yOf(near) + 'px';
-    ghost.style.visibility = near === null || near === idx ? 'hidden' : '';
+    const r = rOf(p), x = CX + ux * r, y = CY + uy * r, h = hAt(p);
+    craft.style.transform = `translate(${x}px, ${y}px)`;
+    lit.setAttribute('x2', x); lit.setAttribute('y2', y);
+    rings.forEach((c, i) => { c.classList.toggle('on', i === Math.round(p)); c.classList.toggle('passed', i < p - .01); c.classList.toggle('is-near', i === near && i !== idx); });
+    labels.forEach((t, i) => { t.classList.toggle('on', i === Math.round(p)); t.classList.toggle('is-near', i === near && i !== idx); });
     const v = Math.sqrt(GM / (RE + h)), T = 2 * Math.PI * Math.sqrt(Math.pow(RE + h, 3) / GM) / 60;
-    win.querySelector('.t-alt').textContent = `ALT ${km(h)} KM`;
-    win.querySelector('.t-v').textContent = `V ${v.toFixed(2)} KM/S`;
-    win.querySelector('.t-t').textContent = T < 120 ? `PERIOD ${Math.round(T)} MIN` : `PERIOD ${(T / 60).toFixed(1)} H`;
-    win.querySelector('.t-name').textContent = ORBITS[Math.round(p)].name;
-    tape.setAttribute('aria-valuenow', ORBITS[idx].h); tape.setAttribute('aria-valuetext', `${ORBITS[idx].name}, ${km(ORBITS[idx].h)} kilometres`);
+    scene.querySelector('.km').innerHTML = `${km(h)}<small>KM</small>`;
+    scene.querySelector('.t-v').textContent = `${ORBITS[Math.round(p)].name} · ${v.toFixed(2)} KM/S`;
+    scene.querySelector('.t-t').textContent = T < 120 ? `PERIOD ${Math.round(T)} MIN` : `PERIOD ${(T / 60).toFixed(1)} H`;
+    scene.setAttribute('aria-valuenow', ORBITS[idx].h); scene.setAttribute('aria-valuetext', `${ORBITS[idx].name}, ${km(ORBITS[idx].h)} kilometres`);
   }
 
-  let hover = false, down = false, drag = false, y0 = 0;
-  const show = () => { tape.classList.toggle('is-hover', hover && !down); tape.classList.toggle('is-pressed', down && !drag); tape.classList.toggle('is-dragging', drag); deck.classList.toggle('live', drag); };
-  const pAt = e => { const r = tape.getBoundingClientRect(); return Math.min(N - 1, Math.max(0, (1 - (e.clientY - r.top - PAD) / TH()) * (N - 1))); };
-  tape.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); draw(); });
-  tape.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
-  tape.addEventListener('pointerdown', e => { tape.setPointerCapture(e.pointerId); y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
-  tape.addEventListener('pointermove', e => {
-    if (!tape.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
-    if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
+  let hover = false, down = false, drag = false, x0 = 0, y0 = 0;
+  const show = () => { scene.classList.toggle('is-hover', hover && !down); scene.classList.toggle('is-pressed', down && !drag); scene.classList.toggle('is-dragging', drag); scene.classList.toggle('live', drag); };
+  // the pointer's distance out along the flight line
+  const pAt = e => { const b = scene.getBoundingClientRect(), dx = e.clientX - b.left - CX, dy = e.clientY - b.top - CY; return Math.min(N - 1, Math.max(0, pOfR(dx * ux + dy * uy))); };
+  scene.addEventListener('pointerenter', e => { hover = true; near = Math.round(pAt(e)); show(); draw(); });
+  scene.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  scene.addEventListener('pointerdown', e => { scene.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  scene.addEventListener('pointermove', e => {
+    if (!scene.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
     if (drag) { p = pAt(e); draw(); }
   });
-  const release = e => { if (!down) return; idx = Math.round(drag ? p : pAt(e)); p = idx; down = drag = false; near = hover ? idx : null; show(); draw(); };
-  tape.addEventListener('pointerup', release);
-  tape.addEventListener('pointercancel', release);
-  tape.setAttribute('aria-valuemin', ORBITS[0].h); tape.setAttribute('aria-valuemax', ORBITS[N - 1].h);
-  tape.addEventListener('keydown', e => {
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); idx = Math.round(wasDrag ? p : pAt(e)); p = idx; near = hover ? idx : null; draw(); };
+  scene.addEventListener('pointerup', release);
+  scene.addEventListener('pointercancel', release);
+  scene.setAttribute('aria-valuemin', ORBITS[0].h); scene.setAttribute('aria-valuemax', ORBITS[N - 1].h);
+  scene.addEventListener('keydown', e => {
     const m = { ArrowUp: idx + 1, ArrowRight: idx + 1, ArrowDown: idx - 1, ArrowLeft: idx - 1, Home: 0, End: N - 1 };
     if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); p = idx; draw(); }
   });
-  draw();
+  craft.style.transition = 'none'; draw(); craft.getBoundingClientRect(); craft.style.transition = '';
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
   <script src="week-04-spec.js?v=3"></script>
