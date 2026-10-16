@@ -77,7 +77,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Stepped: one stop per album, sixteen albums. The slider is the crate in miniature, a shelf of flat grey boxes, no artwork; the chosen one is turned face-on with its record peeking out. The album's name is the label, so the value is always on screen; where it sits in the crate shows only when the shelf is touched.</p>
+    <p>Read from the CSS this page runs on. Stepped: one stop per album, sixteen albums. The slider is the crate in miniature, a shelf of flat grey boxes, no artwork; the chosen one is turned face-on as a larger square. The album's name is the label, so the value is always on screen; where it sits in the crate shows only when the shelf is touched.</p>
 
     <h3>Sleeves</h3>
     <table>
@@ -97,7 +97,6 @@
       <tr><td>Spine corner</td><td data-var="--spine-r"></td></tr>
       <tr><td>Spines apart</td><td data-var="--spine-gap"></td></tr>
       <tr><td>Chosen spine, face-on</td><td data-var="--spine-face,--spine-face" data-join=" × " data-after=", lighter flat grey"></td></tr>
-      <tr><td>Its record</td><td data-var="--mini-disc" data-after=", slides 11px out"></td></tr>
       <tr><td>Kept album, while previewing another</td><td>A 4px cream dot 7px under its spine</td></tr>
       <tr><td>Spine colour</td><td>Flat grey boxes, no artwork: <span class="swatch" style="background:#3f3f3f"></span>#3f3f3f standing, #6a6a6a under the pointer, #9a9a9a face-on. The colour lives in the big sleeves; the shelf only says where</td></tr>
       <tr><td>Position chip</td><td>“7 of 16” under the spine, only while the shelf is hovered or held; mono 11px / 14px on cream, 5px corner</td></tr>
@@ -122,9 +121,9 @@
     <h3>States and motion</h3>
     <table>
       <tr><td>Hover</td><td>Run along the shelf: the spine under the pointer turns face-on and the big crate leafs to that album, a preview; the details follow, a chip under the spine says “7 of 16”, and the kept album holds a cream dot. Leave without clicking and everything goes back to the kept one</td></tr>
-      <tr><td>Pressed</td><td>The spine turns face-on and dips to 0.9; the record slides home</td></tr>
+      <tr><td>Pressed</td><td>The spine turns face-on and dips to 0.9</td></tr>
       <tr><td>Drag</td><td>Scrub along the shelf, or drag the crate itself: sleeves follow with no lag, the chosen spine gets a 1.5px cream outline and the position chip, details fade to 45%</td></tr>
-      <tr><td>Let go</td><td>Settles on the nearest album in <span data-var="--settle"></span>, <span data-var="--ease-out"></span>; both records slide back out</td></tr>
+      <tr><td>Let go</td><td>Settles on the nearest album in <span data-var="--settle"></span>, <span data-var="--ease-out"></span>; the record slides back out</td></tr>
       <tr><td>Keyboard</td><td>Arrows one album, Home and End the first and last</td></tr>
     </table>
   </section>
@@ -162,7 +161,7 @@
   });
   const spines = ALBUMS.map(al => {
     const s = document.createElement('div'); s.className = 'spine';
-    s.innerHTML = `<span class="mini-disc"></span><span class="jacket"></span>`;   // the record sits behind its jacket
+    s.innerHTML = `<span class="jacket"></span>`;   // a flat grey box, nothing else
     shelf.insertBefore(s, where); return s;
   });
   const last = ALBUMS.length - 1;
