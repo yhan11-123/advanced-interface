@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 04 &middot; Flight deck trajectory slider</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-04-aero.css?v=2" />
+  <style>
+  /* Trajectory slider, stepped. The flight itself is the track: an ascent arcing up and round a wireframe Earth,
+     with the mission's events marked along it, liftoff to spacecraft separation. Drag the vehicle along its
+     path and the mission clock, velocity and altitude run with it; let go and it settles on the nearest event. */
+  :root {
+    --scene-w: 264px; --scene-h: 200px;
+    --dot: 5px; --vehicle: 4px; --halo: 9px;
+    --settle: .42s;
+  }
+  .scene { position: relative; width: var(--scene-w); height: var(--scene-h); overflow: hidden; cursor: pointer; }
+  .scene .stars { position: absolute; inset: 0; opacity: .7; }
+  .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .path-ahead { fill: none; stroke: var(--dim); stroke-width: 1; }
+  .path-flown { fill: none; stroke: var(--text); stroke-width: 1.5; }
+  .ev circle { fill: var(--space); stroke: var(--hud); stroke-width: 1; }
+  .ev.passed circle { fill: var(--text); stroke: var(--text); }
+  .ev .lead { stroke: var(--text); stroke-width: 1; stroke-dasharray: 1 2; }
+  .ev text { font: 500 7px var(--mono); letter-spacing: .04em; fill: var(--text); dominant-baseline: central; paint-order: stroke; stroke: var(--space); stroke-width: 3px; stroke-linejoin: round; }
+  .ev text tspan.t { fill: var(--dim); }
+  .ev .lab { opacity: 0; transition: opacity .15s; }
+  .ev.on .lab, .ev.is-near .lab { opacity: 1; }
+  .ev.is-near circle { stroke: var(--text); stroke-dasharray: 1.5 1.5; }
+  .vehicle .halo { fill: var(--text); opacity: .28; transition: r .12s, opacity .12s; }
+  .vehicle .ring { fill: none; stroke: var(--text); stroke-width: 1; opacity: 0; transition: opacity .12s; }
+  .vehicle .core { fill: var(--text); }
+  .scene.is-hover .vehicle .halo { r: 11px; opacity: .35; }
+  .scene.is-pressed .vehicle .halo { r: 6px; opacity: .5; }
+  .scene.is-dragging .vehicle .halo { opacity: 0; }
+  .scene.is-dragging .vehicle .ring { opacity: 1; }
+  /* telemetry across the top, the mission clock biggest */
+  .tele { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+  .tele .k { font: 600 5.5px/1.25 var(--mono); letter-spacing: .06em; color: var(--hud); text-transform: uppercase; }
+  .tele .k i { font-style: normal; font-weight: 500; text-transform: none; color: var(--dim); }
+  .tele b { font: 500 11px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; padding-left: 5px; border-left: 1px solid var(--text); margin-left: -3px; min-width: 44px; }
+  .tele .clock { margin-left: auto; font: 600 14px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  .scene.is-pressed .clock, .scene.is-dragging .clock { background: var(--text); color: var(--space); }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="sky"></div>
+    <div data-app="Trajectory"><div class="scene" role="slider" tabindex="0" aria-label="Flight sequence">
+      <div class="stars"></div>
+      <svg class="view"></svg>
+      <div class="tele"><span class="k">Velocity<br><i>km/h</i></span><b class="v-vel"></b><span class="k">Altitude<br><i>km</i></span><b class="v-alt"></b><span class="clock chip"></span></div>
+    </div></div>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Stepped: five events of one flight, liftoff to spacecraft separation, marked along the trajectory itself. Drag the vehicle along its path and the mission clock, velocity and altitude run with it across the top, always on screen; the event it sits on is named beside its marker. Let go and it settles on the nearest event; tap a marker to fly there.</p>
+
+    <h3>Trajectory</h3>
+    <table>
+      <tr><td>Window</td><td>A workspace window titled Trajectory: 1px white frame, 13px title bar</td></tr>
+      <tr><td>Scene</td><td data-var="--scene-w,--scene-h" data-join=" × " data-after=", the whole of it the hit area"></td></tr>
+      <tr><td>Earth</td><td>A wireframe globe drawn in code, radius 74, tilted 18°, rising from the bottom edge</td></tr>
+      <tr><td>Path</td><td>An ellipse 236 × 124, turned −10°, leaving the Earth's surface at the lower right; flown part 1.5px white, the rest 1px grey</td></tr>
+      <tr><td>Event marker</td><td data-var="--dot" data-after=" circle on the path; hollow ahead, filled once passed"></td></tr>
+      <tr><td>Event label</td><td>Mono 500 7px on a dotted leader: mission time in grey, then the event; shown for the current event and the one under the pointer</td></tr>
+      <tr><td>Vehicle</td><td data-var="--vehicle" data-after=" white dot in a 9px grey halo"></td></tr>
+      <tr><td>Drag</td><td>The vehicle follows the nearest point on the path to the finger; clock, velocity and altitude interpolate between events</td></tr>
+      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, along the path to the nearest event"></td></tr>
+    </table>
+
+    <h3>Telemetry</h3>
+    <table>
+      <tr><td>Mission clock</td><td>Mono 600 14px, top right, X+hh:mm:ss</td></tr>
+      <tr><td>Velocity, altitude</td><td>Mono 500 11px after a 1px rule; their names in 5.5px caps over the unit</td></tr>
+    </table>
+
+    <h3>Colour</h3>
+    <table>
+      <tr><td>Space</td><td data-var="--space" data-kind="color"></td></tr>
+      <tr><td>Flown path, vehicle, values</td><td data-var="--text" data-kind="color"></td></tr>
+      <tr><td>Markers ahead, names</td><td data-var="--hud" data-kind="color"></td></tr>
+      <tr><td>Path ahead, times</td><td data-var="--dim" data-kind="color"></td></tr>
+    </table>
+
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover</td><td>The halo opens to 11px; the marker nearest the pointer turns dashed and shows its label. Nothing moves yet</td></tr>
+      <tr><td>Pressed</td><td>The halo tightens to 6px; the mission clock inverts, black on white</td></tr>
+      <tr><td>Drag</td><td>The halo becomes a 1px ring and the vehicle rides the path under the finger; markers fill as it passes, the numbers run with no lag</td></tr>
+      <tr><td>Let go</td><td>Glides along the path to the nearest event; a tap flies to the marker nearest the pointer</td></tr>
+      <tr><td>Keyboard</td><td>Right and Up the next event; Left and Down the one before; Home liftoff, End separation</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
+
+  <script src="week-04-aero.js?v=2"></script>
+  <script>
+  // One flight, five events. t is mission time in seconds; velocity in km/h, altitude in km.
+  const EVENTS = [
+    { name: 'LIFTOFF',                     t: 0,    vel: 0,     alt: 0 },
+    { name: '1ST STAGE SEP',               t: 298,  vel: 19850, alt: 182 },
+    { name: '2ND STAGE CUTOFF #1',        t: 991,  vel: 27940, alt: 296 },
+    { name: '2ND STAGE IGNITION #2',       t: 1306, vel: 27820, alt: 318 },
+    { name: 'SPACECRAFT SEPARATION',       t: 6502, vel: 11807, alt: 17603 }
+  ], N = EVENTS.length;
+  const NS = 'http://www.w3.org/2000/svg';
+  const scene = document.querySelector('.scene'), view = scene.querySelector('svg');
+  const W = scene.clientWidth, H = scene.clientHeight;
+  const css = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
+  const SETTLE = css('--settle') * 1000;
+  view.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const el = (tag, attrs, parent = view) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };
+
+  // the Earth, then the trajectory: an ellipse round it, flown from the launch site up and over to the left
+  const GC = { x: W * .5, y: H * .8 }, GR = 74;
+  const earth = AERO.earth(view); earth.setAttribute('transform', `translate(${GC.x} ${GC.y}) rotate(18) scale(${GR / 100})`);
+  const EC = { x: W * .5, y: H * .62 }, RX = 118, RY = 62, ROT = -10 * Math.PI / 180;
+  const pt = deg => { const a = deg * Math.PI / 180, x = RX * Math.cos(a), y = RY * Math.sin(a); return { x: EC.x + x * Math.cos(ROT) - y * Math.sin(ROT), y: EC.y + x * Math.sin(ROT) + y * Math.cos(ROT) }; };
+  // launch from where the path leaves the Earth's surface on the lower right
+  let TH0 = 90; while (Math.hypot(pt(TH0).x - GC.x, pt(TH0).y - GC.y) < GR && TH0 > 0) TH0 -= .5;
+  const TH1 = -186, EV_TH = [TH0, 2, -58, -118, -180];       // degrees along the ellipse: launch, the events, separation
+  const SAMPLES = 240, PATH = Array.from({ length: SAMPLES + 1 }, (_, i) => TH0 + (TH1 - TH0) * i / SAMPLES).map(th => ({ th, ...pt(th) }));
+  const poly = (a, b) => PATH.filter(q => (q.th <= a + 1e-6) && (q.th >= b - 1e-6)).map(q => `${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ');
+  el('polyline', { class: 'path-ahead', points: poly(TH0, TH1) });
+  const flown = el('polyline', { class: 'path-flown' });
+
+  const evs = EVENTS.map((e, i) => {
+    const q = pt(EV_TH[i]), g = el('g', { class: 'ev' });
+    // the label goes on whichever side it fits, on a dotted leader
+    const lab = el('g', { class: 'lab' }, g), lead = el('line', { class: 'lead', y1: q.y, y2: q.y }, lab), t = el('text', { y: q.y }, lab);
+    t.innerHTML = `<tspan class="t">${clock(e.t)}</tspan> ${e.name}`;
+    const len = t.getComputedTextLength(), dir = q.x - 22 - len >= 4 ? -1 : q.x + 22 + len <= W - 4 ? 1 : (q.x > W / 2 ? -1 : 1), lx = q.x + dir * 22;
+    t.setAttribute('x', lx); t.setAttribute('text-anchor', dir > 0 ? 'start' : 'end');
+    lead.setAttribute('x1', q.x + dir * 5); lead.setAttribute('x2', lx - dir * 3);
+    el('circle', { cx: q.x, cy: q.y, r: css('--dot') / 2 }, g);
+    return g;
+  });
+  const vehicle = el('g', { class: 'vehicle' });
+  el('circle', { class: 'halo', r: 9 }, vehicle); el('circle', { class: 'ring', r: 7 }, vehicle); el('circle', { class: 'core', r: css('--vehicle') / 2 + .5 }, vehicle);
+
+  function clock(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60; return `X+${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`; }
+  // p runs 0..N-1 across the events; between two of them everything interpolates
+  const thOf = p => { const i = Math.min(N - 2, Math.floor(p)); return EV_TH[i] + (EV_TH[i + 1] - EV_TH[i]) * (p - i); };
+  const pOfTh = th => { for (let i = 0; i < N - 1; i++) if (th <= EV_TH[i] && th >= EV_TH[i + 1]) return i + (th - EV_TH[i]) / (EV_TH[i + 1] - EV_TH[i]); return th > EV_TH[0] ? 0 : N - 1; };
+  const lerp = (p, k) => { const i = Math.min(N - 2, Math.floor(p)), f = p - i; return EVENTS[i][k] + (EVENTS[i + 1][k] - EVENTS[i][k]) * f; };
+
+  let idx = N - 1, p = N - 1, near = null;
+  function draw() {
+    const th = thOf(p), q = pt(th);
+    vehicle.setAttribute('transform', `translate(${q.x} ${q.y})`);
+    flown.setAttribute('points', poly(TH0, th) + ` ${q.x.toFixed(1)},${q.y.toFixed(1)}`);
+    evs.forEach((g, i) => { g.classList.toggle('passed', i < p - .01); g.classList.toggle('on', i === Math.round(p) && near === null); g.classList.toggle('is-near', i === near); });
+    scene.querySelector('.v-vel').textContent = Math.round(lerp(p, 'vel'));
+    scene.querySelector('.v-alt').textContent = Math.round(lerp(p, 'alt'));
+    scene.querySelector('.clock').textContent = clock(lerp(p, 't'));
+    scene.setAttribute('aria-valuenow', idx); scene.setAttribute('aria-valuetext', `${EVENTS[idx].name}, ${clock(EVENTS[idx].t)}`);
+  }
+
+  // settle: glide along the path to the event
+  let anim = 0;
+  const glide = to => {
+    cancelAnimationFrame(anim); const from = p, t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / SETTLE), e = 1 - Math.pow(1 - k, 3); p = from + (to - from) * e; draw(); if (k < 1) anim = requestAnimationFrame(step); };
+    anim = requestAnimationFrame(step);
+  };
+  const go = i => { idx = Math.min(N - 1, Math.max(0, i)); glide(idx); };
+
+  const local = e => { const b = scene.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
+  // the point on the path nearest the pointer, as p
+  const pAt = e => { const m = local(e); let best = PATH[0], bd = 1e9; PATH.forEach(q => { const d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < bd) { bd = d; best = q; } }); return pOfTh(best.th); };
+  const evAt = e => { const m = local(e); let best = 0, bd = 1e9; EV_TH.forEach((th, i) => { const q = pt(th), d = (q.x - m.x) ** 2 + (q.y - m.y) ** 2; if (d < bd) { bd = d; best = i; } }); return best; };
+
+  let hover = false, down = false, drag = false, x0 = 0, y0 = 0;
+  const show = () => { scene.classList.toggle('is-hover', hover && !down); scene.classList.toggle('is-pressed', down && !drag); scene.classList.toggle('is-dragging', drag); };
+  scene.addEventListener('pointerenter', e => { hover = true; near = evAt(e); if (near === Math.round(p)) near = null; show(); draw(); });
+  scene.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
+  scene.addEventListener('pointerdown', e => { scene.setPointerCapture(e.pointerId); cancelAnimationFrame(anim); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  scene.addEventListener('pointermove', e => {
+    if (!scene.hasPointerCapture(e.pointerId)) { if (hover) { near = evAt(e); if (near === Math.round(p)) near = null; draw(); } return; }
+    if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
+    if (drag) { p = pAt(e); draw(); }
+  });
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); go(wasDrag ? Math.round(p) : evAt(e)); };
+  scene.addEventListener('pointerup', release);
+  scene.addEventListener('pointercancel', release);
+  scene.setAttribute('aria-valuemin', 0); scene.setAttribute('aria-valuemax', N - 1);
+  scene.addEventListener('keydown', e => {
+    const m = { ArrowRight: idx + 1, ArrowUp: idx + 1, ArrowLeft: idx - 1, ArrowDown: idx - 1, Home: 0, End: N - 1 };
+    if (e.key in m) { e.preventDefault(); go(m[e.key]); }
+  });
+  draw();
+  if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-04-spec.js?v=3"></script>
+</body>
+</html>

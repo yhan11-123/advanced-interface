@@ -515,8 +515,8 @@
         </div>
         <div class="set-box" id="set-aero">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-aero">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/aero-altitude-mono.png" alt="" loading="lazy" /><img src="images/process/aero-thrust-mono.png" alt="" loading="lazy" /><img src="images/process/aero-docking-mono.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Flight deck</span><span class="set-line">A monochrome workspace: each slider in its own small window, white hairlines on a black grid, square handles, inverted when held. Altitude, thrust and docking.</span></span>
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/aero-altitude-mono.png" alt="" loading="lazy" /><img src="images/process/aero-thrust-mono.png" alt="" loading="lazy" /><img src="images/process/aero-ascent-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Flight deck</span><span class="set-line">A monochrome workspace: each slider in its own small window, white hairlines on a black grid, square handles, inverted when held. Altitude, thrust and trajectory.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-aero" aria-labelledby="dlg-aero-title">
@@ -544,11 +544,11 @@
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-04-aero-docking.html?v=3" title="Docking approach, stepped slider: a tunnel of five gates in perspective, flown through by pushing up" loading="lazy"></iframe>
+                  <iframe src="week-04-aero-ascent.html?v=1" title="Flight sequence, stepped slider: the vehicle dragged along its trajectory round the Earth, snapping to each mission event" loading="lazy"></iframe>
                   <figcaption>
-                    <b>Docking, stepped</b>
-                    <span>A tunnel-in-the-sky, as a real approach display draws it: five hold points as gates in perspective, 200 m to capture. Push up to fly through them, or tap a gate to fly to it.</span>
-                    <button type="button" class="viewer-open" data-src="week-04-aero-docking.html?v=3">View larger</button>
+                    <b>Trajectory, stepped</b>
+                    <span>The flight path is the track: an ascent arcing round the Earth, five mission events marked along it. Drag the vehicle along its path and the mission clock, velocity and altitude run with it.</span>
+                    <button type="button" class="viewer-open" data-src="week-04-aero-ascent.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -600,7 +600,7 @@
                     <figcaption>Restyled as a workspace window: no colour, white hairlines, square handle, inverted when held.</figcaption>
                   </figure>
               </div>
-              <p class="process-label">Docking</p>
+              <p class="process-label">Docking → Trajectory</p>
               <div class="process-grid">
                   <figure>
                     <img src="images/process/camera-gallery-1.png" alt="Docking slider, step 1" loading="lazy" />
@@ -621,6 +621,10 @@
                   <figure>
                     <img src="images/process/aero-docking-mono.png" alt="Docking slider, step 5" loading="lazy" />
                     <figcaption>Restyled as a workspace window: no colour, white hairlines, square handle, inverted when held.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/aero-ascent-1.png" alt="Trajectory slider, step 6" loading="lazy" />
+                    <figcaption>The approach becomes the flight path itself: the vehicle rides its trajectory round the Earth, event to event.</figcaption>
                   </figure>
               </div>
             </div>
