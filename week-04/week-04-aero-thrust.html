@@ -65,6 +65,7 @@
       <tr><td>Ticks</td><td data-var="--tick,--tick-major" data-join=" and " data-after=" long, every 5% and 25%; quarters labelled, IDLE and MAX at the ends"></td></tr>
       <tr><td>Handle</td><td data-var="--handle-w,--handle-h" data-join=" × " data-after=", 1px white outline, a notch through its centre"></td></tr>
       <tr><td>Drag</td><td>Relative: the handle moves with the finger from wherever you grabbed, so it never jumps</td></tr>
+      <tr><td>Motion</td><td>What you see chases the value: 45ms behind the finger while dragging, a 120ms ease for taps and 100ms for keys, so every move flows</td></tr>
     </table>
 
     <h3>View</h3>
@@ -94,7 +95,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=3"></script>
+  <script src="week-04-aero.js?v=4"></script>
   <script>
   const quad = document.querySelector('.quad'), handle = quad.querySelector('.handle'), lit = quad.querySelector('.lit'), ghost = quad.querySelector('.ghost'), deck = document.querySelector('.deck');
   const win = document.querySelector('.window'), cv = win.querySelector('canvas'), cx = cv.getContext('2d');
@@ -107,10 +108,10 @@
   const dpr = devicePixelRatio || 1, W = win.clientWidth, H = win.clientHeight;
   cv.width = W * dpr; cv.height = H * dpr; cx.scale(dpr, dpr);
   const rnd = AERO.rng(17), STARS = Array.from({ length: 140 }, () => ({ a: rnd() * Math.PI * 2, d: rnd() * 1.2, b: .3 + rnd() * .7 }));
-  let v = 35, hv = null, dv = 0, last = performance.now();
+  let v = 35, sv = 35, hv = null, dv = 0, last = performance.now();
   function frame(now) {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
-    const f = v / 100, speed = .02 + f * f * 1.6;
+    const f = sv / 100, speed = .02 + f * f * 1.6;
     dv += 11.8 * f * dt;                                   // about 1.2 g at full thrust
     cx.clearRect(0, 0, W, H);
     STARS.forEach(s => {
@@ -125,15 +126,16 @@
     requestAnimationFrame(frame);
   }
   function draw() {
-    const f = v / 100;
-    handle.style.top = yOf(v) + 'px'; lit.style.height = `calc(${f * 100}% - 4px)`;
-    win.querySelector('.big').innerHTML = `${Math.round(v)}<small>%</small>`;
+    const f = sv / 100;
+    handle.style.top = yOf(sv) + 'px'; lit.style.height = `calc(${f * 100}% - 4px)`;
+    win.querySelector('.big').innerHTML = `${Math.round(sv)}<small>%</small>`;
     win.querySelector('.t-g').textContent = `${(1.2 * f).toFixed(2)} G`;
-    win.querySelector('.t-mode').textContent = v < 1 ? 'IDLE · COAST' : v < 60 ? 'CRUISE BURN' : 'FULL BURN';
-    if (hv !== null) { ghost.style.top = yOf(hv) + 'px'; ghost.querySelector('span').textContent = Math.round(hv) + '%'; ghost.style.visibility = Math.abs(hv - v) < 3 ? 'hidden' : ''; }
+    win.querySelector('.t-mode').textContent = sv < 1 ? 'IDLE · COAST' : sv < 60 ? 'CRUISE BURN' : 'FULL BURN';
+    if (hv !== null) { ghost.style.top = yOf(hv) + 'px'; ghost.querySelector('span').textContent = Math.round(hv) + '%'; ghost.style.visibility = Math.abs(hv - sv) < 3 ? 'hidden' : ''; }
     quad.setAttribute('aria-valuenow', Math.round(v)); quad.setAttribute('aria-valuetext', `${Math.round(v)} percent thrust`);
   }
-  const set = n => { v = Math.min(100, Math.max(0, n)); draw(); };
+  const S = AERO.smooth(x => { sv = x; draw(); }, v);
+  const set = (n, tau = .12) => { v = Math.min(100, Math.max(0, n)); S.to(v, tau); };
   const vAt = e => { const r = quad.getBoundingClientRect(); return Math.min(100, Math.max(0, (1 - (e.clientY - r.top - TOP) / span()) * 100)); };
 
   let hover = false, down = false, drag = false, y0 = 0, v0 = 0;
@@ -144,7 +146,7 @@
   quad.addEventListener('pointermove', e => {
     if (!quad.hasPointerCapture(e.pointerId)) { if (hover) { hv = vAt(e); draw(); } return; }
     if (!drag && Math.abs(e.clientY - y0) > 3) { drag = true; show(); }
-    if (drag) set(v0 + (y0 - e.clientY) / span() * 100);
+    if (drag) set(v0 + (y0 - e.clientY) / span() * 100, .045);
   });
   const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); if (!wasDrag) set(vAt(e)); hv = hover ? vAt(e) : null; draw(); };
   quad.addEventListener('pointerup', release);
@@ -152,7 +154,7 @@
   quad.setAttribute('aria-valuemin', 0); quad.setAttribute('aria-valuemax', 100);
   quad.addEventListener('keydown', e => {
     const m = { ArrowUp: v + 1, ArrowRight: v + 1, ArrowDown: v - 1, ArrowLeft: v - 1, PageUp: v + 10, PageDown: v - 10, Home: 0, End: 100 };
-    if (e.key in m) { e.preventDefault(); set(Math.round(m[e.key])); }
+    if (e.key in m) { e.preventDefault(); set(Math.round(m[e.key]), .1); }
   });
   draw(); requestAnimationFrame(frame);
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');

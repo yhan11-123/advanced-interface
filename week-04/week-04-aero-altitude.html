@@ -26,8 +26,6 @@
   .rl.on, .rl.is-near { fill: var(--text); }
   .tick { stroke: var(--text); stroke-width: 1; }
   /* the craft is a square handle; hover rings it, press shrinks it, drag grows it with crosshair arms */
-  .craft { transition: transform var(--settle) var(--ease-out); }
-  .live .craft { transition: none; }
   .craft .k { transition: transform .12s; }
   .craft .body { fill: var(--text); }
   .craft .ring2 { fill: none; stroke: var(--text); stroke-width: 1; opacity: 0; transition: opacity .12s; }
@@ -65,7 +63,7 @@
       <tr><td>Ring label</td><td data-var="--tag-size" data-after=" mono 500, the orbit name just outside each ring, 12° up"></td></tr>
       <tr><td>Handle</td><td>7px white square, the spacecraft</td></tr>
       <tr><td>Between rings</td><td>The height moves geometrically while dragging, so it counts smoothly in kilometres</td></tr>
-      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, to the nearest ring"></td></tr>
+      <tr><td>Motion</td><td>Craft, line, rings and readout all ride one smoothed value: 45ms behind the finger while dragging, then an easing glide (about 0.35s) to the nearest ring</td></tr>
     </table>
 
     <h3>Readout</h3>
@@ -94,7 +92,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=3"></script>
+  <script src="week-04-aero.js?v=4"></script>
   <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ORBITS = [ { h: 400, name: 'LEO' }, { h: 2000, name: 'LEO+' }, { h: 8000, name: 'MEO' }, { h: 20200, name: 'GPS' }, { h: 35786, name: 'GEO' } ], N = ORBITS.length;
@@ -128,6 +126,7 @@
   const km = h => Math.round(h).toLocaleString('en-US');
 
   let idx = 0, p = 0, near = null;
+  const S = AERO.smooth(x => { p = x; draw(); }, 0);
   function draw() {
     const r = rOf(p), x = CX + ux * r, y = CY + uy * r, h = hAt(p);
     craft.style.transform = `translate(${x}px, ${y}px)`;
@@ -151,15 +150,15 @@
   scene.addEventListener('pointermove', e => {
     if (!scene.hasPointerCapture(e.pointerId)) { if (hover) { near = Math.round(pAt(e)); draw(); } return; }
     if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
-    if (drag) { p = pAt(e); draw(); }
+    if (drag) S.to(pAt(e), .045);
   });
-  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); idx = Math.round(wasDrag ? p : pAt(e)); p = idx; near = hover ? idx : null; draw(); };
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); idx = Math.round(wasDrag ? S.target : pAt(e)); near = hover ? idx : null; S.to(idx, .11); };
   scene.addEventListener('pointerup', release);
   scene.addEventListener('pointercancel', release);
   scene.setAttribute('aria-valuemin', ORBITS[0].h); scene.setAttribute('aria-valuemax', ORBITS[N - 1].h);
   scene.addEventListener('keydown', e => {
     const m = { ArrowUp: idx + 1, ArrowRight: idx + 1, ArrowDown: idx - 1, ArrowLeft: idx - 1, Home: 0, End: N - 1 };
-    if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); p = idx; draw(); }
+    if (e.key in m) { e.preventDefault(); idx = Math.min(N - 1, Math.max(0, m[e.key])); S.to(idx, .11); }
   });
   craft.style.transition = 'none'; draw(); craft.getBoundingClientRect(); craft.style.transition = '';
   if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');

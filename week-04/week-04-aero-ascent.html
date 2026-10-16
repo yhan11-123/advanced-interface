@@ -67,7 +67,7 @@
       <tr><td>Event label</td><td>Mono 500 7px on a dotted leader: mission time in grey, then the event; shown for the current event and the one under the pointer</td></tr>
       <tr><td>Vehicle</td><td data-var="--vehicle" data-after=" white dot in a 9px grey halo"></td></tr>
       <tr><td>Drag</td><td>The vehicle follows the nearest point on the path to the finger; clock, velocity and altitude interpolate between events</td></tr>
-      <tr><td>Settle</td><td data-var="--settle" data-after=", ease out, along the path to the nearest event"></td></tr>
+      <tr><td>Motion</td><td>Vehicle, path, globe and numbers ride one smoothed value: 45ms behind the finger while dragging, then an easing glide along the path to the nearest event</td></tr>
     </table>
 
     <h3>Telemetry</h3>
@@ -96,7 +96,7 @@
 
   <a class="back-pill" href="week-04.html" hidden>&larr; WEEK 04</a>
 
-  <script src="week-04-aero.js?v=3"></script>
+  <script src="week-04-aero.js?v=4"></script>
   <script>
   // One flight, five events. t is mission time in seconds; velocity in km/h, altitude in km.
   const EVENTS = [
@@ -170,14 +170,9 @@
     scene.setAttribute('aria-valuenow', idx); scene.setAttribute('aria-valuetext', `${EVENTS[idx].name}, ${clock(EVENTS[idx].t)}`);
   }
 
-  // settle: glide along the path to the event
-  let anim = 0;
-  const glide = to => {
-    cancelAnimationFrame(anim); const from = p, t0 = performance.now();
-    const step = now => { const k = Math.min(1, (now - t0) / SETTLE), e = 1 - Math.pow(1 - k, 3); p = from + (to - from) * e; draw(); if (k < 1) anim = requestAnimationFrame(step); };
-    anim = requestAnimationFrame(step);
-  };
-  const go = i => { idx = Math.min(N - 1, Math.max(0, i)); glide(idx); };
+  // one smoothed value drives everything: it trails the finger slightly, and glides along the path to an event
+  const S = AERO.smooth(x => { p = x; draw(); }, p);
+  const go = i => { idx = Math.min(N - 1, Math.max(0, i)); S.to(idx, .12); };
 
   const local = e => { const b = scene.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
   // the point on the path nearest the pointer, as p
@@ -188,13 +183,13 @@
   const show = () => { scene.classList.toggle('is-hover', hover && !down); scene.classList.toggle('is-pressed', down && !drag); scene.classList.toggle('is-dragging', drag); };
   scene.addEventListener('pointerenter', e => { hover = true; near = evAt(e); if (near === Math.round(p)) near = null; show(); draw(); });
   scene.addEventListener('pointerleave', () => { hover = false; near = null; show(); draw(); });
-  scene.addEventListener('pointerdown', e => { scene.setPointerCapture(e.pointerId); cancelAnimationFrame(anim); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
+  scene.addEventListener('pointerdown', e => { scene.setPointerCapture(e.pointerId); x0 = e.clientX; y0 = e.clientY; down = true; drag = false; near = null; show(); draw(); });
   scene.addEventListener('pointermove', e => {
     if (!scene.hasPointerCapture(e.pointerId)) { if (hover) { near = evAt(e); if (near === Math.round(p)) near = null; draw(); } return; }
     if (!drag && Math.hypot(e.clientX - x0, e.clientY - y0) > 3) { drag = true; show(); }
-    if (drag) { p = pAt(e); draw(); }
+    if (drag) S.to(pAt(e), .045);
   });
-  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); go(wasDrag ? Math.round(p) : evAt(e)); };
+  const release = e => { if (!down) return; const wasDrag = drag; down = drag = false; show(); go(wasDrag ? Math.round(S.target) : evAt(e)); };
   scene.addEventListener('pointerup', release);
   scene.addEventListener('pointercancel', release);
   scene.setAttribute('aria-valuemin', 0); scene.setAttribute('aria-valuemax', N - 1);

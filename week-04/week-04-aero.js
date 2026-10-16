@@ -29,5 +29,21 @@ const AERO = (() => {
     svg.append(g); return g;
   }
   document.querySelectorAll('.sky, .stars').forEach((el, i) => stars(el, el.classList.contains('sky') ? 160 : 110, 5 + i * 7));
-  return { stars, earth, rng };
+  // smooth(apply, v): the shown value chases the target exponentially. A short time constant while the finger
+  // drives it (it follows without feeling late), a longer one for taps, keys and settling (it glides and eases in).
+  function smooth(apply, v0) {
+    let cur = v0, target = v0, tau = .1, raf = 0, last = 0;
+    const tick = now => {
+      const dt = Math.min(.05, Math.max(0, now - (last || now - 16)) / 1000); last = now;   // rAF time can trail performance.now()
+      cur += (target - cur) * (1 - Math.exp(-dt / tau));
+      if (Math.abs(target - cur) < 1e-3) cur = target;
+      apply(cur); raf = cur === target ? 0 : requestAnimationFrame(tick);
+    };
+    return {
+      to(v, t = .1) { target = v; tau = t; if (!raf) { last = 0; raf = requestAnimationFrame(tick); } },
+      jump(v) { cur = target = v; apply(cur); },
+      get value() { return cur; }, get target() { return target; }
+    };
+  }
+  return { stars, earth, rng, smooth };
 })();
