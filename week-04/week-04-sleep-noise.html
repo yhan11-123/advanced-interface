@@ -19,7 +19,7 @@
     --off: #2a3150;                           /* a part's resting fill */
     --type-size: 13px; --type-line: 16px; --type-track: .06em;
   }
-  .mix { width: var(--w); display: grid; gap: 10px; }
+  .mix { width: min(var(--w), calc(100vw - 40px)); display: grid; gap: 10px; }   /* never wider than the frame it sits in */
   .labels { display: flex; justify-content: space-between; align-items: baseline; font: 500 var(--type-size)/var(--type-line) var(--mono); letter-spacing: var(--type-track); text-transform: uppercase; }
   .side { all: unset; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
   .side .name { transition: opacity .15s; }
