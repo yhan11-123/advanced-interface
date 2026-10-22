@@ -13,10 +13,15 @@
     .tip-kicker { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
     .tip-kicker::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; vertical-align: 1px; border-radius: 50%; background: var(--accent); }
     .tip ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-    .tip a { display: block; color: inherit; text-decoration: none; }
+    .tip { position: relative; transition: border-color .2s ease, background-color .2s ease; }
+    .tip a { display: block; color: inherit; text-decoration: none; outline: none; }
+    /* the whole box is the link: the anchor's hit area stretches over the tip */
+    .tip a::before { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+    .tip:hover, .tip:has(a:focus-visible) { border-style: solid; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+    .tip:has(a:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
     .tip a b { display: inline; font-size: 14px; }
     .tip a b::after { content: " \2192"; color: var(--fg-muted); transition: margin .2s ease; }
-    .tip a:hover b { color: var(--accent); }
+    .tip:hover a b { color: var(--accent); }
     .tip a > span:last-child { display: block; margin-top: 2px; color: var(--fg-muted); }
     .tip-dots { display: flex; gap: 3px; margin-bottom: 6px; }
     .tip-dots i { width: 10px; height: 10px; border-radius: 50%; }
