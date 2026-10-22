@@ -7,6 +7,23 @@
   <meta name="description" content="A 14-week log of vibe-coded design experiments and critique." />
   <link rel="icon" href="shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="shared/site.css?v=20" />
+  <style>
+    /* the lecture-notes tip: quiet, beside the timeline rather than part of it */
+    .tip { margin: 0 0 20px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: var(--radius); font-size: 13px; line-height: 1.4; }
+    .tip-kicker { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
+    .tip-kicker::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; vertical-align: 1px; border-radius: 50%; background: var(--accent); }
+    .tip ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .tip a { display: block; color: inherit; text-decoration: none; }
+    .tip a b { display: inline; font-size: 14px; }
+    .tip a b::after { content: " \2192"; color: var(--fg-muted); transition: margin .2s ease; }
+    .tip a:hover b { color: var(--accent); }
+    .tip a > span:last-child { display: block; margin-top: 2px; color: var(--fg-muted); }
+    .tip-dots { display: flex; gap: 3px; margin-bottom: 6px; }
+    .tip-dots i { width: 10px; height: 10px; border-radius: 50%; }
+    @media (min-width: 1240px) {
+      .tip { position: fixed; top: 96px; left: calc(50% + var(--max) / 2 + 28px); width: 184px; margin: 0; }
+    }
+  </style>
 </head>
 <body>
 
@@ -20,6 +37,21 @@
       <h1>14 weeks of interface experiments</h1>
       <p>Each week: a vibe-coded design experiment, the process behind it, and what critique said.</p>
     </section>
+
+    <!-- Lecture notes: class lectures kept apart from the weekly posts. A tip in
+         the right margin on wide screens, a small card above the timeline on narrow ones. -->
+    <aside class="tip" aria-labelledby="tip-title">
+      <p class="tip-kicker" id="tip-title">Lecture notes</p>
+      <ul>
+        <li>
+          <a href="notes/color.html">
+            <span class="tip-dots" aria-hidden="true"><i style="background:#e8a33d"></i><i style="background:#2f8f6b"></i><i style="background:#3d6fe8"></i><i style="background:#c9497f"></i></span>
+            <b>Color</b>
+            <span>Week 05 &middot; how a screen makes color, HSB, harmonies, contrast.</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
 
     <!-- ONE LINE PER WEEK. To publish a week, replace its Upcoming row with a
          filled-in row like Week 01, and keep its tags in sync with the post. -->
@@ -105,9 +137,24 @@
             </div>
           </a>
         </li>
-        <li class="slot is-upcoming">
-          <span class="num">Week 05</span>
-          <span>Upcoming</span>
+        <li class="slot">
+          <a href="week-05/week-05.html">
+            <span class="num">Week 05</span>
+            <div>
+              <p class="title">Lists</p>
+              <p class="summary">Two sets of list items, each a tone: one structure that takes any leading, content and trailing slot, one row that goes a level deeper, one that opens in place.</p>
+              <div class="meta">
+                <span>Oct 19, 2026</span>
+                <span class="tag">lists</span>
+                <span class="tag">system</span>
+                <span class="tag">navigate</span>
+                <span class="tag">expand</span>
+                <span class="tag">research</span>
+                <span class="tag">spec</span>
+                <span class="tag">tone</span>
+              </div>
+            </div>
+          </a>
         </li>
         <li class="slot is-upcoming">
           <span class="num">Week 06</span>
@@ -146,6 +193,7 @@
           <span>Upcoming</span>
         </li>
     </ol>
+
   </main>
 
   <footer class="site-footer">

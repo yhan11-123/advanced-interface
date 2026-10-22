@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 &middot; Lists &middot; Advanced Interface</title>
+  <meta name="description" content="Two sets of list items, each a tone: one structure that takes any leading, content and trailing slot, one row that goes a level deeper, one that opens in place." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=20" />
+  <style>
+    /* Week 05 diagram kit: one list row drawn the same way everywhere.
+       Picts (112 x 68): row 104 x 22, padding 6, gap 5, icon 7, avatar 12, label line 1.6, supporting line 1.2.
+       Anatomy (px, true size): the brief's spec, 16 side padding, 12 gaps, 10 top and bottom. */
+    .ls-row { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+    .ls-layer { fill: var(--accent); }
+    .ls-label { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; }
+    .ls-sub { fill: none; stroke: var(--fg-muted); stroke-width: 1.2; stroke-linecap: round; }
+    .ls-icon { fill: none; stroke: var(--fg); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .ls-avatar { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1; }
+    .ls-thumb { fill: var(--accent-soft); stroke: var(--fg-muted); stroke-width: 1; }
+    .ls-meta { fill: var(--fg-muted); font: 7px/1 var(--font); }
+    .ls-txt { fill: var(--fg); font: 11px/1 var(--font); }
+    .ls-txt-sub { fill: var(--fg-muted); font: 9.5px/1 var(--font); }
+    .ls-dim { fill: none; stroke: #e2537d; stroke-width: .8; }
+    .ls-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
+    .ls-pad { fill: #e2537d; opacity: .12; }
+    .rv-anat-fig .an-num text { font-size: 7px; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 05</div>
+      <h1>Lists</h1>
+      <div class="meta">
+        <span>Oct 19, 2026</span>
+        <span class="tag">lists</span>
+        <span class="tag">system</span>
+        <span class="tag">navigate</span>
+        <span class="tag">expand</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">micro-motion</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Two sets of list items, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the list is for and what it lets you do. A list's function is to be scanned and acted on, so the tone has to live in how the rows look, answer the pointer and move, without getting in the way of reading.</p>
+
+      <p>The rule that shapes everything: <strong>the list item works as a system</strong>. One basic structure, many configurations.</p>
+
+      <h3>What the structure has to take</h3>
+
+      <table>
+        <thead>
+          <tr><th>Slot</th><th>Has to support</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Leading</td><td>An icon, a profile avatar, an image thumbnail, or nothing</td></tr>
+          <tr><td>Content</td><td>One line of text, or two</td></tr>
+          <tr><td>Trailing</td><td>Text, an icon, or both</td></tr>
+        </tbody>
+      </table>
+
+      <h3>What each set has to show</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Does</th><th>States</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>A row that navigates</td><td>Clicked, it takes you one level deeper</td><td>Enabled, hover, pressed</td></tr>
+          <tr><td>A row that expands</td><td>Clicked, it opens in place and reveals its sub-items</td><td>Enabled, hover, pressed</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief's own drawing shows the system as three rows of one build: label only; an icon, label and supporting text, and trailing text; an avatar, two lines and a trailing icon. Every row keeps 16 at the sides, 12 between slots and 10 above and below. Beside it, an Apple grouped list: Title, Detail and a chevron, three times.</p>
+
+      <h3>The spec</h3>
+
+      <p>As before, no Figma file: every prototype carries its own spec in a section of the page. At least spacing, font, font size and line height, the row's size, and every other property that shapes it: slot sizes, gaps, roundness, stroke width, the state layers. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>Read against Apple's Lists and tables guidelines and Material 3's Lists, every tab: overview, specs, guidelines, accessibility.</p>
+
+      <h3>One structure, three slots</h3>
+
+      <p>Material describes a list item as three slots inside one container. Only the container and the label are required; everything else is optional. The content slot is always the widest, so the words keep their room whatever sits at either end.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-30 -34 330 140" role="img" aria-label="A list row drawn at true size: a 40px avatar, two lines of text and a 20px trailing chevron, with its padding and gaps marked and six numbered parts">
+            <rect x="0" y="0" width="280" height="60" class="ls-row"/>
+            <rect x="0" y="0" width="16" height="60" class="ls-pad"/><rect x="264" y="0" width="16" height="60" class="ls-pad"/>
+            <rect x="56" y="0" width="12" height="60" class="ls-pad"/><rect x="232" y="0" width="12" height="60" class="ls-pad"/>
+            <rect x="16" y="0" width="248" height="10" class="ls-pad"/><rect x="16" y="50" width="248" height="10" class="ls-pad"/>
+            <circle cx="36" cy="30" r="20" class="ls-avatar"/><text x="36" y="34" text-anchor="middle" class="ls-txt" style="fill: var(--accent)">A</text>
+            <text x="68" y="25" class="ls-txt">Label text</text>
+            <text x="68" y="42" class="ls-txt-sub">Supporting text that wraps…</text>
+            <rect x="244" y="20" width="20" height="20" rx="3" fill="none" stroke="var(--line)"/>
+            <path class="ls-icon" d="M251 25 L257 30 L251 35"/>
+            <path d="M68 60 H280" stroke="var(--fg-muted)" stroke-width="1"/>
+            <path class="ls-dim" d="M0 -8 H16 M0 -11 V-5 M16 -11 V-5 M56 -8 H68 M56 -11 V-5 M68 -11 V-5 M232 -8 H244 M232 -11 V-5 M244 -11 V-5 M264 -8 H280 M264 -11 V-5 M280 -11 V-5"/>
+            <text x="8" y="-14" class="ls-dim-txt">16</text><text x="62" y="-14" class="ls-dim-txt">12</text><text x="238" y="-14" class="ls-dim-txt">12</text><text x="272" y="-14" class="ls-dim-txt">16</text>
+            <path class="ls-dim" d="M-8 0 V10 M-11 0 H-5 M-11 10 H-5 M-8 50 V60 M-11 50 H-5 M-11 60 H-5"/>
+            <text x="-16" y="8" class="ls-dim-txt">10</text><text x="-16" y="58" class="ls-dim-txt">10</text>
+            <path class="an-lead" d="M150 76 L150 60 M-18 84 L20 46 M118 84 L96 30 M200 84 L150 46 M262 84 L254 38 M100 100 L100 61"/>
+            <g class="an-num"><circle cx="150" cy="80" r="5"/><text x="150" y="80">1</text></g>
+            <g class="an-num"><circle cx="-18" cy="88" r="5"/><text x="-18" y="88">2</text></g>
+            <g class="an-num"><circle cx="118" cy="88" r="5"/><text x="118" y="88">3</text></g>
+            <g class="an-num"><circle cx="200" cy="88" r="5"/><text x="200" y="88">4</text></g>
+            <g class="an-num"><circle cx="262" cy="88" r="5"/><text x="262" y="88">5</text></g>
+            <g class="an-num"><circle cx="100" cy="104" r="5"/><text x="100" y="104">6</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>The row. Its height is set by the tallest thing in it: Material uses 56, 72 or 88 dp.</span></li>
+          <li><b>Leading slot</b><span>Icon (20 in the brief, 24 dp in Material), avatar 40, image or video thumbnail, a selection control, or nothing.</span></li>
+          <li><b>Label</b><span>The only text that is required. Short, so it scans.</span></li>
+          <li><b>Supporting text</b><span>Optional, one to three lines, truncated when it runs over.</span></li>
+          <li><b>Trailing slot</b><span>Text (a price, a count, a date), an icon or icon button, a control, or text and an icon together.</span></li>
+          <li><b>Divider</b><span>Optional; inset to the text, or full width. Material now prefers gaps for contained lists.</span></li>
+        </ol>
+      </div>
+
+      <h3>What each slot can hold</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="4" width="104" height="18" class="ls-row"/><path class="ls-label" d="M10 13 H48"/>
+            <rect x="4" y="25" width="104" height="18" class="ls-row"/><path class="ls-icon" d="M10 31 h7 v7 h-7 z"/><path class="ls-label" d="M22 34 H58"/>
+            <rect x="4" y="46" width="104" height="18" class="ls-row"/><rect x="9" y="49" width="16" height="12" rx="1.5" class="ls-thumb"/><path class="ls-label" d="M30 55 H64"/>
+          </svg>
+          <b>Leading: nothing, an icon, an image</b>
+          <p>Or an avatar for a person. Whatever it is, it sits at the leading edge in every row, so the eye runs straight down it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="8" width="104" height="20" class="ls-row"/><circle cx="16" cy="18" r="6" class="ls-avatar"/><path class="ls-label" d="M27 18 H70"/>
+            <rect x="4" y="34" width="104" height="28" class="ls-row"/><circle cx="16" cy="48" r="6" class="ls-avatar"/><path class="ls-label" d="M27 44 H70"/><path class="ls-sub" d="M27 52 H90"/>
+          </svg>
+          <b>Content: one line or two</b>
+          <p>The label alone, or with supporting text under it. The row grows to fit; the leading slot stays centred until the text runs to three lines.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="4" width="104" height="18" class="ls-row"/><path class="ls-label" d="M10 13 H44"/><text x="102" y="15.5" text-anchor="end" class="ls-meta">$12</text>
+            <rect x="4" y="25" width="104" height="18" class="ls-row"/><path class="ls-label" d="M10 34 H44"/><path class="ls-icon" d="M98 30 L102 34 L98 38"/>
+            <rect x="4" y="46" width="104" height="18" class="ls-row"/><path class="ls-label" d="M10 55 H44"/><text x="93" y="57.5" text-anchor="end" class="ls-meta">Detail</text><path class="ls-icon" d="M98 51 L102 55 L98 59"/>
+          </svg>
+          <b>Trailing: text, an icon, or both</b>
+          <p>Text for meta information. An icon for status or an action. Both, as in Apple's Title, Detail and chevron.</p>
+        </div>
+      </div>
+
+      <h3>Two actions</h3>
+
+      <p>The brief asks for both, and the two systems draw a clear line between them: one row leaves the list, the other stays and opens.</p>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A row with a chevron pointing right, and an arrow to a second screen sliding in from the right">
+              <rect x="8" y="20" width="100" height="26" class="ls-row"/><path class="ls-label" d="M16 33 H60"/><path class="ls-icon" d="M96 28 L101 33 L96 38"/>
+              <rect x="8" y="50" width="100" height="26" class="ls-row"/><path class="ls-label" d="M16 63 H54"/><path class="ls-icon" d="M96 58 L101 63 L96 68"/>
+              <path class="rv-mute" d="M112 33 H128 M124 29 L128 33 L124 37"/>
+              <rect x="134" y="14" width="48" height="80" rx="3" class="ls-row"/><path class="ls-icon" d="M141 24 L137 28 L141 32"/><path class="ls-label" d="M145 28 H170"/><path class="ls-sub" d="M140 44 H176 M140 54 H170 M140 64 H174"/>
+              <text x="8" y="110" class="rv-note">one level deeper</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Navigate</b>
+            <dl class="rv-facts">
+              <dt>Signal</dt><dd>A chevron pointing on: Apple's disclosure indicator</dd>
+              <dt>Target</dt><dd>The whole row is one action; no other button inside it</dd>
+              <dt>Feedback</dt><dd>In a hierarchy, the chosen row stays highlighted so the path is clear</dd>
+              <dt>On the web</dt><dd>A link: Tab to it, Enter follows it</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 190 120" width="190" height="120" role="img" aria-label="A row with a chevron turned down, and three indented sub-items revealed under it">
+              <rect x="20" y="10" width="150" height="24" class="ls-row"/><path class="ls-label" d="M28 22 H80"/><path class="ls-icon" d="M154 19 L158 24 L162 19"/>
+              <rect x="20" y="36" width="150" height="20" class="ls-row" style="fill: var(--accent-soft)"/><path class="ls-sub" d="M40 46 H90"/>
+              <rect x="20" y="56" width="150" height="20" class="ls-row" style="fill: var(--accent-soft)"/><path class="ls-sub" d="M40 66 H84"/>
+              <rect x="20" y="76" width="150" height="20" class="ls-row" style="fill: var(--accent-soft)"/><path class="ls-sub" d="M40 86 H96"/>
+              <text x="20" y="112" class="rv-note">opens in place</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Expand</b>
+            <dl class="rv-facts">
+              <dt>Signal</dt><dd>A chevron that turns as it opens; macOS calls it a disclosure triangle</dd>
+              <dt>Children</dt><dd>Revealed under the parent, indented; the rows below make way</dd>
+              <dt>Motion</dt><dd>Material: a parent-child transition, the item grows to hold its children</dd>
+              <dt>On the web</dt><dd>A button with <code>aria-expanded</code> and <code>aria-controls</code>; Space or Enter toggles it</dd>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Three states, and focus</h3>
+
+      <p>Material lays a state layer over the whole row in the content colour: about 8% on hover, 10% when pressed, with a ripple from the finger. Apple highlights a pressed row briefly; on a navigating list the chosen row keeps its highlight. Focus is not in the brief, but a keyboard has to see where it is.</p>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" class="ls-row"/><path class="ls-label" d="M10 20 H54"/><path class="ls-icon" d="M86 15 L91 20 L86 25"/></svg>
+          <figcaption><b>Enabled</b><span>At rest</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" class="ls-row"/><rect x="2" y="8" width="96" height="24" class="ls-layer" opacity=".08"/><path class="ls-label" d="M10 20 H54"/><path class="ls-icon" d="M86 15 L91 20 L86 25"/><path d="M60 24 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/></svg>
+          <figcaption><b>Hover</b><span>Layer, about 8%</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" class="ls-row"/><rect x="2" y="8" width="96" height="24" class="ls-layer" opacity=".1"/><circle cx="40" cy="20" r="14" class="ls-layer" opacity=".12"/><path class="ls-label" d="M10 20 H54"/><path class="ls-icon" d="M86 15 L91 20 L86 25"/></svg>
+          <figcaption><b>Pressed</b><span>Layer 10%, ripple</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" class="ls-row"/><rect x="0" y="6" width="100" height="28" fill="none" stroke="var(--fg)" stroke-width="2"/><path class="ls-label" d="M10 20 H54"/><path class="ls-icon" d="M86 15 L91 20 L86 25"/></svg>
+          <figcaption><b>Focused</b><span>A ring the keyboard can see</span></figcaption>
+        </figure>
+      </div>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <path class="rv-mute" d="M16 4 V64" stroke-dasharray="2 2"/><path class="rv-mute" d="M30 4 V64" stroke-dasharray="2 2"/>
+            <circle cx="16" cy="14" r="5" class="ls-avatar"/><path class="ls-label" d="M30 14 H70"/>
+            <circle cx="16" cy="34" r="5" class="ls-avatar"/><path class="ls-label" d="M30 34 H62"/>
+            <circle cx="16" cy="54" r="5" class="ls-avatar"/><path class="ls-label" d="M30 54 H78"/>
+          </svg>
+          <b>Same place, every row</b>
+          <p>Leading visuals and the label start at the same x in every row. Don't move elements from row to row; a list is read by running down it.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="12" width="104" height="22" class="ls-row"/><text x="10" y="26" class="ls-meta" style="font-size: 7.5px">Annual-repo…-final.pdf</text>
+            <rect x="4" y="38" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 46 H70"/><path class="ls-sub" d="M10 53 H90"/>
+          </svg>
+          <b>Short, and cut with care</b>
+          <p>Keep labels brief. When text has to be cut, a cut in the middle can keep both the start and the end readable.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="14" y="18" width="44" height="44" rx="4" fill="none" stroke="var(--accent)" stroke-dasharray="3 2"/>
+            <circle cx="36" cy="40" r="6" class="ls-avatar"/>
+            <text x="64" y="28" class="rv-note">48</text><text x="46" y="44" class="rv-note">12</text>
+            <rect x="70" y="34" width="38" height="16" class="ls-row"/><path class="ls-label" d="M76 42 H100"/>
+          </svg>
+          <b>Big enough to hit</b>
+          <p>Material's minimum target is 48 dp, Apple's 44 pt. A slim tone can draw a thin row, but the row it hit-tests stays tall.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="10" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 21 H50"/><path class="ls-icon" d="M86 16 L91 21 L86 26"/><path class="ls-icon" d="M96 21 h6 M99 18 v6" opacity=".3"/>
+            <path class="rv-mute" d="M92 6 L106 36" stroke="#e2537d"/>
+            <rect x="4" y="38" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 49 H50"/><path class="ls-icon" d="M95 44 L100 49 L95 54"/>
+          </svg>
+          <b>One action per row</b>
+          <p>A navigating row is one target. Don't add a second button inside it, and don't use an info button to drill in; that is the chevron's job.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="10" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 21 H50"/>
+            <rect x="4" y="36" width="104" height="22" class="ls-row"/><rect x="4" y="36" width="104" height="22" class="ls-layer" opacity=".14"/><path class="ls-icon" d="M10 47 l3 3 l6 -6"/><path class="ls-label" d="M24 47 H64"/>
+          </svg>
+          <b>Never colour alone</b>
+          <p>A selected or open row needs a second cue: a check, a turned chevron, a change in weight. Not only a tint.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="4" width="50" height="14" rx="4" class="ls-row"/><rect x="4" y="20" width="50" height="14" rx="4" class="ls-row"/><rect x="4" y="36" width="50" height="14" rx="4" class="ls-row"/>
+            <rect x="60" y="4" width="48" height="46" class="ls-row"/><path d="M60 19.3 H108 M60 34.6 H108" stroke="var(--fg-muted)" stroke-width="1"/>
+            <text x="29" y="62" text-anchor="middle" class="rv-note">gaps</text><text x="84" y="62" text-anchor="middle" class="rv-note">dividers</text>
+          </svg>
+          <b>Gaps or dividers</b>
+          <p>Material now groups contained lists with gaps and rounded segments, and keeps dividers for open lists that need a firmer break.</p>
+        </div>
+      </div>
+
+      <h3>Where Apple and Material differ</h3>
+
+      <table>
+        <thead>
+          <tr><th>Question</th><th>Apple</th><th>Material 3</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Row height</td><td>44 pt minimum target; rows size to content</td><td>56, 72 or 88 dp, set by the tallest element</td></tr>
+          <tr><td>Side padding</td><td>Follows the layout margins; inset grouped lists sit in a rounded card</td><td>16 dp leading; 16 dp before a trailing element, 24 dp after it (baseline)</td></tr>
+          <tr><td>Going deeper</td><td>Disclosure indicator, a chevron; the info button never navigates</td><td>A single-action list; the whole item navigates</td></tr>
+          <tr><td>Opening in place</td><td>Outline view with disclosure triangles (macOS)</td><td>Expand and collapse, with a parent-child transition</td></tr>
+          <tr><td>Hover</td><td>On the Mac and iPad pointer; none on touch</td><td>A state layer, about 8%</td></tr>
+          <tr><td>Pressed</td><td>A brief highlight; kept on the chosen row in a hierarchy</td><td>A state layer, about 10%, with a ripple</td></tr>
+          <tr><td>Grouping</td><td>Grouped style: headers, footers, extra space</td><td>Segmented style with gaps, or dividers</td></tr>
+          <tr><td>Keyboard</td><td>Platform focus; full keyboard access on the Mac</td><td>Tab to the list, arrows move, Space or Enter acts</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Still to read</h3>
+
+      <ul>
+        <li>WAI-ARIA: the disclosure pattern for the expanding row, and lists of links</li>
+        <li>Material's expand interaction tokens: durations and the container transform</li>
+        <li>iOS <code>UIListContentConfiguration</code>: the built-in row styles and their spacing</li>
+        <li>Lists with tone in the wild: music libraries, settings, file browsers, games</li>
+      </ul>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-05-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-05-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-05-NAME.html">View larger</button>
+          </figcaption>
+        </figure> -->
+      <div class="idea-grid"></div>
+
+      <h2>Deliverables</h2>
+
+      <p>Two sets of list items, each a tone. Each set has the list system, every slot configuration from one build, and the list in use: a row that goes one level deeper and a row that opens in place. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-05-TONE-{system,actions}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the list first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-05-set-1-system.html</span></div>
+                  <figcaption>
+                    <b>List system</b>
+                    <span>One row build in every configuration: leading icon, avatar, thumbnail or nothing; one line or two; trailing text, icon or both. Enabled, hover and pressed.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-05-set-1-actions.html</span></div>
+                  <figcaption>
+                    <b>In use</b>
+                    <span>A row that goes one level deeper, and a row that opens in place to reveal its sub-items.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">List system</p>
+              <div class="process-grid"></div>
+              <p class="process-label">In use</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-05-set-2-system.html</span></div>
+                  <figcaption>
+                    <b>List system</b>
+                    <span>One row build in every configuration: leading icon, avatar, thumbnail or nothing; one line or two; trailing text, icon or both. Enabled, hover and pressed.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-05-set-2-actions.html</span></div>
+                  <figcaption>
+                    <b>In use</b>
+                    <span>A row that goes one level deeper, and a row that opens in place to reveal its sub-items.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">List system</p>
+              <div class="process-grid"></div>
+              <p class="process-label">In use</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/lists-and-tables">Lists and tables</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/outline-views">Outline views</a>, Apple Human Interface Guidelines</li>
+          <li>Lists: <a href="https://m3.material.io/components/lists/overview">overview</a>, <a href="https://m3.material.io/components/lists/specs">specs</a>, <a href="https://m3.material.io/components/lists/guidelines">guidelines</a>, <a href="https://m3.material.io/components/lists/accessibility">accessibility</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/foundations/interaction/states/state-layers">State layers</a>, Material Design 3</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/">Disclosure (show/hide) pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">Understanding SC 2.5.8: Target Size (Minimum)</a>, W3C</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-04/week-04.html">&larr; Week 04: Sliders</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=5"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+</body>
+</html>

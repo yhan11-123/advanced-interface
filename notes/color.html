@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color &middot; Lecture notes &middot; Advanced Interface</title>
+  <meta name="description" content="Notes from the week 5 lecture on color: how a screen makes it, the three numbers that name it, how the eye bends it, how colors are combined, and how it is put to work in an interface." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=20" />
+  <style>
+    /* Week 05 colour notes. Every sample on this page is drawn here, in CSS and SVG;
+       swatches given as HSB are turned into colour by the script at the bottom. */
+    .cl-strip { display: flex; gap: 0; height: 56px; margin: 12px 0 6px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+    .cl-strip > span { flex: 1; }
+    .cl-strip.is-tall { height: 88px; }
+    .cl-caption { margin: 0 0 24px; font-size: 13px; color: var(--fg-muted); }
+
+    .cl-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; margin: 14px 0 24px; }
+    .cl-chip { margin: 0; padding: 6px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .cl-chip > span { display: block; height: 64px; border-radius: 6px; }
+    .cl-chip figcaption { padding: 7px 2px 1px; font: 11px/1.35 var(--mono); color: var(--fg-muted); }
+    .cl-chip figcaption b { display: block; font: 600 12.5px/1.35 var(--font); color: var(--fg); }
+
+    /* light and pigment: three discs, mixed the way each medium mixes */
+    .cl-mix { width: 150px; height: 140px; }
+    .cl-mix.is-light { background: #000; border-radius: 8px; }
+    .cl-mix.is-light circle { mix-blend-mode: screen; }
+    .cl-mix.is-ink { background: #fff; border-radius: 8px; }
+    .cl-mix.is-ink circle { mix-blend-mode: multiply; }
+    .rv-art.is-pair { display: flex; justify-content: center; align-items: center; gap: 14px; }
+
+    /* subpixels */
+    .cl-px { width: 120px; height: 120px; background: #000; border-radius: 6px; }
+
+    /* HSB playground */
+    .cl-play { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: center; margin: 16px 0 24px; padding: 18px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .cl-play-out { height: 180px; border-radius: 8px; border: 1px solid var(--line); }
+    .cl-sliders { display: grid; gap: 12px; }
+    .cl-sliders label { display: grid; grid-template-columns: 92px 1fr 44px; gap: 10px; align-items: center; font-size: 13.5px; }
+    .cl-sliders output { font: 12px var(--mono); text-align: right; color: var(--fg-muted); }
+    .cl-sliders input[type=range] { width: 100%; accent-color: var(--fg); }
+    .cl-read { margin-top: 4px; font: 12px/1.5 var(--mono); color: var(--fg-muted); }
+    @media (max-width: 560px) { .cl-play { grid-template-columns: 1fr; } .cl-play-out { height: 96px; } }
+
+    /* simultaneous contrast: a square inside a square */
+    .cl-sq { display: grid; place-items: center; width: 132px; height: 132px; border-radius: 4px; }
+    .cl-sq > span { width: 44px; height: 44px; }
+
+    /* harmony picker */
+    .cl-harm { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; margin: 16px 0 24px; padding: 18px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .cl-wheel { width: 220px; height: 220px; }
+    .cl-wheel .dot { stroke: #fff; stroke-width: 2.5; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+    .cl-wheel .spoke { stroke: var(--fg); stroke-width: 1; opacity: .5; fill: none; }
+    .cl-harm-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .cl-harm-tabs button { font: 13px var(--font); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+    .cl-harm-tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .cl-harm-note { margin: 0 0 12px; font-size: 14px; line-height: 1.5; }
+    .cl-harm .cl-strip { margin: 0 0 12px; }
+    .cl-harm label { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: center; font-size: 13px; color: var(--fg-muted); }
+    .cl-harm input[type=range] { width: 100%; accent-color: var(--fg); }
+    @media (max-width: 620px) { .cl-harm { grid-template-columns: 1fr; justify-items: center; } .cl-harm > div:last-child { width: 100%; } }
+
+    /* key */
+    .cl-key { position: relative; width: 100%; height: 168px; display: grid; place-items: center; }
+    .cl-key .card { width: 120px; padding: 12px; border-radius: 10px; font-size: 11px; line-height: 1.35; }
+    .cl-key .card b { display: block; font-size: 13px; margin-bottom: 6px; }
+    .cl-key .bar { height: 6px; border-radius: 3px; margin-top: 6px; }
+
+    /* the recipe card, drawn three ways */
+    .cl-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .cl-card-fig { margin: 0; }
+    .cl-recipe { width: 180px; margin: 0 auto; background: #fbf7ee; border-radius: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 6px 18px -10px rgba(0,0,0,.35); color: #24211b; overflow: hidden; }
+    .cl-recipe .art { height: 92px; display: grid; place-items: center; background: #f3ecdc; }
+    .cl-recipe .body { padding: var(--pad, 14px); }
+    .prose .cl-recipe h4 { color: #24211b; margin: 0 0 var(--gap, 8px); font-size: 15px; line-height: 20px; font-weight: 600; }
+    .prose .cl-recipe .eyebrow { margin: 0 0 2px; font-size: 10px; line-height: 14px; letter-spacing: .06em; text-transform: uppercase; color: #6d6656; }
+    .prose .cl-recipe ul { margin: 0 0 var(--gap, 8px); padding-left: 14px; font-size: 11px; line-height: 16px; }
+    .cl-recipe .acts { display: flex; justify-content: flex-end; gap: 6px; }
+    .cl-recipe .btn { font: 600 11px/1 var(--font); padding: 8px 12px; border-radius: 999px; border: 0; }
+    .cl-recipe .btn.is-quiet { background: transparent; color: #4b4535; }
+    .cl-recipe.is-loose { --pad: 22px 10px; --gap: 18px; }
+    .cl-recipe.is-loose h4 { margin-bottom: 4px; }
+    .cl-card-fig figcaption { margin-top: 12px; font-size: 13px; line-height: 1.45; text-align: center; }
+    .cl-card-fig figcaption b { display: block; font-size: 14px; }
+    .cl-pass, .cl-fail { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font: 600 11px/1.5 var(--mono); }
+    .cl-pass { background: #e3f3e7; color: #1f6b35; }
+    .cl-fail { background: #fbe4df; color: var(--dont); }
+
+    /* contrast checker */
+    .cl-check { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; margin: 16px 0 24px; padding: 18px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .cl-check-demo { display: grid; place-items: center; height: 150px; border-radius: 8px; background: #fbf7ee; }
+    .cl-check-demo span { font: 600 16px/1 var(--font); padding: 12px 20px; border-radius: 999px; }
+    .cl-ratio { font: 600 34px/1 var(--font); font-variant-numeric: tabular-nums; }
+    .cl-check .cl-sliders { margin-top: 12px; }
+    @media (max-width: 620px) { .cl-check { grid-template-columns: 1fr; } }
+
+    /* button states */
+    .cl-btns { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; margin: 12px 0 24px; }
+    .cl-btns figure { margin: 0; padding: 18px 8px 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); text-align: center; }
+    .cl-btns .b { display: inline-block; font: 600 13px/1 var(--font); padding: 10px 16px; border-radius: 999px; background: #1f7a52; color: #fff; position: relative; }
+    .cl-btns .b.hover { box-shadow: inset 0 0 0 99px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.25); }
+    .cl-btns .b.pressed { box-shadow: inset 0 0 0 99px rgba(255,255,255,.1); }
+    .cl-btns .b.drag { box-shadow: inset 0 0 0 99px rgba(255,255,255,.16), 0 6px 14px -4px rgba(0,0,0,.4); transform: translateY(-2px); }
+    .cl-btns .b.disabled { background: rgba(31,31,31,.12); color: rgba(31,31,31,.38); }
+    .cl-btns .ground { display: block; padding: 14px 0; margin: -18px -8px 0; border-radius: var(--radius) var(--radius) 0 0; background: #fbf7ee; }
+    .cl-btns figcaption { margin-top: 12px; font-size: 12px; line-height: 1.35; }
+    .cl-btns figcaption b { display: block; font-size: 12.5px; }
+    .cl-btns figcaption span { color: var(--fg-muted); }
+
+    .cl-credit { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Lecture notes &middot; Week 05</div>
+      <h1>Color</h1>
+      <div class="meta">
+        <span>Oct 19, 2026</span>
+        <span class="tag">color</span>
+        <span class="tag">hsb</span>
+        <span class="tag">harmony</span>
+        <span class="tag">contrast</span>
+        <span class="tag">lecture notes</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <p class="cl-credit">An archive of the week 5 lecture on color, given in class by Dan Park. The lecture's slides are not reproduced here: every sample, wheel and card below is redrawn on this page to carry the same idea, and some of them can be played with.</p>
+
+      <h2>How a screen makes color</h2>
+
+      <h3>Subpixels</h3>
+
+      <p>Close up, a screen has no colors at all, only tiny red, green and blue lights. Every color you see is those three, each at its own brightness, too small to tell apart. How they are laid out differs from screen to screen: a watch, a phone, a monitor and a TV each arrange them their own way, in stripes, in diamonds, in clusters, some with a white one added.</p>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art is-pair">
+            <svg class="cl-px" viewBox="0 0 60 60" aria-label="Subpixels in stripes: red, green and blue bars side by side, row after row">
+              <g id="stripe">
+                <rect x="3" y="3" width="4" height="12" fill="#ff2a2a"/><rect x="9" y="3" width="4" height="12" fill="#2aff4a"/><rect x="15" y="3" width="4" height="12" fill="#2a5bff"/>
+              </g>
+              <use href="#stripe" x="18"/><use href="#stripe" x="36"/>
+              <use href="#stripe" y="18"/><use href="#stripe" x="18" y="18"/><use href="#stripe" x="36" y="18"/>
+              <use href="#stripe" y="36"/><use href="#stripe" x="18" y="36"/><use href="#stripe" x="36" y="36"/>
+            </svg>
+            <svg class="cl-px" viewBox="0 0 60 60" aria-label="Subpixels in a diamond pattern: small green dots between larger red and blue ones">
+              <g id="diamond">
+                <rect x="4" y="4" width="7" height="7" fill="#ff2a2a" transform="rotate(45 7.5 7.5)"/>
+                <circle cx="18" cy="7.5" r="2.2" fill="#2aff4a"/>
+                <rect x="25" y="4" width="7" height="7" fill="#2a5bff" transform="rotate(45 28.5 7.5)"/>
+                <circle cx="39" cy="7.5" r="2.2" fill="#2aff4a"/>
+                <rect x="46" y="4" width="7" height="7" fill="#ff2a2a" transform="rotate(45 49.5 7.5)"/>
+              </g>
+              <use href="#diamond" y="15" x="10.5"/>
+              <use href="#diamond" y="30"/><use href="#diamond" y="45" x="10.5"/>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Three lights per pixel</b>
+            <dl class="rv-facts">
+              <dt>Stripes</dt><dd>Red, green and blue side by side; most monitors.</dd>
+              <dt>Diamonds</dt><dd>More green than red or blue, since the eye is most sensitive to green; most phone OLEDs.</dd>
+              <dt>So what</dt><dd>The same hex is not the same light on every screen. Check a palette on the devices it is for.</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art is-pair">
+            <svg class="cl-mix is-light" viewBox="0 0 150 140" aria-label="Additive: red, green and blue light overlap into yellow, cyan, magenta and, in the middle, white">
+              <circle cx="56" cy="54" r="34" fill="#ff0000"/><circle cx="94" cy="54" r="34" fill="#00ff00"/><circle cx="75" cy="88" r="34" fill="#0000ff"/>
+            </svg>
+            <svg class="cl-mix is-ink" viewBox="0 0 150 140" aria-label="Subtractive: cyan, magenta and yellow ink overlap into red, green, blue and, in the middle, near black">
+              <circle cx="56" cy="54" r="34" fill="#00ffff"/><circle cx="94" cy="54" r="34" fill="#ff00ff"/><circle cx="75" cy="88" r="34" fill="#ffff00"/>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Additive and subtractive</b>
+            <dl class="rv-facts">
+              <dt>Additive</dt><dd>Light, RGB. Starts from black; every light added makes it brighter, all three make white. Screens.</dd>
+              <dt>Subtractive</dt><dd>Ink, CMYK. Starts from white paper; every ink takes light away, all three make (nearly) black. Print.</dd>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Blending modes say the same thing</h3>
+
+      <p>The two ways of mixing are already in every design tool, as blending modes. <strong>Screen</strong> mixes like light: a red over a green turns yellow where they overlap. <strong>Multiply</strong> mixes like ink: the same red over the same green goes dark. Knowing which is which explains why a Screen layer can only ever lighten and a Multiply layer can only ever darken.</p>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art" style="background:#000">
+            <svg viewBox="0 0 160 80" style="width:200px" aria-label="Screen: a red circle over a green square; the overlap is yellow">
+              <rect x="62" y="6" width="80" height="68" fill="#00ff00"/>
+              <circle cx="58" cy="40" r="34" fill="#ff0000" style="mix-blend-mode: screen"/>
+            </svg>
+          </div>
+          <figcaption><b>Screen = additive</b><dl class="rv-facts"><dt>Red + green</dt><dd>Yellow. Never darker than either layer.</dd></dl></figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art" style="background:#fff">
+            <svg viewBox="0 0 160 80" style="width:200px" aria-label="Multiply: a red circle over a green square; the overlap is black">
+              <rect x="62" y="6" width="80" height="68" fill="#00ff00"/>
+              <circle cx="58" cy="40" r="34" fill="#ff0000" style="mix-blend-mode: multiply"/>
+            </svg>
+          </div>
+          <figcaption><b>Multiply = subtractive</b><dl class="rv-facts"><dt>Red &times; green</dt><dd>Black. Never lighter than either layer.</dd></dl></figcaption>
+        </figure>
+      </div>
+
+      <h2>Three numbers name a color</h2>
+
+      <p>A hex code tells a screen what to do. It does not tell a person much. HSB (also written HSL or HSV, which differ in how they measure the third number) names a color the way we talk about it.</p>
+
+      <table>
+        <thead><tr><th>Number</th><th>Also called</th><th>Answers</th></tr></thead>
+        <tbody>
+          <tr><td><b>Hue</b>, 0&ndash;360&deg;</td><td>Color</td><td>Which color: its place around the wheel. 0 red, 120 green, 240 blue.</td></tr>
+          <tr><td><b>Saturation</b>, 0&ndash;100</td><td>Chroma</td><td>How much color: from grey to as pure as it gets.</td></tr>
+          <tr><td><b>Brightness</b>, 0&ndash;100</td><td>Lightness, value, black, luminance</td><td>How much light: from black to full.</td></tr>
+        </tbody>
+      </table>
+
+      <p>The same hue, 60, three ways: change only saturation or only brightness and it stays recognisably "that yellow", which is why designers build palettes in HSB.</p>
+
+      <div class="cl-chips" data-chips="60 100 100 Pure; 60 30 100 Less saturation; 60 100 70 Less brightness"></div>
+
+      <div class="cl-play" id="hsb-play">
+        <div class="cl-play-out" aria-hidden="true"></div>
+        <div>
+          <div class="cl-sliders">
+            <label>Hue <input type="range" min="0" max="360" value="203" data-k="h" /><output>203</output></label>
+            <label>Saturation <input type="range" min="0" max="100" value="44" data-k="s" /><output>44</output></label>
+            <label>Brightness <input type="range" min="0" max="100" value="91" data-k="b" /><output>91</output></label>
+          </div>
+          <p class="cl-read" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <h3>Temperature</h3>
+
+      <p>Hue also carries a temperature. Reds, oranges and yellows read warm and seem to come forward; blues and greens read cool and seem to sit back. Temperature is relative: a green next to a blue looks warm, the same green next to a yellow looks cool.</p>
+
+      <div class="cl-strip" data-strip="0 75 95; 18 80 98; 36 80 98; 50 75 98; 90 45 80; 150 50 70; 190 60 80; 215 65 85; 240 55 80"></div>
+      <p class="cl-caption">From warm to cool.</p>
+
+      <h2>The eye bends what it sees</h2>
+
+      <h3>Abney effect</h3>
+
+      <p>Mix white into a color and its hue seems to shift, even though its hue number never changed. Blue drifts towards purple as it gets paler; red drifts a little towards pink-purple too. So a tint ramp built only by lowering saturation can look like it changes hue halfway; nudge the hue to keep it looking like one color.</p>
+
+      <div class="cl-strip" data-strip="0 100 100; 0 85 100; 0 70 100; 0 55 100; 0 40 100; 0 25 100; 0 12 100; 0 0 100"></div>
+      <div class="cl-strip" data-strip="240 100 100; 240 85 100; 240 70 100; 240 55 100; 240 40 100; 240 25 100; 240 12 100; 240 0 100"></div>
+      <p class="cl-caption">Red and blue, each mixed with more and more white. Only saturation changes, hue stays at 0 and 240, yet the pale blues look violet.</p>
+
+      <h3>Simultaneous contrast</h3>
+
+      <p>A color is never seen alone; the colors around it change it. The same small square looks different on two grounds. In both pairs below, the centres are exactly the same color.</p>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art is-pair">
+            <div class="cl-sq" style="background:#0e9a6e"><span style="background:#f0233f"></span></div>
+            <div class="cl-sq" style="background:#d9461a"><span style="background:#f0233f"></span></div>
+          </div>
+          <figcaption><b>In chroma</b><dl class="rv-facts"><dt>Same red</dt><dd>On its complement, green, it looks louder and more saturated. On a neighbour, orange-red, it looks dull.</dd></dl></figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art is-pair">
+            <div class="cl-sq" style="background:#c9962a"><span style="background:#9a9a9a"></span></div>
+            <div class="cl-sq" style="background:#9a9aff"><span style="background:#9a9a9a"></span></div>
+          </div>
+          <figcaption><b>In hue</b><dl class="rv-facts"><dt>Same grey</dt><dd>On ochre it leans blue-violet; on lavender it leans yellow. A neutral takes on the complement of its ground.</dd></dl></figcaption>
+        </figure>
+      </div>
+
+      <p>For an interface this means a color has to be checked where it will live: a brand color picked on white will not be the same color on a dark surface or next to an image.</p>
+
+      <h2>Combining colors</h2>
+
+      <h3>The color wheel</h3>
+
+      <p>The wheel lays hues in a circle so that relationships become distances. Three primaries, the three colors between them, then the colors between those. Painters watched these relationships in light: Monet painted the same haystacks again and again because the light, and so every color in them, kept changing.</p>
+
+      <p>Harmonies are shapes laid on the wheel. Pick a base hue and a harmony to see which hues it chooses.</p>
+
+      <div class="cl-harm" id="harm">
+        <svg class="cl-wheel" viewBox="-110 -110 220 220" aria-label="A color wheel with the chosen harmony marked on it"></svg>
+        <div>
+          <div class="cl-harm-tabs" role="group" aria-label="Harmony">
+            <button type="button" data-h="mono" aria-pressed="true">Monochromatic</button>
+            <button type="button" data-h="analog" aria-pressed="false">Analogous</button>
+            <button type="button" data-h="comp" aria-pressed="false">Complementary</button>
+            <button type="button" data-h="split" aria-pressed="false">Split complementary</button>
+            <button type="button" data-h="triad" aria-pressed="false">Triadic</button>
+            <button type="button" data-h="tetrad" aria-pressed="false">Tetradic</button>
+          </div>
+          <p class="cl-harm-note" aria-live="polite"></p>
+          <div class="cl-strip"></div>
+          <label>Base hue <input type="range" min="0" max="359" value="200" /></label>
+        </div>
+      </div>
+
+      <div class="rv-rules">
+        <div class="rv-rule"><b>Monochromatic</b><p>One hue, many saturations and brightnesses. Calm and unified; hierarchy has to come from value, since there is no hue to lean on.</p></div>
+        <div class="rv-rule"><b>Analogous</b><p>Neighbours on the wheel, within about 60&deg;. Soft and natural, like a sky into a sea. Pick one to lead.</p></div>
+        <div class="rv-rule"><b>Complementary</b><p>Opposites, 180&deg; apart. The most contrast two hues can give; use one large and the other small, as the accent.</p></div>
+        <div class="rv-rule"><b>Split complementary</b><p>A base and the two neighbours of its opposite. Nearly as lively as a complement, less of a clash.</p></div>
+        <div class="rv-rule"><b>Triadic</b><p>Three hues evenly apart, 120&deg;. Bright and playful; works when one dominates and the other two are toned down.</p></div>
+        <div class="rv-rule"><b>Tetradic</b><p>Two complementary pairs. The richest set and the hardest to balance.</p></div>
+      </div>
+
+      <h3>Tone families</h3>
+
+      <p>Beyond the wheel's geometry, palettes are also grouped by feel. Each family is a range of saturation and brightness more than a set of hues.</p>
+
+      <div class="rv-pair is-three">
+        <figure class="rv-card">
+          <div class="rv-art" style="height:auto; padding:16px"><div class="cl-strip is-tall" style="width:100%; margin:0" data-strip="30 20 95; 34 30 84; 28 45 70; 20 55 55; 60 25 55; 90 22 45; 25 30 35"></div></div>
+          <figcaption><b>Earth tones</b><dl class="rv-facts"><dt>Range</dt><dd>Low saturation, middle brightness. Sand, clay, olive, umber.</dd><dt>Feels</dt><dd>Warm, grounded, natural, quiet.</dd></dl></figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art" style="height:auto; padding:16px"><div class="cl-strip is-tall" style="width:100%; margin:0" data-strip="350 85 55; 160 85 45; 220 85 50; 280 70 45; 40 90 75; 190 90 45"></div></div>
+          <figcaption><b>Jewel tones</b><dl class="rv-facts"><dt>Range</dt><dd>High saturation, low-to-middle brightness. Ruby, emerald, sapphire, amethyst.</dd><dt>Feels</dt><dd>Rich, deep, precious.</dd></dl></figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art" style="height:auto; padding:16px"><div class="cl-strip is-tall" style="width:100%; margin:0" data-strip="320 90 100; 290 80 100; 180 85 100; 100 85 100; 60 85 100; 20 90 100"></div></div>
+          <figcaption><b>Neon tones</b><dl class="rv-facts"><dt>Range</dt><dd>Full saturation, full brightness, often on dark or iridescent grounds.</dd><dt>Feels</dt><dd>Electric, synthetic, loud.</dd></dl></figcaption>
+        </figure>
+      </div>
+
+      <h3>Low key and high key</h3>
+
+      <p>Key is the overall brightness of a composition. A low-key design lives in the dark half, with light used sparingly so it draws the eye. A high-key design lives in the light half, with shadows and darks kept small.</p>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art cl-key" style="background:#2b2a1f">
+            <div class="card" style="background:#3b3a2a; color:#d8d3bd"><b style="color:#f4efd8">Standards</b>Most of the frame is dark; the few light parts lead.<div class="bar" style="background:#8a8a3a; width:70%"></div></div>
+          </div>
+          <figcaption><b>Low key</b><dl class="rv-facts"><dt>Feels</dt><dd>Moody, serious, premium, focused.</dd></dl></figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art cl-key" style="background:#e9e9e6">
+            <div class="card" style="background:#fff; color:#555"><b style="color:#222">Energy</b>Almost everything is light; one small dark or saturated mark leads.<div class="bar" style="background:#f2f07a; width:55%"></div></div>
+          </div>
+          <figcaption><b>High key</b><dl class="rv-facts"><dt>Feels</dt><dd>Airy, open, friendly, fresh.</dd></dl></figcaption>
+        </figure>
+      </div>
+
+      <h3>A palette from a picture</h3>
+
+      <p>The lecture's method for building a palette: start from an image whose mood you want, pick colors from it, read each one in HSB, then put them on the wheel to see which harmony you have found. These are the readings from the lecture's examples.</p>
+
+      <div class="cl-chips" data-chips="203 44 91; 3 10 98; 263 12 68; 180 4 97; 36 11 98; 315 9 68"></div>
+      <p class="cl-caption">A pale building under a summer sky. Very low saturation everywhere but the sky: a high-key, nearly analogous set of cool blues and warm creams.</p>
+
+      <div class="cl-strip" data-strip="283 21 90; 225 49 76; 150 17 75; 330 35 92"></div>
+      <div class="cl-strip" data-strip="36 40 84; 200 20 46; 90 30 70; 12 45 92"></div>
+      <p class="cl-caption">Two more palettes in the same spirit, as proportion strips: the widest color is the ground, the narrowest the accent. The first is cool lilac and blue with a green and a pink accent; the second sand and slate with sage and coral.</p>
+      <div class="cl-chips" data-chips="184 8 83; 53 46 98"></div>
+      <p class="cl-caption">A salt flat: a nearly white cyan ground and one saturated yellow, a complementary pair kept apart by size.</p>
+
+      <h2>Color at work in an interface</h2>
+
+      <p>The lecture ended on one small card, a cocktail recipe, carried through every decision: is the text readable, is the type set on a scale, is the spacing right, does the button tell you what it is doing.</p>
+
+      <h3>Contrast first</h3>
+
+      <p>A palette can be harmonious and still fail people. WCAG AA asks for a contrast ratio of at least <strong>4.5 : 1</strong> for normal text, 3 : 1 for large text and for the parts of controls you need to see. The ratio compares the relative luminance of the two colors; it runs from 1 : 1 (the same) to 21 : 1 (black on white).</p>
+
+      <div class="cl-cards">
+        <figure class="cl-card-fig">
+          <div class="cl-recipe">
+            <div class="art"><svg width="52" height="70" viewBox="0 0 52 70" aria-hidden="true"><path d="M4 6 H48 L26 32 Z M26 32 V64 M14 66 H38" fill="none" stroke="#24211b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="26" cy="22" r="4.5" fill="#6b6b22"/></svg></div>
+            <div class="body"><p class="eyebrow">Classic</p><h4>Martini</h4><ul><li>60 ml gin</li><li>15 ml dry vermouth</li><li>An olive</li></ul>
+            <div class="acts"><span class="btn is-quiet">Share</span><span class="btn" style="background:#6b6b22; color:#3f3f12">Save</span></div></div>
+          </div>
+          <figcaption><b>Olive on olive</b>Label and button too close in luminance.<br><span class="cl-fail" data-ratio="#3f3f12 #6b6b22"></span></figcaption>
+        </figure>
+        <figure class="cl-card-fig">
+          <div class="cl-recipe">
+            <div class="art"><svg width="52" height="70" viewBox="0 0 52 70" aria-hidden="true"><path d="M4 6 H48 L26 32 Z M26 32 V64 M14 66 H38" fill="none" stroke="#24211b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="26" cy="22" r="4.5" fill="#6b6b22"/></svg></div>
+            <div class="body"><p class="eyebrow">Classic</p><h4>Martini</h4><ul><li>60 ml gin</li><li>15 ml dry vermouth</li><li>An olive</li></ul>
+            <div class="acts"><span class="btn is-quiet">Share</span><span class="btn" style="background:#1f7a52; color:#fff">Save</span></div></div>
+          </div>
+          <figcaption><b>White on deep green</b>Same idea, darker ground.<br><span class="cl-pass" data-ratio="#ffffff #1f7a52"></span></figcaption>
+        </figure>
+        <figure class="cl-card-fig">
+          <div class="cl-recipe">
+            <div class="art"><svg width="52" height="70" viewBox="0 0 52 70" aria-hidden="true"><path d="M4 6 H48 L26 32 Z M26 32 V64 M14 66 H38" fill="none" stroke="#24211b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="26" cy="22" r="4.5" fill="#6b6b22"/></svg></div>
+            <div class="body"><p class="eyebrow">Classic</p><h4>Martini</h4><ul><li>60 ml gin</li><li>15 ml dry vermouth</li><li>An olive</li></ul>
+            <div class="acts"><span class="btn is-quiet">Share</span><span class="btn" style="background:#c8ecd6; color:#0d3b25">Save</span></div></div>
+          </div>
+          <figcaption><b>Dark on pale green</b>Tonal: the same hue, far apart in brightness.<br><span class="cl-pass" data-ratio="#0d3b25 #c8ecd6"></span></figcaption>
+        </figure>
+      </div>
+
+      <p>Try it: pick a button color and a label color and watch the ratio. Brightness does almost all the work; hue barely moves it.</p>
+
+      <div class="cl-check" id="check">
+        <div class="cl-check-demo"><span>Save recipe</span></div>
+        <div>
+          <div class="cl-ratio" aria-live="polite"></div>
+          <div class="cl-verdict" style="margin-top:6px"></div>
+          <div class="cl-sliders">
+            <label>Button hue <input type="range" min="0" max="360" value="150" data-k="h" /><output></output></label>
+            <label>Button bright. <input type="range" min="0" max="100" value="48" data-k="b" /><output></output></label>
+            <label>Label bright. <input type="range" min="0" max="100" value="100" data-k="t" /><output></output></label>
+          </div>
+        </div>
+      </div>
+
+      <h3>Type on a scale</h3>
+
+      <p>Once the colors read, the type needs a system too. The card used Material 3's type scale, where every style is a size and a line height chosen together, so nothing is set by eye.</p>
+
+      <table>
+        <thead><tr><th>Role on the card</th><th>M3 style</th><th>Size / line height</th></tr></thead>
+        <tbody>
+          <tr><td>Card title, large</td><td>Headline Small</td><td>24 / 32, regular</td></tr>
+          <tr><td>Card title</td><td>Title Large</td><td>22 / 28, regular</td></tr>
+          <tr><td>Subtitle</td><td>Title Medium</td><td>16 / 24, medium</td></tr>
+          <tr><td>Body</td><td>Body Large</td><td>16 / 24, regular</td></tr>
+          <tr><td>Ingredients</td><td>Body Medium</td><td>14 / 20, regular</td></tr>
+          <tr><td>Button</td><td>Label Large</td><td>14 / 20, medium</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Spacing groups things</h3>
+
+      <p>Space says what belongs together. Tight space inside a group and more space between groups lets the eye read structure before it reads words. Even space everywhere, or more space inside a group than around it, makes the card fall apart.</p>
+
+      <div class="cl-cards">
+        <figure class="cl-card-fig">
+          <div class="cl-recipe">
+            <div class="body"><p class="eyebrow">Classic</p><h4>Martini</h4><ul><li>60 ml gin</li><li>15 ml dry vermouth</li><li>An olive</li></ul>
+            <div class="acts"><span class="btn is-quiet">Share</span><span class="btn" style="background:#1f7a52; color:#fff">Save</span></div></div>
+          </div>
+          <figcaption><b>Tighter spacing</b>Eyebrow and title sit together; the list and the actions are their own groups.</figcaption>
+        </figure>
+        <figure class="cl-card-fig">
+          <div class="cl-recipe is-loose">
+            <div class="body"><p class="eyebrow" style="margin-bottom:18px">Classic</p><h4>Martini</h4><ul><li>60 ml gin</li><li>15 ml dry vermouth</li><li>An olive</li></ul>
+            <div class="acts"><span class="btn is-quiet">Share</span><span class="btn" style="background:#1f7a52; color:#fff">Save</span></div></div>
+          </div>
+          <figcaption><b>Bad spacing</b>The eyebrow drifts off its title, the sides are cramped, the gaps are all the same.</figcaption>
+        </figure>
+      </div>
+
+      <h3>States are color too</h3>
+
+      <p>A button changes color to say what is happening to it. Material does this with a state layer: a see-through layer of the label color over the button, stronger the more is happening, so every state is derived from the one button color.</p>
+
+      <div class="cl-btns">
+        <figure><span class="ground"><span class="b">Save</span></span><figcaption><b>Default</b><span>The color itself</span></figcaption></figure>
+        <figure><span class="ground"><span class="b hover">Save</span></span><figcaption><b>Hover</b><span>Layer at 8%</span></figcaption></figure>
+        <figure><span class="ground"><span class="b pressed">Save</span></span><figcaption><b>Pressed</b><span>Layer at 10%</span></figcaption></figure>
+        <figure><span class="ground"><span class="b drag">Save</span></span><figcaption><b>Dragged</b><span>Layer at 16%, lifted</span></figcaption></figure>
+        <figure><span class="ground"><span class="b disabled">Save</span></span><figcaption><b>Disabled</b><span>Ground 12%, label 38%</span></figcaption></figure>
+      </div>
+
+      <h3>Dynamic color</h3>
+
+      <p>Material 3 can build a whole scheme from one source color, often taken from the user's wallpaper. Its "harmony" step pulls fixed colors, like an error red or a brand color, slightly towards the source hue so they sit with the scheme without losing their meaning. It is the color wheel and the contrast rules above, done by the system.</p>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>Week 5 lecture on color, Dan Park, Advanced Interface, Fall 2026</li>
+          <li><a href="https://m3.material.io/blog/dynamic-color-harmony">Dynamic color harmony</a>, Material Design 3 blog</li>
+          <li><a href="https://m3.material.io/styles/typography/type-scale-tokens">Type scale tokens</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/foundations/interaction/states/state-layers">State layers</a>, Material Design 3</li>
+          <li><a href="https://webaim.org/resources/contrastchecker/">Contrast checker</a>, WebAIM</li>
+          <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">Understanding SC 1.4.3: Contrast (Minimum)</a>, W3C</li>
+          <li>Josef Albers, <i>Interaction of Color</i>, Yale University Press, 1963</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../index.html">&larr; Timeline</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script>
+  (() => {
+    // HSB (0-360, 0-100, 0-100) to an rgb triple, 0-255
+    const hsb = (h, s, b) => {
+      s /= 100; b /= 100;
+      const k = n => (n + h / 60) % 6;
+      const f = n => b * (1 - s * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+      return [f(5), f(3), f(1)].map(v => Math.round(v * 255));
+    };
+    const hex = rgb => '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('');
+    const css = (h, s, b) => hex(hsb(h, s, b));
+    const parse = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const lum = rgb => {
+      const [r, g, b] = rgb.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+      return .2126 * r + .7152 * g + .0722 * b;
+    };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + .05) / (y + .05); };
+
+    // strips: data-strip="h s b; h s b; ..."
+    document.querySelectorAll('[data-strip]').forEach(el => {
+      el.innerHTML = el.dataset.strip.split(';').map(t => {
+        const [h, s, b] = t.trim().split(/\s+/).map(Number);
+        return `<span style="background:${css(h, s, b)}" title="H${h} S${s} B${b}"></span>`;
+      }).join('');
+    });
+    // chips: data-chips="h s b Name; ..."
+    document.querySelectorAll('[data-chips]').forEach(el => {
+      el.innerHTML = el.dataset.chips.split(';').map(t => {
+        const [h, s, b, ...name] = t.trim().split(/\s+/);
+        const c = css(+h, +s, +b);
+        return `<figure class="cl-chip"><span style="background:${c}"></span><figcaption>${name.length ? `<b>${name.join(' ')}</b>` : ''}H${h} S${s} B${b}<br>${c}</figcaption></figure>`;
+      }).join('');
+    });
+    // contrast badges: data-ratio="#fg #bg"
+    document.querySelectorAll('[data-ratio]').forEach(el => {
+      const [a, b] = el.dataset.ratio.split(' ').map(parse);
+      const r = ratio(a, b);
+      el.textContent = `${r.toFixed(2)} : 1 ${r >= 4.5 ? 'passes AA' : 'fails AA'}`;
+    });
+
+    // HSB playground
+    const play = document.getElementById('hsb-play');
+    const playRun = () => {
+      const v = {};
+      play.querySelectorAll('input').forEach(i => { v[i.dataset.k] = +i.value; i.nextElementSibling.textContent = i.value; });
+      const rgb = hsb(v.h, v.s, v.b);
+      play.querySelector('.cl-play-out').style.background = hex(rgb);
+      play.querySelector('.cl-read').textContent = `H${v.h} S${v.s} B${v.b}  ·  ${hex(rgb)}  ·  rgb(${rgb.join(', ')})`;
+    };
+    play.addEventListener('input', playRun); playRun();
+
+    // harmony wheel
+    const harm = document.getElementById('harm');
+    const wheel = harm.querySelector('svg');
+    const R = 100, r0 = 62;
+    let ring = '';
+    for (let a = 0; a < 360; a += 10) {
+      const p = (deg, rad) => { const t = (deg - 90) * Math.PI / 180; return [rad * Math.cos(t), rad * Math.sin(t)].map(n => n.toFixed(2)); };
+      const [a1, a2] = [p(a - 5, R), p(a + 5, R)], [b1, b2] = [p(a + 5, r0), p(a - 5, r0)];
+      ring += `<path d="M${a1} A${R} ${R} 0 0 1 ${a2} L${b1} A${r0} ${r0} 0 0 0 ${b2} Z" fill="${css(a, 85, 95)}"/>`;
+    }
+    wheel.innerHTML = `<g>${ring}</g><g class="marks"></g>`;
+    const H = {
+      mono:   { offs: [0, 0, 0, 0, 0], sb: [[25, 95], [45, 85], [70, 75], [80, 55], [60, 35]], note: 'One hue; only saturation and brightness change.' },
+      analog: { offs: [-40, -20, 0, 20, 40], note: 'Neighbours, 20° apart on either side of the base.' },
+      comp:   { offs: [0, 180], note: 'The base and its opposite, 180° away.' },
+      split:  { offs: [0, 150, 210], note: 'The base and the two hues on either side of its opposite.' },
+      triad:  { offs: [0, 120, 240], note: 'Three hues, 120° apart.' },
+      tetrad: { offs: [0, 60, 180, 240], note: 'Two complementary pairs.' },
+    };
+    let mode = 'mono';
+    const harmRun = () => {
+      const base = +harm.querySelector('input').value;
+      const h = H[mode];
+      const cols = h.offs.map((o, i) => { const hue = (base + o + 360) % 360; const [s, b] = h.sb ? h.sb[i] : [80, 92]; return { hue, c: css(hue, s, b) }; });
+      const unique = [...new Map(cols.map(c => [c.hue, c])).values()];
+      harm.querySelector('.marks').innerHTML = unique.map(({ hue, c }) => {
+        const t = (hue - 90) * Math.PI / 180, x = 81 * Math.cos(t), y = 81 * Math.sin(t);
+        return `<line class="spoke" x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/><circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" fill="${c}"/>`;
+      }).join('');
+      harm.querySelector('.cl-strip').innerHTML = cols.map(({ c }) => `<span style="background:${c}"></span>`).join('');
+      harm.querySelector('.cl-harm-note').textContent = h.note;
+    };
+    harm.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      mode = b.dataset.h;
+      harm.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      harmRun();
+    }));
+    harm.querySelector('input').addEventListener('input', harmRun); harmRun();
+
+    // contrast checker
+    const check = document.getElementById('check');
+    const checkRun = () => {
+      const v = {};
+      check.querySelectorAll('input').forEach(i => { v[i.dataset.k] = +i.value; i.nextElementSibling.textContent = i.value; });
+      const bg = hsb(v.h, 60, v.b), fg = hsb(0, 0, v.t);
+      const chip = check.querySelector('.cl-check-demo span');
+      chip.style.background = hex(bg); chip.style.color = hex(fg);
+      const r = ratio(bg, fg);
+      check.querySelector('.cl-ratio').textContent = `${r.toFixed(2)} : 1`;
+      const pass = r >= 4.5, large = r >= 3;
+      check.querySelector('.cl-verdict').innerHTML = `<span class="${pass ? 'cl-pass' : 'cl-fail'}">${pass ? 'Passes AA for text' : large ? 'Large text only (3 : 1)' : 'Fails AA'}</span>`;
+    };
+    check.addEventListener('input', checkRun); checkRun();
+  })();
+  </script>
+  <script src="../shared/toc.js?v=4"></script>
+</body>
+</html>
