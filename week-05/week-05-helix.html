@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Helix</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Helix: after an archive poster where years of student work coil down the page. The list is
+     a spiral seen from the side: one lime line winds round and down, and the items ride it as
+     small boxes, each only a colour here, greys and inks with the odd bright one. Boxes on the
+     near side of the coil are larger and in front; those on the far side shrink and sink behind.
+     Black tags mark the years. The coil turns slowly on its own; drag sideways to turn it.
+     Hover lifts a box and names it; a click opens it where it is, still riding the line. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+  :root { --w: 380px; --lime: #c9de3c; --ink: #111; --font: "Inter", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink);
+    background: #ececea repeating-conic-gradient(#e4e4e1 0 25%, transparent 0 50%) 0 0 / 8px 8px; }
+  .level { padding: 0; }
+  .coil { position: relative; height: 760px; touch-action: pan-y; cursor: grab; }
+  .coil.is-drag { cursor: grabbing; }
+  canvas { position: absolute; inset: 0; }
+
+  .item { position: absolute; left: 0; top: 0; width: var(--bw); height: var(--bh); padding: 0; background: var(--c);
+    box-shadow: 0 0 0 .5px rgba(0, 0, 0, .25); transform-origin: 50% 100%; will-change: transform; transition: width .3s ease, height .3s ease; }
+  .item:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .item::after { content: attr(data-name); position: absolute; left: 50%; bottom: calc(100% + 6px); translate: -50% 4px; padding: 3px 6px;
+    background: var(--ink); color: #fff; font-size: 10px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s, translate .15s; }
+  .item:hover { z-index: 999 !important; }
+  .item:hover::after { opacity: 1; translate: -50% 0; }
+  .item.is-open { width: 96px; height: 60px; z-index: 998 !important; }
+  .item.is-open::after { opacity: 0; }
+  .card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 5px 6px; text-align: left;
+    color: var(--on); font-size: 9px; line-height: 1.2; opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+  .card b { font-size: 10.5px; font-weight: 600; }
+  .is-open .card { opacity: 1; transition-delay: .15s; }
+
+  .year { position: absolute; left: 0; top: 0; padding: 2px 4px; background: var(--ink); color: #fff; font-size: 10px; font-weight: 500; pointer-events: none; will-change: transform; }
+  .year::before { content: ""; position: absolute; left: 50%; top: -4px; margin-left: -4px; border: 4px solid transparent; border-top: 0; border-bottom-color: var(--ink); }
+  .title { position: absolute; right: 14px; top: 14px; z-index: 1000; display: grid; justify-items: end; gap: 3px; pointer-events: none; }
+  .title span { padding: 1px 5px; background: rgba(255, 255, 255, .9); font-size: 14px; font-weight: 500; }
+  .title small { font-size: 8px; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="coil" role="list" aria-label="Work, newest at the top">
+        <canvas></canvas>
+        <div class="title"><span>Interaction Design</span><span>Archive 1990–2008</span><small>Drag sideways to turn</small></div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    const coil = document.querySelector('.coil'), canvas = coil.querySelector('canvas'), ctx = canvas.getContext('2d');
+    const W = 380, H = 760, CX = 190, R = 150, r = 30, TOP = 120, TURNS = 5.5, N = 132;
+    const PITCH = (H - TOP - 50) / TURNS;
+    const dpr = devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px'; ctx.scale(dpr, dpr);
+
+    // mostly greys and inks, like screenshots shrunk to nothing, and now and then a bright one
+    const tones = ['#1a1a1a', '#2b2d33', '#3d3f45', '#5d6066', '#8a8d93', '#b7b9bd', '#d9dadc', '#f2f2f0', '#0f1630', '#26324f', '#e9e4da', '#9aa6b2'];
+    const brights = ['#e5483b', '#3d7bf0', '#36c08a', '#f2c230', '#b44fd6'];
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const items = [], years = [];
+    for (let i = 0; i < N; i++) {
+      const b = document.createElement('button');
+      b.className = 'item'; b.setAttribute('role', 'listitem');
+      const bright = rnd() < .08, c = bright ? brights[Math.floor(rnd() * brights.length)] : tones[Math.floor(rnd() * tones.length)];
+      const year = 2008 - Math.floor(i / (N / 13)), name = `Project ${String(N - i).padStart(3, '0')}`;
+      const light = ['#f2f2f0', '#d9dadc', '#e9e4da', '#b7b9bd', '#f2c230'].includes(c);
+      b.style.setProperty('--c', c); b.style.setProperty('--on', light ? '#111' : '#fff');
+      b.style.setProperty('--bw', 12 + Math.round(rnd() * 14) + 'px'); b.style.setProperty('--bh', 9 + Math.round(rnd() * 9) + 'px');
+      b.dataset.name = `${name} · ${year}`;
+      b.setAttribute('aria-label', `${name}, ${year}`); b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = `<span class="card"><b>${name}</b>${year} · Interaction</span>`;
+      b.addEventListener('click', () => { if (moved) return; const open = b.classList.toggle('is-open'); b.setAttribute('aria-expanded', open); });
+      coil.appendChild(b); items.push(b);
+      if (i % Math.round(N / 13) === 4) { const y = document.createElement('span'); y.className = 'year'; y.textContent = year; y.dataset.i = i; coil.appendChild(y); years.push(y); }
+    }
+
+    // where a point of the coil sits: t runs 0 at the top to 1 at the bottom
+    const at = (t, phase) => {
+      const a = t * TURNS * Math.PI * 2 + phase;
+      return { x: CX + R * Math.cos(a), y: TOP + t * TURNS * PITCH + r * Math.sin(a), z: Math.sin(a) };   // z: 1 near, -1 far
+    };
+
+    let phase = 0, vel = .0035, moved = false;
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      // the lime line, fainter where it passes behind
+      for (let s = 0; s < 900; s++) {
+        const p = at(s / 900, phase), q = at((s + 1) / 900, phase);
+        ctx.strokeStyle = p.z < 0 ? 'rgba(201,222,60,.45)' : '#c9de3c'; ctx.lineWidth = p.z < 0 ? 1.5 : 2.5;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      // a few hairlines across the coil, like the poster's threads between related work
+      ctx.strokeStyle = 'rgba(0,0,0,.08)'; ctx.lineWidth = .6;
+      for (let k = 0; k < 26; k++) { const p = at((k * 37 % N) / N, phase), q = at((k * 53 % N) / N, phase); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
+      items.forEach((b, i) => {
+        const p = at(i / N, phase), s = .62 + .38 * (p.z + 1) / 2;
+        b.style.transform = `translate(${p.x - b.offsetWidth / 2}px, ${p.y - b.offsetHeight}px) scale(${b.classList.contains('is-open') ? 1 : s})`;
+        b.style.zIndex = Math.round((p.z + 1) * 100);
+        b.style.filter = p.z < -.2 && !b.classList.contains('is-open') ? 'saturate(.6) brightness(1.08)' : '';
+      });
+      years.forEach(y => { const p = at(+y.dataset.i / N, phase); y.style.transform = `translate(${p.x - 14}px, ${p.y + 8}px)`; y.style.zIndex = Math.round((p.z + 1) * 100) + 1; });
+    };
+
+    // turns on its own; a drag takes over and lets go with a little carry
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let dragging = false, lastX = 0, carry = 0, idle = 0;
+    coil.addEventListener('pointerdown', e => { dragging = true; moved = false; lastX = e.clientX; carry = 0; });
+    coil.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX; lastX = e.clientX;
+      // only a real drag takes the pointer, so a plain click still reaches the box under it
+      if (!moved && Math.abs(dx) > 2) { moved = true; coil.setPointerCapture(e.pointerId); coil.classList.add('is-drag'); }
+      carry = dx * .012; phase += carry;
+    });
+    const end = () => { dragging = false; coil.classList.remove('is-drag'); idle = 0; setTimeout(() => moved = false, 0); };
+    coil.addEventListener('pointerup', end); coil.addEventListener('pointercancel', end);
+    coil.addEventListener('pointerover', e => { if (e.target.classList.contains('item')) idle = 1; });
+    coil.addEventListener('pointerout', e => { if (e.target.classList.contains('item')) idle = 0; });
+    const tick = () => {
+      if (!dragging) { carry *= .94; phase += carry + (still || idle ? 0 : vel); }
+      draw(); requestAnimationFrame(tick);
+    };
+    tick();
+  </script>
+</body>
+</html>

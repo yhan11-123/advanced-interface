@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Board</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Board: after a board game about growing up. The list is not a column but a path: its rows
+     run round the edge of a square board and spiral inward to the middle, black gaps between
+     white boxes, the corners rounded where the path turns. Rows on the sides are turned on end,
+     so the text always runs along the path. Each row is a big number and a short line; a black
+     counter walks the path. Roll in the middle, or pick a box, and the counter steps there box by
+     box; the box it lands on turns black and opens its consequence. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;800&display=swap");
+  :root { --w: 380px; --u: 58px; --ink: #0d0d0d; --paper: #fff; --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    --step: .16s; }
+  body { font-family: var(--font); color: var(--ink); background: #e9e9e6; }
+  .level { padding: 16px 0 28px; }
+  .board { position: relative; width: calc(var(--u) * 6 + 4px); height: calc(var(--u) * 6 + 4px); margin: 0 auto; padding: 2px; border-radius: 22px; background: var(--ink); }
+
+  /* a box on the path */
+  .box { position: absolute; padding: 0; background: var(--paper); color: var(--ink); overflow: hidden;
+    transition: background-color .2s ease, color .2s ease; }
+  .box:focus-visible { outline: 2px solid #ff4b2b; outline-offset: -4px; }
+  .in { position: absolute; left: 50%; top: 50%; display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 0 7px;
+    padding: 7px 8px; text-align: left; transform: translate(-50%, -50%) rotate(var(--r, 0deg)); transition: scale .15s ease; }
+  .no { grid-row: span 3; font-size: 30px; line-height: .9; font-weight: 800; letter-spacing: -.04em; }
+  .line { font-size: 8.5px; line-height: 1.2; font-weight: 500; }
+  /* the consequence, folded away until the counter lands here */
+  .then { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s cubic-bezier(.2, .8, .2, 1); }
+  .then span { overflow: hidden; min-height: 0; font-size: 8.5px; line-height: 1.2; font-weight: 700; padding-top: 0; }
+  .box.is-here .then { grid-template-rows: 1fr; }
+  .box.is-here .then span { padding-top: 4px; }
+
+  .box:hover { background: #ececea; }
+  .box.is-path { background: #f4f4f2; }
+  .box:active .in { scale: .96; }
+  .box.is-here, .box.is-here:hover { background: var(--ink); color: var(--paper); }
+  .box.was { color: #9a9a96; }
+  .box.was.is-here { color: var(--paper); }
+
+  /* the middle: where the path ends; the white dot is the die */
+  .mid { position: absolute; display: grid; place-items: center; background: var(--ink); color: var(--paper); }
+  .future { position: absolute; left: 9px; bottom: 8px; font-size: 29px; line-height: 1; font-weight: 800; letter-spacing: -.04em; }
+  .die { position: relative; display: grid; place-items: center; width: 44px; height: 44px; margin: -24px -40px 0 0; border-radius: 50%; background: var(--paper); color: var(--ink);
+    font-size: 17px; font-weight: 800; transition: scale .15s ease; }
+  .die:hover { scale: 1.08; }
+  .die:active { scale: .92; }
+  .die:focus-visible { outline: 2px solid #ff4b2b; outline-offset: 3px; }
+  .die.is-rolling { animation: spin .5s cubic-bezier(.3, 0, .2, 1); }
+  @keyframes spin { to { rotate: 1turn; } }
+  .mid.is-done .future { color: #ff4b2b; }
+
+  /* the counter */
+  .token { position: absolute; z-index: 3; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--paper);
+    pointer-events: none; transition: left var(--step) cubic-bezier(.3, 0, .2, 1), top var(--step) cubic-bezier(.3, 0, .2, 1); }
+  .box.is-here ~ .token, .token.on-dark { background: var(--paper); box-shadow: 0 0 0 2px var(--ink); }
+  .hint { margin: 12px auto 0; width: calc(var(--u) * 6); font-size: 11px; color: #6a6a66; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { :root { --step: 0s; } .die.is-rolling { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="board" role="list" aria-label="The path, start to future"></div>
+      <p class="hint">Roll the dot, or pick a box: the counter walks the path to it.</p>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    // the path, in order: [x, y, w, h] in board units (6 x 6), clockwise round the edge, then inward
+    const cells = [
+      [0, 0, 2, 1], [2, 0, 2, 1], [4, 0, 2, 1], [5, 1, 1, 2], [5, 3, 1, 2], [4, 5, 2, 1], [2, 5, 2, 1], [0, 5, 2, 1],
+      [0, 3, 1, 2], [0, 1, 1, 2], [1, 1, 3, 1], [4, 1, 1, 3], [2, 4, 3, 1], [1, 2, 1, 3],
+    ];
+    // which corners round off where the path turns
+    const round = { 0: '20px 0 0 0', 2: '0 20px 0 0', 5: '0 0 20px 0', 7: '0 0 0 20px', 10: '14px 0 0 0', 11: '0 14px 0 0', 12: '0 0 14px 0', 13: '0 0 0 14px' };
+    const text = [
+      ['You start school with a new pencil case.', 'Roll again.'],
+      ['You pass the entry exam.', 'Roll again.'],
+      ['You repeat a year, and come back stronger.', 'Miss a turn.'],
+      ['You fall for a subject you never chose.', 'Roll again.'],
+      ['Your marks are low; you take a gap year.', 'Miss a turn.'],
+      ['An internship teaches you more than class.', 'Roll again.'],
+      ['You finish your degree with good marks.', 'Roll again.'],
+      ['The job you find is only temporary.', 'Miss a turn.'],
+      ['You move abroad for a master’s.', 'Roll again.'],
+      ['You find the course is not for you.', 'Back to start.'],
+      ['A studio offers you a job, and you take it.', 'Roll again.'],
+      ['It does not satisfy you for long.', 'Miss a turn.'],
+      ['You start a small business of your own.', 'Roll again.'],
+      ['You finish, and wonder what comes next.', 'On to the future.'],
+    ];
+    const board = document.querySelector('.board');
+    const U = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u'));
+    const boxes = cells.map(([x, y, w, h], i) => {
+      const b = document.createElement('button');
+      b.className = 'box'; b.setAttribute('role', 'listitem');
+      Object.assign(b.style, { left: 2 + x * U + 1 + 'px', top: 2 + y * U + 1 + 'px', width: w * U - 2 + 'px', height: h * U - 2 + 'px', borderRadius: round[i] || '0' });
+      const tall = h > w;
+      b.innerHTML = `<span class="in" style="width:${(tall ? h : w) * U - 2}px; ${tall ? '--r:-90deg' : ''}"><span class="no">${i + 1}</span><span class="line">${text[i][0]}</span><span class="then"><span>${text[i][1]}</span></span></span>`;
+      b.setAttribute('aria-label', `${i + 1}. ${text[i][0]}`);
+      board.appendChild(b);
+      return b;
+    });
+    const mid = document.createElement('div');
+    mid.className = 'mid';
+    Object.assign(mid.style, { left: 2 + 2 * U + 1 + 'px', top: 2 + 2 * U + 1 + 'px', width: 2 * U - 2 + 'px', height: 2 * U - 2 + 'px' });
+    mid.innerHTML = '<span class="future">Future</span><button class="die" aria-label="Roll">·</button>';
+    board.appendChild(mid);
+    const token = document.createElement('span');
+    token.className = 'token'; board.appendChild(token);
+
+    // the counter sits near the number of the box it is on
+    let at = -1, busy = false;
+    const place = i => {
+      if (i < 0) { token.style.left = '-10px'; token.style.top = '14px'; return; }
+      const [x, y, w, h] = cells[i];
+      token.style.left = 2 + (x + w / 2) * U + 'px'; token.style.top = 2 + (y + h / 2) * U + 'px';
+    };
+    place(-1);
+    const land = i => {
+      boxes.forEach((b, k) => { b.classList.toggle('is-here', k === i); b.classList.toggle('was', k < i); b.setAttribute('aria-current', k === i ? 'step' : 'false'); });
+      token.classList.toggle('on-dark', i >= 0);
+      mid.classList.toggle('is-done', i === boxes.length - 1);
+    };
+    // walk box by box, so the path is felt rather than jumped
+    const walk = async to => {
+      if (busy || to === at) return;
+      busy = true;
+      const dir = to > at ? 1 : -1, ms = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--step')) * 1000 + 30;
+      boxes.forEach(b => b.classList.remove('is-here'));
+      while (at !== to) { at += dir; place(at); await new Promise(r => setTimeout(r, ms)); }
+      land(at); busy = false;
+    };
+    boxes.forEach((b, i) => {
+      b.addEventListener('click', () => walk(i));
+      // hover previews the stretch of path the counter would walk
+      b.addEventListener('pointerenter', () => { if (!busy) boxes.forEach((o, k) => o.classList.toggle('is-path', k > Math.min(at, i) && k < Math.max(at, i))); });
+      b.addEventListener('pointerleave', () => boxes.forEach(o => o.classList.remove('is-path')));
+    });
+    const die = mid.querySelector('.die');
+    die.addEventListener('click', () => {
+      if (busy) return;
+      const n = 1 + Math.floor(Math.random() * 6);
+      die.textContent = n; die.classList.remove('is-rolling'); void die.offsetWidth; die.classList.add('is-rolling');
+      setTimeout(() => walk(at + n >= boxes.length ? (at === boxes.length - 1 ? -1 : boxes.length - 1) : at + n), 450);
+    });
+  </script>
+</body>
+</html>
