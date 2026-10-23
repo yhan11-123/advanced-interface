@@ -25,6 +25,58 @@
     .ls-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
     .ls-pad { fill: #e2537d; opacity: .12; }
     .rv-anat-fig .an-num text { font-size: 7px; }
+
+    /* Try it: a plain list that does what the brief asks, live */
+    .ls-try { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 20px; align-items: start; margin: 16px 0 24px; padding: 20px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .ls-try-view { position: relative; overflow: hidden; min-height: 220px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+    .ls-try-pane { transition: translate .5s cubic-bezier(.2, .8, .2, 1), opacity .5s ease; }
+    .ls-try-pane.is-deep { position: absolute; inset: 0; display: flex; flex-direction: column; translate: 100% 0; background: var(--bg); }
+    .ls-try-view.is-deeper .ls-try-pane.is-home { translate: -30% 0; opacity: .4; }
+    .ls-try-view.is-deeper .ls-try-pane.is-deep { translate: 0 0; }
+    .prose .ls-try-row, .ls-try-row { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin: 0; padding: 8px 16px; border: 0; background: none; color: var(--fg); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+    .ls-try-row.is-still { cursor: default; }
+    .ls-try-pane.is-home > * + * { box-shadow: inset 0 1px var(--line); }
+    .ls-try-row::before { content: ""; position: absolute; inset: 0; background: var(--fg); opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+    .ls-try-row:not(.is-still):hover::before { opacity: .08; }
+    .ls-try-row:not(.is-still):active::before { opacity: .1; transition: none; }
+    .ls-try-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; border-radius: 10px; }
+    .ls-try-lead { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+    .ls-try-lead svg { width: 22px; height: 22px; }
+    .ls-try-lead.is-avatar { background: var(--accent); color: var(--bg-elev); font-size: 13px; font-weight: 700; }
+    .ls-try-text { flex: 1; min-width: 0; }
+    .ls-try-text b { display: block; font-size: 15px; font-weight: 600; line-height: 1.35; }
+    .ls-try-text span { display: block; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .ls-try-meta { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--fg-muted); }
+    .ls-try-chev { flex: none; width: 20px; height: 20px; color: var(--fg-muted); transition: rotate .35s cubic-bezier(.2, .8, .2, 1); }
+    .ls-try-item.is-open .ls-try-chev { rotate: 180deg; }
+    .ls-try-sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s cubic-bezier(.2, .8, .2, 1); }
+    .ls-try-sub > div { min-height: 0; overflow: hidden; }
+    .ls-try-item.is-open .ls-try-sub { grid-template-rows: 1fr; }
+    .ls-try-child { display: flex; align-items: center; min-height: 40px; padding: 0 16px 0 68px; border-top: 1px solid var(--line); font-size: 14px; }
+    .ls-try-back { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; margin: 10px 8px 2px; padding: 6px 10px 6px 4px; border: 0; border-radius: 8px; background: none; color: var(--accent); font: inherit; font-size: 14px; cursor: pointer; }
+    .ls-try-back svg { width: 18px; height: 18px; }
+    .ls-try-back:focus-visible { outline: 2px solid var(--accent); }
+    .ls-try-title { padding: 2px 16px 10px; font-size: 20px; }
+    .prose .ls-try-key { display: grid; gap: 12px; margin: 0; padding: 4px 0 0; list-style: none; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .prose .ls-try-key li { position: relative; margin: 0; padding-left: 30px; }
+    .ls-try-key b { display: block; font-size: 13.5px; color: var(--fg); }
+    .ls-try-key i { position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); }
+    .ls-try-key .k-hover { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+    .ls-try-key .k-press { background: color-mix(in srgb, var(--fg) 10%, var(--bg)); }
+    .ls-try-key .k-focus { border: 2px solid var(--accent); }
+    .ls-try-key .k-go { background: center / 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8 5l5 5-5 5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") var(--bg); }
+    .ls-try-key .k-open { background: center / 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") var(--bg); }
+    @media (max-width: 640px) { .ls-try { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { .ls-try-pane, .ls-try-sub, .ls-try-chev { transition: none; } }
+
+    /* Numbers to remember: four tiles */
+    .ls-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .ls-nums div { padding: 16px 16px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .ls-nums b { display: block; margin-bottom: 6px; font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .ls-nums small { font-size: 13px; font-weight: 500; margin-left: 1px; }
+    .ls-nums span { display: block; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+    .ls-dd { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .ls-dd { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -95,11 +147,11 @@
 
       <h2>Research</h2>
 
-      <p>Read against Apple's Lists and tables guidelines and Material 3's Lists, every tab: overview, specs, guidelines, accessibility.</p>
+      <p>What a list item is and how it behaves, from Apple's Lists and tables and Material 3's Lists. Nothing about tone yet, only the list.</p>
 
-      <h3>One structure, three slots</h3>
+      <h3>The parts</h3>
 
-      <p>Material describes a list item as three slots inside one container. Only the container and the label are required; everything else is optional. The content slot is always the widest, so the words keep their room whatever sits at either end.</p>
+      <p>One container, three slots. Only the container and the label are required.</p>
 
       <div class="rv-anat">
         <figure class="rv-anat-fig">
@@ -128,16 +180,18 @@
           </svg>
         </figure>
         <ol class="rv-anat-key">
-          <li><b>Container</b><span>The row. Its height is set by the tallest thing in it: Material uses 56, 72 or 88 dp.</span></li>
-          <li><b>Leading slot</b><span>Icon (20 in the brief, 24 dp in Material), avatar 40, image or video thumbnail, a selection control, or nothing.</span></li>
-          <li><b>Label</b><span>The only text that is required. Short, so it scans.</span></li>
-          <li><b>Supporting text</b><span>Optional, one to three lines, truncated when it runs over.</span></li>
-          <li><b>Trailing slot</b><span>Text (a price, a count, a date), an icon or icon button, a control, or text and an icon together.</span></li>
-          <li><b>Divider</b><span>Optional; inset to the text, or full width. Material now prefers gaps for contained lists.</span></li>
+          <li><b>Container</b><span>The row; as tall as its tallest part</span></li>
+          <li><b>Leading</b><span>Icon, avatar, image, or nothing</span></li>
+          <li><b>Label</b><span>The one required text; short</span></li>
+          <li><b>Supporting text</b><span>Optional detail, cut when too long</span></li>
+          <li><b>Trailing</b><span>Text, an icon, or both</span></li>
+          <li><b>Divider</b><span>Optional; or a gap instead</span></li>
         </ol>
       </div>
 
-      <h3>What each slot can hold</h3>
+      <h3>One build, many rows</h3>
+
+      <p>Each slot has a few options. Mixing them gives every row the list needs, from one build.</p>
 
       <div class="rv-rules">
         <div class="rv-rule">
@@ -146,8 +200,8 @@
             <rect x="4" y="25" width="104" height="18" class="ls-row"/><path class="ls-icon" d="M10 31 h7 v7 h-7 z"/><path class="ls-label" d="M22 34 H58"/>
             <rect x="4" y="46" width="104" height="18" class="ls-row"/><rect x="9" y="49" width="16" height="12" rx="1.5" class="ls-thumb"/><path class="ls-label" d="M30 55 H64"/>
           </svg>
-          <b>Leading: nothing, an icon, an image</b>
-          <p>Or an avatar for a person. Whatever it is, it sits at the leading edge in every row, so the eye runs straight down it.</p>
+          <b>Leading: nothing, icon, image</b>
+          <p>Or an avatar. Always at the same edge, so the eye runs down it.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
@@ -155,7 +209,7 @@
             <rect x="4" y="34" width="104" height="28" class="ls-row"/><circle cx="16" cy="48" r="6" class="ls-avatar"/><path class="ls-label" d="M27 44 H70"/><path class="ls-sub" d="M27 52 H90"/>
           </svg>
           <b>Content: one line or two</b>
-          <p>The label alone, or with supporting text under it. The row grows to fit; the leading slot stays centred until the text runs to three lines.</p>
+          <p>The label alone, or with a line of detail under it. The row grows to fit.</p>
         </div>
         <div class="rv-rule">
           <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
@@ -164,13 +218,54 @@
             <rect x="4" y="46" width="104" height="18" class="ls-row"/><path class="ls-label" d="M10 55 H44"/><text x="93" y="57.5" text-anchor="end" class="ls-meta">Detail</text><path class="ls-icon" d="M98 51 L102 55 L98 59"/>
           </svg>
           <b>Trailing: text, an icon, or both</b>
-          <p>Text for meta information. An icon for status or an action. Both, as in Apple's Title, Detail and chevron.</p>
+          <p>A price or date, a chevron, or both.</p>
         </div>
+      </div>
+
+      <h3>Try it</h3>
+
+      <p>A plain list with no tone, doing everything the brief asks. Point at a row, press it, Tab through it; the first row goes one level deeper, the second opens in place.</p>
+
+      <div class="ls-try">
+        <div class="ls-try-view">
+          <div class="ls-try-pane is-home" role="list" aria-label="Example list">
+            <a class="ls-try-row" href="#" role="listitem" data-try="go">
+              <span class="ls-try-lead"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM9 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <span class="ls-try-text"><b>Trips</b><span>3 upcoming</span></span>
+              <svg class="ls-try-chev" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="ls-try-item" role="listitem">
+              <button class="ls-try-row" type="button" aria-expanded="false" aria-controls="try-sub" data-try="open">
+                <span class="ls-try-lead is-avatar">JW</span>
+                <span class="ls-try-text"><b>Jiwoo Kim</b><span>3 shared plans</span></span>
+                <svg class="ls-try-chev" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="ls-try-sub" id="try-sub"><div>
+                <span class="ls-try-child">Dinner, Friday</span><span class="ls-try-child">Wine tasting, Tuesday</span><span class="ls-try-child">Flight home, Wednesday</span>
+              </div></div>
+            </div>
+            <div class="ls-try-row is-still" role="listitem">
+              <span class="ls-try-text"><b>Budget</b></span><span class="ls-try-meta">₩3,150,000</span>
+            </div>
+          </div>
+          <div class="ls-try-pane is-deep" aria-hidden="true">
+            <button class="ls-try-back" type="button" data-try="back"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5L7 10l5 5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</button>
+            <b class="ls-try-title">Trips</b>
+            <span class="ls-try-child">Lisbon &amp; Porto</span><span class="ls-try-child">Kyoto</span><span class="ls-try-child">Jeju</span>
+          </div>
+        </div>
+        <ul class="ls-try-key">
+          <li><i class="k-hover"></i><b>Hover</b>A layer of the text colour, about 8%</li>
+          <li><i class="k-press"></i><b>Pressed</b>The same layer, about 10%</li>
+          <li><i class="k-focus"></i><b>Focus</b>A ring the keyboard can see</li>
+          <li><i class="k-go"></i><b>Go deeper</b>A chevron pointing on; the next screen slides in</li>
+          <li><i class="k-open"></i><b>Open in place</b>The chevron turns; children push the rows below down</li>
+        </ul>
       </div>
 
       <h3>Two actions</h3>
 
-      <p>The brief asks for both, and the two systems draw a clear line between them: one row leaves the list, the other stays and opens.</p>
+      <p>Leave the list, or stay and open. The chevron tells which before the tap.</p>
 
       <div class="rv-pair">
         <figure class="rv-card">
@@ -185,12 +280,7 @@
           </div>
           <figcaption>
             <b>Navigate</b>
-            <dl class="rv-facts">
-              <dt>Signal</dt><dd>A chevron pointing on: Apple's disclosure indicator</dd>
-              <dt>Target</dt><dd>The whole row is one action; no other button inside it</dd>
-              <dt>Feedback</dt><dd>In a hierarchy, the chosen row stays highlighted so the path is clear</dd>
-              <dt>On the web</dt><dd>A link: Tab to it, Enter follows it</dd>
-            </dl>
+            <dl class="rv-facts"><dt>Looks like</dt><dd>A chevron pointing on</dd><dt>Does</dt><dd>The whole row leaves for the next screen</dd><dt>In code</dt><dd>A link</dd></dl>
           </figcaption>
         </figure>
         <figure class="rv-card">
@@ -205,19 +295,12 @@
           </div>
           <figcaption>
             <b>Expand</b>
-            <dl class="rv-facts">
-              <dt>Signal</dt><dd>A chevron that turns as it opens; macOS calls it a disclosure triangle</dd>
-              <dt>Children</dt><dd>Revealed under the parent, indented; the rows below make way</dd>
-              <dt>Motion</dt><dd>Material: a parent-child transition, the item grows to hold its children</dd>
-              <dt>On the web</dt><dd>A button with <code>aria-expanded</code> and <code>aria-controls</code>; Space or Enter toggles it</dd>
-            </dl>
+            <dl class="rv-facts"><dt>Looks like</dt><dd>A chevron that turns as it opens</dd><dt>Does</dt><dd>Children appear under it, indented; the rows below make way</dd><dt>In code</dt><dd>A button with <code>aria-expanded</code></dd></dl>
           </figcaption>
         </figure>
       </div>
 
-      <h3>Three states, and focus</h3>
-
-      <p>Material lays a state layer over the whole row in the content colour: about 8% on hover, 10% when pressed, with a ripple from the finger. Apple highlights a pressed row briefly; on a navigating list the chosen row keeps its highlight. Focus is not in the brief, but a keyboard has to see where it is.</p>
+      <h3>Four states</h3>
 
       <div class="rv-states">
         <figure class="rv-state">
@@ -238,91 +321,60 @@
         </figure>
       </div>
 
-      <h3>Rules the tone has to survive</h3>
+      <h3>Numbers to remember</h3>
 
-      <div class="rv-rules">
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <path class="rv-mute" d="M16 4 V64" stroke-dasharray="2 2"/><path class="rv-mute" d="M30 4 V64" stroke-dasharray="2 2"/>
-            <circle cx="16" cy="14" r="5" class="ls-avatar"/><path class="ls-label" d="M30 14 H70"/>
-            <circle cx="16" cy="34" r="5" class="ls-avatar"/><path class="ls-label" d="M30 34 H62"/>
-            <circle cx="16" cy="54" r="5" class="ls-avatar"/><path class="ls-label" d="M30 54 H78"/>
-          </svg>
-          <b>Same place, every row</b>
-          <p>Leading visuals and the label start at the same x in every row. Don't move elements from row to row; a list is read by running down it.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <rect x="4" y="12" width="104" height="22" class="ls-row"/><text x="10" y="26" class="ls-meta" style="font-size: 7.5px">Annual-repo…-final.pdf</text>
-            <rect x="4" y="38" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 46 H70"/><path class="ls-sub" d="M10 53 H90"/>
-          </svg>
-          <b>Short, and cut with care</b>
-          <p>Keep labels brief. When text has to be cut, a cut in the middle can keep both the start and the end readable.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <rect x="14" y="18" width="44" height="44" rx="4" fill="none" stroke="var(--accent)" stroke-dasharray="3 2"/>
-            <circle cx="36" cy="40" r="6" class="ls-avatar"/>
-            <text x="64" y="28" class="rv-note">48</text><text x="46" y="44" class="rv-note">12</text>
-            <rect x="70" y="34" width="38" height="16" class="ls-row"/><path class="ls-label" d="M76 42 H100"/>
-          </svg>
-          <b>Big enough to hit</b>
-          <p>Material's minimum target is 48 dp, Apple's 44 pt. A slim tone can draw a thin row, but the row it hit-tests stays tall.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <rect x="4" y="10" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 21 H50"/><path class="ls-icon" d="M86 16 L91 21 L86 26"/><path class="ls-icon" d="M96 21 h6 M99 18 v6" opacity=".3"/>
-            <path class="rv-mute" d="M92 6 L106 36" stroke="#e2537d"/>
-            <rect x="4" y="38" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 49 H50"/><path class="ls-icon" d="M95 44 L100 49 L95 54"/>
-          </svg>
-          <b>One action per row</b>
-          <p>A navigating row is one target. Don't add a second button inside it, and don't use an info button to drill in; that is the chevron's job.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <rect x="4" y="10" width="104" height="22" class="ls-row"/><path class="ls-label" d="M10 21 H50"/>
-            <rect x="4" y="36" width="104" height="22" class="ls-row"/><rect x="4" y="36" width="104" height="22" class="ls-layer" opacity=".14"/><path class="ls-icon" d="M10 47 l3 3 l6 -6"/><path class="ls-label" d="M24 47 H64"/>
-          </svg>
-          <b>Never colour alone</b>
-          <p>A selected or open row needs a second cue: a check, a turned chevron, a change in weight. Not only a tint.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
-            <rect x="4" y="4" width="50" height="14" rx="4" class="ls-row"/><rect x="4" y="20" width="50" height="14" rx="4" class="ls-row"/><rect x="4" y="36" width="50" height="14" rx="4" class="ls-row"/>
-            <rect x="60" y="4" width="48" height="46" class="ls-row"/><path d="M60 19.3 H108 M60 34.6 H108" stroke="var(--fg-muted)" stroke-width="1"/>
-            <text x="29" y="62" text-anchor="middle" class="rv-note">gaps</text><text x="84" y="62" text-anchor="middle" class="rv-note">dividers</text>
-          </svg>
-          <b>Gaps or dividers</b>
-          <p>Material now groups contained lists with gaps and rounded segments, and keeps dividers for open lists that need a firmer break.</p>
-        </div>
+      <div class="ls-nums">
+        <div><b>44<small>pt</small> / 48<small>dp</small></b><span>Smallest tap target, Apple / Material. A thin row still hits this tall.</span></div>
+        <div><b>56 · 72 · 88</b><span>Material's row heights for one, two and three lines.</span></div>
+        <div><b>16</b><span>Padding at each side of the row, both systems.</span></div>
+        <div><b>8% · 10%</b><span>The state layer for hover and for pressed.</span></div>
       </div>
 
-      <h3>Where Apple and Material differ</h3>
+      <h3>Do and don't</h3>
 
-      <table>
-        <thead>
-          <tr><th>Question</th><th>Apple</th><th>Material 3</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Row height</td><td>44 pt minimum target; rows size to content</td><td>56, 72 or 88 dp, set by the tallest element</td></tr>
-          <tr><td>Side padding</td><td>Follows the layout margins; inset grouped lists sit in a rounded card</td><td>16 dp leading; 16 dp before a trailing element, 24 dp after it (baseline)</td></tr>
-          <tr><td>Going deeper</td><td>Disclosure indicator, a chevron; the info button never navigates</td><td>A single-action list; the whole item navigates</td></tr>
-          <tr><td>Opening in place</td><td>Outline view with disclosure triangles (macOS)</td><td>Expand and collapse, with a parent-child transition</td></tr>
-          <tr><td>Hover</td><td>On the Mac and iPad pointer; none on touch</td><td>A state layer, about 8%</td></tr>
-          <tr><td>Pressed</td><td>A brief highlight; kept on the chosen row in a hierarchy</td><td>A state layer, about 10%, with a ripple</td></tr>
-          <tr><td>Grouping</td><td>Grouped style: headers, footers, extra space</td><td>Segmented style with gaps, or dividers</td></tr>
-          <tr><td>Keyboard</td><td>Platform focus; full keyboard access on the Mac</td><td>Tab to the list, arrows move, Space or Enter acts</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Still to read</h3>
-
-      <ul>
-        <li>WAI-ARIA: the disclosure pattern for the expanding row, and lists of links</li>
-        <li>Material's expand interaction tokens: durations and the container transform</li>
-        <li>iOS <code>UIListContentConfiguration</code>: the built-in row styles and their spacing</li>
-        <li>Lists with tone in the wild: music libraries, settings, file browsers, games</li>
-      </ul>
+      <div class="rv-dd ls-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="rv-hair" d="M18 2 V42" stroke-dasharray="2 2"/><path class="rv-hair" d="M30 2 V42" stroke-dasharray="2 2"/>
+            <circle cx="18" cy="8" r="4.5" class="ls-avatar"/><path class="ls-label" d="M30 8 H70"/>
+            <circle cx="18" cy="22" r="4.5" class="ls-avatar"/><path class="ls-label" d="M30 22 H62"/>
+            <circle cx="18" cy="36" r="4.5" class="ls-avatar"/><path class="ls-label" d="M30 36 H78"/>
+          </svg>
+          <figcaption><b>Do</b>Start the leading slot and the label at the same x in every row.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="6" y="11" width="108" height="22" class="ls-row"/><path class="ls-label" d="M14 22 H58"/><path class="ls-icon" d="M101 17 L106 22 L101 27"/>
+          </svg>
+          <figcaption><b>Do</b>Make a row that goes deeper one target, the whole row.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="6" y="11" width="108" height="22" class="ls-row"/><rect x="6" y="11" width="108" height="22" class="ls-layer" opacity=".12"/><path class="ls-icon" d="M14 22 l3 3 l6 -6"/><path class="ls-label" d="M30 22 H66"/><path class="ls-icon" d="M101 20 L105 24 L109 20" transform="rotate(180 105 22)"/>
+          </svg>
+          <figcaption><b>Do</b>Give an open or chosen row a second cue: a tick, a turned chevron.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <circle cx="18" cy="8" r="4.5" class="ls-avatar"/><path class="ls-label" d="M30 8 H70"/>
+            <circle cx="30" cy="22" r="4.5" class="ls-avatar"/><path class="ls-label" d="M42 22 H72"/>
+            <circle cx="12" cy="36" r="4.5" class="ls-avatar"/><path class="ls-label" d="M24 36 H68"/>
+          </svg>
+          <figcaption><b>Don't</b>Shift parts from row to row; the eye loses the line.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="6" y="11" width="108" height="22" class="ls-row"/><path class="ls-label" d="M14 22 H50"/><rect x="74" y="15" width="20" height="14" rx="3" fill="none" stroke="var(--fg-muted)"/><path class="ls-icon" d="M101 17 L106 22 L101 27"/>
+          </svg>
+          <figcaption><b>Don't</b>Put a second button inside a row that already goes somewhere.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="6" y="11" width="108" height="22" class="ls-row"/><rect x="6" y="11" width="108" height="22" class="ls-layer" opacity=".12"/><path class="ls-label" d="M14 22 H50"/>
+          </svg>
+          <figcaption><b>Don't</b>Show that a row is chosen with colour alone.</figcaption>
+        </figure>
+      </div>
 
       <h2>Process</h2>
 
@@ -498,19 +550,19 @@
               <h4>Prototypes</h4>
               <div class="proto-grid">
                 <figure class="proto">
-                  <iframe src="week-05-movements-deeper.html?v=5" title="Modern art movements: clicking a block goes one level deeper, to a page for that movement in that place" loading="lazy"></iframe>
+                  <iframe src="week-05-movements-deeper.html?v=13" title="Modern art movements: clicking a block goes one level deeper, to a page for that movement in that place" loading="lazy"></iframe>
                   <figcaption>
                     <b>One level deeper</b>
                     <span>The same timeline. A block does not open under its row: clicking it slides the timeline away and brings in a page for that movement in that place, with where it came from and where else it went (each a way across), where it sits in the place's row, its artists as list rows and its works. “All places” or Esc comes back to the same spot.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements-deeper.html?v=5">View larger</button>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements-deeper.html?v=13">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-05-movements.html?v=12" title="Modern art movements, 1850 to 2000: one row per place, blocks in each movement's colour following on and stacking" loading="lazy"></iframe>
+                  <iframe src="week-05-movements.html?v=20" title="Modern art movements, 1850 to 2000: one row per place, blocks in each movement's colour following on and stacking" loading="lazy"></iframe>
                   <figcaption>
                     <b>Opens in place</b>
                     <span>Each place is a row; each movement a block as long as it lived there, stacking where two lived side by side. A movement keeps its colour wherever it went, so hovering one lights its other cities, with threads from where it began and, dashed, from what it grew out of. Every block is a button: it opens that one movement in place under its row, with its artists and representative works; an era above takes you one level down.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements.html?v=12">View larger</button>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements.html?v=20">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -580,19 +632,19 @@
               <h4>Prototypes</h4>
               <div class="proto-grid">
                 <figure class="proto">
-                  <iframe src="week-05-breezy.html?v=16" title="Breezy trip planner: a day's plan as one list; a flight with a stop opens in place, the hotel goes one level deeper" loading="lazy"></iframe>
+                  <iframe src="week-05-breezy.html?v=17" title="Breezy trip planner: a day's plan as one list; a flight with a stop opens in place, the hotel goes one level deeper" loading="lazy"></iframe>
                   <figcaption>
                     <b>Trip planner, on the web</b>
                     <span>A trip planner on the web: six days down the side with their weather, the plan in the middle, built from one row: an airline or train mark, a friend, a photo of the hotel or a meal, or words alone; a time, a price, a chevron, an arrow or a tick at the end. The flight with a stop and the rental car open in place; each hotel goes one level deeper, to its booking, and back.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy.html?v=16">View larger</button>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy.html?v=17">View larger</button>
                   </figcaption>
                 </figure>
                 <figure class="proto">
-                  <iframe src="week-05-breezy-mobile.html?v=1" title="Breezy trip planner on the phone: the days as chips, a pastel folder per day; rides and the flight open in place, a hotel slides in from the right" loading="lazy"></iframe>
+                  <iframe src="week-05-breezy-mobile.html?v=2" title="Breezy trip planner on the phone: the days as chips, a pastel folder per day; rides and the flight open in place, a hotel slides in from the right" loading="lazy"></iframe>
                   <figcaption>
                     <b>Trip planner, on the phone</b>
                     <span>The same trip and row build at 390 wide, for one thumb: the days as a strip of chips that stays at the top, a pastel folder per day, the status under each title and the value at the end of its line. No hover, only touch: a press shows at once and lets go slowly. The flight, the rides and the rental car open in place; a hotel slides in from the right edge with its photos, and slides back.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy-mobile.html?v=1">View larger</button>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy-mobile.html?v=2">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -661,5 +713,28 @@
   <script src="../shared/viewer.js?v=8"></script>
   <script src="../shared/sets.js?v=1"></script>
   <script src="../shared/toc.js?v=4"></script>
+  <script>
+    // Try it: the first row goes one level deeper and back, the second opens in place
+    (() => {
+      const view = document.querySelector('.ls-try-view');
+      if (!view) return;
+      const home = view.querySelector('.is-home'), deep = view.querySelector('.is-deep');
+      const go = view.querySelector('[data-try="go"]'), back = view.querySelector('[data-try="back"]'), open = view.querySelector('[data-try="open"]');
+      go.addEventListener('click', e => {
+        e.preventDefault();
+        view.classList.add('is-deeper'); home.inert = true; deep.removeAttribute('aria-hidden');
+        setTimeout(() => back.focus({ preventScroll: true }), 300);
+      });
+      back.addEventListener('click', () => {
+        view.classList.remove('is-deeper'); home.inert = false; deep.setAttribute('aria-hidden', 'true');
+        go.focus({ preventScroll: true });
+      });
+      open.addEventListener('click', () => {
+        const on = open.getAttribute('aria-expanded') !== 'true';
+        open.setAttribute('aria-expanded', on);
+        open.parentElement.classList.toggle('is-open', on);
+      });
+    })();
+  </script>
 </body>
 </html>

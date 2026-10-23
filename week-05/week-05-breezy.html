@@ -295,6 +295,16 @@
   /* ---------- Spec ---------- */
   .spec { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.5; background: #fff; }
   .spec h2 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+  /* the spec waits folded under the prototype; open it to read the numbers */
+  .spec { padding-top: 18px; padding-bottom: 18px; }
+  .spec[open] { padding-bottom: 64px; }
+  .spec > summary { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; cursor: pointer; list-style: none; }
+  .spec > summary::-webkit-details-marker { display: none; }
+  .spec > summary h2 { margin: 0; }
+  .spec > summary span { color: var(--ink-3); }
+  .spec > summary::after { content: ""; align-self: center; margin-left: auto; width: 8px; height: 8px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; rotate: 45deg; translate: 0 -2px; transition: rotate .3s ease, translate .3s ease; }
+  .spec[open] > summary { margin-bottom: 10px; }
+  .spec[open] > summary::after { rotate: 225deg; translate: 0 2px; }
   .spec h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
   .spec p { margin: 0 0 8px; color: var(--ink-2); }
   .spec table { width: 100%; border-collapse: collapse; }
@@ -354,8 +364,8 @@
     </div>
   </div></div>
 
-  <section class="spec" aria-labelledby="spec-title">
-    <h2 id="spec-title">Spec</h2>
+  <details class="spec">
+    <summary><h2 id="spec-title">Spec</h2><span>Sizes, colour, states and motion</span></summary>
     <p>Read from the CSS this page runs on. The trip is a night-sea board; each day is a time rail and one pastel folder. The folder's tab names the day, and beside it sit everyone going that day (faces) and every way they get about (transport marks in circles), then the weather. Inside the folder, the day's plans are the list, each row starting with its time and carrying its status as a tag, then one row build: leading, an airline or transport mark, a friend, a photo, or nothing; content, one line or two; trailing, a time, a price, a chevron, an arrow, a tick, or a value with an icon. The flight with a stop opens in place to show its legs; the hotel goes one level deeper, to its booking.</p>
     <h3>Colour</h3>
     <table>
@@ -408,7 +418,7 @@
       <tr><td>One level deeper, and back</td><td>The plan fades and moves 40px left; the hotel comes in from the right, <span data-var="--push-dur"></span> <code>cubic-bezier(.2, .8, .2, 1)</code>; back reverses it and returns to the row</td></tr>
       <tr><td>Tick</td><td>The check grows from .4 on the same spring</td></tr>
     </table>
-  </section>
+  </details>
 
   <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
   <script src="week-05-spec.js?v=1"></script>

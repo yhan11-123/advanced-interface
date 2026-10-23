@@ -24,11 +24,11 @@
     /* each movement's colour at full strength, as the art itself has it */
     --brown: #6e3b17; --sky: #4f93d6; --navy: #1b35b5; --mustard: #f2b200; --teal: #009e7e; --mint: #79d3b8; --red: #e0261d;
     --orange: #f47a12; --butter: #f6d33c; --ink-c: #111111; --cream: #d9d2c0; --pink: #f57aa2; --plum: #7d2f8f; --slate: #5f7682;
-    --label-w: 268px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
+    --label-w: 292px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
     --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-    --ease: cubic-bezier(.2, .8, .2, 1); --open-dur: .45s; --zoom-dur: .6s;
+    --ease: cubic-bezier(.2, .8, .2, 1); --page-dur: .5s; --reveal-dur: .85s; --reveal-ease: cubic-bezier(.86, 0, .1, 1); --reveal-delay: .15s; --reveal-step: .08s; --open-dur: .45s; --zoom-dur: .6s;
   }
-  @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; } }
+  @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; --page-dur: .01s; --reveal-dur: .01s; --reveal-delay: 0s; --reveal-step: 0s; } }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--paper); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
@@ -74,11 +74,12 @@
   .gl.minor b { display: none; }
   .row { position: relative; z-index: 1; display: grid; grid-template-rows: auto auto; align-items: center; padding: var(--row-pad) 0; border-top: 1px solid var(--rule); transition: background-color .15s ease; }
   .row:hover { background: rgba(27, 26, 23, .025); }
-  .who { display: grid; grid-template-columns: 42px 1fr; align-items: center; column-gap: 14px; justify-self: start; margin: -8px -10px; padding: 8px 10px; border-radius: 6px; text-align: left; transition: background-color .15s ease; }
+  .who { display: grid; grid-template-columns: 42px minmax(0, 1fr) 14px; align-items: center; column-gap: 14px; justify-self: stretch; margin: -8px -10px; padding: 8px 10px; border-radius: 6px; text-align: left; transition: background-color .15s ease; }
   .who:hover { background: rgba(17, 17, 17, .05); }
   .who:active { background: rgba(17, 17, 17, .1); }
   .who:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  .caret { width: 14px; height: 14px; margin-left: 6px; vertical-align: 1px; color: var(--ink-3); transition: rotate var(--open-dur) var(--ease), color .15s; }
+  /* the caret in its own column at the box's right edge, so every place's caret lines up down the list */
+  .caret { grid-column: 3; grid-row: 1 / span 2; width: 14px; height: 14px; color: var(--ink-3); transition: rotate var(--open-dur) var(--ease), color .15s; }
   .who:hover .caret { color: var(--ink); }
   .who[aria-expanded="true"] .caret { rotate: 180deg; color: var(--ink); }
 
@@ -149,6 +150,19 @@
   .ph { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 2px; background: color-mix(in oklab, var(--c) 22%, var(--paper)); box-shadow: inset 0 0 0 1px rgba(27, 26, 23, .1); }
   .ph code { position: absolute; left: 10px; bottom: 9px; right: 10px; font: 11px/1.3 ui-monospace, Menlo, monospace; color: var(--ink-2); word-break: break-all; }
   .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--paper); }
+  /* the works arrive in turn, each wiped open: the first from the top down, the next from the bottom up,
+     and so on; the picture inside settles the other way as it is uncovered */
+  /* a beat behind the page; a steep ease-in-out, slow to lift, quick through the middle, slow to land */
+  .work .ph { animation: wipe-down var(--reveal-dur) var(--reveal-ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step)) both; }
+  .work:nth-child(even) .ph { animation-name: wipe-up; }
+  .work .ph img { animation: settle-down var(--reveal-dur) var(--reveal-ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step)) both; }
+  .work:nth-child(even) .ph img { animation-name: settle-up; }
+  .work figcaption { animation: caption-in .5s var(--ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step) + var(--reveal-dur) * .45) both; }
+  @keyframes wipe-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+  @keyframes wipe-up { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+  @keyframes settle-down { from { transform: translateY(-10%) scale(1.08); } to { transform: none; } }
+  @keyframes settle-up { from { transform: translateY(10%) scale(1.08); } to { transform: none; } }
+  @keyframes caption-in { from { opacity: 0; transform: translateY(6px); } }
   .work figcaption { margin-top: 8px; font-size: 13.5px; line-height: 18px; }
   .work figcaption i { display: block; font-size: 15px; font-weight: 500; }
   .work figcaption span { color: var(--ink-2); }
@@ -181,6 +195,16 @@
 
   .spec { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.5; }
   .spec h2 { margin: 0 0 6px; font-size: 20px; font-weight: 600; }
+  /* the spec waits folded under the prototype; open it to read the numbers */
+  .spec { padding-top: 18px; padding-bottom: 18px; }
+  .spec[open] { padding-bottom: 64px; }
+  .spec > summary { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; cursor: pointer; list-style: none; }
+  .spec > summary::-webkit-details-marker { display: none; }
+  .spec > summary h2 { margin: 0; }
+  .spec > summary span { color: var(--ink-3); }
+  .spec > summary::after { content: ""; align-self: center; margin-left: auto; width: 8px; height: 8px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; rotate: 45deg; translate: 0 -2px; transition: rotate .3s ease, translate .3s ease; }
+  .spec[open] > summary { margin-bottom: 10px; }
+  .spec[open] > summary::after { rotate: 225deg; translate: 0 2px; }
   .spec h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
   .spec p { margin: 0 0 8px; color: var(--ink-2); }
   .spec table { width: 100%; border-collapse: collapse; }
@@ -204,8 +228,8 @@
   </main>
   </div>
 
-  <section class="spec" aria-labelledby="spec-title">
-    <h2 id="spec-title">Spec</h2>
+  <details class="spec">
+    <summary><h2 id="spec-title">Spec</h2><span>Sizes, colour, states and motion</span></summary>
     <p>Read from the CSS this page runs on. Each place is a list item: leading, its country’s flag; content, the city, and under it the country and how many movements lived there; the bar, its blocks in time; trailing, a chevron. Every block is a button: clicking one opens that movement, as it was in that place, under its row: what it was, who made it, what they made. Clicking another block swaps it in; the same one, or the chevron, closes it. Clicking an era above goes one level down into it.</p>
     <h3>Colour: each movement at full strength</h3>
     <table>
@@ -250,9 +274,10 @@
     <h3>Motion</h3>
     <table>
       <tr><td>Open in place</td><td><span data-var="--open-dur"></span> ease-out; the drawer grows under the row, its contents fade in after</td></tr>
+      <tr><td>The works arriving</td><td>Each picture is wiped open over <span data-var="--reveal-dur"></span> on a steep ease-in-out, <code>cubic-bezier(.86, 0, .1, 1)</code>, top down, then bottom up, in turn: the first <span data-var="--reveal-delay"></span> after the drawer starts to open, the rest <span data-var="--reveal-step"></span> apart; the picture inside settles from 1.08 the other way; its caption follows</td></tr>
       <tr><td>Into an era, and back</td><td><span data-var="--zoom-dur"></span> ease-out; blocks slide and stretch to the new span</td></tr>
     </table>
-  </section>
+  </details>
 
   <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
 
@@ -321,7 +346,7 @@
         ['zero', 1957, 1966, 'Mack, Piene, Uecker'], ['fluxus', 1962, 1972, 'Beuys, Paik'], ['neoexp', 1978, 1990, 'Baselitz, Kiefer']] },
       { code: 'ITA', name: 'Milan, Rome, Turin', b: [['macchia', 1855, 1880, 'Fattori, Signorini'], ['futurism', 1909, 1918, 'Boccioni, Balla'], ['metaph', 1914, 1921, 'de Chirico, Carrà'],
         ['povera', 1967, 1980, 'Merz, Pistoletto'], ['transav', 1979, 1990, 'Clemente, Chia']] },
-      { code: 'MOS', name: 'Moscow, St Petersburg', b: [['wanderers', 1870, 1900, 'Repin, Kramskoi'], ['miriskus', 1898, 1912, 'Benois, Bakst'], ['futurism', 1912, 1917, 'Goncharova, Larionov'],
+      { code: 'MOS', name: 'Moscow, St\u00a0Petersburg', b: [['wanderers', 1870, 1900, 'Repin, Kramskoi'], ['miriskus', 1898, 1912, 'Benois, Bakst'], ['futurism', 1912, 1917, 'Goncharova, Larionov'],
         ['suprem', 1915, 1925, 'Malevich, Popova'], ['construct', 1917, 1932, 'Tatlin, Rodchenko'], ['socreal', 1932, 1960, 'Deineka, Gerasimov'], ['sots', 1972, 1990, 'Komar & Melamid']] },
       { code: 'NYC', name: 'New York', b: [['hudson', 1850, 1880, 'Cole, Church'], ['imp', 1885, 1915, 'Hassam, Cassatt'], ['dada', 1915, 1921, 'Duchamp, Man Ray'],
         ['deco', 1925, 1940, 'Chrysler, Ferriss'], ['surreal', 1940, 1947, 'in exile: Ernst, Breton'], ['bauhaus', 1937, 1950, 'Albers, Moholy-Nagy (Chicago)'], ['abex', 1943, 1960, 'Pollock, Rothko, de Kooning'],
@@ -433,7 +458,7 @@
       });
       const row = document.createElement('div');
       row.className = 'row'; row.setAttribute('role', 'listitem');
-      row.innerHTML = `<button type="button" class="who" aria-expanded="false" aria-controls="pl-${p.code}">${FLAGS[p.code]}<span class="name">${p.name}<svg class="caret" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5l3 3 3-3"/></svg></span><span class="count">${COUNTRY[p.code]} · ${blocks.length} movements</span></button>
+      row.innerHTML = `<button type="button" class="who" aria-expanded="false" aria-controls="pl-${p.code}">${FLAGS[p.code]}<span class="name">${p.name}</span><span class="count">${COUNTRY[p.code]} · ${blocks.length} movements</span><svg class="caret" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button>
         <span class="bar" style="--lanes:${ends.length}">${blocks.map((o, i) => `<button type="button" class="blk" data-i="${i}" data-k="${o.k}" aria-expanded="false" aria-controls="dr-${p.code}"
           aria-label="${M[o.k][0]}, ${p.name}, ${o.a} to ${o.z}" style="--c:${col(o.k)}; --on:${M[o.k][2] ? 'rgba(255,255,255,.95)' : '#111'}; --l:${o.l}"><span class="no">${String(i + 1).padStart(2, '0')}</span>${M[o.k][0]}</button>`).join('')}</span>
         <button type="button" class="chev" aria-label="Close"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5l3 3 3-3"/></svg></button>
@@ -472,8 +497,8 @@
           ${m[3].length ? `<p><span class="k">Grew from</span>${m[3].map(s => M[s][0]).join(', ')}</p>` : ''}
           ${others.length ? `<p><span class="k">Also in</span>${others.join(', ')}</p>` : ''}</div>
         <div><div class="names"><em>Artists</em>${o.who.replace(/^in exile: /, '').split(/, | and /).map(n => `<span>${n}</span>`).join('')}</div>
-          <div class="works">${o.works.map(([t, a, y]) => { const f = slug(t, a) + '.jpg';
-            return `<figure class="work"><div class="ph"><code>${f}</code><img src="images/art/${f}" alt="${t}, ${a}, ${y}" loading="lazy" onerror="this.remove()"></div><figcaption><i>${t}</i><span>${a}, ${y}</span></figcaption></figure>`; }).join('')}</div></div><span></span>`;
+          <div class="works">${o.works.map(([t, a, y], i) => { const f = slug(t, a) + '.jpg';
+            return `<figure class="work" style="--i:${i}"><div class="ph"><code>${f}</code><img src="images/art/${f}" alt="${t}, ${a}, ${y}" loading="lazy" onerror="this.remove()"></div><figcaption><i>${t}</i><span>${a}, ${y}</span></figcaption></figure>`; }).join('')}</div></div><span></span>`;
       r.el.classList.add('is-open');
     }
     const cursor = document.createElement('div'); cursor.className = 'cursor'; cursor.innerHTML = '<b></b>'; rowsEl.appendChild(cursor);
