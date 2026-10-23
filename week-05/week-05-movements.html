@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 &middot; Set 1 &middot; Movements</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* Set 1, Movements: modern art, 1850 to 2000, as a list of places, after charts that draw each
+     book's covers as a strip of colour through time. Each row is one place; time runs left to
+     right. Every movement is a block as long as it lasted there. Blocks follow on from one another,
+     and where two movements live side by side in one place they stack, so a crowded decade is a
+     tall row and a quiet one is thin. A movement keeps its colour wherever it goes, so you can watch
+     it travel: Impressionism's sky blue reaching London, New York and Tokyo years after Paris.
+     The colours are taken from the art itself, all from one muted shelf so they sit together:
+     the brown of Realism's earth, Impressionism's sky, the Secession's gold, Klein's blue, the
+     pink of Pop. Hover a block and its other cities light up, threads running from where it began
+     and, dashed, from what it grew out of. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,300;1,400&display=swap");
+  :root {
+    --w: 1440px;
+    --paper: #f3efe6; --ink: #1b1a17; --ink-2: #5f5b52; --ink-3: #928c80; --rule: #e1dbcd;
+    /* one shelf of colours, after the reference's: muted, same weight, each from a movement's own art */
+    --brown: #5a4433; --sky: #86abc4; --navy: #23356a; --mustard: #efb93a; --teal: #3f9a83; --mint: #b6d6c9; --red: #c23a31;
+    --orange: #dc7f3c; --butter: #f2d27a; --ink-c: #1d1c24; --cream: #d6cbb1; --pink: #e7a39a; --plum: #6c4669; --slate: #7c8b90;
+    --label-w: 240px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
+    --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    --ease: cubic-bezier(.2, .8, .2, 1); --open-dur: .45s; --zoom-dur: .6s;
+  }
+  @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; text-align: inherit; cursor: pointer; }
+
+  .fitbox { overflow: hidden; }
+  .chart { transform-origin: 0 0; width: var(--w); margin: 0 auto; padding: 48px 40px 36px; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+  h1 { margin: 0; font-size: 38px; line-height: 44px; font-weight: 600; letter-spacing: -.015em; }
+  .sub { margin: 6px 0 0; font-size: 18px; font-style: italic; font-weight: 300; color: var(--ink-2); }
+  .crumb { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-3); min-height: 20px; }
+  .crumb button { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rule); }
+  .crumb button:hover { color: var(--ink); text-decoration-color: currentColor; }
+  .crumb b { font-weight: 600; color: var(--ink); }
+
+  .axis, .row { display: grid; grid-template-columns: var(--label-w) 1fr var(--trail-w); column-gap: var(--col-gap); }
+  .axis { align-items: end; margin-bottom: 4px; }
+  .axis .yr { font-size: 13px; color: var(--ink-3); padding-bottom: 1px; }
+
+  /* eras: buttons that take you one level down; each carries a thin strip of its movements' colours */
+  .scale { position: relative; height: 92px; }
+  .era { position: absolute; top: 0; height: 60px; padding: 10px 12px 0; text-overflow: ellipsis; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border-radius: 2px; background: rgba(27, 26, 23, .05); overflow: hidden; white-space: nowrap;
+    font-size: 15px; line-height: 17px; font-weight: 600; transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), background-color .15s, opacity .3s; }
+  .era small { display: block; font-size: 12.5px; line-height: 15px; font-weight: 400; color: var(--ink-2); }
+  .era .strip { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; display: flex; }
+  .era .strip i { flex: 1; }
+  .era:hover { background: rgba(27, 26, 23, .1); }
+  .era:active { background: rgba(27, 26, 23, .16); }
+  .era:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .era.is-away { opacity: 0; pointer-events: none; }
+  .tick { position: absolute; bottom: 0; translate: -50% 0; font-size: 13px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; transition: left var(--zoom-dur) var(--ease); }
+  .tick::before { content: ""; position: absolute; left: 50%; bottom: 14px; height: 4px; border-left: 1px solid var(--ink-3); }
+
+  /* the list */
+  .rows { position: relative; }
+  /* time lines: through every row, so a year can be read straight down; the years repeat at the foot */
+  .grid { position: absolute; z-index: 0; top: 0; bottom: 0; left: calc(var(--label-w) + var(--col-gap)); right: calc(var(--trail-w) + var(--col-gap)); pointer-events: none; }
+  .gl { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid rgba(27, 26, 23, .07); transition: left var(--zoom-dur) var(--ease); }
+  .gl.mid { border-left-color: rgba(27, 26, 23, .16); }
+  .gl.major { border-left: 1.5px solid rgba(27, 26, 23, .32); }
+  .gl b { position: absolute; bottom: -26px; left: 0; translate: -50% 0; font-size: 13px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .gl.minor b { display: none; }
+  .row { position: relative; z-index: 1; display: grid; grid-template-rows: auto auto; align-items: center; padding: var(--row-pad) 0; border-top: 1px solid var(--rule); transition: background-color .15s ease; }
+  .row:hover { background: rgba(27, 26, 23, .025); }
+  .who { display: grid; grid-template-columns: 46px 1fr; align-items: center; column-gap: 14px; }
+  .code { grid-row: span 2; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--ink); font-size: 12px; font-weight: 600; letter-spacing: .03em; transition: background-color .2s, color .2s; }
+  .row.is-open .code { background: var(--ink); color: var(--paper); }
+  .name { font-size: 21px; line-height: 26px; font-weight: 500; }
+  .count { font-size: 14.5px; line-height: 19px; font-style: italic; font-weight: 300; color: var(--ink-2); }
+
+  /* the blocks: following on along a lane, stacking up a new lane where two overlap. Each is a button */
+  .bar { position: relative; height: calc(var(--lanes) * (var(--lane) + var(--lane-gap)) - var(--lane-gap)); }
+  .blk { position: absolute; top: calc(var(--l) * (var(--lane) + var(--lane-gap))); height: var(--lane); display: flex; align-items: center; overflow: hidden; padding: 0 0 0 9px; border-radius: 1px;
+    background: var(--c); color: transparent; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
+    transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), opacity .2s ease, transform .12s ease, filter .15s ease; }
+  .blk.fits { color: var(--on); }
+  .blk:hover { filter: brightness(1.08) saturate(1.05); }
+  .blk:active { transform: scaleY(.88); }
+  .blk:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; z-index: 3; }
+  .blk[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); z-index: 2; }
+  .row.is-open .blk:not([aria-expanded="true"]) { opacity: .4; }
+  .rows.is-tracing .blk { opacity: .18; }
+  .rows.is-tracing .blk.is-kin, .rows.is-tracing .blk.is-root { opacity: 1; }
+  .blk.is-hot { box-shadow: 0 0 0 1.5px var(--paper), 0 0 0 3px var(--ink); z-index: 2; }
+  .chev { justify-self: center; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--ink-3); opacity: 0; pointer-events: none; transition: rotate var(--open-dur) var(--ease), opacity .2s, background-color .15s; }
+  .chev svg { width: 14px; height: 14px; }
+  .row.is-open .chev { opacity: 1; pointer-events: auto; rotate: 180deg; color: var(--ink); }
+  .chev:hover { background: rgba(27, 26, 23, .08); }
+  .chev:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* opened: one movement, as it was in this place: who made it and what they made */
+  .fold { grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--open-dur) var(--ease); }
+  .fold > div { min-height: 0; overflow: hidden; }
+  .row.is-open .fold { grid-template-rows: 1fr; }
+  /* the drawer sits on its own sheet of paper, so the time lines stop behind it */
+  .fold > div { margin: 0 -12px; }
+  .drawer { display: grid; grid-template-columns: var(--label-w) 1fr var(--trail-w); column-gap: var(--col-gap); margin-top: 22px; padding: 22px 12px 24px; border-radius: 4px; background: #f8f5ee;
+    box-shadow: 0 0 0 1px var(--rule); opacity: 0; transition: opacity .25s ease; }
+  .row.is-open .drawer { opacity: 1; transition-delay: .12s; }
+  .about { border-top: 6px solid var(--c); padding-top: 12px; }
+  .about h3 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+  .about .when { margin: 4px 0 12px; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .about p { margin: 0 0 10px; font-size: 14.5px; line-height: 21px; }
+  .about .k { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+  .names { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+  .names span { padding: 4px 10px; border-radius: 999px; background: rgba(27, 26, 23, .06); font-size: 14px; font-weight: 500; }
+  .names em { margin-right: 4px; font-style: normal; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); align-self: center; }
+  .works { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+  .work { margin: 0; }
+  .ph { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 2px; background: color-mix(in oklab, var(--c) 22%, var(--paper)); box-shadow: inset 0 0 0 1px rgba(27, 26, 23, .1); }
+  .ph code { position: absolute; left: 10px; bottom: 9px; right: 10px; font: 11px/1.3 ui-monospace, Menlo, monospace; color: var(--ink-2); word-break: break-all; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--paper); }
+  .work figcaption { margin-top: 8px; font-size: 13.5px; line-height: 18px; }
+  .work figcaption i { display: block; font-size: 15px; font-weight: 500; }
+  .work figcaption span { color: var(--ink-2); }
+  .work .credit { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 2px; }
+  .work .credit:hover { color: var(--ink); }
+
+  /* threads: where a movement went, and what it grew from */
+  .threads { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .threads path { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+  .threads path.from { stroke-dasharray: 3 3; stroke: var(--ink-2); }
+  .threads circle { fill: var(--ink); }
+
+  /* hover */
+  .cursor { position: absolute; z-index: 4; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--ink-2); pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .cursor b { position: absolute; top: -24px; left: 0; translate: -50% 0; padding: 3px 7px; border-radius: 2px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 600; }
+  .tip { position: absolute; z-index: 5; width: 330px; padding: 14px 16px; border-radius: 4px; background: #fffdf8; box-shadow: 0 0 0 1px var(--rule), 0 10px 24px -12px rgba(0,0,0,.35);
+    font-size: 14px; line-height: 19px; pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .tip b { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+  .tip b i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+  .tip em { display: block; color: var(--ink-2); font-weight: 300; margin-top: 1px; }
+  .tip p { margin: 6px 0 0; }
+  .tip .k { color: var(--ink-3); }
+  .is-hovering .cursor, .is-hovering .tip.has { opacity: 1; }
+
+  .note { margin: 44px 0 0 calc(var(--label-w) + var(--col-gap)); font-size: 14px; font-style: italic; font-weight: 300; color: var(--ink-3); }
+  details.table { margin: 16px 0 0 calc(var(--label-w) + var(--col-gap)); font-size: 14px; color: var(--ink-2); }
+  details.table summary { cursor: pointer; width: max-content; }
+  details.table table { margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  details.table td, details.table th { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--rule); text-align: left; font-weight: 400; vertical-align: top; }
+  details.table th { font-weight: 600; color: var(--ink); }
+
+  .spec { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.5; }
+  .spec h2 { margin: 0 0 6px; font-size: 20px; font-weight: 600; }
+  .spec h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .spec p { margin: 0 0 8px; color: var(--ink-2); }
+  .spec table { width: 100%; border-collapse: collapse; }
+  .spec td { padding: 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .spec td:first-child { width: 42%; padding-right: 12px; color: var(--ink-2); }
+  .spec .swatch { display: inline-block; width: 11px; height: 11px; margin-right: 7px; border-radius: 2px; vertical-align: -1px; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .78); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="fitbox">
+  <main class="chart" aria-labelledby="title">
+    <div class="head">
+      <div><h1 id="title">Modern art, place by place</h1><p class="sub">Movements from 1850 to 2000, where and how long they lived</p></div>
+      <nav class="crumb" aria-label="Level"></nav>
+    </div>
+    <div class="axis"><span class="yr">Year</span><div class="scale"></div><span></span></div>
+    <div class="rows" role="list"><div class="grid" aria-hidden="true"></div><svg class="threads" aria-hidden="true"></svg></div>
+    <p class="note">A block is a movement as long as it was alive in that place; stacked blocks lived side by side. A movement keeps its colour wherever it went. Dates are rounded and the cast is short: a map, not a census.</p>
+    <details class="table"><summary>See as a table</summary><table></table></details>
+  </main>
+  </div>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Each place is a list item: leading, a ringed code; content, the name and how many movements lived there; the bar, its blocks in time; trailing, a chevron. Every block is a button: clicking one opens that movement, as it was in that place, under its row: what it was, who made it, what they made. Clicking another block swaps it in; the same one, or the chevron, closes it. Clicking an era above goes one level down into it.</p>
+    <h3>Colour: one shelf, after the reference</h3>
+    <table>
+      <tr><td>Realism, earth</td><td data-var="--brown" data-kind="color"></td></tr>
+      <tr><td>Impressionism, sky</td><td data-var="--sky" data-kind="color"></td></tr>
+      <tr><td>Post-Impressionism, Bauhaus: yellow</td><td data-var="--mustard" data-kind="color"></td></tr>
+      <tr><td>Secession, Art Deco, Fluxus: gold</td><td data-var="--butter" data-kind="color"></td></tr>
+      <tr><td>Expressionism (Blue Rider), Ukiyo-e (Prussian blue), Klein</td><td data-var="--navy" data-kind="color"></td></tr>
+      <tr><td>Art Nouveau, Zero: pale jade</td><td data-var="--mint" data-kind="color"></td></tr>
+      <tr><td>Arts and Crafts, Metaphysical, YBA</td><td data-var="--teal" data-kind="color"></td></tr>
+      <tr><td>Constructivism, Abstract Expressionism, Actionism</td><td data-var="--red" data-kind="color"></td></tr>
+      <tr><td>Fauvism, Gutai, Neo-Expressionism</td><td data-var="--orange" data-kind="color"></td></tr>
+      <tr><td>Futurism, Surrealism, Pop</td><td data-var="--pink" data-kind="color"></td></tr>
+      <tr><td>Symbolism, Pre-Raphaelites</td><td data-var="--plum" data-kind="color"></td></tr>
+      <tr><td>Cubism, Conceptual, Mono-ha</td><td data-var="--slate" data-kind="color"></td></tr>
+      <tr><td>Nihonga, Minimalism, Suprematism</td><td data-var="--cream" data-kind="color"></td></tr>
+      <tr><td>Dada, Mavo</td><td data-var="--ink-c" data-kind="color"></td></tr>
+      <tr><td>How they sit together</td><td>All at a similar, low chroma on warm paper; no colour shouts. A colour is reused only by movements kin to each other or decades apart, and never by two blocks that touch in one row</td></tr>
+      <tr><td>Never colour alone</td><td>Opened rows name every block that fits; hover names any; the table lists all</td></tr>
+    </table>
+    <h3>Row</h3>
+    <table>
+      <tr><td>Width, kept at any window</td><td data-var="--w"></td></tr>
+      <tr><td>Label column</td><td data-var="--label-w"></td></tr>
+      <tr><td>Lane, closed / open</td><td data-var="--lane,--lane-open" data-join=" / "></td></tr>
+      <tr><td>Between lanes, between blocks</td><td><span data-var="--lane-gap"></span>, <span data-var="--gap"></span></td></tr>
+      <tr><td>Stacking</td><td>A block takes the lowest lane free at its start; a row is as tall as its busiest moment</td></tr>
+      <tr><td>Row padding</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Time lines, through every row</td><td>Every 5 years, ink at 7%; every 25, 16% with its year at the foot; every 50, 1.5px at 32%. Inside an era: every year, 5 and 10</td></tr>
+      <tr><td>Type</td><td>Inter Tight. Title 38/44 semibold; place 21/26 medium; count 14.5/19 light italic; block names 13 semibold, 14 open; list 15/21; axis 13</td></tr>
+    </table>
+    <h3>States</h3>
+    <table>
+      <tr><td>Names on blocks</td><td>Shown wherever the block is long enough for its name, closed or open</td></tr>
+      <tr><td>Hover, row</td><td>Ink at 3% behind; a dashed hairline at the year</td></tr>
+      <tr><td>Hover, block</td><td>Ringed; every other block fades to 18% but the same movement elsewhere; solid threads from where it began, dashed from what it grew out of; a card with dates, names and lineage</td></tr>
+      <tr><td>Hover / pressed, block</td><td>Brightens 8%; squeezes to 0.88 high</td></tr>
+      <tr><td>Open, block</td><td>Ringed in ink with a paper gap; the rest of its row at 40%; the place code fills</td></tr>
+      <tr><td>Focus</td><td>2px ink ring, 2px off</td></tr>
+    </table>
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Open in place</td><td><span data-var="--open-dur"></span> ease-out; the drawer grows under the row, its contents fade in after</td></tr>
+      <tr><td>Into an era, and back</td><td><span data-var="--zoom-dur"></span> ease-out; blocks slide and stretch to the new span</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+
+  <script>
+    // movements: name, colour, light text on it?, what it grew from, one line
+    const M = {
+      realism:   ['Realism', 'brown', 1, [], 'Painting ordinary life and work as it is.'],
+      preraph:   ['Pre-Raphaelites', 'plum', 1, [], 'Back before Raphael: sharp detail, jewel colour.'],
+      hudson:    ['Hudson River School', 'brown', 1, ['realism'], 'American landscape as a sublime frontier.'],
+      macchia:   ['Macchiaioli', 'brown', 1, ['realism'], 'Tuscan patches of light, before Impressionism.'],
+      wanderers: ['Peredvizhniki', 'brown', 1, ['realism'], 'The Wanderers: realism toured across Russia.'],
+      ukiyoe:    ['Ukiyo-e, late', 'navy', 1, [], 'Woodblock prints; their flat colour reached Paris.'],
+      imp:       ['Impressionism', 'sky', 0, ['realism', 'ukiyoe'], 'Light in the open air, caught quickly.'],
+      yoga:      ['Yōga', 'sky', 0, ['imp'], 'Western-style oil painting taken up in Japan.'],
+      postimp:   ['Post-Impressionism', 'mustard', 0, ['imp'], 'Structure, symbol and colour beyond the eye.'],
+      symbol:    ['Symbolism', 'plum', 1, ['preraph'], 'Dreams, myth and the soul over the seen.'],
+      miriskus:  ['Mir iskusstva', 'plum', 1, ['symbol'], 'World of Art: aesthetes against the Wanderers.'],
+      crafts:    ['Arts and Crafts', 'teal', 1, ['preraph'], 'Handmade against the machine.'],
+      nouveau:   ['Art Nouveau', 'mint', 0, ['crafts', 'ukiyoe'], 'The whiplash line, from posters to metro gates.'],
+      secession: ['Secession', 'butter', 0, ['nouveau', 'symbol'], 'Split from the Academy; gold and ornament.'],
+      nihonga:   ['Nihonga', 'cream', 0, ['ukiyoe'], 'Japanese painting renewed against Western oils.'],
+      fauv:      ['Fauvism', 'orange', 0, ['postimp'], 'Wild beasts: colour freed from description.'],
+      expr:      ['Expressionism', 'navy', 1, ['postimp', 'symbol'], 'Inner feeling, distorted form; the Blue Rider.'],
+      cubism:    ['Cubism', 'slate', 1, ['postimp'], 'One object from many sides at once.'],
+      futurism:  ['Futurism', 'pink', 0, ['cubism'], 'Speed, machines and the city in motion.'],
+      vorticism: ['Vorticism', 'pink', 0, ['futurism', 'cubism'], 'London’s hard-edged answer to Futurism.'],
+      metaph:    ['Metaphysical art', 'teal', 1, ['symbol'], 'Empty piazzas, long shadows, unease.'],
+      suprem:    ['Suprematism', 'cream', 0, ['cubism', 'futurism'], 'Pure feeling in pure shapes: the black square.'],
+      construct: ['Constructivism', 'red', 1, ['suprem', 'cubism'], 'Art as engineering for the new society.'],
+      dada:      ['Dada', 'ink-c', 1, ['cubism', 'futurism'], 'Anti-art against a world at war.'],
+      bauhaus:   ['Bauhaus', 'mustard', 0, ['crafts', 'construct', 'expr'], 'Art, craft and industry in one school.'],
+      newobj:    ['New Objectivity', 'cream', 0, ['expr', 'dada'], 'Cold, exact, after the war.'],
+      deco:      ['Art Deco', 'butter', 0, ['cubism', 'nouveau'], 'Streamlined glamour, from Paris to the skyline.'],
+      surreal:   ['Surrealism', 'pink', 0, ['dada', 'metaph'], 'The unconscious, set loose on the canvas.'],
+      mavo:      ['Mavo', 'ink-c', 1, ['dada', 'construct'], 'Tokyo’s Dada-constructivist provocation.'],
+      socreal:   ['Socialist Realism', 'red', 1, ['wanderers'], 'Official style of the Soviet state.'],
+      informel:  ['Art Informel', 'brown', 1, ['surreal'], 'Matter and gesture, after the war in Paris.'],
+      abex:      ['Abstract Expressionism', 'red', 1, ['surreal', 'expr'], 'Gesture and colour field at mural scale.'],
+      gutai:     ['Gutai', 'orange', 0, [], '“Do what has never been done.”'],
+      pop:       ['Pop Art', 'pink', 0, ['dada'], 'Ads, comics and soup cans as subject.'],
+      nouvreal:  ['Nouveau Réalisme', 'navy', 1, ['dada'], 'Klein’s blue, Arman’s piles of things.'],
+      zero:      ['Zero', 'mint', 0, ['construct'], 'Light, movement, a fresh start from nothing.'],
+      fluxus:    ['Fluxus', 'butter', 0, ['dada'], 'Events, scores and play across borders.'],
+      minimal:   ['Minimalism', 'cream', 0, ['construct'], 'Plain industrial forms, nothing implied.'],
+      actionism: ['Viennese Actionism', 'red', 1, ['expr'], 'The body as material, at its rawest.'],
+      concept:   ['Conceptual art', 'slate', 1, ['dada', 'minimal'], 'The idea is the work.'],
+      povera:    ['Arte Povera', 'brown', 1, ['minimal'], 'Poor materials: earth, rags, wood.'],
+      monoha:    ['Mono-ha', 'slate', 1, ['minimal', 'gutai'], 'Things and space, barely arranged.'],
+      sots:      ['Sots Art', 'red', 1, ['pop', 'socreal'], 'Pop turned on Soviet slogans.'],
+      transav:   ['Transavanguardia', 'orange', 0, ['expr'], 'The return of painting, in Italy.'],
+      neoexp:    ['Neo-Expressionism', 'orange', 0, ['expr'], 'Big, raw figurative painting is back.'],
+      yba:       ['Young British Artists', 'teal', 1, ['concept', 'pop'], 'Shock, sharks and Freeze.'],
+      superflat: ['Superflat', 'pink', 0, ['pop', 'ukiyoe'], 'Anime and Edo prints, flattened together.'],
+    };
+    // places: [movement, from, to, names]
+    const PLACES = [
+      { code: 'PAR', name: 'Paris', b: [['realism', 1848, 1880, 'Courbet, Millet'], ['imp', 1872, 1890, 'Monet, Morisot, Renoir'], ['postimp', 1886, 1905, 'Cézanne, Seurat, Gauguin'],
+        ['symbol', 1886, 1905, 'Redon, Moreau'], ['nouveau', 1895, 1910, 'Mucha, Guimard'], ['fauv', 1905, 1910, 'Matisse, Derain'], ['cubism', 1907, 1921, 'Picasso, Braque'],
+        ['dada', 1919, 1924, 'Picabia, Tzara'], ['surreal', 1924, 1940, 'Breton, Ernst, Miró'], ['deco', 1925, 1939, 'Cassandre, Lempicka'], ['informel', 1945, 1960, 'Dubuffet, Soulages'], ['nouvreal', 1960, 1970, 'Klein, Arman']] },
+      { code: 'LDN', name: 'London', b: [['preraph', 1848, 1870, 'Rossetti, Millais'], ['crafts', 1861, 1910, 'Morris, Ashbee'], ['imp', 1886, 1905, 'Sickert, Steer'],
+        ['vorticism', 1914, 1920, 'Lewis, Gaudier-Brzeska'], ['surreal', 1936, 1945, 'Penrose, Nash'], ['pop', 1956, 1970, 'Hamilton, Blake'], ['concept', 1968, 1980, 'Art & Language'], ['yba', 1988, 2000, 'Hirst, Emin, Whiteread']] },
+      { code: 'VIE', name: 'Vienna', b: [['secession', 1897, 1918, 'Klimt, Moser, Olbrich'], ['nouveau', 1903, 1932, 'Wiener Werkstätte: Hoffmann'], ['expr', 1908, 1920, 'Schiele, Kokoschka'],
+        ['actionism', 1962, 1971, 'Nitsch, Brus, Mühl']] },
+      { code: 'GER', name: 'Munich, Berlin, Weimar', b: [['realism', 1850, 1885, 'Menzel, Leibl'], ['secession', 1892, 1910, 'Stuck, Liebermann'], ['nouveau', 1896, 1910, 'Jugendstil: Obrist'],
+        ['expr', 1905, 1925, 'Kirchner, Kandinsky, Marc'], ['dada', 1918, 1923, 'Höch, Grosz, Hausmann'], ['bauhaus', 1919, 1933, 'Gropius, Klee, Albers'], ['newobj', 1923, 1933, 'Dix, Schad'],
+        ['zero', 1957, 1966, 'Mack, Piene, Uecker'], ['fluxus', 1962, 1972, 'Beuys, Paik'], ['neoexp', 1978, 1990, 'Baselitz, Kiefer']] },
+      { code: 'ITA', name: 'Milan, Rome, Turin', b: [['macchia', 1855, 1880, 'Fattori, Signorini'], ['futurism', 1909, 1918, 'Boccioni, Balla'], ['metaph', 1914, 1921, 'de Chirico, Carrà'],
+        ['povera', 1967, 1980, 'Merz, Pistoletto'], ['transav', 1979, 1990, 'Clemente, Chia']] },
+      { code: 'MOS', name: 'Moscow, St Petersburg', b: [['wanderers', 1870, 1900, 'Repin, Kramskoi'], ['miriskus', 1898, 1912, 'Benois, Bakst'], ['futurism', 1912, 1917, 'Goncharova, Larionov'],
+        ['suprem', 1915, 1925, 'Malevich, Popova'], ['construct', 1917, 1932, 'Tatlin, Rodchenko'], ['socreal', 1932, 1960, 'Deineka, Gerasimov'], ['sots', 1972, 1990, 'Komar & Melamid']] },
+      { code: 'NYC', name: 'New York', b: [['hudson', 1850, 1880, 'Cole, Church'], ['imp', 1885, 1915, 'Hassam, Cassatt'], ['dada', 1915, 1921, 'Duchamp, Man Ray'],
+        ['deco', 1925, 1940, 'Chrysler, Ferriss'], ['surreal', 1940, 1947, 'in exile: Ernst, Breton'], ['bauhaus', 1937, 1950, 'Albers, Moholy-Nagy (Chicago)'], ['abex', 1943, 1960, 'Pollock, Rothko, de Kooning'],
+        ['pop', 1960, 1970, 'Warhol, Lichtenstein'], ['fluxus', 1961, 1978, 'Maciunas, Ono'], ['minimal', 1963, 1975, 'Judd, Flavin'], ['concept', 1966, 1980, 'Kosuth, LeWitt'], ['neoexp', 1980, 1990, 'Basquiat, Schnabel']] },
+      { code: 'TYO', name: 'Tokyo, Osaka', b: [['ukiyoe', 1850, 1900, 'Hiroshige, Kuniyoshi'], ['yoga', 1876, 1930, 'Kuroda Seiki'], ['nihonga', 1887, 1940, 'Okakura, Yokoyama'],
+        ['mavo', 1923, 1926, 'Murayama Tomoyoshi'], ['gutai', 1954, 1972, 'Yoshihara, Shiraga, Tanaka'], ['fluxus', 1962, 1970, 'Shiomi, Ichiyanagi'], ['monoha', 1968, 1975, 'Lee Ufan, Sekine'], ['superflat', 1995, 2000, 'Murakami, Nara']] },
+    ];
+    // what each movement made in each place: [title, artist, year]. Images: images/art/<slug>.jpg (see images/art/needed.md)
+    const WORKS = {
+      'PAR:realism': [['The Stone Breakers', 'Gustave Courbet', 1849], ['A Burial at Ornans', 'Gustave Courbet', 1850], ['The Gleaners', 'Jean-François Millet', 1857]],
+      'PAR:imp': [['Impression, Sunrise', 'Claude Monet', 1872], ['The Cradle', 'Berthe Morisot', 1872], ['Bal du moulin de la Galette', 'Pierre-Auguste Renoir', 1876]],
+      'PAR:postimp': [['A Sunday on La Grande Jatte', 'Georges Seurat', 1886], ['Where Do We Come From? What Are We? Where Are We Going?', 'Paul Gauguin', 1897], ['Mont Sainte-Victoire', 'Paul Cézanne', 1904]],
+      'PAR:symbol': [['Closed Eyes', 'Odilon Redon', 1890], ['Jupiter and Semele', 'Gustave Moreau', 1895]],
+      'PAR:nouveau': [['Gismonda', 'Alphonse Mucha', 1894], ['Paris Métro entrance', 'Hector Guimard', 1900]],
+      'PAR:fauv': [['Woman with a Hat', 'Henri Matisse', 1905], ['Charing Cross Bridge', 'André Derain', 1906], ['The Joy of Life', 'Henri Matisse', 1906]],
+      'PAR:cubism': [['Les Demoiselles d’Avignon', 'Pablo Picasso', 1907], ['Violin and Candlestick', 'Georges Braque', 1910]],
+      'PAR:dada': [['L.H.O.O.Q.', 'Marcel Duchamp', 1919], ['L’Œil cacodylate', 'Francis Picabia', 1921]],
+      'PAR:surreal': [['Harlequin’s Carnival', 'Joan Miró', 1925], ['The Treachery of Images', 'René Magritte', 1929], ['The Persistence of Memory', 'Salvador Dalí', 1931]],
+      'PAR:deco': [['Young Lady with Gloves', 'Tamara de Lempicka', 1930], ['Normandie', 'A. M. Cassandre', 1935]],
+      'PAR:informel': [['Painting, 14 May 1953', 'Pierre Soulages', 1953], ['The Cow with the Subtile Nose', 'Jean Dubuffet', 1954]],
+      'PAR:nouvreal': [['Home Sweet Home', 'Arman', 1960], ['IKB 191', 'Yves Klein', 1962]],
+      'LDN:preraph': [['Ophelia', 'John Everett Millais', 1851], ['Beata Beatrix', 'Dante Gabriel Rossetti', 1864]],
+      'LDN:crafts': [['Red House', 'Philip Webb and William Morris', 1860], ['Strawberry Thief', 'William Morris', 1883]],
+      'LDN:imp': [['Girls Running, Walberswick Pier', 'Philip Wilson Steer', 1894], ['Little Dot Hetherington at the Old Bedford', 'Walter Sickert', 1889]],
+      'LDN:vorticism': [['Hieratic Head of Ezra Pound', 'Henri Gaudier-Brzeska', 1914], ['The Crowd', 'Wyndham Lewis', 1915]],
+      'LDN:surreal': [['Night and Day', 'Roland Penrose', 1937], ['Landscape from a Dream', 'Paul Nash', 1938]],
+      'LDN:pop': [['Just what is it that makes today’s homes so different, so appealing?', 'Richard Hamilton', 1956], ['Sgt. Pepper’s sleeve', 'Peter Blake', 1967]],
+      'LDN:concept': [['Index 01', 'Art & Language', 1972]],
+      'LDN:yba': [['The Physical Impossibility of Death in the Mind of Someone Living', 'Damien Hirst', 1991], ['House', 'Rachel Whiteread', 1993], ['My Bed', 'Tracey Emin', 1998]],
+      'VIE:secession': [['Secession Building', 'Joseph Maria Olbrich', 1898], ['Beethoven Frieze', 'Gustav Klimt', 1902], ['The Kiss', 'Gustav Klimt', 1908]],
+      'VIE:nouveau': [['Armchair for Purkersdorf', 'Koloman Moser', 1903], ['Palais Stoclet', 'Josef Hoffmann', 1911]],
+      'VIE:expr': [['Self-Portrait with Physalis', 'Egon Schiele', 1912], ['The Bride of the Wind', 'Oskar Kokoschka', 1914]],
+      'VIE:actionism': [['Orgies Mysteries Theatre', 'Hermann Nitsch', 1962], ['Vienna Walk', 'Günter Brus', 1965]],
+      'GER:realism': [['The Iron Rolling Mill', 'Adolph Menzel', 1875], ['Three Women in Church', 'Wilhelm Leibl', 1882]],
+      'GER:secession': [['The Sin', 'Franz von Stuck', 1893], ['Bathing Boys', 'Max Liebermann', 1900]],
+      'GER:nouveau': [['Whiplash', 'Hermann Obrist', 1895]],
+      'GER:expr': [['Street, Dresden', 'Ernst Ludwig Kirchner', 1908], ['Composition VII', 'Wassily Kandinsky', 1913], ['The Tower of Blue Horses', 'Franz Marc', 1913]],
+      'GER:dada': [['Cut with the Kitchen Knife', 'Hannah Höch', 1919], ['Mechanical Head', 'Raoul Hausmann', 1920]],
+      'GER:bauhaus': [['Wassily Chair', 'Marcel Breuer', 1925], ['Bauhaus Building, Dessau', 'Walter Gropius', 1926], ['Ad Parnassum', 'Paul Klee', 1932]],
+      'GER:newobj': [['Portrait of the Journalist Sylvia von Harden', 'Otto Dix', 1926], ['Self-Portrait with Model', 'Christian Schad', 1927]],
+      'GER:zero': [['Light Ballet', 'Otto Piene', 1961], ['White Field', 'Günther Uecker', 1964]],
+      'GER:fluxus': [['Exposition of Music – Electronic Television', 'Nam June Paik', 1963], ['How to Explain Pictures to a Dead Hare', 'Joseph Beuys', 1965]],
+      'GER:neoexp': [['The Wood on Its Head', 'Georg Baselitz', 1969], ['Margarethe', 'Anselm Kiefer', 1981]],
+      'ITA:macchia': [['The Rotonda di Palmieri', 'Giovanni Fattori', 1866], ['Leith', 'Telemaco Signorini', 1881]],
+      'ITA:futurism': [['Dynamism of a Dog on a Leash', 'Giacomo Balla', 1912], ['Unique Forms of Continuity in Space', 'Umberto Boccioni', 1913]],
+      'ITA:metaph': [['Mystery and Melancholy of a Street', 'Giorgio de Chirico', 1914], ['The Metaphysical Muse', 'Carlo Carrà', 1917]],
+      'ITA:povera': [['Venus of the Rags', 'Michelangelo Pistoletto', 1967], ['Igloo', 'Mario Merz', 1968]],
+      'ITA:transav': [['The Water Bearer', 'Sandro Chia', 1981], ['Francesco Clemente Pinxit', 'Francesco Clemente', 1981]],
+      'MOS:wanderers': [['Christ in the Desert', 'Ivan Kramskoi', 1872], ['Barge Haulers on the Volga', 'Ilya Repin', 1873]],
+      'MOS:miriskus': [['Supper', 'Léon Bakst', 1902], ['Le Pavillon d’Armide, set design', 'Alexandre Benois', 1907]],
+      'MOS:futurism': [['Rayonist Composition', 'Mikhail Larionov', 1912], ['Cyclist', 'Natalia Goncharova', 1913]],
+      'MOS:suprem': [['Black Square', 'Kazimir Malevich', 1915], ['Painterly Architectonic', 'Lyubov Popova', 1917]],
+      'MOS:construct': [['Monument to the Third International', 'Vladimir Tatlin', 1920], ['Books (Lengiz poster)', 'Alexander Rodchenko', 1924]],
+      'MOS:socreal': [['Worker and Kolkhoz Woman', 'Vera Mukhina', 1937], ['Future Pilots', 'Aleksandr Deineka', 1938]],
+      'MOS:sots': [['Glory to the CPSU', 'Erik Bulatov', 1975], ['The Origin of Socialist Realism', 'Komar & Melamid', 1982]],
+      'NYC:hudson': [['Niagara', 'Frederic Edwin Church', 1857], ['Heart of the Andes', 'Frederic Edwin Church', 1859]],
+      'NYC:imp': [['The Child’s Bath', 'Mary Cassatt', 1893], ['Allies Day, May 1917', 'Childe Hassam', 1917]],
+      'NYC:dada': [['The Rope Dancer Accompanies Herself with Her Shadows', 'Man Ray', 1916], ['Fountain', 'Marcel Duchamp', 1917]],
+      'NYC:deco': [['The Metropolis of Tomorrow', 'Hugh Ferriss', 1929], ['Chrysler Building', 'William Van Alen', 1930]],
+      'NYC:surreal': [['First Papers of Surrealism', 'André Breton and Marcel Duchamp', 1942], ['Europe After the Rain II', 'Max Ernst', 1942]],
+      'NYC:bauhaus': [['Light Prop for an Electric Stage', 'László Moholy-Nagy', 1930], ['Homage to the Square', 'Josef Albers', 1950]],
+      'NYC:abex': [['Autumn Rhythm (Number 30)', 'Jackson Pollock', 1950], ['Woman I', 'Willem de Kooning', 1952], ['No. 61 (Rust and Blue)', 'Mark Rothko', 1953]],
+      'NYC:pop': [['Campbell’s Soup Cans', 'Andy Warhol', 1962], ['Whaam!', 'Roy Lichtenstein', 1963]],
+      'NYC:fluxus': [['Fluxus 1', 'George Maciunas', 1964], ['Cut Piece', 'Yoko Ono', 1965]],
+      'NYC:minimal': [['the nominal three', 'Dan Flavin', 1963], ['Untitled (Stack)', 'Donald Judd', 1967]],
+      'NYC:concept': [['One and Three Chairs', 'Joseph Kosuth', 1965], ['Wall Drawing #1', 'Sol LeWitt', 1968]],
+      'NYC:neoexp': [['The Patient and the Doctors', 'Julian Schnabel', 1978], ['Untitled (Skull)', 'Jean-Michel Basquiat', 1981]],
+      'TYO:ukiyoe': [['Sudden Shower over Shin-Ōhashi', 'Utagawa Hiroshige', 1857], ['One Hundred Aspects of the Moon', 'Tsukioka Yoshitoshi', 1885]],
+      'TYO:yoga': [['Lakeside', 'Kuroda Seiki', 1897], ['Portrait of Reiko', 'Kishida Ryūsei', 1921]],
+      'TYO:nihonga': [['Floating Lights', 'Yokoyama Taikan', 1909], ['Fallen Leaves', 'Hishida Shunsō', 1909]],
+      'TYO:mavo': [['Construction', 'Murayama Tomoyoshi', 1925]],
+      'TYO:gutai': [['Challenging Mud', 'Kazuo Shiraga', 1955], ['Electric Dress', 'Atsuko Tanaka', 1956]],
+      'TYO:fluxus': [['Water Music', 'Mieko Shiomi', 1964], ['Spatial Poem', 'Mieko Shiomi', 1965]],
+      'TYO:monoha': [['Phase—Mother Earth', 'Nobuo Sekine', 1968], ['Relatum', 'Lee Ufan', 1968]],
+      'TYO:superflat': [['727', 'Takashi Murakami', 1996], ['Knife Behind Back', 'Yoshitomo Nara', 2000]],
+    };
+    // where each image came from: its page on Wikipedia or Wikimedia Commons
+    const CREDITS = {"courbet-the-stone-breakers.jpg":"https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Stonebreakers_-_WGA05457.jpg","courbet-a-burial-at-ornans.jpg":"https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_A_Burial_at_Ornans_-_Google_Art_Project_2.jpg","millet-the-gleaners.jpg":"https://commons.wikimedia.org/wiki/File:Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg","monet-impression-sunrise.jpg":"https://commons.wikimedia.org/wiki/File:Monet_-_Impression,_Sunrise.jpg","renoir-bal-du-moulin-de-la-galette.jpg":"https://commons.wikimedia.org/wiki/File:Renoir,_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette,_1876.jpg","seurat-a-sunday-on-la-grande-jatte.jpg":"https://commons.wikimedia.org/wiki/File:A_Sunday_on_La_Grande_Jatte,_Georges_Seurat,_1884.jpg","gauguin-where-do-we-come-from-what-are-we-where.jpg":"https://commons.wikimedia.org/wiki/File:Gauguin_-_Where_Do_We_Come_From%3F_What_Are_We%3F_Where_Are_We_Going%3F_(1897-98).jpg","cezanne-mont-sainte-victoire.jpg":"https://commons.wikimedia.org/wiki/File:Paul_C%C3%A9zanne_-_Montagne_Saint-victoire_-_Google_Art_Project.jpg","redon-closed-eyes.jpg":"https://commons.wikimedia.org/wiki/File:Odilon_Redon_-_Closed_Eyes_-_Google_Art_Project.jpg","moreau-jupiter-and-semele.jpg":"https://commons.wikimedia.org/wiki/File:Jupiter_and_Semele_by_Gustave_Moreau.jpg","mucha-gismonda.jpg":"https://commons.wikimedia.org/wiki/File:Georges_Rochegrosse_-_Henry_F%C3%A9vrier_-_Henri_Cain_and_Louis_Payen_after_Victorien_Sardou_-_Gismonda.jpg","guimard-paris-metro-entrance.jpg":"https://commons.wikimedia.org/wiki/File:M%C3%A9tro_P%C3%A8re_Lachaise_sous_la_neige_01.jpg","klein-ikb-191.jpg":"https://commons.wikimedia.org/wiki/File:IKB_191.jpg","millais-ophelia.jpg":"https://commons.wikimedia.org/wiki/File:John_Everett_Millais_-_Ophelia_-_Google_Art_Project.jpg","fattori-the-rotonda-di-palmieri.jpg":"https://commons.wikimedia.org/wiki/File:The_Palmieri_Baths_Roundabout_in_Livorno_(1866),_by_Giovanni_Fattori.jpg","signorini-leith.jpg":"https://commons.wikimedia.org/wiki/File:Telemaco_Signorini_-_Leith_-_WGA21304.jpg","balla-dynamism-of-a-dog-on-a-leash.jpg":"https://en.wikipedia.org/wiki/File:Giacomo_Balla,_1912,_Dynamism_of_a_Dog_on_a_Leash,_oil_on_canvas,_89.8_x_109.8_cm,_Albright-Knox_Art_Gallery.jpg","boccioni-unique-forms-of-continuity-in-space.jpg":"https://commons.wikimedia.org/wiki/File:%27Unique_Forms_of_Continuity_in_Space%27,_1913_bronze_by_Umberto_Boccioni.jpg","chirico-mystery-and-melancholy-of-a-street.jpg":"https://en.wikipedia.org/wiki/File:Giorgio_de_Chirico_-_Mystery_and_Melancholy_of_a_Street_(1914).jpg","morisot-the-cradle.jpg":"https://commons.wikimedia.org/wiki/File:Berthe_Morisot_008.jpg","matisse-woman-with-a-hat.jpg":"https://commons.wikimedia.org/wiki/File:Matisse-Woman-with-a-Hat.jpg","derain-charing-cross-bridge.jpg":"https://commons.wikimedia.org/wiki/File:Charing_Cross_Bridge_by_Andre_Derain_(52259664204).jpg","matisse-the-joy-of-life.jpg":"https://commons.wikimedia.org/wiki/File:Bonheur_Matisse.jpg","picasso-les-demoiselles-d-avignon.jpg":"https://en.wikipedia.org/wiki/File:Les_Demoiselles_d%27Avignon.jpg","duchamp-l-h-o-o-q.jpg":"https://en.wikipedia.org/wiki/File:Marcel_Duchamp,_1919,_L.H.O.O.Q.jpg","picabia-l-il-cacodylate.jpg":"https://commons.wikimedia.org/wiki/File:Francis_Picabia,_1921,_L%27oeil_cacodylate,_oil_and_collage_on_canvas,_148.6_x_117.4_cm,_Mus%C3%A9e_National_d%27Art_Moderne.jpg","magritte-the-treachery-of-images.jpg":"https://en.wikipedia.org/wiki/File:MagrittePipe.jpg","dali-the-persistence-of-memory.jpg":"https://commons.wikimedia.org/wiki/File:Dargenta_%26_Salvador_Dali_The_persistance_of_Memory.png","rossetti-beata-beatrix.jpg":"https://commons.wikimedia.org/wiki/File:Dante_Gabriel_Rossetti_-_Beata_Beatrix,_1864-1870.jpg","morris-red-house.jpg":"https://commons.wikimedia.org/wiki/File:Philip_Webb%27s_Red_House_in_Upton.jpg","morris-strawberry-thief.jpg":"https://commons.wikimedia.org/wiki/File:Strawberrythief.jpg","steer-girls-running-walberswick-pier.jpg":"https://commons.wikimedia.org/wiki/File:GirlsRunning_Steer.jpg","gaudier-brzeska-hieratic-head-of-ezra-pound.jpg":"https://commons.wikimedia.org/wiki/File:Hieratic_Head_of_Ezra_Pound_01_(brightened).jpg","blake-sgt-pepper-s-sleeve.jpg":"https://commons.wikimedia.org/wiki/File:Sgt._Pepper%27s_Lonely_Hearts_Club_Band_album_art.jpg","language-index-01.jpg":"https://commons.wikimedia.org/wiki/File:Art_%26_language_documenta_5_index_01.jpg","hirst-the-physical-impossibility-of-death-in-the.jpg":"https://en.wikipedia.org/wiki/File:Hirst-Shark.jpg","whiteread-house.jpg":"https://en.wikipedia.org/wiki/File:Rachel_Whiteread_-_House.jpg","emin-my-bed.jpg":"https://en.wikipedia.org/wiki/File:Emin-My-Bed.jpg","olbrich-secession-building.jpg":"https://commons.wikimedia.org/wiki/File:Secession_2016,_Vienna.jpg","klimt-beethoven-frieze.jpg":"https://commons.wikimedia.org/wiki/File:Gustav_Klimt_-_Beethovenfries,_%22Die_Sehnsucht_nach_dem_Gl%C3%BCck%22_(nach_Richard_Wagners_Interpretation_der_IX._Sinfonie_von_Ludwig_van_Beethoven)_-_5987_-_%C3%96sterreichische_Galerie_Belvedere.jpg","klimt-the-kiss.jpg":"https://commons.wikimedia.org/wiki/File:The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg","hoffmann-palais-stoclet.jpg":"https://commons.wikimedia.org/wiki/File:20120923_Brussels_PalaisStoclet_Hoffmann_DSC06725_PtrQs.jpg","schiele-self-portrait-with-physalis.jpg":"https://commons.wikimedia.org/wiki/File:Egon_Schiele_-_Self-Portrait_with_Physalis_-_Google_Art_Project.jpg","kokoschka-the-bride-of-the-wind.jpg":"https://en.wikipedia.org/wiki/File:%27Bride_of_the_Wind%27,_oil_on_canvas_painting_by_Oskar_Kokoschka,_a_self-portrait_expressing_his_unrequited_love_for_Alma_Mahler_(widow_of_composer_Gustav_Mahler),_1913.jpg","menzel-the-iron-rolling-mill.jpg":"https://commons.wikimedia.org/wiki/File:Adolph_Menzel_-_Eisenwalzwerk_-_Google_Art_Project.jpg","leibl-three-women-in-church.jpg":"https://commons.wikimedia.org/wiki/File:1880_Leibl_Drei_Frauen_in_der_Kirche_anagoria.JPG","stuck-the-sin.jpg":"https://commons.wikimedia.org/wiki/File:Franz_von_Stuck_-_Die_S%C3%BCnde_1893_-_Detail.jpg","liebermann-bathing-boys.jpg":"https://commons.wikimedia.org/wiki/File:Liebermann_Badende_Jungen_1900.jpeg","obrist-whiplash.jpg":"https://commons.wikimedia.org/wiki/File:T-49-63_3_Obrist-H-Peitschenhieb-A4-ONLINE.jpg","kandinsky-composition-vii.jpg":"https://commons.wikimedia.org/wiki/File:Composition_VII_-_Wassily_Kandinsky,_GAC.jpg","marc-the-tower-of-blue-horses.jpg":"https://commons.wikimedia.org/wiki/File:Franz_Marc_029a.jpg","breuer-wassily-chair.jpg":"https://commons.wikimedia.org/wiki/File:Bauhaus_Chair_Breuer.png","gropius-bauhaus-building-dessau.jpg":"https://commons.wikimedia.org/wiki/File:Dessau_Bauhaus-Geb%C3%A4ude_asv2024-06_img1.jpg","klee-ad-parnassum.jpg":"https://commons.wikimedia.org/wiki/File:Ad_Parnassum_(originaler,_gefasster_Holzrahmen),_Paul_Klee_(1932).jpg","dix-portrait-of-the-journalist-sylvia-von-harden.jpg":"https://en.wikipedia.org/wiki/File:Otto_Dix_Sy_von_Harden.jpg","merz-igloo.jpg":"https://commons.wikimedia.org/wiki/File:KMM_Merz_Igloo.jpg","kramskoi-christ-in-the-desert.jpg":"https://commons.wikimedia.org/wiki/File:Christ_in_the_Wilderness_-_Ivan_Kramskoy_-_Google_Cultural_Institute.jpg","repin-barge-haulers-on-the-volga.jpg":"https://commons.wikimedia.org/wiki/File:Ilia_Efimovich_Repin_(1844-1930)_-_Volga_Boatmen_(1870-1873).jpg","bakst-supper.jpg":"https://commons.wikimedia.org/wiki/File:Bakst_Uzhin.jpg","larionov-rayonist-composition.jpg":"https://commons.wikimedia.org/wiki/File:Red_and_Blue_Rayonism_(Beach)_(Larionov,_1911).jpg","goncharova-cyclist.jpg":"https://commons.wikimedia.org/wiki/File:Cyclist_(Goncharova,_1913).jpg","malevich-black-square.jpg":"https://commons.wikimedia.org/wiki/File:Kazimir_Malevich,_1915,_Black_Suprematic_Square,_oil_on_linen_canvas,_79.5_x_79.5_cm,_Tretyakov_Gallery,_Moscow.jpg","popova-painterly-architectonic.jpg":"https://commons.wikimedia.org/wiki/File:Lyubov_Popova_-_Painterly_Architectonic_-_GMA_2080_-_National_Galleries_of_Scotland.jpg","tatlin-monument-to-the-third-international.jpg":"https://commons.wikimedia.org/wiki/File:Tatlin%27s_Tower_maket_1919_year.jpg","mukhina-worker-and-kolkhoz-woman.jpg":"https://commons.wikimedia.org/wiki/File:Ouvrier_kolkhosienne_2.jpg","church-niagara.jpg":"https://commons.wikimedia.org/wiki/File:Niagara_by_Frederic_Edwin_Church,_1857_-_Corcoran_Gallery_of_Art_-_DSC01135.JPG","church-heart-of-the-andes.jpg":"https://commons.wikimedia.org/wiki/File:Church_Heart_of_the_Andes.jpg","cassatt-the-child-s-bath.jpg":"https://commons.wikimedia.org/wiki/File:Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg","duchamp-fountain.jpg":"https://commons.wikimedia.org/wiki/File:Marcel_Duchamp,_1917,_Fountain,_photograph_by_Alfred_Stieglitz.jpg","ferriss-the-metropolis-of-tomorrow.jpg":"https://commons.wikimedia.org/wiki/File:The_Metropolis_of_Tomorrow_cover.jpg","alen-chrysler-building.jpg":"https://commons.wikimedia.org/wiki/File:Chrysler_Building_(1).jpg","albers-homage-to-the-square.jpg":"https://commons.wikimedia.org/wiki/File:Josef_Albers%27_Studies_for_Homage_to_the_Square.jpg","pollock-autumn-rhythm-number-30.jpg":"https://en.wikipedia.org/wiki/File:Autumn_Rhythm.jpg","kooning-woman-i.jpg":"https://en.wikipedia.org/wiki/File:Woman_I-Willem_de_Kooning.jpg","rothko-no-61-rust-and-blue.jpg":"https://en.wikipedia.org/wiki/File:No_61_Mark_Rothko.jpg","warhol-campbell-s-soup-cans.jpg":"https://commons.wikimedia.org/wiki/File:Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg","lichtenstein-whaam.jpg":"https://en.wikipedia.org/wiki/File:Roy_Lichtenstein_Whaam.jpg","kosuth-one-and-three-chairs.jpg":"https://commons.wikimedia.org/wiki/File:One_and_Three_Chair.jpg","hiroshige-sudden-shower-over-shin-ohashi.jpg":"https://commons.wikimedia.org/wiki/File:Utagawa_Hiroshige_-_Evening_Shower_at_Atake_and_the_Great_Bridge.jpg","yoshitoshi-one-hundred-aspects-of-the-moon.jpg":"https://commons.wikimedia.org/wiki/File:Tsukioka_Yoshitoshi_-_The_moon_on_Musashi_Plain_(Musashino_no_tsuki)_-_from_the_series_%27One_hundred_aspects_of_the_moon_(T..._-_Google_Art_Project.jpg","ryusei-portrait-of-reiko.jpg":"https://commons.wikimedia.org/wiki/File:Kishida_Ryusei_-_Seated_Portrait_of_Reiko_with_a_Doll_-_Google_Art_Project.jpg","shunso-fallen-leaves.jpg":"https://commons.wikimedia.org/wiki/File:Hishida_Herbstwald.jpg","sekine-phase-mother-earth.jpg":"https://commons.wikimedia.org/wiki/File:Phase%E2%80%94Mother_Earth,_1968.jpg","moholy-nagy-light-prop-for-an-electric-stage.jpg":"https://commons.wikimedia.org/wiki/File:Light_Prop_for_an_Electric_Stage_(Light-Space_Modulator)_by_Laszlo_Moholy-Nagy,_1930_with_later_alterations,_aluminum,_steel,_nickel-plated_brass,_etc,_plastic,_wood_-_Busch-Reisinger_Museum_-_DSC01638.jpg","sickert-little-dot-hetherington-at-the-old-bedford.jpg":"https://commons.wikimedia.org/wiki/File:Little_Dot_Hetherington_at_the_Old_Bedford.png"};
+    const slug = (title, artist) => (artist.split(' ').pop() + '-' + title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48).replace(/-$/, '');
+    const ERAS = [['Painting light', 1850, 1886], ['Fin de siècle', 1886, 1905], ['The shock of the new', 1905, 1918], ['Between the wars', 1918, 1945], ['Gesture and pop', 1945, 1968], ['Idea and return', 1968, 2000]];
+    const ALL = [1848, 2000];
+
+    let dom = ALL.slice();
+    const x = y => (y - dom[0]) / (dom[1] - dom[0]) * 100;
+    const clampSpan = (a, b) => { const l = Math.max(0, x(a)), r = Math.min(100, x(b)); return [l, Math.max(0, r - l)]; };
+    const col = k => `var(--${M[k][1]})`;
+
+    // ---------- build ----------
+    const rowsEl = document.querySelector('.rows'), scale = document.querySelector('.scale'), svg = rowsEl.querySelector('.threads');
+    const rows = PLACES.map(p => {
+      // stacking: each block takes the lowest lane that is free when it starts
+      const ends = [];
+      const blocks = p.b.slice().sort((u, v) => u[1] - v[1]).map(([k, a, z, who]) => {
+        let l = ends.findIndex(e => e <= a); if (l < 0) l = ends.length; ends[l] = z;
+        return { k, a, z, who, l, works: WORKS[`${p.code}:${k}`] || [] };
+      });
+      const row = document.createElement('div');
+      row.className = 'row'; row.setAttribute('role', 'listitem');
+      row.innerHTML = `<span class="who"><span class="code">${p.code}</span><span class="name">${p.name}</span><span class="count">${blocks.length} movements</span></span>
+        <span class="bar" style="--lanes:${ends.length}">${blocks.map((o, i) => `<button type="button" class="blk" data-i="${i}" data-k="${o.k}" aria-expanded="false" aria-controls="dr-${p.code}"
+          aria-label="${M[o.k][0]}, ${p.name}, ${o.a} to ${o.z}" style="--c:${col(o.k)}; --on:${M[o.k][2] ? 'rgba(255,255,255,.92)' : '#1b1a17'}; --l:${o.l}">${M[o.k][0]}</button>`).join('')}</span>
+        <button type="button" class="chev" aria-label="Close"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5l3 3 3-3"/></svg></button>
+        <div class="fold"><div><div class="drawer" id="dr-${p.code}" aria-live="polite"></div></div></div>`;
+      rowsEl.appendChild(row);
+      const r = { el: row, p, blocks };
+      row.querySelectorAll('.blk').forEach(b => b.addEventListener('click', () => openBlock(r, +b.dataset.i)));
+      row.querySelector('.chev').addEventListener('click', () => openBlock(r, null));
+      return r;
+    });
+
+    // one movement at a time, in place: the block is ringed, the rest of its row steps back, the drawer fills
+    function openBlock(r, i) {
+      untrace(); tip.classList.remove('has');
+      const cur = r.el.querySelector('.blk[aria-expanded="true"]');
+      const same = cur && +cur.dataset.i === i;
+      r.el.querySelectorAll('.blk').forEach(b => b.setAttribute('aria-expanded', 'false'));
+      if (i === null || same) { r.el.classList.remove('is-open'); return; }
+      const o = r.blocks[i], m = M[o.k], others = rows.filter(q => q !== r && q.blocks.some(b => b.k === o.k)).map(q => q.p.name.split(',')[0]);
+      r.el.querySelector(`.blk[data-i="${i}"]`).setAttribute('aria-expanded', 'true');
+      const dr = r.el.querySelector('.drawer');
+      dr.style.setProperty('--c', col(o.k));
+      dr.innerHTML = `<div class="about"><h3>${m[0]}</h3><p class="when">${r.p.name}, ${o.a}–${o.z}</p><p>${m[4]}</p>
+          ${m[3].length ? `<p><span class="k">Grew from</span>${m[3].map(s => M[s][0]).join(', ')}</p>` : ''}
+          ${others.length ? `<p><span class="k">Also in</span>${others.join(', ')}</p>` : ''}</div>
+        <div><div class="names"><em>Artists</em>${o.who.replace(/^in exile: /, '').split(/, | and /).map(n => `<span>${n}</span>`).join('')}</div>
+          <div class="works">${o.works.map(([t, a, y]) => { const f = slug(t, a) + '.jpg';
+            return `<figure class="work"><div class="ph"><code>${f}</code><img src="images/art/${f}" alt="${t}, ${a}, ${y}" loading="lazy" onerror="this.remove()"></div><figcaption><i>${t}</i><span>${a}, ${y}</span>${CREDITS[f] ? `<a class="credit" href="${CREDITS[f]}" target="_blank" rel="noopener">${CREDITS[f].includes('commons.') ? 'Wikimedia Commons' : 'Wikipedia'}</a>` : ''}</figcaption></figure>`; }).join('')}</div></div><span></span>`;
+      r.el.classList.add('is-open');
+    }
+    const cursor = document.createElement('div'); cursor.className = 'cursor'; cursor.innerHTML = '<b></b>'; rowsEl.appendChild(cursor);
+    const tip = document.createElement('div'); tip.className = 'tip'; rowsEl.appendChild(tip);
+
+    const eras = ERAS.map(([name, a, z]) => {
+      const b = document.createElement('button');
+      b.className = 'era'; b.dataset.a = a; b.dataset.z = z;
+      const ks = [...new Set(rows.flatMap(r => r.blocks.filter(o => o.a < z && o.z > a).map(o => M[o.k][1])))];
+      b.innerHTML = `${name}<small>${a}–${z}</small><span class="strip">${ks.map(c => `<i style="background:var(--${c})"></i>`).join('')}</span>`;
+      b.setAttribute('aria-label', `Go into ${name}, ${a} to ${z}`);
+      b.addEventListener('click', () => zoom(dom[0] === a && dom[1] === z ? null : [a, z, name]));
+      scale.appendChild(b); return b;
+    });
+
+    // ---------- layout ----------
+    const fits = () => rowsEl.querySelectorAll('.blk').forEach(b => b.classList.toggle('fits', b.scrollWidth <= b.clientWidth + 1));
+    const layout = () => {
+      rows.forEach(r => r.el.querySelectorAll('.blk').forEach(el => {
+        const o = r.blocks[+el.dataset.i], [l, w] = clampSpan(o.a, o.z);
+        el.style.left = `calc(${l}% + ${l > 0 ? 1 : 0}px)`; el.style.width = `calc(${w}% - ${w > 0 ? 2 : 0}px)`;
+        el.style.visibility = w > .2 ? 'visible' : 'hidden';
+      }));
+      eras.forEach(b => { const [l, w] = clampSpan(+b.dataset.a, +b.dataset.z); b.style.left = l + '%'; b.style.width = `calc(${w}% - ${w ? 2 : 0}px)`; b.classList.toggle('is-away', w < .5); });
+      scale.querySelectorAll('.tick').forEach(t => t.remove());
+      const wide = dom[1] - dom[0] > 60, step = wide ? 25 : 5, fine = wide ? 5 : 1, big = wide ? 50 : 10;
+      for (let y = Math.ceil(dom[0] / step) * step; y <= dom[1]; y += step) scale.insertAdjacentHTML('beforeend', `<span class="tick" style="left:${x(y)}%">${y}</span>`);
+      // a faint line every 5 years (every year inside an era), firmer at each labelled tick, firmest at each 50 (10)
+      let g = '';
+      for (let y = Math.ceil(dom[0] / fine) * fine; y <= dom[1]; y += fine) {
+        const kind = y % big === 0 ? 'major' : y % step === 0 ? 'mid' : 'minor';
+        g += `<span class="gl ${kind}" style="left:${x(y)}%"><b>${y}</b></span>`;
+      }
+      rowsEl.querySelector('.grid').innerHTML = g;
+      setTimeout(fits, 650);
+    };
+
+    // ---------- one level down: into an era, and back ----------
+    const crumb = document.querySelector('.crumb');
+    const zoom = e => {
+      dom = e ? [e[0], e[1]] : ALL.slice();
+      crumb.innerHTML = e ? `<button type="button">1850–2000</button><span>›</span><b>${e[2]}</b>` : '';
+      crumb.querySelector('button')?.addEventListener('click', () => zoom(null));
+      document.querySelector('.sub').textContent = e ? `${e[2]}, ${e[0]} to ${e[1]}` : 'Movements from 1850 to 2000, where and how long they lived';
+      untrace(); layout();
+    };
+    addEventListener('keydown', ev => { if (ev.key === 'Escape' && dom[0] !== ALL[0]) zoom(null); });
+
+    // ---------- tracing a movement: its other places, where it began, what it grew out of ----------
+    const centre = (el, side) => { const h = rowsEl.getBoundingClientRect(), r = el.getBoundingClientRect(), k = rowsEl.offsetWidth / h.width;
+      return [((side === 'end' ? r.right : r.left) - h.left) * k, (r.top + r.height / 2 - h.top) * k]; };
+    const curve = ([x1, y1], [x2, y2]) => `M${x1},${y1} C${x1 + Math.max(24, (x2 - x1) / 2)},${y1} ${x2 - Math.max(24, (x2 - x1) / 2)},${y2} ${x2},${y2}`;
+    let traced = null;
+    const untrace = () => { traced = null; rowsEl.classList.remove('is-tracing'); svg.innerHTML = ''; rowsEl.querySelectorAll('.is-kin,.is-root,.is-hot').forEach(n => n.classList.remove('is-kin', 'is-root', 'is-hot')); };
+    const trace = el => {
+      if (traced === el) return;
+      untrace(); traced = el; el.classList.add('is-hot');
+      const k = el.dataset.k, all = [...rowsEl.querySelectorAll(`.blk[data-k="${k}"]`)];
+      const first = all.reduce((m, n) => (startOf(n) < startOf(m) ? n : m), all[0]);
+      all.forEach(n => n.classList.add('is-kin'));
+      let d = '';
+      all.filter(n => n !== first).forEach(n => { d += `<path d="${curve(centre(first, 'start'), centre(n, 'start'))}"/>`; });
+      // what it grew out of: the nearest block of each source that ended before or as it began
+      M[k][3].forEach(src => {
+        const cands = [...rowsEl.querySelectorAll(`.blk[data-k="${src}"]`)].filter(n => startOf(n) <= startOf(el));
+        if (!cands.length) return;
+        const s = cands.reduce((m, n) => Math.abs(endOf(n) - startOf(el)) < Math.abs(endOf(m) - startOf(el)) ? n : m);
+        s.classList.add('is-root');
+        d += `<path class="from" d="${curve(centre(s, 'end'), centre(el, 'start'))}"/>`;
+      });
+      svg.innerHTML = d + `<circle cx="${centre(first, 'start')[0]}" cy="${centre(first, 'start')[1]}" r="3"/>`;
+      rowsEl.classList.add('is-tracing');
+    };
+    const info = el => { const r = rows.find(r => r.el.contains(el)); return { r, o: r.blocks[+el.dataset.i] }; };
+    const startOf = el => info(el).o.a, endOf = el => info(el).o.z;
+
+    // ---------- hover ----------
+    rowsEl.addEventListener('pointermove', e => {
+      const h = rowsEl.getBoundingClientRect(), k = rowsEl.offsetWidth / h.width, bar = rows[0].el.querySelector('.bar').getBoundingClientRect();
+      const f = (e.clientX - bar.left) / bar.width;
+      if (f < 0 || f > 1) { rowsEl.classList.remove('is-hovering'); untrace(); return; }
+      rowsEl.classList.add('is-hovering');
+      cursor.style.left = (e.clientX - h.left) * k + 'px';
+      cursor.querySelector('b').textContent = Math.round(dom[0] + f * (dom[1] - dom[0]));
+      const el = e.target.closest('.blk');
+      if (e.target.closest('.drawer')) { rowsEl.classList.remove('is-hovering'); tip.classList.remove('has'); untrace(); return; }
+      if (!el) { tip.classList.remove('has'); untrace(); return; }
+      trace(el);
+      const { r, o } = info(el), m = M[o.k], others = rows.filter(q => q !== r && q.blocks.some(b => b.k === o.k)).map(q => q.p.name.split(',')[0]);
+      tip.style.setProperty('--c', col(o.k));
+      tip.innerHTML = `<b><i></i>${m[0]}</b><em>${r.p.name}, ${o.a}–${o.z} · click for works</em><p>${m[4]}</p><p><span class="k">Names</span> ${o.who}</p>` +
+        (m[3].length ? `<p><span class="k">Grew from</span> ${m[3].map(s => M[s][0]).join(', ')}</p>` : '') + (others.length ? `<p><span class="k">Also in</span> ${others.join(', ')}</p>` : '');
+      tip.classList.add('has');
+      const eb = el.getBoundingClientRect();
+      tip.style.left = Math.min((e.clientX - h.left) * k + 16, rowsEl.offsetWidth - 334) + 'px';
+      tip.style.top = (eb.bottom - h.top) * k + 10 + 'px';
+    });
+    rowsEl.addEventListener('pointerleave', () => { rowsEl.classList.remove('is-hovering'); untrace(); });
+    rowsEl.addEventListener('pointerdown', untrace);
+    addEventListener('scroll', untrace, { passive: true });
+
+    // ---------- the table view ----------
+    document.querySelector('details.table table').innerHTML = '<tr><th>Place</th><th>Movement</th><th>Years</th><th>Names</th><th>Works</th><th>Grew from</th></tr>' +
+      rows.flatMap(r => r.blocks.map(o => `<tr><td>${r.p.name}</td><td>${M[o.k][0]}</td><td>${o.a}–${o.z}</td><td>${o.who}</td><td>${o.works.map(w => `${w[0]} (${w[2]})`).join('; ')}</td><td>${M[o.k][3].map(s => M[s][0]).join(', ')}</td></tr>`)).join('');
+
+    // ---------- keep its own width; shrink whole in a narrow window ----------
+    const chart = document.querySelector('.chart');
+    // shrink it like a picture, not a page: text, blocks and gaps all by the same factor, so nothing collides
+    const box = document.querySelector('.fitbox');
+    const fit = () => {
+      const f = Math.min(1, document.documentElement.clientWidth / chart.offsetWidth);
+      chart.style.transform = f < 1 ? `scale(${f})` : '';
+      box.style.height = f < 1 ? chart.offsetHeight * f + 'px' : '';
+      chart.style.marginLeft = f < 1 ? Math.max(0, (document.documentElement.clientWidth - chart.offsetWidth * f) / 2) + 'px' : '';
+    };
+    addEventListener('resize', fit);
+    new ResizeObserver(fit).observe(chart);
+    layout(); fit();
+    document.fonts?.ready.then(fits);
+    if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-05-spec.js?v=1"></script>
+  <script>
+    // the spec script locks scrolling in any embed; in the big "View larger" popup the list is taller than the screen, so let it scroll
+    if (window.__viewer) document.documentElement.style.overflow = '';
+  </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 &middot; Set 1 &middot; Mesozoic</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* Set 1, Mesozoic: the age of dinosaurs as a list of regions, after charts of book covers
+     where each row is one title's covers through time. Each row here is one part of the world;
+     time runs left (old) to right (young). A row is a strip of boxes, one per span of time with a
+     fossil record, each named for the rock it comes from. Inside a box the three great dinosaur
+     groups lie end to end, as long as their share. Opened, the row lets down three lanes, one per
+     group, where the same boxes are cut finer into the families found there, named where they fit.
+     Colour says the period: dry terracotta for the Triassic, fern jade for the Jurassic, chalk-sea
+     indigo for the Cretaceous; groups are three tones of it, so the period reads first. Behind the
+     rows, the land they stood on: one Pangaea, then Laurasia and Gondwana, then continents apart.
+     Along the top, the moments that changed everything. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,300;1,400&display=swap");
+  :root {
+    --w: 800px;
+    --paper: #fbfaf7; --ink: #191917; --ink-2: #5f5e59; --ink-3: #8f8d86; --rule: #e4e1d9; --land: #efebe1;
+    /* the three periods, validated together (CVD dE >= 10, chroma >= .1, L .43-.77) */
+    --tri: #d2642f; --jur: #1f9a74; --cre: #5560c6;
+    /* three tones of a period: theropods darkest, sauropodomorphs the period itself, ornithischians lightest */
+    --dark: 62%; --light: 42%;
+    --label-w: 160px; --bar-h: 22px; --lane-h: 18px; --site-h: 16px; --row-pad: 9px; --gap: 2px; --corner: 2px;
+    --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    --ease: cubic-bezier(.2, .8, .2, 1); --open-dur: .45s; --zoom-dur: .6s;
+  }
+  @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; text-align: inherit; cursor: pointer; }
+
+  .chart { width: var(--w); margin: 0 auto; padding: 22px 20px 18px; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+  h1 { margin: 0; font-size: 22px; line-height: 26px; font-weight: 600; letter-spacing: -.015em; }
+  .sub { margin: 2px 0 0; font-size: 13px; font-style: italic; font-weight: 300; color: var(--ink-2); }
+  .crumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); min-height: 20px; }
+  .crumb button { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rule); }
+  .crumb button:hover { color: var(--ink); text-decoration-color: currentColor; }
+  .crumb b { font-weight: 600; color: var(--ink); }
+
+  .axis, .row { display: grid; grid-template-columns: var(--label-w) 1fr 22px; column-gap: 10px; }
+
+  /* the moments along the top */
+  .events { position: relative; height: 52px; }
+  .ev { position: absolute; bottom: 0; translate: 0 0; padding-left: 6px; border-left: 1px solid var(--ink); font-size: 9.5px; line-height: 11px; color: var(--ink-2); white-space: nowrap; transition: left var(--zoom-dur) var(--ease), opacity .3s; }
+  .ev b { display: block; color: var(--ink); font-weight: 600; }
+  /* neighbours take turns standing on two heights, so their names never touch; the line runs down to the axis either way */
+  .ev.is-hi { padding-bottom: 24px; }
+  .ev.is-end { translate: -100% 0; padding: 0 6px 0 0; border-left: 0; border-right: 1px solid var(--ink); text-align: right; }
+
+  /* the time axis: periods as buttons that take you one level down, into that period */
+  .axis { align-items: end; margin: 6px 0 6px; }
+  .scale { position: relative; height: 46px; }
+  .per { position: absolute; top: 0; height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: var(--corner);
+    background: color-mix(in oklab, var(--pc) 14%, var(--paper)); color: var(--ink); font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden;
+    box-shadow: inset 3px 0 0 var(--pc); transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), background-color .15s ease, opacity .3s ease; }
+  .per small { font-weight: 400; color: var(--ink-2); }
+  .per .go { margin-left: auto; color: var(--ink-3); transition: translate .2s ease; }
+  .per:hover { background: color-mix(in oklab, var(--pc) 24%, var(--paper)); }
+  .per:hover .go { translate: 2px 0; color: var(--ink); }
+  .per:active { background: color-mix(in oklab, var(--pc) 34%, var(--paper)); }
+  .per:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .per[aria-current="true"] .go { opacity: 0; }
+  .per.is-away { opacity: 0; pointer-events: none; }
+  .tick { position: absolute; bottom: 0; translate: -50% 0; font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; transition: left var(--zoom-dur) var(--ease), opacity .3s; }
+  .tick::before { content: ""; position: absolute; left: 50%; bottom: 14px; height: 4px; border-left: 1px solid var(--ink-3); }
+  .axis .ma { font-size: 10px; color: var(--ink-3); padding-bottom: 1px; }
+
+  /* the list */
+  .rows { position: relative; }
+  .group { margin: 10px 0 2px; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .row { position: relative; z-index: 1; grid-template-rows: auto auto; align-items: center; width: 100%; padding: var(--row-pad) 0; border-top: 1px solid var(--rule); transition: background-color .15s ease; }
+  .row:hover { background: rgba(25, 25, 23, .03); }
+  .row:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .who { display: grid; grid-template-columns: 26px 1fr; align-items: center; column-gap: 9px; }
+  .code { grid-row: span 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--ink); font-size: 9.5px; font-weight: 600; letter-spacing: .02em; transition: background-color .2s, color .2s; }
+  .row[aria-expanded="true"] .code { background: var(--ink); color: var(--paper); }
+  .name { font-size: 14px; line-height: 17px; font-weight: 500; }
+  .first { font-size: 11px; line-height: 14px; font-style: italic; font-weight: 300; color: var(--ink-2); }
+
+  .bar { position: relative; height: var(--bar-h); transition: transform .12s ease; }
+  .row:active .bar { transform: scaleY(.9); }
+  .seg { position: absolute; top: 0; bottom: 0; display: flex; gap: var(--gap); overflow: hidden; transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), opacity var(--zoom-dur) ease; }
+  .seg i { min-width: 0; border-radius: 1px; }
+  .g1 { background: color-mix(in oklab, var(--pc) var(--dark), #141414); }
+  .g2 { background: var(--pc); }
+  .g3 { background: color-mix(in oklab, var(--pc) var(--light), #fff); }
+  .seg.is-hot { outline: 1.5px solid var(--ink); outline-offset: 1px; z-index: 2; }
+  .chev { justify-self: center; width: 12px; height: 12px; color: var(--ink-3); transition: rotate var(--open-dur) var(--ease), color .15s; }
+  .row:hover .chev { color: var(--ink); }
+  .row[aria-expanded="true"] .chev { rotate: 180deg; color: var(--ink); }
+
+  /* opened: the sites, then one lane per group with its families */
+  .fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--open-dur) var(--ease); }
+  .fold > div { min-height: 0; overflow: hidden; }
+  .row[aria-expanded="true"] .fold { grid-template-rows: 1fr; }
+  .detail, .lane-names { display: grid; gap: 3px; padding-top: 6px; }
+  .detail > div, .lane-names > span { position: relative; height: var(--lane-h); }
+  .detail > .sites { height: var(--site-h); }
+  .lane-names .sites-name { height: var(--site-h); }
+  .lane-names span { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 10px; color: var(--ink-2); }
+  .lane-names i { width: 10px; height: 10px; border-radius: 2px; background: var(--k); }
+  .site { position: absolute; top: 0; overflow: hidden; font-size: 9.5px; line-height: var(--site-h); font-style: italic; font-weight: 300; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis;
+    border-left: 1px solid var(--ink-3); padding-left: 4px; transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), opacity var(--zoom-dur); }
+  .fam { position: absolute; top: 0; bottom: 0; display: flex; gap: 1px; overflow: hidden; transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), opacity var(--zoom-dur); }
+  .fam i { display: flex; align-items: center; min-width: 0; overflow: hidden; padding-left: 3px; border-radius: 1px; font-style: normal; font-size: 9px; font-weight: 600; white-space: nowrap; color: transparent; }
+  .fam.g1 i, .fam.g2 i { color: rgba(255, 255, 255, .92); }
+  .fam.g3 i { color: var(--ink); }
+  .fam { background: none !important; }
+  .fam.g1 i { background: color-mix(in oklab, var(--pc) var(--dark), #141414); }
+  .fam.g2 i { background: var(--pc); }
+  .fam.g3 i { background: color-mix(in oklab, var(--pc) var(--light), #fff); }
+  .fam i.tight { color: transparent !important; }
+  .fam i + i { box-shadow: inset 1px 0 0 rgba(255, 255, 255, .5); }
+
+  /* behind the rows: the land, joined and then parting */
+  .land { position: absolute; z-index: 0; background: var(--land); border-radius: 3px; transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), top var(--open-dur) var(--ease), height var(--open-dur) var(--ease); }
+  .land span { position: absolute; left: 6px; top: 3px; font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+  .kpg { position: absolute; z-index: 3; top: 0; bottom: 0; width: 0; border-left: 1.5px solid var(--ink); transition: left var(--zoom-dur) var(--ease), opacity .3s; pointer-events: none; }
+  .stg { position: absolute; z-index: 2; top: 0; bottom: 0; border-left: 1px dashed rgba(25, 25, 23, .25); pointer-events: none; }
+  .stg span { position: absolute; bottom: -16px; left: 5px; font-size: 10px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+
+  /* hover: a hairline at the pointer's moment in time, and what is there */
+  .cursor { position: absolute; z-index: 4; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--ink-2); pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .cursor b { position: absolute; top: -18px; left: 0; translate: -50% 0; padding: 1px 5px; border-radius: 2px; background: var(--ink); color: var(--paper); font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .tip { position: absolute; z-index: 5; width: 236px; padding: 10px 11px; border-radius: 4px; background: #fff; box-shadow: 0 0 0 1px var(--rule), 0 10px 24px -12px rgba(0,0,0,.35);
+    font-size: 11px; line-height: 15px; pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .tip b { display: block; font-size: 12px; }
+  .tip em { display: block; color: var(--ink-2); font-weight: 300; }
+  .tip .gen { margin: 6px 0 7px; font-style: italic; color: var(--ink); }
+  .tip div { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 6px; }
+  .tip div i { width: 10px; height: 10px; border-radius: 2px; }
+  .tip div span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .tip small { display: block; padding-left: 16px; color: var(--ink-2); font-size: 10px; line-height: 13px; margin-bottom: 3px; }
+  .is-hovering .cursor, .is-hovering .tip.has { opacity: 1; }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 30px 0 0 calc(var(--label-w) + 10px); font-size: 11px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 18px; height: 10px; border-radius: 1px; }
+  .legend .tones i { width: 6px; }
+  .legend .tones { gap: 2px; }
+  .note { margin: 10px 0 0 calc(var(--label-w) + 10px); font-size: 11px; font-style: italic; font-weight: 300; color: var(--ink-3); }
+  details.table { margin: 14px 0 0 calc(var(--label-w) + 10px); font-size: 11px; color: var(--ink-2); }
+  details.table summary { cursor: pointer; width: max-content; }
+  details.table table { margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  details.table td, details.table th { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--rule); text-align: left; font-weight: 400; vertical-align: top; }
+  details.table th { font-weight: 600; color: var(--ink); }
+
+  /* Spec */
+  .spec { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.5; }
+  .spec h2 { margin: 0 0 6px; font-size: 20px; font-weight: 600; }
+  .spec h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .spec p { margin: 0 0 8px; color: var(--ink-2); }
+  .spec table { width: 100%; border-collapse: collapse; }
+  .spec td { padding: 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .spec td:first-child { width: 42%; padding-right: 12px; color: var(--ink-2); }
+  .spec .swatch { display: inline-block; width: 11px; height: 11px; margin-right: 7px; border-radius: 2px; vertical-align: -1px; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .78); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <main class="chart" aria-labelledby="title">
+    <div class="head">
+      <div><h1 id="title">Dinosaurs, region by region</h1><p class="sub">The Mesozoic, 252 to 66 million years ago</p></div>
+      <nav class="crumb" aria-label="Level"></nav>
+    </div>
+
+    <div class="axis" style="margin:0"><span></span><div class="events" aria-label="Turning points"></div><span></span></div>
+    <div class="axis"><span class="ma">Million years ago</span><div class="scale"></div><span></span></div>
+    <div class="rows" role="list"></div>
+
+    <div class="legend" aria-label="Key">
+      <span><i style="background:var(--tri)"></i>Triassic</span>
+      <span><i style="background:var(--jur)"></i>Jurassic</span>
+      <span><i style="background:var(--cre)"></i>Cretaceous</span>
+      <span class="tones"><i style="background:color-mix(in oklab, var(--jur) var(--dark), #141414)"></i><i style="background:var(--jur)"></i><i style="background:color-mix(in oklab, var(--jur) var(--light), #fff)"></i>&nbsp;Theropods / Sauropodomorphs / Ornithischians, left to right in each box</span>
+      <span><i style="background:var(--land)"></i>Land joined</span>
+    </div>
+    <p class="note">A box is a span of time with a fossil record, named for its rock; its length is time. Inside it, lengths are shares of the finds, rough and for illustration. A break in a row is a gap in the record, not an absence of dinosaurs.</p>
+    <details class="table"><summary>See as a table</summary><table></table></details>
+  </main>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. Each region is a list item: leading, a ringed two-letter code; content, the name and the first record; the bar, its boxes in time; trailing, a chevron. Clicking a row opens it in place to show its rocks and, lane by lane, the families of each group; clicking a period goes one level down into it.</p>
+    <h3>Colour, the periods</h3>
+    <table>
+      <tr><td>Triassic, dry red beds of Pangaea</td><td data-var="--tri" data-kind="color"></td></tr>
+      <tr><td>Jurassic, fern forests and warm shallow seas</td><td data-var="--jur" data-kind="color"></td></tr>
+      <tr><td>Cretaceous, chalk seas at their highest</td><td data-var="--cre" data-kind="color"></td></tr>
+      <tr><td>Checked together</td><td>Colour-blind separation ΔE 10.1 or more between neighbours, chroma 0.1 or more, lightness 0.43–0.77, 3 : 1 or more on the paper</td></tr>
+      <tr><td>Theropods, the darkest tone</td><td>Period colour at <span data-var="--dark"></span> with near-black</td></tr>
+      <tr><td>Sauropodomorphs</td><td>The period colour itself</td></tr>
+      <tr><td>Ornithischians, the lightest tone</td><td>Period colour at <span data-var="--light"></span> with white</td></tr>
+      <tr><td>Families within a group</td><td>The group's tone, parted by a 1px light seam, named where they fit</td></tr>
+      <tr><td>Paper / land joined / rules</td><td><span data-var="--paper" data-kind="color"></span> &nbsp; <span data-var="--land" data-kind="color"></span> &nbsp; <span data-var="--rule" data-kind="color"></span></td></tr>
+    </table>
+    <h3>Row</h3>
+    <table>
+      <tr><td>Width, kept at any window</td><td data-var="--w"></td></tr>
+      <tr><td>Label column</td><td data-var="--label-w"></td></tr>
+      <tr><td>Bar</td><td data-var="--bar-h"></td></tr>
+      <tr><td>Opened: rock line, then three lanes</td><td><span data-var="--site-h"></span> + 3 × <span data-var="--lane-h"></span>, 3px apart</td></tr>
+      <tr><td>Row padding, top and bottom</td><td data-var="--row-pad"></td></tr>
+      <tr><td>Gap between groups and boxes</td><td data-var="--gap" data-after=", the paper showing through"></td></tr>
+      <tr><td>Time slices</td><td>Late Triassic; Early, Middle, Late Jurassic; Cretaceous in four: 145–125, 125–100.5, 100.5–83.6, 83.6–66 Ma</td></tr>
+      <tr><td>Leading code</td><td>26px circle, 1px ink ring; filled ink when open</td></tr>
+      <tr><td>Type</td><td>Inter Tight. Name 14/17 medium; first record 11/14 light italic; rocks 9.5 light italic; families 9 semibold; axis 10; title 22/26 semibold</td></tr>
+    </table>
+    <h3>States</h3>
+    <table>
+      <tr><td>Hover, row</td><td>Ink at 3% behind the row; a dashed hairline at the pointer's time with its date; the box under it ringed, its rock, finds, shares and families in a card</td></tr>
+      <tr><td>Pressed, row</td><td>The bar squeezes to 0.9 high</td></tr>
+      <tr><td>Hover / pressed, period</td><td>Period tint 14% → 24% → 34%; the arrow nudges 2px</td></tr>
+      <tr><td>Focus</td><td>2px ink ring, 2px off</td></tr>
+    </table>
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Open in place</td><td><span data-var="--open-dur"></span> ease-out; the land behind stretches with it</td></tr>
+      <tr><td>Into a period, and back</td><td><span data-var="--zoom-dur"></span> ease-out; every box, rock and family slides and stretches to the new span; the other periods fade</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+
+  <script>
+    const P = {
+      tri: { name: 'Triassic', from: 252, to: 201.4, stages: [[252, 247, 'Early'], [247, 237, 'Middle'], [237, 201.4, 'Late']] },
+      jur: { name: 'Jurassic', from: 201.4, to: 145, stages: [[201.4, 174, 'Early'], [174, 163.5, 'Middle'], [163.5, 145, 'Late']] },
+      cre: { name: 'Cretaceous', from: 145, to: 66, stages: [[145, 100.5, 'Early'], [100.5, 66, 'Late']] },
+    };
+    const GROUPS = ['Theropods', 'Sauropodomorphs', 'Ornithischians'];
+    // families, in the order they sit inside their group
+    const FAM = {
+      he: [0, 'Early theropods'], ce: [0, 'Ceratosaurs'], me: [0, 'Megalosaurs, spinosaurs'], al: [0, 'Allosaurs'], ty: [0, 'Tyrannosaurs'], ma: [0, 'Raptors, birds'],
+      pr: [1, 'Early sauropodomorphs'], es: [1, 'Early sauropods'], di: [1, 'Diplodocoids'], mc: [1, 'Brachiosaurs, kin'], ti: [1, 'Titanosaurs'],
+      eo: [2, 'Early ornithischians'], th: [2, 'Stegosaurs, ankylosaurs'], or: [2, 'Ornithopods, hadrosaurs'], mg: [2, 'Horned, dome-headed'],
+    };
+    const SHORT = { he: 'Early', ce: 'Cerato.', me: 'Megalo.', al: 'Allo.', ty: 'Tyranno.', ma: 'Raptors', pr: 'Early', es: 'Sauropods', di: 'Diplo.', mc: 'Brachio.', ti: 'Titano.', eo: 'Early', th: 'Armoured', or: 'Ornitho.', mg: 'Horned' };
+    // [from Ma, to Ma, rock, finds, families with weights]
+    const REGIONS = [
+      { land: 'L', code: 'NA', name: 'North America', segs: [
+        [222, 201.4, 'Chinle Formation', 'Coelophysis, Tawa', { he: 4, pr: 1, eo: 1 }],
+        [201.4, 174, 'Kayenta Formation', 'Dilophosaurus, Scutellosaurus', { he: 3, pr: 1, th: 1, eo: 1 }],
+        [163.5, 145, 'Morrison Formation', 'Allosaurus, Diplodocus, Stegosaurus', { ce: 1, me: 1, al: 3, ma: 1, di: 4, mc: 2, th: 2, or: 2 }],
+        [125, 100.5, 'Cedar Mountain, Cloverly', 'Acrocanthosaurus, Deinonychus, Tenontosaurus', { al: 2, ma: 2, mc: 2, th: 2, or: 3 }],
+        [100.5, 83.6, 'Wahweap, Moreno Hill', 'Zuniceratops, Nothronychus', { ty: 1, ma: 2, mg: 2, or: 2, th: 1 }],
+        [83.6, 66, 'Hell Creek, Dinosaur Park', 'Tyrannosaurus, Triceratops, Edmontosaurus', { ty: 3, ma: 3, ti: 1, mg: 5, or: 4, th: 2 }]] },
+      { land: 'L', code: 'EU', name: 'Europe', segs: [
+        [215, 201.4, 'Trossingen Formation', 'Plateosaurus, Liliensternus', { he: 1, pr: 5 }],
+        [201.4, 174, 'Lias of Dorset', 'Scelidosaurus, Sarcosaurus', { he: 1, ce: 1, th: 3 }],
+        [174, 163.5, 'Stonesfield Slate', 'Megalosaurus, Cetiosaurus', { me: 3, es: 2, th: 1, or: 1 }],
+        [163.5, 145, 'Lourinhã, Solnhofen', 'Torvosaurus, Archaeopteryx, Dacentrurus', { me: 2, al: 1, ma: 1, mc: 2, di: 1, th: 2, or: 1 }],
+        [145, 125, 'Wealden Group', 'Iguanodon, Baryonyx, Hypsilophodon', { me: 2, ma: 1, mc: 1, or: 4, th: 2 }],
+        [125, 100.5, 'Lower Greensand', 'Mantellisaurus, Polacanthus', { me: 1, or: 2, th: 1 }],
+        [83.6, 66, 'Haţeg Island', 'Magyarosaurus, Balaur, Telmatosaurus', { ce: 1, ma: 2, ti: 2, or: 3, th: 1 }]] },
+      { land: 'L', code: 'AS', name: 'Asia', segs: [
+        [215, 201.4, 'Nam Phong Formation', 'Isanosaurus', { he: 1, pr: 2 }],
+        [201.4, 174, 'Lufeng Formation', 'Lufengosaurus, Sinosaurus', { he: 2, pr: 4, eo: 1 }],
+        [174, 163.5, 'Dashanpu Quarry', 'Shunosaurus, Gasosaurus, Huayangosaurus', { me: 1, es: 3, th: 2 }],
+        [163.5, 145, 'Shishugou, Shaximiao', 'Mamenchisaurus, Yangchuanosaurus, Guanlong', { ce: 1, al: 2, ty: 1, es: 3, th: 2, mg: 1 }],
+        [145, 125, 'Yixian Formation', 'Sinosauropteryx, Yutyrannus, Psittacosaurus', { ty: 1, ma: 4, ti: 1, mg: 3, or: 1 }],
+        [125, 100.5, 'Jiufotang Formation', 'Microraptor, Psittacosaurus', { ma: 3, ti: 1, mg: 2, or: 1 }],
+        [100.5, 83.6, 'Bissekty Formation', 'Timurlengia, Turanoceratops', { ty: 1, ma: 2, mg: 1, or: 2 }],
+        [83.6, 66, 'Nemegt, Djadokhta', 'Tarbosaurus, Velociraptor, Protoceratops', { ty: 2, ma: 4, ti: 1, mg: 3, or: 2, th: 2 }]] },
+      { land: 'G', code: 'SA', name: 'South America', segs: [
+        [233, 201.4, 'Ischigualasto Formation', 'Herrerasaurus, Eoraptor, Pisanosaurus', { he: 3, pr: 3, eo: 1 }],
+        [201.4, 174, 'Cañadón Asfalto, lower', 'Leonerasaurus', { he: 1, pr: 2 }],
+        [174, 163.5, 'Cañadón Asfalto Formation', 'Patagosaurus, Condorraptor', { me: 1, es: 3 }],
+        [163.5, 145, 'Cañadón Calcáreo', 'Brachytrachelopan, Eoabelisaurus', { ce: 1, al: 1, di: 2 }],
+        [145, 125, 'La Amarga Formation', 'Amargasaurus, Ligabueino', { ce: 1, di: 3 }],
+        [125, 100.5, 'Romualdo, Lohan Cura', 'Irritator, Agustinia', { me: 2, al: 1, ti: 2, di: 1, or: 1 }],
+        [100.5, 83.6, 'Candeleros, Huincul', 'Giganotosaurus, Argentinosaurus', { al: 3, ce: 2, ti: 4, di: 1, or: 1 }],
+        [83.6, 66, 'Allen, Los Alamitos', 'Carnotaurus, Saltasaurus', { ce: 3, ma: 1, ti: 4, or: 1, th: 1 }]] },
+      { land: 'G', code: 'AF', name: 'Africa', segs: [
+        [228, 201.4, 'Lower Elliot Formation', 'Eucnemesaurus, Melanorosaurus', { he: 1, pr: 4 }],
+        [201.4, 174, 'Upper Elliot Formation', 'Massospondylus, Heterodontosaurus', { he: 2, pr: 4, eo: 2 }],
+        [163.5, 145, 'Tendaguru Beds', 'Giraffatitan, Kentrosaurus, Elaphrosaurus', { ce: 2, al: 1, mc: 3, di: 2, th: 1, or: 1 }],
+        [145, 125, 'Kirkwood Formation', 'Nqwebasaurus, Paranthodon', { ma: 1, es: 1, th: 1 }],
+        [125, 100.5, 'Elrhaz Formation', 'Suchomimus, Ouranosaurus, Nigersaurus', { me: 3, al: 1, ce: 1, di: 2, or: 2 }],
+        [100.5, 83.6, 'Kem Kem Group', 'Spinosaurus, Carcharodontosaurus', { me: 3, al: 3, ce: 1, ti: 1, di: 1 }],
+        [83.6, 66, 'Maevarano, Madagascar', 'Majungasaurus, Rapetosaurus', { ce: 3, ma: 1, ti: 2 }]] },
+      { land: 'G', code: 'AU', name: 'Australia', segs: [
+        [174, 163.5, 'Hutton Sandstone', 'Rhoetosaurus', { es: 2 }],
+        [125, 100.5, 'Wonthaggi, Eumeralla', 'Leaellynasaura, Qantassaurus', { ce: 1, ma: 1, or: 4, th: 1 }],
+        [100.5, 83.6, 'Winton Formation', 'Australovenator, Diamantinasaurus', { al: 2, ti: 3, or: 1, th: 1 }]] },
+      { land: 'G', code: 'AN', name: 'Antarctica', segs: [
+        [194, 182, 'Hanson Formation', 'Cryolophosaurus, Glacialisaurus', { he: 2, pr: 2 }],
+        [83.6, 66, 'López de Bertodano', 'Antarctopelta, Morrosaurus', { th: 2, or: 2 }]] },
+    ];
+    const LANDS = [['Pangaea', 252, 175, 'all'], ['Laurasia', 175, 100, 'L'], ['Gondwana', 175, 100, 'G']];
+    const EVENTS = [[233, 'First dinosaurs', 'Ischigualasto'], [201.4, 'End-Triassic extinction', 'rivals gone'], [150, 'First birds', 'Archaeopteryx'], [125, 'First flowers', 'Archaefructus'], [66, 'K–Pg extinction', 'asteroid, Chicxulub']];
+    const periodOf = (a, b) => Object.keys(P).find(k => (a + b) / 2 <= P[k].from && (a + b) / 2 >= P[k].to);
+    const shares = fams => { const t = Object.values(fams).reduce((a, b) => a + b, 0), g = [0, 0, 0]; Object.entries(fams).forEach(([k, v]) => g[FAM[k][0]] += v); return g.map(v => Math.round(v / t * 100)); };
+    const inGroup = (fams, gi) => Object.keys(FAM).filter(k => FAM[k][0] === gi && fams[k]).map(k => [k, fams[k]]);
+
+    let dom = [252, 66];
+    const x = ma => (dom[0] - ma) / (dom[0] - dom[1]) * 100;
+    const clampSpan = (a, b) => { const l = Math.max(0, x(a)), r = Math.min(100, x(b)); return [l, Math.max(0, r - l)]; };
+
+    // ---------- build ----------
+    const rowsEl = document.querySelector('.rows'), scale = document.querySelector('.scale'), eventsEl = document.querySelector('.events');
+    const rows = [];
+    let lastLand = '';
+    REGIONS.forEach(r => {
+      if (r.land !== lastLand) { lastLand = r.land; rowsEl.insertAdjacentHTML('beforeend', `<p class="group">${r.land === 'L' ? 'Laurasia, the north' : 'Gondwana, the south'}</p>`); }
+      const b = document.createElement('button');
+      b.className = 'row'; b.setAttribute('role', 'listitem'); b.setAttribute('aria-expanded', 'false');
+      const pc = ([a, z]) => `--pc:var(--${periodOf(a, z)})`;
+      b.innerHTML = `<span class="who"><span class="code">${r.code}</span><span class="name">${r.name}</span><span class="first">first record ${r.segs[0][0]} Ma</span></span>
+        <span class="bar">${r.segs.map(s => `<span class="seg" data-a="${s[0]}" data-z="${s[1]}" style="${pc(s)}">${shares(s[4]).map((v, j) => `<i class="g${j + 1}" style="flex:${Math.max(v, .001)}"></i>`).join('')}</span>`).join('')}</span>
+        <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5l3 3 3-3"/></svg>
+        <span class="fold"><div><span class="lane-names"><span class="sites-name">Rock</span>${GROUPS.map((g, j) => `<span>${g}<i style="--k:${['#555', '#999', '#ddd'][j]}"></i></span>`).join('')}</span></div></span>
+        <span class="fold"><div><span class="detail">
+          <div class="sites">${r.segs.map(s => `<span class="site" data-a="${s[0]}" data-z="${s[1]}">${s[2]}</span>`).join('')}</div>
+          ${[0, 1, 2].map(gi => `<div>${r.segs.map(s => { const f = inGroup(s[4], gi); return f.length ? `<span class="fam g${gi + 1}" data-a="${s[0]}" data-z="${s[1]}" style="${pc(s)}">${f.map(([k, v]) => `<i data-k="${k}" style="flex:${v}" title="${FAM[k][1]}">${SHORT[k]}</i>`).join('')}</span>` : ''; }).join('')}</div>`).join('')}
+        </span></div></span><span></span>`;
+      b.setAttribute('aria-label', `${r.name}, first record ${r.segs[0][0]} million years ago, ${r.segs.length} spans of record`);
+      b.addEventListener('click', () => { tip.classList.remove('has'); b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') !== 'true'); requestAnimationFrame(fits); followLand(); });
+      rowsEl.appendChild(b); rows.push({ el: b, r });
+    });
+    const lands = LANDS.map(([name]) => { const d = document.createElement('div'); d.className = 'land'; d.innerHTML = `<span>${name}</span>`; rowsEl.prepend(d); return d; });
+    const kpg = document.createElement('div'); kpg.className = 'kpg'; rowsEl.appendChild(kpg);
+    const cursor = document.createElement('div'); cursor.className = 'cursor'; cursor.innerHTML = '<b></b>'; rowsEl.appendChild(cursor);
+    const tip = document.createElement('div'); tip.className = 'tip'; rowsEl.appendChild(tip);
+    const evs = EVENTS.map(([ma, name, note]) => { const e = document.createElement('span'); e.className = 'ev' + (ma < 90 ? ' is-end' : '') + (EVENTS.findIndex(v => v[0] === ma) % 2 ? ' is-hi' : ''); e.dataset.ma = ma; e.innerHTML = `<b>${name}</b>${note}, ${ma}`; eventsEl.appendChild(e); return e; });
+
+    const pers = Object.entries(P).map(([k, p]) => {
+      const b = document.createElement('button');
+      b.className = 'per'; b.style.setProperty('--pc', `var(--${k})`); b.dataset.p = k;
+      b.innerHTML = `${p.name}<small>${p.from}–${p.to}</small><span class="go">→</span>`;
+      b.setAttribute('aria-label', `Go into the ${p.name}, ${p.from} to ${p.to} million years ago`);
+      b.addEventListener('click', () => zoom(k));
+      scale.appendChild(b); return b;
+    });
+
+    // ---------- layout ----------
+    const barBox = () => rows[0].el.querySelector('.bar');
+    const geo = () => { const host = rowsEl.getBoundingClientRect(), bar = barBox().getBoundingClientRect(), k = rowsEl.offsetWidth / host.width; return { host, k, left: (bar.left - host.left) * k, width: bar.width * k }; };
+    const layoutLand = () => {
+      const { host, k, left, width } = geo();
+      LANDS.forEach(([, a, z, which], i) => {
+        const rs = rows.filter(o => which === 'all' || o.r.land === which).map(o => o.el.getBoundingClientRect());
+        const [l, w] = clampSpan(a, z);
+        Object.assign(lands[i].style, { left: left + l / 100 * width + 'px', width: w / 100 * width + 'px',
+          top: (rs[0].top - host.top) * k + 'px', height: (rs[rs.length - 1].bottom - rs[0].top) * k + 'px', opacity: w ? 1 : 0 });
+      });
+      kpg.style.left = left + x(66) / 100 * width + 'px';
+      kpg.style.opacity = x(66) <= 100.5 ? 1 : 0;
+    };
+    // while a row opens, the land behind keeps up with it
+    const followLand = () => { const t0 = performance.now(); const step = () => { layoutLand(); stageMarks(); if (performance.now() - t0 < 520) requestAnimationFrame(step); }; step(); };
+    // a family is named only where its length has room for the word
+    const fits = () => rowsEl.querySelectorAll('.row[aria-expanded="true"] .fam i').forEach(i => i.classList.toggle('tight', i.scrollWidth > i.clientWidth + 1));
+    const layout = () => {
+      rowsEl.querySelectorAll('[data-a]').forEach(s => {
+        const [l, w] = clampSpan(+s.dataset.a, +s.dataset.z);
+        s.style.left = `calc(${l}% + ${l > 0 ? 1 : 0}px)`; s.style.width = `calc(${w}% - ${w > 0 ? 2 : 0}px)`;
+        s.style.opacity = w > .2 ? 1 : 0;   // a box pushed out of the period slides off and goes
+      });
+      pers.forEach(b => { const p = P[b.dataset.p], [l, w] = clampSpan(p.from, p.to); b.style.left = l + '%'; b.style.width = `calc(${w}% - ${w ? 2 : 0}px)`; b.classList.toggle('is-away', w < .5); });
+      evs.forEach(e => { const v = x(+e.dataset.ma); e.style.left = v + '%'; e.style.opacity = v >= -.5 && v <= 100.5 ? 1 : 0; });
+      scale.querySelectorAll('.tick').forEach(t => t.remove());
+      const step = dom[0] - dom[1] > 100 ? 25 : 10;
+      for (let m = Math.ceil(dom[1] / step) * step; m <= dom[0]; m += step) {
+        if (Math.abs(m - 66) < 4) continue;
+        scale.insertAdjacentHTML('beforeend', `<span class="tick" style="left:${x(m)}%">${m}</span>`);
+      }
+      layoutLand();
+      setTimeout(fits, 650);
+    };
+    const stageMarks = () => {
+      rowsEl.querySelectorAll('.stg').forEach(n => n.remove());
+      const p = Object.values(P).find(p => p.from === dom[0] && p.to === dom[1]);
+      if (!p) return;
+      const { left, width } = geo();
+      p.stages.forEach(([a, , name]) => rowsEl.insertAdjacentHTML('beforeend', `<div class="stg" style="left:${left + x(a) / 100 * width}px"><span>${name}</span></div>`));
+    };
+
+    // ---------- one level down: into a period, and back ----------
+    const crumb = document.querySelector('.crumb');
+    const zoom = k => {
+      const p = k && P[k];
+      dom = p ? [p.from, p.to] : [252, 66];
+      pers.forEach(b => b.setAttribute('aria-current', String(b.dataset.p === k)));
+      crumb.innerHTML = p ? `<button type="button">Mesozoic</button><span>›</span><b>${p.name}</b><span>&nbsp;${p.stages.map(s => s[2]).join(' · ')}</span>` : '';
+      crumb.querySelector('button')?.addEventListener('click', () => zoom(null));
+      document.querySelector('.sub').textContent = p ? `${p.name}, ${p.from} to ${p.to} million years ago` : 'The Mesozoic, 252 to 66 million years ago';
+      tip.classList.remove('has'); rowsEl.classList.remove('is-hovering');
+      layout(); stageMarks(); setTimeout(layoutLand, 650);
+    };
+    addEventListener('keydown', e => { if (e.key === 'Escape' && dom[0] !== 252) zoom(null); });
+
+    // ---------- hover: the moment under the pointer ----------
+    rowsEl.addEventListener('pointermove', e => {
+      const { host, k } = geo(), bar = barBox().getBoundingClientRect();
+      const f = (e.clientX - bar.left) / bar.width;
+      if (f < 0 || f > 1) { rowsEl.classList.remove('is-hovering'); return; }
+      rowsEl.classList.add('is-hovering');
+      const ma = dom[0] - f * (dom[0] - dom[1]);
+      cursor.style.left = (e.clientX - host.left) * k + 'px';
+      cursor.querySelector('b').textContent = ma.toFixed(dom[0] - dom[1] > 100 ? 0 : 1) + ' Ma';
+      document.querySelectorAll('.seg.is-hot').forEach(s => s.classList.remove('is-hot'));
+      const o = rows.find(o => { const rb = o.el.getBoundingClientRect(); return e.clientY >= rb.top && e.clientY <= rb.bottom; });
+      const i = o ? o.r.segs.findIndex(([a, z]) => ma <= a && ma >= z) : -1;
+      if (i < 0) { tip.classList.remove('has'); return; }
+      const seg = o.el.querySelectorAll('.seg')[i]; seg.classList.add('is-hot');
+      const [a, z, rock, finds, fams] = o.r.segs[i], pk = periodOf(a, z), stage = P[pk].stages.find(([f2, t2]) => (a + z) / 2 <= f2 && (a + z) / 2 >= t2), sh = shares(fams);
+      tip.innerHTML = `<b>${rock}</b><em>${o.r.name} · ${stage ? stage[2] + ' ' : ''}${P[pk].name}, ${a}–${z} Ma</em><p class="gen">${finds}</p>` +
+        sh.map((v, j) => v ? `<div><i style="background:${getComputedStyle(seg.children[j]).backgroundColor}"></i><span>${GROUPS[j]}</span><span>${v}%</span></div><small>${inGroup(fams, j).map(([kk]) => FAM[kk][1]).join(', ')}</small>` : '').join('');
+      tip.classList.add('has');
+      const tx = (e.clientX - host.left) * k + 14, ty = (o.el.querySelector('.bar').getBoundingClientRect().bottom - host.top) * k + 8;
+      tip.style.left = Math.min(tx, rowsEl.offsetWidth - 240) + 'px'; tip.style.top = ty + 'px';
+    });
+    rowsEl.addEventListener('pointerleave', () => { rowsEl.classList.remove('is-hovering'); document.querySelectorAll('.seg.is-hot').forEach(s => s.classList.remove('is-hot')); });
+
+    // ---------- the table view ----------
+    document.querySelector('details.table table').innerHTML = '<tr><th>Region</th><th>Span, Ma</th><th>Period</th><th>Rock</th><th>Finds</th>' + GROUPS.map(g => `<th>${g}</th>`).join('') + '</tr>' +
+      REGIONS.flatMap(r => r.segs.map(([a, z, rock, finds, fams]) => `<tr><td>${r.name}</td><td>${a}–${z}</td><td>${P[periodOf(a, z)].name}</td><td>${rock}</td><td>${finds}</td>${shares(fams).map(v => `<td>${v}%</td>`).join('')}</tr>`)).join('');
+
+    // ---------- keep its own width; shrink whole in a narrow window ----------
+    const chart = document.querySelector('.chart');
+    const fit = () => { chart.style.zoom = Math.min(1, innerWidth / chart.offsetWidth); layoutLand(); stageMarks(); };
+    addEventListener('resize', fit);
+    layout(); fit();
+    document.fonts?.ready.then(() => { layoutLand(); fits(); });
+    if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-05-spec.js?v=1"></script>
+</body>
+</html>

@@ -7,7 +7,8 @@
    card: the sketch; under it, the name and the card's description (2)
    beside a speed slider (1); and a small close button above the sketch's
    corner. Esc or a click outside closes it too. data-about overrides the
-   description.
+   description. data-wide opens it big instead, near the whole screen, with
+   no description and no slider: for a piece that is itself a wide chart.
    The title comes from data-title, or else the card's name (with its
    tone, for a prototype), or else its iframe's title.
 
@@ -117,6 +118,7 @@
       || card?.querySelector('iframe')?.title || 'Sketch';
     title.textContent = name;
     frame.title = name;
+    dialog.classList.toggle('is-wide', 'wide' in button.dataset);
     // the card's own words on it, if it has any
     const words = button.dataset.about ?? [...(card?.querySelectorAll('figcaption span:not(.soon)') || [])].map(el => el.textContent).join(' ');
     about.textContent = words;

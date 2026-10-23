@@ -6,7 +6,7 @@
   <title>Week 05 &middot; Lists &middot; Advanced Interface</title>
   <meta name="description" content="Two sets of list items, each a tone: one structure that takes any leading, content and trailing slot, one row that goes a level deeper, one that opens in place." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../shared/site.css?v=20" />
+  <link rel="stylesheet" href="../shared/site.css?v=21" />
   <style>
     /* Week 05 diagram kit: one list row drawn the same way everywhere.
        Picts (112 x 68): row 104 x 22, padding 6, gap 5, icon 7, avatar 12, label line 1.6, supporting line 1.2.
@@ -485,41 +485,75 @@
       <div class="set-grid">
         <div class="set-box" id="set-1">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
-            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/movements-deeper-1.png" alt="" loading="lazy" /><img src="images/process/movements-timeline-3.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Movements</span><span class="set-line">Modern art place by place: blocks that follow on and stack, each in its movement’s own colour.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Movements</span></span>
               <button type="button" class="set-close" aria-label="Close set 1"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
               <div class="proto-grid">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-05-set-1-system.html</span></div>
+                <figure class="proto">
+                  <iframe src="week-05-movements-deeper.html?v=1" title="Modern art movements: clicking a block goes one level deeper, to a page for that movement in that place" loading="lazy"></iframe>
                   <figcaption>
-                    <b>List system</b>
-                    <span>One row build in every configuration: leading icon, avatar, thumbnail or nothing; one line or two; trailing text, icon or both. Enabled, hover and pressed.</span>
-                    <span class="soon">Not built yet</span>
+                    <b>One level deeper</b>
+                    <span>The same timeline. A block does not open under its row: clicking it slides the timeline away and brings in a page for that movement in that place, with where it came from and where else it went (each a way across), where it sits in the place's row, its artists as list rows and its works. “All places” or Esc comes back to the same spot.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements-deeper.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-05-set-1-actions.html</span></div>
+                <figure class="proto">
+                  <iframe src="week-05-movements.html?v=8" title="Modern art movements, 1850 to 2000: one row per place, blocks in each movement's colour following on and stacking" loading="lazy"></iframe>
                   <figcaption>
-                    <b>In use</b>
-                    <span>A row that goes one level deeper, and a row that opens in place to reveal its sub-items.</span>
-                    <span class="soon">Not built yet</span>
+                    <b>Opens in place</b>
+                    <span>Each place is a row; each movement a block as long as it lived there, stacking where two lived side by side. A movement keeps its colour wherever it went, so hovering one lights its other cities, with threads from where it began and, dashed, from what it grew out of. Every block is a button: it opens that one movement in place under its row, with its artists and representative works; an era above takes you one level down.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements.html?v=8">View larger</button>
                   </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
               <p>How the set got here, one tried version at a time, the last one now.</p>
-              <p class="process-label">List system</p>
-              <div class="process-grid"></div>
-              <p class="process-label">In use</p>
-              <div class="process-grid"></div>
+              <p class="process-label">One level deeper</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/movements-system-1.png" alt="Movements list system, a separate sheet, dropped" loading="lazy" />
+                    <figcaption>First, a separate sheet of the row in every configuration. Dropped: it showed the parts but no list doing either action.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-deeper-1.png" alt="Movements, one level deeper, step 2" loading="lazy" />
+                    <figcaption>Instead, the timeline itself goes one level deeper: a block opens a page for its movement in its place, with a way back and ways across.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Opens in place</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-1.png" alt="Mesozoic timeline, step 1" loading="lazy" />
+                    <figcaption>First pass: each box split into three bands stacked top to bottom, one per dinosaur group.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-2.png" alt="Mesozoic timeline, step 2" loading="lazy" />
+                    <figcaption>The groups laid end to end inside each box instead, like a row of book spines: a thinner bar that reads as one strip per region.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-3.png" alt="Mesozoic timeline, step 3" loading="lazy" />
+                    <figcaption>More to read: Cretaceous cut in four, each box named for its rock and finds, turning points along the top, and an opened row letting down a lane per group with its families.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-1.png" alt="Movements timeline, step 4" loading="lazy" />
+                    <figcaption>A new subject. Dinosaur periods change everywhere at once, so nothing overlapped or split. Modern art does both: movements reach each city late, live side by side and stack, split off and travel. Places as rows, a colour per movement taken from its art.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-2.png" alt="Movements timeline, step 5" loading="lazy" />
+                    <figcaption>More room: 1200 wide, lanes 20px instead of 11, rows set further apart, larger type, and every block that is long enough carries its name.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-3.png" alt="Movements timeline, step 6" loading="lazy" />
+                    <figcaption>Time made legible: lines run through every row, faint each 5 years, firmer each 25, firmest each 50, with the years again at the foot. And bigger still: 1440 wide, 28px lanes, the place names at 21.</figcaption>
+                  </figure>
+              </div>
             </div>
           </dialog>
         </div>
@@ -590,7 +624,7 @@
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
 
-  <script src="../shared/viewer.js?v=5"></script>
+  <script src="../shared/viewer.js?v=6"></script>
   <script src="../shared/sets.js?v=1"></script>
   <script src="../shared/toc.js?v=4"></script>
 </body>
