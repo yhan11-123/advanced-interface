@@ -18,15 +18,16 @@
      the brown of Realism's earth, Impressionism's sky, the Secession's gold, Klein's blue, the
      pink of Pop. Hover a block and its other cities light up, threads running from where it began
      and, dashed, from what it grew out of. */
-  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,300;1,400&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap");
   :root {
     --w: 1440px;
-    --paper: #f3efe6; --ink: #1b1a17; --ink-2: #5f5b52; --ink-3: #928c80; --rule: #e1dbcd;
+    --paper: #ffffff; --ink: #111111; --ink-2: #555555; --ink-3: #8c8c8c; --rule: #e6e6e6; --panel: #f6f6f6;
     /* one shelf of colours, after the reference's: muted, same weight, each from a movement's own art */
-    --brown: #5a4433; --sky: #86abc4; --navy: #23356a; --mustard: #efb93a; --teal: #3f9a83; --mint: #b6d6c9; --red: #c23a31;
-    --orange: #dc7f3c; --butter: #f2d27a; --ink-c: #1d1c24; --cream: #d6cbb1; --pink: #e7a39a; --plum: #6c4669; --slate: #7c8b90;
-    --label-w: 240px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
-    --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    /* each movement's colour at full strength, as the art itself has it */
+    --brown: #6e3b17; --sky: #4f93d6; --navy: #1b35b5; --mustard: #f2b200; --teal: #009e7e; --mint: #79d3b8; --red: #e0261d;
+    --orange: #f47a12; --butter: #f6d33c; --ink-c: #111111; --cream: #d9d2c0; --pink: #f57aa2; --plum: #7d2f8f; --slate: #5f7682;
+    --label-w: 268px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
+    --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
     --ease: cubic-bezier(.2, .8, .2, 1); --open-dur: .45s; --zoom-dur: .6s;
   }
   @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; } }
@@ -38,6 +39,7 @@
   .fitbox { overflow: hidden; }
   .chart { transform-origin: 0 0; width: var(--w); margin: 0 auto; padding: 48px 40px 36px; }
   .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+  .kicker { margin: 0 0 8px; font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
   h1 { margin: 0; font-size: 38px; line-height: 44px; font-weight: 600; letter-spacing: -.015em; }
   .sub { margin: 6px 0 0; font-size: 18px; font-style: italic; font-weight: 300; color: var(--ink-2); }
   .crumb { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-3); min-height: 20px; }
@@ -74,10 +76,33 @@
   .gl.minor b { display: none; }
   .row { position: relative; z-index: 1; display: grid; grid-template-rows: auto auto; align-items: center; padding: var(--row-pad) 0; border-top: 1px solid var(--rule); transition: background-color .15s ease; }
   .row:hover { background: rgba(27, 26, 23, .025); }
-  .who { display: grid; grid-template-columns: 46px 1fr; align-items: center; column-gap: 14px; }
-  .code { grid-row: span 2; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--ink); font-size: 12px; font-weight: 600; letter-spacing: .03em; transition: background-color .2s, color .2s; }
-  .row.is-open .code { background: var(--ink); color: var(--paper); }
+  .who { display: grid; grid-template-columns: 42px 1fr; align-items: center; column-gap: 14px; justify-self: start; margin: -8px -10px; padding: 8px 10px; border-radius: 6px; text-align: left; transition: background-color .15s ease; }
+  .who:hover { background: rgba(17, 17, 17, .05); }
+  .who:active { background: rgba(17, 17, 17, .1); }
+  .who:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .caret { width: 14px; height: 14px; margin-left: 6px; vertical-align: 1px; color: var(--ink-3); transition: rotate var(--open-dur) var(--ease), color .15s; }
+  .who:hover .caret { color: var(--ink); }
+  .who[aria-expanded="true"] .caret { rotate: 180deg; color: var(--ink); }
+
+  /* opened: the place's movements, as rows of their own, each opening that movement */
+  .plist { grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--open-dur) var(--ease); }
+  .plist > div { min-height: 0; overflow: hidden; }
+  .row.is-list .plist { grid-template-rows: 1fr; }
+  .plist-in { position: relative; z-index: 2; margin-top: 18px; border-top: 1px solid var(--ink); background: var(--paper); opacity: 0; transition: opacity .25s ease; }
+  .mrow.is-current { background: rgba(17, 17, 17, .06); box-shadow: inset 3px 0 0 var(--c); }
+  .row.is-list .plist-in { opacity: 1; transition-delay: .1s; }
+  .mrow { display: grid; grid-template-columns: 14px 76px 250px 120px 1fr 20px; align-items: center; column-gap: 14px; width: 100%; min-height: 48px; padding: 0 12px; border-bottom: 1px solid var(--rule); text-align: left; transition: background-color .15s ease; }
+  .mrow:hover { background: rgba(17, 17, 17, .04); }
+  .mrow:active { background: rgba(17, 17, 17, .09); }
+  .mrow:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .mrow i { width: 14px; height: 14px; border-radius: 3px; background: var(--c); }
+  .mrow b { font-size: 16px; font-weight: 500; }
+  .mrow .yrs { font: 13px var(--mono); color: var(--ink-2); }
+  .mrow em { font-size: 14px; font-style: italic; font-weight: 300; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mrow svg { width: 20px; height: 20px; color: var(--ink-3); transition: translate .2s var(--ease), color .15s; }
+  .mrow:hover svg { color: var(--ink); translate: 2px 0; }
   .name { font-size: 21px; line-height: 26px; font-weight: 500; }
+  .who .flag { grid-row: span 2; display: block; width: 42px; height: 28px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(17, 17, 17, .14); }
   .count { font-size: 14.5px; line-height: 19px; font-style: italic; font-weight: 300; color: var(--ink-2); }
 
   /* the blocks: following on along a lane, stacking up a new lane where two overlap. Each is a button */
@@ -86,6 +111,9 @@
     background: var(--c); color: transparent; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;
     transition: left var(--zoom-dur) var(--ease), width var(--zoom-dur) var(--ease), opacity .2s ease, transform .12s ease, filter .15s ease; }
   .blk.fits { color: var(--on); }
+  .blk .no { margin-right: 7px; font: 500 11px/1 var(--mono); opacity: .7; }
+  .tick, .gl b, .era small, .yr, .count { font-family: var(--mono); }
+  .count { font-style: normal !important; font-size: 12px !important; white-space: nowrap; }
   .blk:hover { filter: brightness(1.08) saturate(1.05); }
   .blk:active { transform: scaleY(.88); }
   .blk:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; z-index: 3; }
@@ -119,13 +147,14 @@
 
   .hero { display: grid; grid-template-columns: 520px 1fr; column-gap: 56px; align-items: start; padding-bottom: 34px; border-bottom: 1px solid var(--rule); }
   .hero .band { height: 10px; border-radius: 2px; background: var(--c); margin-bottom: 18px; }
+  .recno { margin: 0 0 8px; font: 500 13px/1 var(--mono); letter-spacing: .04em; color: var(--ink-3); }
   .hero h2 { margin: 0; font-size: 56px; line-height: 60px; font-weight: 600; letter-spacing: -.025em; }
   .hero .when { margin: 8px 0 18px; font-size: 20px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .hero .what { margin: 0 0 22px; font-size: 20px; line-height: 29px; }
   .kin { display: grid; gap: 14px; }
   .kin .k { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
   .hops { display: flex; flex-wrap: wrap; gap: 8px; }
-  .hop { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 10px; border-radius: 999px; background: #fffdf8; box-shadow: inset 0 0 0 1px var(--rule); font-size: 14.5px; font-weight: 500; transition: box-shadow .15s, background-color .15s; }
+  .hop { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 10px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px var(--rule); font-size: 14.5px; font-weight: 500; transition: box-shadow .15s, background-color .15s; }
   .hop i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
   .hop:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
   .hop:active { background: rgba(27, 26, 23, .06); }
@@ -141,7 +170,7 @@
   .part { padding-top: 30px; }
   .part h3 { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
   .people { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; }
-  .person { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px; border-radius: 4px; background: #f8f5ee; box-shadow: inset 0 -1px 0 var(--rule); }
+  .person { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px; border-radius: 4px; background: var(--panel); box-shadow: inset 0 -1px 0 var(--rule); }
   .person i { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--c); color: var(--on); font-style: normal; font-size: 13px; font-weight: 600; }
   .person b { display: block; font-size: 15px; line-height: 20px; font-weight: 500; }
   .person span { display: block; font-size: 13px; line-height: 18px; font-style: italic; font-weight: 300; color: var(--ink-2); }
@@ -156,8 +185,6 @@
   .work figcaption { margin-top: 8px; font-size: 13.5px; line-height: 18px; }
   .work figcaption i { display: block; font-size: 15px; font-weight: 500; }
   .work figcaption span { color: var(--ink-2); }
-  .work .credit { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 2px; }
-  .work .credit:hover { color: var(--ink); }
 
   /* threads: where a movement went, and what it grew from */
   .threads { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
@@ -168,10 +195,11 @@
   /* hover */
   .cursor { position: absolute; z-index: 4; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--ink-2); pointer-events: none; opacity: 0; transition: opacity .12s; }
   .cursor b { position: absolute; top: -24px; left: 0; translate: -50% 0; padding: 3px 7px; border-radius: 2px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 600; }
-  .tip { position: absolute; z-index: 5; width: 330px; padding: 14px 16px; border-radius: 4px; background: #fffdf8; box-shadow: 0 0 0 1px var(--rule), 0 10px 24px -12px rgba(0,0,0,.35);
+  .tip { position: absolute; z-index: 5; width: 330px; padding: 14px 16px; border-radius: 4px; background: #ffffff; box-shadow: 0 0 0 1px var(--rule), 0 10px 24px -12px rgba(0,0,0,.35);
     font-size: 14px; line-height: 19px; pointer-events: none; opacity: 0; transition: opacity .12s; }
   .tip b { display: flex; align-items: center; gap: 8px; font-size: 16px; }
   .tip b i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+  .rec { font: 500 12px var(--mono); color: var(--ink); }
   .tip em { display: block; color: var(--ink-2); font-weight: 300; margin-top: 1px; }
   .tip p { margin: 6px 0 0; }
   .tip .k { color: var(--ink-3); }
@@ -201,12 +229,11 @@
   <main class="chart" aria-labelledby="title">
     <div class="level" id="overview">
     <div class="head">
-      <div><h1 id="title">Modern art, place by place</h1><p class="sub">Movements from 1850 to 2000, where and how long they lived</p></div>
+      <div><p class="kicker">Archive · Modern movements · 1850–2000</p><h1 id="title">Modern art, place by place</h1><p class="sub">Movements from 1850 to 2000, where and how long they lived</p></div>
       <nav class="crumb" aria-label="Level"></nav>
     </div>
     <div class="axis"><span class="yr">Year</span><div class="scale"></div><span></span></div>
     <div class="rows" role="list"><div class="grid" aria-hidden="true"></div><svg class="threads" aria-hidden="true"></svg></div>
-    <p class="note">A block is a movement as long as it was alive in that place; stacked blocks lived side by side. A movement keeps its colour wherever it went. Dates are rounded and the cast is short: a map, not a census.</p>
     <details class="table"><summary>See as a table</summary><table></table></details>
     </div>
     <section class="level page" id="movement" hidden aria-live="polite"></section>
@@ -215,8 +242,8 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the CSS this page runs on. Each place is a list item: leading, a ringed code; content, the name and how many movements lived there; the bar, its blocks in time; trailing, a chevron. Every block is a button that goes one level deeper: the timeline slides away and a page for that movement in that place comes in, with what it grew from and where else it went (each a way across to that page), where it sits in the place’s row, its artists as list rows, and its works. “All places”, or Esc, comes back to where you were.</p>
-    <h3>Colour: one shelf, after the reference</h3>
+    <p>Read from the CSS this page runs on. Each place is a list item: leading, its country’s flag; content, the city, and under it the country and how many movements lived there; the bar, its blocks in time; trailing, a chevron. Every block is a button that goes one level deeper: the timeline slides away and a page for that movement in that place comes in, with what it grew from and where else it went (each a way across to that page), where it sits in the place’s row, its artists as list rows, and its works. “All places”, or Esc, comes back to where you were.</p>
+    <h3>Colour: each movement at full strength</h3>
     <table>
       <tr><td>Realism, earth</td><td data-var="--brown" data-kind="color"></td></tr>
       <tr><td>Impressionism, sky</td><td data-var="--sky" data-kind="color"></td></tr>
@@ -232,11 +259,12 @@
       <tr><td>Cubism, Conceptual, Mono-ha</td><td data-var="--slate" data-kind="color"></td></tr>
       <tr><td>Nihonga, Minimalism, Suprematism</td><td data-var="--cream" data-kind="color"></td></tr>
       <tr><td>Dada, Mavo</td><td data-var="--ink-c" data-kind="color"></td></tr>
-      <tr><td>How they sit together</td><td>All at a similar, low chroma on warm paper; no colour shouts. A colour is reused only by movements kin to each other or decades apart, and never by two blocks that touch in one row</td></tr>
+      <tr><td>How they sit together</td><td>On white, at the strength the art itself has. Black ink, thin grey rules and mono record numbers keep them in order. A colour is reused only by movements kin to each other or decades apart, never by two blocks that touch in a row</td></tr>
       <tr><td>Never colour alone</td><td>Opened rows name every block that fits; hover names any; the table lists all</td></tr>
     </table>
     <h3>Row</h3>
     <table>
+      <tr><td>The place, pressed</td><td>Opens in place under its row: its movements as rows of their own, each one going a level deeper to its page</td></tr>
       <tr><td>Width, kept at any window</td><td data-var="--w"></td></tr>
       <tr><td>Label column</td><td data-var="--label-w"></td></tr>
       <tr><td>Lane, closed / open</td><td data-var="--lane,--lane-open" data-join=" / "></td></tr>
@@ -279,7 +307,7 @@
       postimp:   ['Post-Impressionism', 'mustard', 0, ['imp'], 'Structure, symbol and colour beyond the eye.'],
       symbol:    ['Symbolism', 'plum', 1, ['preraph'], 'Dreams, myth and the soul over the seen.'],
       miriskus:  ['Mir iskusstva', 'plum', 1, ['symbol'], 'World of Art: aesthetes against the Wanderers.'],
-      crafts:    ['Arts and Crafts', 'teal', 1, ['preraph'], 'Handmade against the machine.'],
+      crafts:    ['Arts and Crafts', 'teal', 0, ['preraph'], 'Handmade against the machine.'],
       nouveau:   ['Art Nouveau', 'mint', 0, ['crafts', 'ukiyoe'], 'The whiplash line, from posters to metro gates.'],
       secession: ['Secession', 'butter', 0, ['nouveau', 'symbol'], 'Split from the Academy; gold and ornament.'],
       nihonga:   ['Nihonga', 'cream', 0, ['ukiyoe'], 'Japanese painting renewed against Western oils.'],
@@ -288,7 +316,7 @@
       cubism:    ['Cubism', 'slate', 1, ['postimp'], 'One object from many sides at once.'],
       futurism:  ['Futurism', 'pink', 0, ['cubism'], 'Speed, machines and the city in motion.'],
       vorticism: ['Vorticism', 'pink', 0, ['futurism', 'cubism'], 'London’s hard-edged answer to Futurism.'],
-      metaph:    ['Metaphysical art', 'teal', 1, ['symbol'], 'Empty piazzas, long shadows, unease.'],
+      metaph:    ['Metaphysical art', 'teal', 0, ['symbol'], 'Empty piazzas, long shadows, unease.'],
       suprem:    ['Suprematism', 'cream', 0, ['cubism', 'futurism'], 'Pure feeling in pure shapes: the black square.'],
       construct: ['Constructivism', 'red', 1, ['suprem', 'cubism'], 'Art as engineering for the new society.'],
       dada:      ['Dada', 'ink-c', 1, ['cubism', 'futurism'], 'Anti-art against a world at war.'],
@@ -313,7 +341,7 @@
       sots:      ['Sots Art', 'red', 1, ['pop', 'socreal'], 'Pop turned on Soviet slogans.'],
       transav:   ['Transavanguardia', 'orange', 0, ['expr'], 'The return of painting, in Italy.'],
       neoexp:    ['Neo-Expressionism', 'orange', 0, ['expr'], 'Big, raw figurative painting is back.'],
-      yba:       ['Young British Artists', 'teal', 1, ['concept', 'pop'], 'Shock, sharks and Freeze.'],
+      yba:       ['Young British Artists', 'teal', 0, ['concept', 'pop'], 'Shock, sharks and Freeze.'],
       superflat: ['Superflat', 'pink', 0, ['pop', 'ukiyoe'], 'Anime and Edo prints, flattened together.'],
     };
     // places: [movement, from, to, names]
@@ -410,6 +438,19 @@
     // where each image came from: its page on Wikipedia or Wikimedia Commons
     const CREDITS = {"courbet-the-stone-breakers.jpg":"https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_The_Stonebreakers_-_WGA05457.jpg","courbet-a-burial-at-ornans.jpg":"https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_A_Burial_at_Ornans_-_Google_Art_Project_2.jpg","millet-the-gleaners.jpg":"https://commons.wikimedia.org/wiki/File:Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg","monet-impression-sunrise.jpg":"https://commons.wikimedia.org/wiki/File:Monet_-_Impression,_Sunrise.jpg","renoir-bal-du-moulin-de-la-galette.jpg":"https://commons.wikimedia.org/wiki/File:Renoir,_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette,_1876.jpg","seurat-a-sunday-on-la-grande-jatte.jpg":"https://commons.wikimedia.org/wiki/File:A_Sunday_on_La_Grande_Jatte,_Georges_Seurat,_1884.jpg","gauguin-where-do-we-come-from-what-are-we-where.jpg":"https://commons.wikimedia.org/wiki/File:Gauguin_-_Where_Do_We_Come_From%3F_What_Are_We%3F_Where_Are_We_Going%3F_(1897-98).jpg","cezanne-mont-sainte-victoire.jpg":"https://commons.wikimedia.org/wiki/File:Paul_C%C3%A9zanne_-_Montagne_Saint-victoire_-_Google_Art_Project.jpg","redon-closed-eyes.jpg":"https://commons.wikimedia.org/wiki/File:Odilon_Redon_-_Closed_Eyes_-_Google_Art_Project.jpg","moreau-jupiter-and-semele.jpg":"https://commons.wikimedia.org/wiki/File:Jupiter_and_Semele_by_Gustave_Moreau.jpg","mucha-gismonda.jpg":"https://commons.wikimedia.org/wiki/File:Georges_Rochegrosse_-_Henry_F%C3%A9vrier_-_Henri_Cain_and_Louis_Payen_after_Victorien_Sardou_-_Gismonda.jpg","guimard-paris-metro-entrance.jpg":"https://commons.wikimedia.org/wiki/File:M%C3%A9tro_P%C3%A8re_Lachaise_sous_la_neige_01.jpg","klein-ikb-191.jpg":"https://commons.wikimedia.org/wiki/File:IKB_191.jpg","millais-ophelia.jpg":"https://commons.wikimedia.org/wiki/File:John_Everett_Millais_-_Ophelia_-_Google_Art_Project.jpg","fattori-the-rotonda-di-palmieri.jpg":"https://commons.wikimedia.org/wiki/File:The_Palmieri_Baths_Roundabout_in_Livorno_(1866),_by_Giovanni_Fattori.jpg","signorini-leith.jpg":"https://commons.wikimedia.org/wiki/File:Telemaco_Signorini_-_Leith_-_WGA21304.jpg","balla-dynamism-of-a-dog-on-a-leash.jpg":"https://en.wikipedia.org/wiki/File:Giacomo_Balla,_1912,_Dynamism_of_a_Dog_on_a_Leash,_oil_on_canvas,_89.8_x_109.8_cm,_Albright-Knox_Art_Gallery.jpg","boccioni-unique-forms-of-continuity-in-space.jpg":"https://commons.wikimedia.org/wiki/File:%27Unique_Forms_of_Continuity_in_Space%27,_1913_bronze_by_Umberto_Boccioni.jpg","chirico-mystery-and-melancholy-of-a-street.jpg":"https://en.wikipedia.org/wiki/File:Giorgio_de_Chirico_-_Mystery_and_Melancholy_of_a_Street_(1914).jpg","morisot-the-cradle.jpg":"https://commons.wikimedia.org/wiki/File:Berthe_Morisot_008.jpg","matisse-woman-with-a-hat.jpg":"https://commons.wikimedia.org/wiki/File:Matisse-Woman-with-a-Hat.jpg","derain-charing-cross-bridge.jpg":"https://commons.wikimedia.org/wiki/File:Charing_Cross_Bridge_by_Andre_Derain_(52259664204).jpg","matisse-the-joy-of-life.jpg":"https://commons.wikimedia.org/wiki/File:Bonheur_Matisse.jpg","picasso-les-demoiselles-d-avignon.jpg":"https://en.wikipedia.org/wiki/File:Les_Demoiselles_d%27Avignon.jpg","duchamp-l-h-o-o-q.jpg":"https://en.wikipedia.org/wiki/File:Marcel_Duchamp,_1919,_L.H.O.O.Q.jpg","picabia-l-il-cacodylate.jpg":"https://commons.wikimedia.org/wiki/File:Francis_Picabia,_1921,_L%27oeil_cacodylate,_oil_and_collage_on_canvas,_148.6_x_117.4_cm,_Mus%C3%A9e_National_d%27Art_Moderne.jpg","magritte-the-treachery-of-images.jpg":"https://en.wikipedia.org/wiki/File:MagrittePipe.jpg","dali-the-persistence-of-memory.jpg":"https://commons.wikimedia.org/wiki/File:Dargenta_%26_Salvador_Dali_The_persistance_of_Memory.png","rossetti-beata-beatrix.jpg":"https://commons.wikimedia.org/wiki/File:Dante_Gabriel_Rossetti_-_Beata_Beatrix,_1864-1870.jpg","morris-red-house.jpg":"https://commons.wikimedia.org/wiki/File:Philip_Webb%27s_Red_House_in_Upton.jpg","morris-strawberry-thief.jpg":"https://commons.wikimedia.org/wiki/File:Strawberrythief.jpg","steer-girls-running-walberswick-pier.jpg":"https://commons.wikimedia.org/wiki/File:GirlsRunning_Steer.jpg","gaudier-brzeska-hieratic-head-of-ezra-pound.jpg":"https://commons.wikimedia.org/wiki/File:Hieratic_Head_of_Ezra_Pound_01_(brightened).jpg","blake-sgt-pepper-s-sleeve.jpg":"https://commons.wikimedia.org/wiki/File:Sgt._Pepper%27s_Lonely_Hearts_Club_Band_album_art.jpg","language-index-01.jpg":"https://commons.wikimedia.org/wiki/File:Art_%26_language_documenta_5_index_01.jpg","hirst-the-physical-impossibility-of-death-in-the.jpg":"https://en.wikipedia.org/wiki/File:Hirst-Shark.jpg","whiteread-house.jpg":"https://en.wikipedia.org/wiki/File:Rachel_Whiteread_-_House.jpg","emin-my-bed.jpg":"https://en.wikipedia.org/wiki/File:Emin-My-Bed.jpg","olbrich-secession-building.jpg":"https://commons.wikimedia.org/wiki/File:Secession_2016,_Vienna.jpg","klimt-beethoven-frieze.jpg":"https://commons.wikimedia.org/wiki/File:Gustav_Klimt_-_Beethovenfries,_%22Die_Sehnsucht_nach_dem_Gl%C3%BCck%22_(nach_Richard_Wagners_Interpretation_der_IX._Sinfonie_von_Ludwig_van_Beethoven)_-_5987_-_%C3%96sterreichische_Galerie_Belvedere.jpg","klimt-the-kiss.jpg":"https://commons.wikimedia.org/wiki/File:The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg","hoffmann-palais-stoclet.jpg":"https://commons.wikimedia.org/wiki/File:20120923_Brussels_PalaisStoclet_Hoffmann_DSC06725_PtrQs.jpg","schiele-self-portrait-with-physalis.jpg":"https://commons.wikimedia.org/wiki/File:Egon_Schiele_-_Self-Portrait_with_Physalis_-_Google_Art_Project.jpg","kokoschka-the-bride-of-the-wind.jpg":"https://en.wikipedia.org/wiki/File:%27Bride_of_the_Wind%27,_oil_on_canvas_painting_by_Oskar_Kokoschka,_a_self-portrait_expressing_his_unrequited_love_for_Alma_Mahler_(widow_of_composer_Gustav_Mahler),_1913.jpg","menzel-the-iron-rolling-mill.jpg":"https://commons.wikimedia.org/wiki/File:Adolph_Menzel_-_Eisenwalzwerk_-_Google_Art_Project.jpg","leibl-three-women-in-church.jpg":"https://commons.wikimedia.org/wiki/File:1880_Leibl_Drei_Frauen_in_der_Kirche_anagoria.JPG","stuck-the-sin.jpg":"https://commons.wikimedia.org/wiki/File:Franz_von_Stuck_-_Die_S%C3%BCnde_1893_-_Detail.jpg","liebermann-bathing-boys.jpg":"https://commons.wikimedia.org/wiki/File:Liebermann_Badende_Jungen_1900.jpeg","obrist-whiplash.jpg":"https://commons.wikimedia.org/wiki/File:T-49-63_3_Obrist-H-Peitschenhieb-A4-ONLINE.jpg","kandinsky-composition-vii.jpg":"https://commons.wikimedia.org/wiki/File:Composition_VII_-_Wassily_Kandinsky,_GAC.jpg","marc-the-tower-of-blue-horses.jpg":"https://commons.wikimedia.org/wiki/File:Franz_Marc_029a.jpg","breuer-wassily-chair.jpg":"https://commons.wikimedia.org/wiki/File:Bauhaus_Chair_Breuer.png","gropius-bauhaus-building-dessau.jpg":"https://commons.wikimedia.org/wiki/File:Dessau_Bauhaus-Geb%C3%A4ude_asv2024-06_img1.jpg","klee-ad-parnassum.jpg":"https://commons.wikimedia.org/wiki/File:Ad_Parnassum_(originaler,_gefasster_Holzrahmen),_Paul_Klee_(1932).jpg","dix-portrait-of-the-journalist-sylvia-von-harden.jpg":"https://en.wikipedia.org/wiki/File:Otto_Dix_Sy_von_Harden.jpg","merz-igloo.jpg":"https://commons.wikimedia.org/wiki/File:KMM_Merz_Igloo.jpg","kramskoi-christ-in-the-desert.jpg":"https://commons.wikimedia.org/wiki/File:Christ_in_the_Wilderness_-_Ivan_Kramskoy_-_Google_Cultural_Institute.jpg","repin-barge-haulers-on-the-volga.jpg":"https://commons.wikimedia.org/wiki/File:Ilia_Efimovich_Repin_(1844-1930)_-_Volga_Boatmen_(1870-1873).jpg","bakst-supper.jpg":"https://commons.wikimedia.org/wiki/File:Bakst_Uzhin.jpg","larionov-rayonist-composition.jpg":"https://commons.wikimedia.org/wiki/File:Red_and_Blue_Rayonism_(Beach)_(Larionov,_1911).jpg","goncharova-cyclist.jpg":"https://commons.wikimedia.org/wiki/File:Cyclist_(Goncharova,_1913).jpg","malevich-black-square.jpg":"https://commons.wikimedia.org/wiki/File:Kazimir_Malevich,_1915,_Black_Suprematic_Square,_oil_on_linen_canvas,_79.5_x_79.5_cm,_Tretyakov_Gallery,_Moscow.jpg","popova-painterly-architectonic.jpg":"https://commons.wikimedia.org/wiki/File:Lyubov_Popova_-_Painterly_Architectonic_-_GMA_2080_-_National_Galleries_of_Scotland.jpg","tatlin-monument-to-the-third-international.jpg":"https://commons.wikimedia.org/wiki/File:Tatlin%27s_Tower_maket_1919_year.jpg","mukhina-worker-and-kolkhoz-woman.jpg":"https://commons.wikimedia.org/wiki/File:Ouvrier_kolkhosienne_2.jpg","church-niagara.jpg":"https://commons.wikimedia.org/wiki/File:Niagara_by_Frederic_Edwin_Church,_1857_-_Corcoran_Gallery_of_Art_-_DSC01135.JPG","church-heart-of-the-andes.jpg":"https://commons.wikimedia.org/wiki/File:Church_Heart_of_the_Andes.jpg","cassatt-the-child-s-bath.jpg":"https://commons.wikimedia.org/wiki/File:Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg","duchamp-fountain.jpg":"https://commons.wikimedia.org/wiki/File:Marcel_Duchamp,_1917,_Fountain,_photograph_by_Alfred_Stieglitz.jpg","ferriss-the-metropolis-of-tomorrow.jpg":"https://commons.wikimedia.org/wiki/File:The_Metropolis_of_Tomorrow_cover.jpg","alen-chrysler-building.jpg":"https://commons.wikimedia.org/wiki/File:Chrysler_Building_(1).jpg","albers-homage-to-the-square.jpg":"https://commons.wikimedia.org/wiki/File:Josef_Albers%27_Studies_for_Homage_to_the_Square.jpg","pollock-autumn-rhythm-number-30.jpg":"https://en.wikipedia.org/wiki/File:Autumn_Rhythm.jpg","kooning-woman-i.jpg":"https://en.wikipedia.org/wiki/File:Woman_I-Willem_de_Kooning.jpg","rothko-no-61-rust-and-blue.jpg":"https://en.wikipedia.org/wiki/File:No_61_Mark_Rothko.jpg","warhol-campbell-s-soup-cans.jpg":"https://commons.wikimedia.org/wiki/File:Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg","lichtenstein-whaam.jpg":"https://en.wikipedia.org/wiki/File:Roy_Lichtenstein_Whaam.jpg","kosuth-one-and-three-chairs.jpg":"https://commons.wikimedia.org/wiki/File:One_and_Three_Chair.jpg","hiroshige-sudden-shower-over-shin-ohashi.jpg":"https://commons.wikimedia.org/wiki/File:Utagawa_Hiroshige_-_Evening_Shower_at_Atake_and_the_Great_Bridge.jpg","yoshitoshi-one-hundred-aspects-of-the-moon.jpg":"https://commons.wikimedia.org/wiki/File:Tsukioka_Yoshitoshi_-_The_moon_on_Musashi_Plain_(Musashino_no_tsuki)_-_from_the_series_%27One_hundred_aspects_of_the_moon_(T..._-_Google_Art_Project.jpg","ryusei-portrait-of-reiko.jpg":"https://commons.wikimedia.org/wiki/File:Kishida_Ryusei_-_Seated_Portrait_of_Reiko_with_a_Doll_-_Google_Art_Project.jpg","shunso-fallen-leaves.jpg":"https://commons.wikimedia.org/wiki/File:Hishida_Herbstwald.jpg","sekine-phase-mother-earth.jpg":"https://commons.wikimedia.org/wiki/File:Phase%E2%80%94Mother_Earth,_1968.jpg","moholy-nagy-light-prop-for-an-electric-stage.jpg":"https://commons.wikimedia.org/wiki/File:Light_Prop_for_an_Electric_Stage_(Light-Space_Modulator)_by_Laszlo_Moholy-Nagy,_1930_with_later_alterations,_aluminum,_steel,_nickel-plated_brass,_etc,_plastic,_wood_-_Busch-Reisinger_Museum_-_DSC01638.jpg","sickert-little-dot-hetherington-at-the-old-bedford.jpg":"https://commons.wikimedia.org/wiki/File:Little_Dot_Hetherington_at_the_Old_Bedford.png"};
     const slug = (title, artist) => (artist.split(' ').pop() + '-' + title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48).replace(/-$/, '');
+    // each place's country flag, drawn small (3:2) before its name
+    const flag = inner => `<svg class="flag" viewBox="0 0 30 20" aria-hidden="true">${inner}</svg>`;
+    const FLAGS = {
+      PAR: flag('<rect width="10" height="20" fill="#002395"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ed2939"/>'),
+      LDN: flag('<rect width="30" height="20" fill="#012169"/><path d="M0 0L30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0L30 20M30 0L0 20" stroke="#c8102e" stroke-width="1.6"/><path d="M15 0V20M0 10H30" stroke="#fff" stroke-width="6"/><path d="M15 0V20M0 10H30" stroke="#c8102e" stroke-width="3.6"/>'),
+      VIE: flag('<rect width="30" height="20" fill="#ed2939"/><rect y="6.67" width="30" height="6.67" fill="#fff"/>'),
+      GER: flag('<rect width="30" height="6.67" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>'),
+      ITA: flag('<rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ce2b37"/>'),
+      MOS: flag('<rect width="30" height="6.67" fill="#fff"/><rect y="6.67" width="30" height="6.67" fill="#0039a6"/><rect y="13.33" width="30" height="6.67" fill="#d52b1e"/>'),
+      NYC: flag('<rect width="30" height="20" fill="#fff"/>' + Array.from({ length: 7 }, (_, i) => `<rect y="${i * 20 / 6.5}" width="30" height="${20 / 13}" fill="#b22234"/>`).join('') + '<rect width="12" height="10.77" fill="#3c3b6e"/>'),
+      TYO: flag('<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>'),
+    };
+    const COUNTRY = { PAR: 'France', LDN: 'United Kingdom', VIE: 'Austria', GER: 'Germany', ITA: 'Italy', MOS: 'Russia', NYC: 'United States', TYO: 'Japan' };
     const ERAS = [['Painting light', 1850, 1886], ['Fin de siècle', 1886, 1905], ['The shock of the new', 1905, 1918], ['Between the wars', 1918, 1945], ['Gesture and pop', 1945, 1968], ['Idea and return', 1968, 2000]];
     const ALL = [1848, 2000];
 
@@ -429,12 +470,23 @@
       });
       const row = document.createElement('div');
       row.className = 'row'; row.setAttribute('role', 'listitem');
-      row.innerHTML = `<span class="who"><span class="code">${p.code}</span><span class="name">${p.name}</span><span class="count">${blocks.length} movements</span></span>
-        <span class="bar" style="--lanes:${ends.length}">${blocks.map((o, i) => `<button type="button" class="blk" data-i="${i}" data-k="${o.k}" aria-label="${M[o.k][0]}, ${p.name}, ${o.a} to ${o.z}: open its page" style="--c:${col(o.k)}; --on:${M[o.k][2] ? 'rgba(255,255,255,.92)' : '#1b1a17'}; --l:${o.l}">${M[o.k][0]}</button>`).join('')}</span>
+      row.innerHTML = `<button type="button" class="who" aria-expanded="false" aria-controls="pl-${p.code}">${FLAGS[p.code]}<span class="name">${p.name}<svg class="caret" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5l3 3 3-3"/></svg></span><span class="count">${COUNTRY[p.code]} · ${blocks.length} movements</span></button>
+        <span class="bar" style="--lanes:${ends.length}">${blocks.map((o, i) => `<button type="button" class="blk" data-i="${i}" data-k="${o.k}" aria-label="${M[o.k][0]}, ${p.name}, ${o.a} to ${o.z}: open its page" style="--c:${col(o.k)}; --on:${M[o.k][2] ? 'rgba(255,255,255,.95)' : '#111'}; --l:${o.l}"><span class="no">${String(i + 1).padStart(2, '0')}</span>${M[o.k][0]}</button>`).join('')}</span>
+        <div class="plist" id="pl-${p.code}"><div><div class="plist-in">${blocks.map((o, i) => `<button type="button" class="mrow" data-i="${i}" style="--c:${col(o.k)}" tabindex="-1">
+          <i></i><span class="rec">${p.code}-${String(i + 1).padStart(2, '0')}</span><b>${M[o.k][0]}</b><span class="yrs">${o.a}–${o.z}</span><em>${o.who}</em>
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5-5 5"/></svg></button>`).join('')}</div></div></div>
         <span></span>`;
       rowsEl.appendChild(row);
       const r = { el: row, p, blocks };
-      row.querySelectorAll('.blk').forEach(b => b.addEventListener('click', () => openBlock(r, +b.dataset.i)));
+      row.querySelectorAll('.blk, .mrow').forEach(b => b.addEventListener('click', () => openBlock(r, +b.dataset.i)));
+      // the place opens and closes its own list of movements
+      const who = row.querySelector('.who');
+      who.addEventListener('click', () => {
+        const open = who.getAttribute('aria-expanded') !== 'true';
+        who.setAttribute('aria-expanded', open); row.classList.toggle('is-list', open);
+        row.querySelectorAll('.mrow').forEach(m => m.tabIndex = open ? 0 : -1);
+        untrace(); tip.classList.remove('has');
+      });
       return r;
     });
 
@@ -463,8 +515,8 @@
       const pct = y => (y - ALL[0]) / (ALL[1] - ALL[0]) * 100;
       page.style.setProperty('--c', col(o.k)); page.style.setProperty('--on', M[o.k][2] ? 'rgba(255,255,255,.92)' : '#1b1a17');
       page.innerHTML = `<div class="bar-top"><button type="button" class="back"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L6 9l5 5"/></svg>All places</button>
-          <span class="path">${r.p.name} › <b>${m[0]}</b></span></div>
-        <div class="hero"><div><div class="band"></div><h2>${m[0]}</h2><p class="when">${r.p.name}, ${o.a}–${o.z}</p><p class="what">${m[4]}</p>
+          <span class="path"><span class="rec">${r.p.code}-${String(i + 1).padStart(2, '0')}</span> &nbsp;${r.p.name} › <b>${m[0]}</b></span></div>
+        <div class="hero"><div><div class="band"></div><p class="recno">Record ${r.p.code}-${String(i + 1).padStart(2, '0')}</p><h2>${m[0]}</h2><p class="when">${r.p.name}, ${o.a}–${o.z}</p><p class="what">${m[4]}</p>
             <div class="kin">${roots.length ? `<div><span class="k">Grew from</span><div class="hops">${roots.map(hop).join('')}</div></div>` : ''}
             ${others.length ? `<div><span class="k">Also in</span><div class="hops">${others.map(hop).join('')}</div></div>` : ''}</div></div>
           <div class="place"><span class="k">In ${r.p.name.split(',')[0]}'s row</span>
@@ -472,7 +524,7 @@
             <div class="mini-yrs"><span>1850</span><span>1875</span><span>1900</span><span>1925</span><span>1950</span><span>1975</span><span>2000</span></div></div></div>
         <div class="part"><h3>Artists</h3><div class="people">${o.who.replace(/^in exile: /, '').split(/, | and /).map(n => `<div class="person"><i>${initials(n)}</i><div><b>${n}</b><span>${m[0]}, ${r.p.name.split(',')[0]}</span></div></div>`).join('')}</div></div>
         <div class="part"><h3>Works</h3><div class="works">${o.works.map(([t, a, y]) => { const f = slug(t, a) + '.jpg';
-          return `<figure class="work"><div class="ph"><code>${f}</code><img src="images/art/${f}" alt="${t}, ${a}, ${y}" loading="lazy" onerror="this.remove()"></div><figcaption><i>${t}</i><span>${a}, ${y}</span>${CREDITS[f] ? `<a class="credit" href="${CREDITS[f]}" target="_blank" rel="noopener">${CREDITS[f].includes('commons.') ? 'Wikimedia Commons' : 'Wikipedia'}</a>` : ''}</figcaption></figure>`; }).join('')}</div></div>`;
+          return `<figure class="work"><div class="ph"><code>${f}</code><img src="images/art/${f}" alt="${t}, ${a}, ${y}" loading="lazy" onerror="this.remove()"></div><figcaption><i>${t}</i><span>${a}, ${y}</span></figcaption></figure>`; }).join('')}</div></div>`;
       page.querySelector('.back').addEventListener('click', back);
       page.querySelectorAll('.hop').forEach(b => b.addEventListener('click', () => { const q = rows[+b.dataset.r]; openBlock(q, +b.dataset.i); }));
       if (overview.hidden) { scrollTo({ top: 0 }); return; }   // already down here: hopping between pages
@@ -568,12 +620,13 @@
       rowsEl.classList.add('is-hovering');
       cursor.style.left = (e.clientX - h.left) * k + 'px';
       cursor.querySelector('b').textContent = Math.round(dom[0] + f * (dom[1] - dom[0]));
+      if (e.target.closest('.plist, .who')) { rowsEl.classList.remove('is-hovering'); tip.classList.remove('has'); untrace(); return; }
       const el = e.target.closest('.blk');
       if (!el) { tip.classList.remove('has'); untrace(); return; }
       trace(el);
       const { r, o } = info(el), m = M[o.k], others = rows.filter(q => q !== r && q.blocks.some(b => b.k === o.k)).map(q => q.p.name.split(',')[0]);
       tip.style.setProperty('--c', col(o.k));
-      tip.innerHTML = `<b><i></i>${m[0]}</b><em>${r.p.name}, ${o.a}–${o.z} · click to open its page</em><p>${m[4]}</p><p><span class="k">Names</span> ${o.who}</p>` +
+      tip.innerHTML = `<b><i></i>${m[0]}</b><em><span class="rec">${r.p.code}-${String(r.blocks.indexOf(o) + 1).padStart(2, '0')}</span> ${r.p.name}, ${o.a}–${o.z} · click to open its page</em><p>${m[4]}</p><p><span class="k">Names</span> ${o.who}</p>` +
         (m[3].length ? `<p><span class="k">Grew from</span> ${m[3].map(s => M[s][0]).join(', ')}</p>` : '') + (others.length ? `<p><span class="k">Also in</span> ${others.join(', ')}</p>` : '');
       tip.classList.add('has');
       const eb = el.getBoundingClientRect();
