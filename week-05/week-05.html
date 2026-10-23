@@ -6,7 +6,7 @@
   <title>Week 05 &middot; Lists &middot; Advanced Interface</title>
   <meta name="description" content="Two sets of list items, each a tone: one structure that takes any leading, content and trailing slot, one row that goes a level deeper, one that opens in place." />
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="../shared/site.css?v=21" />
+  <link rel="stylesheet" href="../shared/site.css?v=22" />
   <style>
     /* Week 05 diagram kit: one list row drawn the same way everywhere.
        Picts (112 x 68): row 104 x 22, padding 6, gap 5, icon 7, avatar 12, label line 1.6, supporting line 1.2.
@@ -567,41 +567,67 @@
         </div>
         <div class="set-box" id="set-2">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
-            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/breezy-trip-4.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Breezy</span><span class="set-line">A trip planner like the first morning of a holiday: sky, sea and sand, soft round cards, motion with a little give.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Breezy</span></span>
               <button type="button" class="set-close" aria-label="Close set 2"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
               <div class="proto-grid">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-05-set-2-system.html</span></div>
+                <figure class="proto">
+                  <iframe src="week-05-breezy.html?v=16" title="Breezy trip planner: a day's plan as one list; a flight with a stop opens in place, the hotel goes one level deeper" loading="lazy"></iframe>
                   <figcaption>
-                    <b>List system</b>
-                    <span>One row build in every configuration: leading icon, avatar, thumbnail or nothing; one line or two; trailing text, icon or both. Enabled, hover and pressed.</span>
-                    <span class="soon">Not built yet</span>
+                    <b>Trip planner, on the web</b>
+                    <span>A trip planner on the web: six days down the side with their weather, the plan in the middle, built from one row: an airline or train mark, a friend, a photo of the hotel or a meal, or words alone; a time, a price, a chevron, an arrow or a tick at the end. The flight with a stop and the rental car open in place; each hotel goes one level deeper, to its booking, and back.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy.html?v=16">View larger</button>
                   </figcaption>
                 </figure>
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-05-set-2-actions.html</span></div>
+                <figure class="proto">
+                  <iframe src="week-05-breezy-mobile.html?v=1" title="Breezy trip planner on the phone: the days as chips, a pastel folder per day; rides and the flight open in place, a hotel slides in from the right" loading="lazy"></iframe>
                   <figcaption>
-                    <b>In use</b>
-                    <span>A row that goes one level deeper, and a row that opens in place to reveal its sub-items.</span>
-                    <span class="soon">Not built yet</span>
+                    <b>Trip planner, on the phone</b>
+                    <span>The same trip and row build at 390 wide, for one thumb: the days as a strip of chips that stays at the top, a pastel folder per day, the status under each title and the value at the end of its line. No hover, only touch: a press shows at once and lets go slowly. The flight, the rides and the rental car open in place; a hotel slides in from the right edge with its photos, and slides back.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy-mobile.html?v=1">View larger</button>
                   </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
               <p>How the set got here, one tried version at a time, the last one now.</p>
-              <p class="process-label">List system</p>
-              <div class="process-grid"></div>
-              <p class="process-label">In use</p>
-              <div class="process-grid"></div>
+              <p class="process-label">Trip planner</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/breezy-trip-1.png" alt="Breezy trip planner, step 1" loading="lazy" />
+                    <figcaption>First pass: one phone, one list. Sky fading to white, white cards with a 22px corner, DM Sans; every leading and trailing slot used once, both actions on the first day.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-2.png" alt="Breezy trip planner, step 2, on the web" loading="lazy" />
+                    <figcaption>Rebuilt for the web, 1280 wide: the sky behind the header, days in a column on the left, the plan in the middle; the flight's legs now lie along a route the plane flies across, and the hotel opens in the main column with an illustrated banner of Alfama.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-3.png" alt="Breezy trip planner, step 3, a full week" loading="lazy" />
+                    <figcaption>Filled like a real trip: six days, thirty-one plans, each with a time and a place; each day carries its weather, and the side panel follows the day being read; the rental car opens in place to its booking; both hotels go a level deeper.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-4.png" alt="Breezy trip planner, step 4, one pastel folder per day on a night-sea board" loading="lazy" />
+                    <figcaption>Laid out like the Tabs sketch: a night-sea board, one pastel folder per day with the day on its tab and the day's plans as the list inside, each row led by its time. On the folder's shoulder, everyone going that day as faces and every way they get about as transport marks, then the weather.</figcaption>
+                  </figure>
+                  </div>
+              <p class="process-label">Trip planner, on the phone</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/breezy-phone-1.png" alt="Breezy on the phone, the trip" loading="lazy" />
+                    <figcaption>The web page's trip at 390 wide: the days as chips under the title, a folder per day with its day line and weather on top; each row puts its value at the end of the title's line and its status ahead of the details, so the title keeps its room.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-phone-2.png" alt="Breezy on the phone, a hotel" loading="lazy" />
+                    <figcaption>A hotel, pushed in from the right: its photos to swipe through, the stay and booking under them, the total and Directions kept at the thumb above the tab bar.</figcaption>
+                  </figure>
+              </div>
             </div>
           </dialog>
         </div>
@@ -632,7 +658,7 @@
     Fall 2026 &middot; plain HTML, updated every week.
   </footer>
 
-  <script src="../shared/viewer.js?v=6"></script>
+  <script src="../shared/viewer.js?v=8"></script>
   <script src="../shared/sets.js?v=1"></script>
   <script src="../shared/toc.js?v=4"></script>
 </body>

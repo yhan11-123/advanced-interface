@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 &middot; Set 2 &middot; Breezy, on the phone</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* Set 2, Breezy, on the phone: the same trip and the same row build as the web page, laid out
+     for one thumb at 390 wide. The days run along a strip of chips under the title instead of down
+     a side column; each day is still one pastel folder on the night-sea board, its tab naming the
+     day and its shoulder carrying who goes and how they get about. There is no hover here, only
+     touch: a press shows at once and lets go slowly. The flight, the rides and the rental car open
+     in place; a hotel slides in from the right, as a phone pushes a screen, and slides back. */
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap");
+  :root {
+    --phone-w: 390px; --phone-h: 844px; --bezel: 12px; --fit: 1;
+    /* colour: the web page's sky, sea, sun and sand */
+    --sky: #2f8fe8; --sky-soft: #e3f1ff; --sea: #17b3a9; --sea-soft: #def6f3; --sun: #ffb341; --sun-soft: #fff1d9;
+    --coral: #ff7a5c; --coral-soft: #ffe9e3; --ink: #12324a; --ink-2: #557085; --ink-3: #8ea3b3; --rule: #e8eef3; --page: #f6f9fc;
+    --board: #14304a; --rail: #9cb3c7;
+    --p-sky: #a9d6ff; --p-sea: #9fe6dc; --p-sun: #ffd98c; --p-coral: #ffbca8; --p-sand: #f2e2c4; --p-lilac: #d8cdf4; --p-cloud: #e4ecf3; --on-p: #0f2a40; --on-p-2: #2d4b63;
+    /* the row, sized for a thumb */
+    --pad-x: 12px; --pad-y: 12px; --gap: 10px; --row-min: 64px; --time-w: 44px;
+    --lead: 38px; --glyph: 18px; --thumb-w: 52px; --thumb-h: 40px; --thumb-r: 10px;
+    --title-size: 15.5px; --title-line: 21px; --sub-size: 13px; --sub-line: 18px; --trail-size: 14.5px; --trail-icon: 20px;
+    --target: 44px;
+    /* touch: a press shows at once and lets go over --release */
+    --press: rgba(255, 255, 255, .42); --press-scale: .94; --release: .36s;
+    --font: "DM Sans", system-ui, sans-serif;
+    /* motion: the web page's, so both feel like one app */
+    --open-dur: 1.1s; --open-ease: cubic-bezier(.22, 1, .36, 1);
+    --give-dur: 1.3s; --give-ease: linear(0, 0.026, 0.09, 0.181, 0.285, 0.391, 0.501, 0.605, 0.701, 0.785, 0.854, 0.915, 0.964, 1.001, 1.029, 1.047, 1.059, 1.065, 1.067, 1.065, 1.061, 1.054, 1.047, 1.04, 1.033, 1.026, 1.02, 1.014, 1.01, 1.006, 1.003, 1.001, 1);
+    --push-dur: .6s; --push-ease: cubic-bezier(.2, .8, .2, 1); --fly-dur: 2.2s; --fly-ease: cubic-bezier(.22, 1, .36, 1);
+    --ui-dur: .32s; --ui-dur-long: .5s;
+  }
+  @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --give-dur: .01s; --push-dur: .01s; --fly-dur: .01s; --ui-dur: .01s; --ui-dur-long: .01s; --release: .01s; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: var(--font); color: var(--ink); background: #dfe9f2; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; text-align: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  :focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+
+  /* ---------- the phone, shrunk whole to fit the window ---------- */
+  .desk { display: grid; place-items: center; min-height: 100vh; padding: 20px 0; overflow: hidden; }
+  .fit { width: calc((var(--phone-w) + var(--bezel) * 2) * var(--fit)); height: calc((var(--phone-h) + var(--bezel) * 2) * var(--fit)); }
+  .phone { width: calc(var(--phone-w) + var(--bezel) * 2); height: calc(var(--phone-h) + var(--bezel) * 2); padding: var(--bezel); border-radius: 58px; background: #0d1a26;
+    box-shadow: 0 0 0 2px #2b3c4c, 0 40px 80px -40px rgba(18, 50, 74, .55); transform: scale(var(--fit)); transform-origin: 0 0; }
+  .screen { position: relative; width: var(--phone-w); height: var(--phone-h); border-radius: 46px; overflow: hidden; background: var(--page); isolation: isolate; }
+
+  /* status bar and the island */
+  .status { position: absolute; z-index: 6; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; height: 50px; padding: 4px 30px 0 40px; font-size: 16px; font-weight: 600;
+    background: #b9ddff; transition: background-color var(--ui-dur) ease; }
+  .screen.is-deep .status { background: transparent; color: #fff; }
+  .status::before { content: ""; position: absolute; left: 50%; top: 11px; width: 122px; height: 34px; margin-left: -61px; border-radius: 20px; background: #000; }
+  .status svg { height: 13px; fill: currentColor; }
+  .status .r { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- the two screens: the trip, and a hotel pushed over it ---------- */
+  .level { position: absolute; inset: 50px 0 84px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; background: var(--page);
+    transition: translate var(--push-dur) var(--push-ease); }
+  .level::-webkit-scrollbar { display: none; }
+  #hotel { inset: 0 0 84px; z-index: 5; translate: 100% 0; box-shadow: -20px 0 40px -30px rgba(12, 34, 54, .5); }
+  #hotel[hidden] { display: none; }
+  .screen.is-deep #hotel { translate: 0 0; }
+  .screen.is-deep #trip { translate: -28% 0; }
+  /* the trip dims as the hotel comes over it */
+  .shade { position: absolute; inset: 0 0 84px; z-index: 4; background: rgba(12, 34, 54, .28); opacity: 0; pointer-events: none; transition: opacity var(--push-dur) var(--push-ease); }
+  .screen.is-deep .shade { opacity: 1; }
+
+  /* ---------- the trip's head: the sky, fading down ---------- */
+  .sky { padding: 6px 20px 18px; background: linear-gradient(180deg, #b9ddff 0%, #dcefff 60%, var(--page) 100%); }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 44px; }
+  .logo { display: flex; align-items: center; gap: 7px; font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+  .logo i { width: 15px; height: 15px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 4px rgba(255, 179, 65, .25); }
+  .round { position: relative; display: grid; place-items: center; width: var(--target); height: var(--target); border-radius: 50%; background: rgba(255, 255, 255, .75); transition: scale var(--release) ease, background-color var(--release) ease; }
+  .round svg { width: 20px; height: 20px; }
+  .round:active { scale: .9; background: #fff; transition: none; }
+  .sky small { display: block; margin-top: 12px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  .sky h1 { margin: 2px 0 10px; font-size: 34px; line-height: 38px; font-weight: 700; letter-spacing: -.03em; }
+  .who-goes { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-2); }
+  .faces { display: flex; }
+  .faces span { width: 28px; height: 28px; margin-right: -8px; border-radius: 50%; border: 2px solid #e6f3ff; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--c); }
+
+  /* the days, a strip of chips that stays at the top while the plan scrolls */
+  .days { position: sticky; top: 0; z-index: 3; display: flex; gap: 8px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; background: var(--page); transition: box-shadow var(--ui-dur) ease; }
+  .days::-webkit-scrollbar { display: none; }
+  .days.is-stuck { box-shadow: 0 10px 18px -16px rgba(18, 50, 74, .6); }
+  .days button { flex: none; display: flex; align-items: center; gap: 7px; height: var(--target); padding: 0 14px 0 10px; border-radius: 999px; background: #fff; font-size: 14px; font-weight: 600; color: var(--ink-2);
+    box-shadow: 0 6px 14px -12px rgba(18, 50, 74, .6); transition: background-color var(--ui-dur) ease, color var(--ui-dur) ease, scale var(--release) ease; }
+  .days button span { font-weight: 500; color: var(--ink-3); }
+  .days button:active { scale: .94; transition: none; }
+  .days button[aria-current="true"] { background: var(--ink); color: #fff; }
+  .days button[aria-current="true"] span { color: rgba(255, 255, 255, .7); }
+  .wx-i { width: 22px; height: 22px; flex: none; }
+
+  /* ---------- the plan: one night-sea board, a pastel folder per day ---------- */
+  .board { margin: 6px 8px 18px; padding: 16px 8px 12px; border-radius: 28px; background: var(--board); color: #fff; }
+  .day + .day { margin-top: 20px; padding-top: 18px; border-top: 1px dashed rgba(255, 255, 255, .16); }
+  .job { --c: var(--p-cloud); position: relative; }
+  .shoulder { display: flex; align-items: center; height: 38px; }
+  .ftab { position: relative; align-self: stretch; margin: 0; padding: 0 16px; border-radius: 14px 14px 0 0; background: var(--c); color: var(--on-p); font-size: 15px; line-height: 38px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+  .ftab small { margin-left: 6px; font-size: 12.5px; font-weight: 600; color: var(--on-p-2); }
+  .ftab::after { content: ""; position: absolute; right: -14px; bottom: 0; width: 14px; height: 14px; background: radial-gradient(circle at 100% 0, transparent 13.5px, var(--c) 14px); }
+  .goers { display: flex; margin-left: 22px; }
+  .goers span { width: 28px; height: 28px; margin-right: -7px; border-radius: 50%; border: 2px solid var(--board); display: grid; place-items: center; background: var(--f); color: #fff; font-size: 10.5px; font-weight: 700; }
+  .by { display: flex; gap: 4px; margin-left: 14px; padding-left: 10px; border-left: 1px solid rgba(255, 255, 255, .16); }
+  .by span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: var(--c); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 45%, transparent); }
+  .by svg { width: 15px; height: 15px; }
+  .sheet { position: relative; border-radius: 0 20px 20px 20px; background: var(--c); color: var(--on-p); overflow: hidden; }
+  /* the day's line at the top of its folder: what the day is, and its weather */
+  .dayline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px var(--pad-x) 9px; font-size: 13px; font-weight: 500; color: var(--on-p-2); border-bottom: 1px solid rgba(15, 42, 64, .12); }
+  .dayline .wx-s { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--on-p); white-space: nowrap; }
+  .dayline .wx-s small { font-weight: 500; color: var(--on-p-2); }
+
+  /* ---------- the row ---------- */
+  .row { position: relative; display: flex; align-items: center; gap: var(--gap); width: 100%; min-height: var(--row-min); padding: var(--pad-y) var(--pad-x); text-align: left; }
+  .row + .row, .item + .row, .row + .item, .item + .item { border-top: 1px solid rgba(15, 42, 64, .12); }
+  .row > * { position: relative; z-index: 1; }
+  /* pressed: a white layer under the contents, there at once; on release it fades */
+  .row::before { content: ""; position: absolute; inset: 0; background: transparent; transition: background-color var(--release) ease; pointer-events: none; }
+  button.row:active::before { background: var(--press); transition: none; }
+  button.row:active .lead { scale: var(--press-scale); transition: none; }
+  .row:focus-visible { outline: 2px solid var(--on-p); outline-offset: -4px; border-radius: 16px; }
+  .at { flex: none; width: var(--time-w); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .at small { display: block; white-space: nowrap; font-size: 11.5px; font-weight: 500; color: var(--on-p-2); }
+  .lead { flex: none; display: grid; place-items: center; transition: scale var(--release) var(--give-ease); }
+  .lead.icon { width: var(--lead); height: var(--lead); color: var(--c); }
+  .lead.icon::before { content: ""; position: absolute; width: 28px; height: 28px; border-radius: 7px; background: var(--board); rotate: 45deg; transition: rotate var(--give-dur) var(--give-ease); }
+  .is-open .lead.icon::before { rotate: 135deg; }
+  .lead.icon svg { position: relative; width: var(--glyph); height: var(--glyph); }
+  .lead.avatar { width: var(--lead); height: var(--lead); border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: var(--c); color: #fff; font-size: 13px; font-weight: 700; }
+  .lead.thumb { width: var(--thumb-w); height: var(--thumb-h); border-radius: var(--thumb-r); overflow: hidden; background: var(--sky-soft); }
+  .lead.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* two lines, each with a right end: the title and its value, then the status and details and the value's note */
+  .text { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: baseline; }
+  .text .v { grid-column: 2; grid-row: 1; font-size: var(--trail-size); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .text .vs { grid-column: 2; grid-row: 2; font-size: 11.5px; color: var(--on-p-2); text-align: right; white-space: nowrap; }
+  .t { grid-column: 1; grid-row: 1; display: block; font-size: var(--title-size); line-height: var(--title-line); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* on a phone the status goes under the title, ahead of the details, so the title keeps its line */
+  .meta { grid-column: 1; grid-row: 2; display: flex; align-items: center; gap: 6px; margin-top: 2px; min-width: 0; }
+  .tag { flex: none; padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, .62); font-size: 11px; line-height: 17px; font-weight: 700; color: var(--on-p); }
+  .s { min-width: 0; font-size: var(--sub-size); line-height: var(--sub-line); color: var(--on-p-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .trail { flex: none; display: flex; align-items: center; gap: 6px; }
+  .trail svg { width: var(--trail-icon); height: var(--trail-icon); color: var(--on-p); transition: rotate var(--give-dur) var(--give-ease); }
+  .tick { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--on-p); display: grid; place-items: center; transition: background-color var(--ui-dur), border-color var(--ui-dur); }
+  .tick svg { width: 15px; height: 15px; color: #fff; opacity: 0; scale: .4; transition: opacity var(--ui-dur), scale var(--ui-dur-long) var(--give-ease); }
+  .row[aria-pressed="true"] .tick { background: var(--sea); border-color: var(--sea); }
+  .row[aria-pressed="true"] .tick svg { opacity: 1; scale: 1; }
+  .row[aria-pressed="true"] .t { color: var(--on-p-2); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .row[aria-pressed="true"] .tag { background: var(--sea); color: #fff; }
+
+  /* ---------- opens in place ---------- */
+  .item.is-open .row .trail .open { rotate: 180deg; }
+  .legs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--open-dur) var(--open-ease); }
+  .legs > div { min-height: 0; overflow: hidden; }
+  .item.is-open .legs { grid-template-rows: 1fr; }
+  /* the flight: one dotted route, the first and last legs under its ends, the stop under its middle */
+  .route { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin: 2px var(--pad-x) 16px; padding-top: 30px; opacity: 0; transition: opacity var(--ui-dur) ease; }
+  .item.is-open .route, .item.is-open .carinfo, .item.is-open .ride { opacity: 1; transition: opacity var(--ui-dur-long) ease .25s; }
+  .route::before { content: ""; position: absolute; left: 6px; right: 6px; top: 14px; border-top: 2px dotted var(--on-p); }
+  .route .pt { position: absolute; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--on-p); }
+  .plane { position: absolute; z-index: 2; top: 3px; left: 18px; width: 24px; height: 24px; color: var(--board); rotate: 90deg; filter: drop-shadow(0 0 3px var(--c)); }
+  .item.is-open .plane { animation: fly var(--fly-dur) var(--fly-ease) .3s both; }
+  @keyframes fly { from { left: 18px; } to { left: calc(100% - 42px); } }
+  .leg b { display: block; font-size: 13.5px; font-weight: 700; }
+  .leg span { display: block; font-size: 12px; color: var(--on-p-2); }
+  .leg.last { text-align: right; }
+  .leg.stop { grid-column: 1 / -1; grid-row: 2; justify-self: center; padding: 7px 12px; border-radius: 12px; background: rgba(255, 255, 255, .6); text-align: center; }
+  /* the car: a sheet of facts, two to a line */
+  .carinfo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 2px var(--pad-x) 16px; opacity: 0; transition: opacity var(--ui-dur) ease; }
+  .fact { padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .55); }
+  .fact small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--on-p-2); }
+  .fact b { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 600; }
+  .fact span { display: block; font-size: 12px; color: var(--on-p-2); }
+  .carpic { grid-column: 1 / -1; display: grid; place-items: center; height: 96px; border-radius: 12px; background: rgba(255, 255, 255, .55); }
+  .carpic svg { height: 80%; }
+  /* a ride: the map on top, its steps under it */
+  .ride { display: grid; gap: 14px; margin: 2px var(--pad-x) 16px; opacity: 0; transition: opacity var(--ui-dur) ease; }
+  .rmap { position: relative; justify-self: center; width: 320px; height: 150px; border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, .6); }
+  .rmap > svg { position: absolute; inset: 0; }
+  .rmap b { position: absolute; padding: 3px 8px; border-radius: 999px; background: #fff; font-size: 11.5px; font-weight: 700; color: var(--on-p); box-shadow: 0 4px 10px -6px rgba(15, 42, 64, .5); }
+  .rcar { position: absolute; left: 0; top: 0; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--board); color: #fff;
+    offset-path: var(--path); offset-rotate: 0deg; offset-distance: 0%; box-shadow: 0 0 0 3px rgba(255, 255, 255, .8); }
+  .rcar svg { width: 15px; height: 15px; }
+  .item.is-open .rcar { animation: drive var(--fly-dur) var(--fly-ease) .3s both; }
+  @keyframes drive { from { offset-distance: var(--from, 8%); } to { offset-distance: 100%; } }
+  .steps { position: relative; display: grid; gap: 10px; }
+  .steps::before { content: ""; position: absolute; left: 5px; top: 12px; bottom: 26px; border-left: 2px dotted var(--on-p); }
+  .step { position: relative; display: grid; grid-template-columns: 46px 1fr; padding-left: 22px; }
+  .step::before { content: ""; position: absolute; left: 0; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--on-p); }
+  .step.via::before { width: 8px; height: 8px; left: 2px; top: 6px; border: 0; background: var(--on-p); }
+  .step time { font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .step b { display: block; font-size: 14px; font-weight: 600; }
+  .step span { display: block; font-size: 12.5px; color: var(--on-p-2); }
+  .step.via b { font-weight: 500; color: var(--on-p-2); }
+  .rfacts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rfacts span { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, .6); font-size: 12px; font-weight: 600; }
+
+  /* ---------- a hotel, pushed in ---------- */
+  .gallery { position: relative; height: 290px; background: var(--sky-soft); }
+  .gallery .strip { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .gallery .strip::-webkit-scrollbar { display: none; }
+  .gallery img { flex: none; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: start; }
+  .gallery img[src*="pool"] { object-position: 50% 78%; }
+  .gallery .count { position: absolute; right: 16px; bottom: 40px; padding: 4px 10px; border-radius: 999px; background: rgba(12, 34, 54, .55); color: #fff; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gallery .round { position: absolute; top: 54px; background: rgba(255, 255, 255, .88); }
+  .gallery .back { left: 16px; }
+  .gallery .share { right: 16px; }
+  .sheet-h { position: relative; margin-top: -26px; padding: 22px 20px 120px; border-radius: 26px 26px 0 0; background: var(--page); }
+  .sheet-h h2 { margin: 0; font-size: 26px; line-height: 31px; font-weight: 700; letter-spacing: -.02em; }
+  .loc { margin: 4px 0 14px; font-size: 14px; color: var(--ink-2); }
+  .chips { display: flex; gap: 6px; margin: 0 -20px 18px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips span { flex: none; padding: 7px 12px; border-radius: 999px; background: var(--sea-soft); color: #0b7a72; font-size: 13px; font-weight: 600; }
+  .stay { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 14px; padding: 16px; border-radius: 20px; background: #fff; box-shadow: 0 12px 26px -22px rgba(18, 50, 74, .5); }
+  .stay i { background: var(--rule); }
+  .stay small { display: block; font-size: 12px; color: var(--ink-3); }
+  .stay b { display: block; font-size: 18px; font-weight: 700; }
+  .stay span { font-size: 13px; color: var(--ink-2); }
+  .card { margin-top: 12px; border-radius: 20px; background: #fff; box-shadow: 0 12px 26px -22px rgba(18, 50, 74, .5); overflow: hidden; }
+  .card .row + .row { border-top-color: var(--rule); }
+  .card .s { display: block; color: var(--ink-2); }
+  .card .lead.icon { border-radius: 50%; background: var(--soft); color: var(--c); }
+  .card .lead.icon::before { display: none; }
+  .card .lead.avatar { border: 0; }
+  .card .s { grid-column: 1; }
+  .card .text .v { color: var(--ink); }
+  .near-h { margin: 22px 4px 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  /* the total and the one thing to do, kept at the thumb */
+  .pay { position: absolute; z-index: 6; left: 0; right: 0; bottom: 84px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px 12px 20px;
+    background: rgba(246, 249, 252, .94); backdrop-filter: blur(10px); border-top: 1px solid var(--rule); translate: 100% 0; transition: translate var(--push-dur) var(--push-ease); }
+  .screen.is-deep .pay { translate: 0 0; }
+  .pay small { display: block; font-size: 12px; color: var(--ink-2); }
+  .pay b { font-size: 19px; }
+  .cta { height: 48px; padding: 0 20px; border-radius: 14px; background: var(--sky); color: #fff; font-size: 15px; font-weight: 700; transition: scale var(--release) ease, background-color var(--release) ease; }
+  .cta:active { scale: .96; background: #2581d6; transition: none; }
+
+  /* ---------- the tab bar ---------- */
+  .tabs { position: absolute; z-index: 7; inset: auto 0 0; display: grid; grid-template-columns: repeat(4, 1fr); height: 84px; padding: 6px 10px 26px; background: rgba(255, 255, 255, .94); backdrop-filter: blur(12px); border-top: 1px solid var(--rule); }
+  .tabs a { display: grid; justify-items: center; align-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--ink-3); text-decoration: none; -webkit-tap-highlight-color: transparent; transition: scale var(--release) ease; }
+  .tabs a:active { scale: .9; transition: none; }
+  .tabs a[aria-current="page"] { color: var(--sky); }
+  .tabs svg { width: 24px; height: 24px; }
+  .tabs .me { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--coral); color: #fff; font-size: 9.5px; font-weight: 700; }
+  .home-bar { position: absolute; z-index: 8; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: #0d1a26; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* ---------- Spec ---------- */
+  .spec { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; font-size: 13px; line-height: 1.5; background: #fff; border-radius: 20px 20px 0 0; }
+  .spec h2 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+  .spec h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .spec p { margin: 0 0 8px; color: var(--ink-2); }
+  .spec table { width: 100%; border-collapse: collapse; }
+  .spec td { padding: 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .spec td:first-child { width: 42%; padding-right: 12px; color: var(--ink-2); }
+  .spec code { font-size: 11.5px; }
+  .spec .swatch { display: inline-block; width: 11px; height: 11px; margin-right: 7px; border-radius: 50%; vertical-align: -1px; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(18, 50, 74, .85); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-plane" viewBox="0 0 24 24"><path fill="currentColor" d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z"/></symbol>
+    <symbol id="i-train" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M7 3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM4 11h16M8 21l2-4M16 21l-2-4"/><circle cx="8.5" cy="14" r="1" fill="currentColor"/><circle cx="15.5" cy="14" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 15h18M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/></symbol>
+    <symbol id="i-tram" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 3h8M12 3v3M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM6 12h12M9 21l1.5-3M15 21l-1.5-3"/></symbol>
+    <symbol id="i-metro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M8 16V8l4 5 4-5v8"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 3h8a3 3 0 0 1 3 3v12H5V6a3 3 0 0 1 3-3zM5 11h14M8 18v3M16 18v3"/><circle cx="8.5" cy="14.5" r="1" fill="currentColor"/><circle cx="15.5" cy="14.5" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-car" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 16h14M4 16v-3l2-5a2 2 0 0 1 1.9-1.4h8.2A2 2 0 0 1 18 8l2 5v3M4 13h16"/><circle cx="7.5" cy="16.5" r="1.8" fill="currentColor"/><circle cx="16.5" cy="16.5" r="1.8" fill="currentColor"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="1.9" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M9 21l2.5-6 2.5 2.5V21M11.5 15l1.5-6.5-3.5 1.5-1.5 3M13 8.5l2 3h3"/></symbol>
+    <symbol id="i-down" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-go" viewBox="0 0 20 20"><path d="M8 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 20 20"><path d="M12 5L7 10l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-share" viewBox="0 0 20 20"><path d="M10 3v10M6 7l4-4 4 4M4 11v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM9 8V6a3 3 0 0 1 6 0v2M4 13h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <div class="desk"><div class="fit"><div class="phone"><div class="screen">
+    <div class="status" aria-hidden="true"><span>9:41</span>
+      <span class="r"><svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg viewBox="0 0 16 12"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.4-1.4A10.5 10.5 0 0 0 8 .5 10.5 10.5 0 0 0 .6 3.5L2 4.9a8.5 8.5 0 0 1 6-2.4zm0 4c1.2 0 2.3.5 3.2 1.3l1.4-1.4A6.5 6.5 0 0 0 8 4.5a6.5 6.5 0 0 0-4.6 1.9l1.4 1.4c.9-.8 2-1.3 3.2-1.3zM8 8.5l-1.8 1.8L8 12l1.8-1.7z"/></svg>
+        <svg viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2"/><path d="M25 4.5v4a2 2 0 0 0 0-4z" opacity=".4"/></svg></span></div>
+
+    <section class="level" id="trip" aria-label="Your trip, day by day">
+      <header class="sky">
+        <div class="bar"><span class="logo"><i></i>breezy</span><button class="round" aria-label="Add a plan"><svg><use href="#i-plus"/></svg></button></div>
+        <small>Your trip · Oct 24 – 29</small>
+        <h1>Lisbon &amp; Porto</h1>
+        <div class="who-goes"><span class="faces"><span style="--c:var(--coral)">YH</span><span style="--c:var(--sea)">JW</span></span>You and Jiwoo · 6 days · 31 plans</div>
+      </header>
+      <nav class="days" aria-label="Days"></nav>
+      <div class="board"></div>
+    </section>
+
+    <div class="shade"></div>
+    <section class="level" id="hotel" hidden aria-label="Hotel booking"></section>
+    <div class="pay" aria-hidden="true"></div>
+
+    <nav class="tabs" aria-label="Main">
+      <a href="#" aria-current="page"><svg><use href="#i-bag"/></svg>Trips</a>
+      <a href="#"><svg><use href="#i-plane"/></svg>Flights</a>
+      <a href="#"><svg><use href="#i-bed"/></svg>Stays</a>
+      <a href="#"><span class="me">YH</span>You</a>
+    </nav>
+    <span class="home-bar" aria-hidden="true"></span>
+  </div></div></div></div>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the CSS this page runs on. The web page's trip and row build, laid out for one thumb at 390 wide. The days are a strip of chips that stays at the top; each day is one pastel folder on the night-sea board, its tab naming the day, its shoulder carrying who goes (faces) and how they get about (transport marks), its first line what the day is and its weather. Each row: the time; leading, a mark in a navy diamond, a friend, a photo, or nothing; the title on its own line, the status as a tag ahead of the details under it; trailing, a price, a chevron, an arrow or a tick.</p>
+    <h3>Touch, not hover</h3>
+    <table>
+      <tr><td>Hover</td><td>None. Nothing on the phone answers a pointer resting on it</td></tr>
+      <tr><td>Pressed</td><td>A white layer <span data-var="--press"></span> under the row's contents, the leading slot to <span data-var="--press-scale"></span>; both at once, with no easing in</td></tr>
+      <tr><td>Released</td><td>Both ease back over <span data-var="--release"></span>, so a quick tap still shows</td></tr>
+      <tr><td>Smallest target</td><td><span data-var="--target"></span>; a row at least <span data-var="--row-min"></span></td></tr>
+    </table>
+    <h3>Row</h3>
+    <table>
+      <tr><td>Padding, sides / top and bottom</td><td data-var="--pad-x,--pad-y" data-join=" / "></td></tr>
+      <tr><td>Between slots</td><td data-var="--gap"></td></tr>
+      <tr><td>Time column</td><td data-var="--time-w"></td></tr>
+      <tr><td>Leading mark, avatar</td><td><span data-var="--lead"></span>; a photo <span data-var="--thumb-w,--thumb-h" data-join=" × "></span></td></tr>
+      <tr><td>Title</td><td><span data-var="--title-size,--title-line"></span>, 600, one line</td></tr>
+      <tr><td>Details</td><td><span data-var="--sub-size,--sub-line"></span>, after the tag</td></tr>
+      <tr><td>Value</td><td>At the right end of the title's line, <span data-var="--trail-size"></span>, 700; its note under it at 11.5</td></tr>
+      <tr><td>Trailing icon</td><td><span data-var="--trail-icon"></span>: chevron opens in place, arrow goes deeper, tick for a to-do</td></tr>
+    </table>
+    <h3>Motion</h3>
+    <table>
+      <tr><td>Opens in place</td><td>Grows over <span data-var="--open-dur"></span>; the plane flies, or the car drives, over <span data-var="--fly-dur"></span></td></tr>
+      <tr><td>One level deeper</td><td>The hotel slides in from the right edge over <span data-var="--push-dur"></span> <code>cubic-bezier(.2, .8, .2, 1)</code>; the trip drifts 28% left and dims under it; back reverses it</td></tr>
+      <tr><td>A day chip</td><td>The plan glides to that day, easing in and out; a touch on the plan hands the scroll back at once</td></tr>
+    </table>
+  </section>
+
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-spec.js?v=1"></script>
+  <script src="week-05-breezy-trip.js?v=1"></script>
+  <script>
+    // ---------- one row build, for the phone ----------
+    const lead = it => it.lead === 'icon' ? `<span class="lead icon"><svg viewBox="0 0 24 24">${ICON[it.ic]}</svg></span>`
+      : it.lead === 'avatar' ? `<span class="lead avatar" style="--c:${PEOPLE[it.who1][1]}">${it.who1}</span>`
+      : it.lead === 'thumb' ? `<span class="lead thumb"><img src="images/trip/t-${it.photo}.jpg" alt="" loading="lazy" /></span>` : '';
+    const trail = it => {
+      const ic = it.kind ? '<svg class="open"><use href="#i-down"/></svg>' : it.go ? '<svg class="go"><use href="#i-go"/></svg>' : it.check ? '<span class="tick"><svg><use href="#i-check"/></svg></span>' : '';
+      return ic ? `<span class="trail">${ic}</span>` : '';
+    };
+    const body = it => `<span class="text"><span class="t">${it.t}</span>${it.v ? `<span class="v">${it.v}</span>` : ''}<span class="meta">${it.tab ? `<span class="tag">${it.tab}</span>` : ''}${it.s ? `<span class="s">${it.s}</span>` : ''}</span>${it.vs ? `<span class="vs">${it.vs}</span>` : ''}</span>`;
+    const span = ([a, b]) => {
+      if (!/^\d\d:\d\d$/.test(a) || !/^\d\d:\d\d$/.test(b)) return '';
+      const m = (b.slice(0, 2) * 60 + +b.slice(3)) - (a.slice(0, 2) * 60 + +a.slice(3));
+      return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ''}`;
+    };
+    const rowHTML = (it, id) => {
+      const inside = `<span class="at">${it.at[0]}<small>${it.dur || span(it.at) || it.at[1]}</small></span>${lead(it)}${body(it)}${trail(it)}`;
+      if (it.kind) {
+        const inner = it.kind === 'ride' ? rideHTML(RIDES[it.ride]) : it.kind === 'flight'
+          ? `<div class="route"><svg class="plane" aria-hidden="true"><use href="#i-plane"/></svg><span class="pt" style="left:0"></span><span class="pt" style="left:calc(50% - 6px)"></span><span class="pt" style="right:0"></span>
+              <div class="leg"><b>${LEGS[0][0]}</b><span>${LEGS[0][1]}</span></div><div class="leg last"><b>${LEGS[2][0]}</b><span>${LEGS[2][1]}</span></div><div class="leg stop"><b>${LEGS[1][0]}</b><span>${LEGS[1][1]}</span></div></div>`
+          : `<div class="carinfo"><div class="carpic">${carSVG}</div>${CAR.map(([k, b, sp]) => `<div class="fact"><small>${k}</small><b>${b}</b><span>${sp}</span></div>`).join('')}<div class="fact"><small>Car</small><b>Fiat 500X</b><span>Automatic · 5 seats</span></div></div>`;
+        return `<div class="item" role="listitem"><button class="row" aria-expanded="false" aria-controls="${id}">${inside}</button><div class="legs" id="${id}"><div>${inner}</div></div></div>`;
+      }
+      return `<button class="row" role="listitem"${it.go ? ` data-go="${it.go}"` : ''}${it.check ? ' aria-pressed="false" data-check' : ''}>${inside}</button>`;
+    };
+    const DAYC = { fri: 'sky', sat: 'sun', sun: 'sea', mon: 'lilac', tue: 'coral', wed: 'sand' };
+    const uniq = a => [...new Set(a)];
+    const dayHTML = d => {
+      const who = uniq(d.items.flatMap(it => it.who)), by = uniq(d.items.flatMap(it => it.by || []));
+      return `<div class="day" id="day-${d.key}" data-key="${d.key}"><div class="job" style="--c:var(--p-${DAYC[d.key]})">
+          <div class="shoulder"><h2 class="ftab">${d.title.slice(0, 3)}<small>${d.date}</small></h2>
+            <span class="goers" aria-hidden="true">${who.map(k => `<span style="--f:${PEOPLE[k][1]}">${k}</span>`).join('')}</span>
+            <span class="by" aria-hidden="true">${by.map(k => `<span><svg><use href="#i-${k}"/></svg></span>`).join('')}</span>
+            <span class="vh">${d.title}; ${who.map(k => PEOPLE[k][0]).join(' and ')}; getting about by ${by.map(k => BY[k]).join(', ')}.</span></div>
+          <div class="sheet"><div class="dayline"><span>${d.note} · ${d.place}</span><span class="wx-s">${wxIcon(d.wx[0])}${d.wx[1]}° <small>/ ${d.wx[2]}°</small></span></div>
+            <div role="list">${d.items.map((it, i) => rowHTML(it, `x-${d.key}-${i}`)).join('')}</div></div>
+        </div></div>`;
+    };
+
+    const screen = document.querySelector('.screen'), trip = document.getElementById('trip'), hotel = document.getElementById('hotel'), pay = document.querySelector('.pay');
+    const board = trip.querySelector('.board'), days = trip.querySelector('.days');
+    board.innerHTML = DAYS.map(dayHTML).join('');
+    board.querySelectorAll('.rmap').forEach(m => m.style.setProperty('--from', (6 + 6 + 13) / m.querySelector('svg path[stroke-dasharray]').getTotalLength() * 100 + '%'));
+    days.innerHTML = DAYS.map(d => `<button data-key="${d.key}" aria-current="${d.key === 'fri'}">${wxIcon(d.wx[0])}${d.short}<span>${d.wx[1]}°</span></button>`).join('');
+    // iOS Safari only shows :active on a touch when the page listens for touches
+    addEventListener('touchstart', () => {}, { passive: true });
+
+    // the chip for the day being read, kept in view in its strip
+    let shown = 'fri', lock = 0;
+    const mark = key => {
+      shown = key;
+      days.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', b.dataset.key === key));
+      const chip = days.querySelector(`[data-key="${key}"]`);
+      days.scrollTo({ left: chip.offsetLeft - 20, behavior: 'smooth' });
+    };
+    const dayTop = key => document.getElementById('day-' + key).offsetTop - days.offsetHeight - 8;
+    // a glide to the day: eases in and out, longer for a longer way; a touch on the plan hands it back
+    let glideId = 0;
+    const glide = y => {
+      const from = trip.scrollTop, dist = y - from, ms = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : Math.min(1300, 650 + Math.abs(dist) * .25), t0 = performance.now(), id = ++glideId;
+      const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      lock = Date.now() + ms + 120;
+      const step = now => {
+        if (id !== glideId) return;
+        const t = ms ? Math.min(1, (now - t0) / ms) : 1;
+        trip.scrollTop = from + dist * ease(t);
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    ['wheel', 'touchstart'].forEach(e => trip.addEventListener(e, ev => { if (!days.contains(ev.target)) { glideId++; lock = 0; } }, { passive: true }));
+    days.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { mark(b.dataset.key); glide(dayTop(b.dataset.key)); }));
+    trip.addEventListener('scroll', () => {
+      days.classList.toggle('is-stuck', days.getBoundingClientRect().top <= trip.getBoundingClientRect().top + 1);
+      if (Date.now() < lock) return;
+      const line = trip.scrollTop + days.offsetHeight + 120;
+      const cur = [...board.querySelectorAll('.day')].filter(d => d.offsetTop <= line).pop();
+      if (cur && cur.dataset.key !== shown) mark(cur.dataset.key);
+    }, { passive: true });
+
+    // opens in place
+    board.querySelectorAll('.item .row').forEach(row => row.addEventListener('click', () => {
+      const open = row.getAttribute('aria-expanded') !== 'true';
+      row.setAttribute('aria-expanded', open);
+      row.closest('.item').classList.toggle('is-open', open);
+    }));
+    board.querySelectorAll('[data-check]').forEach(r => r.addEventListener('click', () => {
+      const done = r.getAttribute('aria-pressed') !== 'true';
+      r.setAttribute('aria-pressed', done);
+      r.querySelector('.tag').textContent = done ? 'Done' : 'To do';
+    }));
+
+    // one level deeper: the hotel slides in over the trip, and back
+    const hotelHTML = h => `<div class="gallery"><div class="strip">${h.photos.map((f, i) => `<img src="images/trip/${f}.jpg" alt="${h.alts[i]}" />`).join('')}</div>
+        <span class="count">1 / ${h.photos.length}</span>
+        <button class="round back" aria-label="Back to the trip"><svg><use href="#i-back"/></svg></button><button class="round share" aria-label="Share"><svg><use href="#i-share"/></svg></button></div>
+      <div class="sheet-h"><h2>${h.name}</h2><p class="loc">${h.addr}</p><div class="chips">${h.chips.map(c => `<span>${c}</span>`).join('')}</div>
+        <div class="stay"><div><small>Check in</small><b>${h.in[0]}</b><span>${h.in[1]}</span></div><i></i><div><small>Check out</small><b>${h.out[0]}</b><span>${h.out[1]}</span></div></div>
+        <div class="card" role="list">
+          <div class="row" role="listitem"><span class="lead icon" style="--c:var(--sky); --soft:var(--sky-soft)"><svg viewBox="0 0 24 24">${ICON.bed}</svg></span><span class="text"><span class="t">${h.room[0]}</span><span class="s">${h.room[1]}</span></span></div>
+          <div class="row" role="listitem"><span class="lead avatar" style="--c:var(--sea)">JW</span><span class="text"><span class="t">Jiwoo Kim</span><span class="s">Second guest</span></span></div>
+          <div class="row" role="listitem"><span class="text"><span class="t">Booking reference</span><span class="v">${h.ref}</span><span class="s">Show this at the desk</span></span></div>
+        </div>
+        <h3 class="near-h">Nearby</h3>
+        <div class="card" role="list">${h.near.map(([n, d]) => `<div class="row" role="listitem"><span class="lead icon" style="--c:var(--sea); --soft:var(--sea-soft)"><svg viewBox="0 0 24 24">${ICON.pin}</svg></span><span class="text"><span class="t">${n}</span><span class="s">${d}</span></span></div>`).join('')}</div>
+      </div>`;
+    let from = null, timer = 0;
+    const go = (el, still) => {
+      from = el;
+      const h = HOTELS[el.dataset.go];
+      hotel.innerHTML = hotelHTML(h);
+      hotel.scrollTop = 0;
+      pay.innerHTML = `<div><small>${h.nights} nights, taxes in</small><b>${h.total}</b></div><button class="cta">Directions</button>`;
+      pay.removeAttribute('aria-hidden');
+      const strip = hotel.querySelector('.strip'), count = hotel.querySelector('.count');
+      strip.addEventListener('scroll', () => { count.textContent = `${Math.round(strip.scrollLeft / strip.clientWidth) + 1} / ${h.photos.length}`; }, { passive: true });
+      hotel.querySelector('.back').addEventListener('click', back);
+      clearTimeout(timer);
+      hotel.hidden = false;
+      trip.inert = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => screen.classList.add('is-deep')));
+      if (!still) timer = setTimeout(() => hotel.querySelector('.back').focus({ preventScroll: true }), 300);
+    };
+    const back = () => {
+      screen.classList.remove('is-deep');
+      trip.inert = false;
+      pay.setAttribute('aria-hidden', 'true');
+      clearTimeout(timer);
+      timer = setTimeout(() => { hotel.hidden = true; from?.focus({ preventScroll: true }); }, parseFloat(getComputedStyle(screen).getPropertyValue('--push-dur')) * 1000);
+    };
+    board.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', () => go(el)));
+    addEventListener('keydown', e => { if (e.key === 'Escape' && screen.classList.contains('is-deep')) back(); });
+    document.querySelectorAll('.tabs a').forEach(a => a.addEventListener('click', e => e.preventDefault()));
+
+    // the phone, shrunk whole to fit the window it is shown in
+    const fitPhone = () => {
+      const f = Math.min(1, (innerWidth - 24) / (390 + 24), (innerHeight - 40) / (844 + 24));
+      document.documentElement.style.setProperty('--fit', f.toFixed(4));
+    };
+    addEventListener('resize', fitPhone); fitPhone();
+    // ?open=memmo lands on that hotel (for a still of it)
+    const want = new URLSearchParams(location.search).get('open');
+    if (HOTELS[want]) { screen.style.setProperty('--push-dur', '0s'); go(board.querySelector(`[data-go="${want}"]`), true); setTimeout(() => screen.style.removeProperty('--push-dur'), 50); }
+    if (window.self === window.top && !location.search.includes('thumb')) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+</body>
+</html>
