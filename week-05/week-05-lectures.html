@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Lectures</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Lectures: after a Swiss lecture-series poster. A strict grid of columns: the month, the day,
+     a grey bar carrying a heavy grotesk name with its credits set small and pushed right, and a
+     yellow column for the talk's title in quotes. Rows are cut apart by white hairlines only.
+     Hover deepens the grey; pressed turns the bar black. Opening drops the yellow down the row. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;800&display=swap");
+  :root { --w: 420px; --paper: #f0f0ee; --grey: #c8c8c6; --grey-2: #b9b9b6; --yellow: #f3d400; --ink: #121212;
+    --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: var(--paper); }
+  .level { padding: 16px 0 28px; }
+
+  .grid { display: grid; grid-template-columns: 72px 1fr; }
+  .mon { padding: 6px 0 0 12px; font-size: 10px; font-weight: 800; }
+  .wk { grid-column: 2; border-top: 2px solid var(--paper); }
+  .row { display: grid; grid-template-columns: 26px 1fr 96px; width: 100%; min-height: 74px; }
+  .row:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .d { padding-top: 6px; font-size: 13px; font-weight: 800; }
+  .bar { position: relative; padding: 4px 8px 8px; background: var(--grey); transition: background-color .15s ease, color .15s ease; }
+  .name { display: block; font-size: 21px; line-height: 1.05; font-weight: 800; letter-spacing: -.025em; }
+  .cred { display: block; margin: 6px 0 0 44%; font-size: 8px; line-height: 1.25; }
+  .row:hover .bar { background: var(--grey-2); }
+  .row:active .bar { background: var(--ink); color: #fff; }
+  .y { padding: 6px 7px; background: var(--yellow); font-size: 8.5px; line-height: 1.25; border-left: 2px solid var(--paper); }
+  .y.none { background: transparent; }
+  .thumb { position: absolute; right: 8px; top: 8px; width: 22px; height: 28px; background: linear-gradient(#9a9a97, #6e6e6a); filter: grayscale(1); }
+  .plus { position: absolute; right: 8px; bottom: 6px; font-size: 13px; font-weight: 800; line-height: 1; }
+  .is-open .plus { rotate: 45deg; }
+  .plus { transition: rotate .2s ease; }
+
+  .sub-in { display: grid; grid-template-columns: 26px 1fr 96px; }
+  .sub-in .bar { padding-top: 0; }
+  .sub-in .cred { margin-top: 0; font-size: 9px; }
+  .sub-in .y { font-size: 9px; }
+  .label { display: inline-block; margin: 0 0 4px; padding: 1px 4px; background: var(--ink); color: #fff; font-size: 8px; font-weight: 800; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="grid">
+        <span class="mon">September</span>
+        <div class="wk" style="grid-column:2; border-top:0">
+          <button class="row"><span class="d">9</span>
+            <span class="bar"><span class="name">Felix Candela</span><span class="cred">Architect, Madrid, Mexico City; Professor Emeritus</span></span>
+            <span class="y">‘Building experiences’</span></button>
+        </div>
+        <span></span>
+        <div class="wk">
+          <button class="row"><span class="d">16</span>
+            <span class="bar"><span class="name">Raimund Abraham</span><span class="cred">Architect, New York; The Cooper Union</span></span>
+            <span class="y">‘The Berlin projects’</span></button>
+        </div>
+        <span></span>
+        <div class="wk" data-item>
+          <button class="row" data-expand aria-expanded="false"><span class="d">23</span>
+            <span class="bar"><span class="name">Malcolm Quantrill</span><span class="cred">Architect, Historian, Critic</span><span class="plus">+</span></span>
+            <span class="y">‘Lateral-mindedness in Aalto’s design thinking’</span></button>
+          <div class="sub"><div><div class="sub-in">
+            <span></span>
+            <span class="bar"><span class="cred">Distinguished Professor of Architecture, Texas A&amp;M University</span></span>
+            <span class="y"><span class="label">Introductory talk</span><br>Kenneth Frampton<br>6.30pm, Wood Auditorium</span>
+          </div></div></div>
+        </div>
+        <span></span>
+        <div class="wk">
+          <button class="row"><span class="d">30</span>
+            <span class="bar"><span class="name">Elias Torres</span><span class="cred">Architect, Barcelona</span><span class="thumb"></span></span>
+            <span class="y none"></span></button>
+        </div>
+        <span class="mon">October</span>
+        <div class="wk">
+          <button class="row"><span class="d">7</span>
+            <span class="bar"><span class="name">Peter Eisenman</span></span>
+            <span class="y">‘Architecture: rhetoric and ornament’</span></button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

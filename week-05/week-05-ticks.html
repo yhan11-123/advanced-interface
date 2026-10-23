@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Ticks</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Ticks: after an events poster drawn like a technical drawing. Warm grey paper and fine
+     dark lines with little end-stops, like dimension lines: a dot and a date open each entry's
+     measure line, a light geometric name follows, an italic line under it. Between entries a
+     thin I-beam stands; when an entry opens, its I-beam stretches to measure the new space. */
+  @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400&family=Instrument+Sans:ital,wght@1,400&display=swap");
+  :root { --w: 340px; --paper: #d8d5d0; --ink: #2a2a28; --font: "Outfit", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: var(--paper); }
+  .level { padding: 18px 22px 28px; }
+
+  /* the I-beam: a fine vertical line with a short cap at each end */
+  .beam { position: relative; width: 9px; height: 34px; margin-left: 3px; transition: height .34s cubic-bezier(.2, .8, .2, 1); }
+  .beam::before { content: ""; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: var(--ink); }
+  .beam::after { content: ""; position: absolute; inset: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .is-open + .beam, .is-open > .sub + .beam { height: 46px; }
+
+  .row { display: block; width: 100%; padding: 8px 0 6px; }
+  .row:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .measure { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .measure::after { content: ""; flex: 1; height: 9px; border-left: 1px solid var(--ink); border-right: 1px solid var(--ink);
+    background: linear-gradient(var(--ink), var(--ink)) center / 100% 1px no-repeat; transition: height .2s ease; }
+  /* the line always runs the full width, so its end-stop is the edge the row's right side lines up to; hover raises the stops */
+  .row:hover .measure::after, .is-open .measure::after { height: 15px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); transition: transform .2s ease; }
+  .row:hover .dot { transform: scale(1.6); }
+  .row:active .name { opacity: .55; }
+  .name { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 27px; line-height: 1.05; font-weight: 300; letter-spacing: -.01em; transition: opacity .1s; }
+  .note { display: block; margin-top: 4px; font: italic 400 12.5px/1.35 "Instrument Sans", system-ui, sans-serif; }
+  /* a face sits on the name's line, its right edge on the measure line's end-stop */
+  .face { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--ink); background: radial-gradient(circle at 50% 38%, #9b968d 26%, transparent 27%), radial-gradient(ellipse at 50% 100%, #9b968d 44%, transparent 45%); }
+
+  .sub-in { padding: 4px 0 8px 13px; border-left: 1px solid var(--ink); margin-left: 7px; font-size: 13px; line-height: 19px; }
+  .sub-in div { display: flex; justify-content: space-between; }
+  .sub-in span { font: italic 400 12px/19px "Instrument Sans", sans-serif; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="beam"></div>
+      <div><button class="row"><span class="measure"><span class="dot"></span>Feb 9</span>
+        <span class="name">Diego Romero Evans</span><span class="note">Visiting Artist Lecture</span></button></div>
+      <div class="beam"></div>
+      <div data-item><button class="row" data-expand aria-expanded="false"><span class="measure"><span class="dot"></span>Feb 12</span>
+        <span class="name">PLAT|FORM</span><span class="note">Community College Exhibition</span></button>
+        <div class="sub"><div><div class="sub-in">
+          <div>Opening<span>6 pm, Gallery A</span></div>
+          <div>Panel<span>Feb 14, 4 pm</span></div>
+          <div>Closing<span>Feb 28</span></div>
+        </div></div></div>
+      </div>
+      <div class="beam"></div>
+      <div><button class="row"><span class="measure"><span class="dot"></span>Mar 9</span>
+        <span class="name">Dana E. McKinney<span class="face"></span></span><span class="note">ASTERISK Event</span></button></div>
+      <div class="beam"></div>
+      <div><button class="row"><span class="measure"><span class="dot"></span>Mar 23</span>
+        <span class="name">Lauren Lee McCarthy</span><span class="note">Applied Computer Science-Media Arts</span></button></div>
+      <div class="beam"></div>
+      <div><button class="row"><span class="measure"><span class="dot"></span>TBA</span>
+        <span class="name">2030</span></button></div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

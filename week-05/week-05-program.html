@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Program</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Program: after a theatre season leaflet. Cream paper and one ink, a hard ultramarine. A thick
+     blue bar runs down the left edge; entries are parted by long-dash rules. Each entry is a line
+     of date | day | time, a heavy uppercase title with the year small beside it, then the people
+     in black. A reversed-out chip marks a premiere. Hover pulls a short tab out of the bar. */
+  @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;800&display=swap");
+  :root { --w: 340px; --paper: #f3efe4; --blue: #1f2bd8; --ink: #1a1a1a; --font: "Poppins", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: var(--paper); }
+  .level { padding: 14px 16px 28px 0; }
+  .spine { position: relative; padding-left: 34px; min-height: 100%; }
+  .spine::before { content: ""; position: absolute; left: 12px; top: 0; bottom: 0; width: 8px; background: var(--blue); }
+
+  .entry { position: relative; padding-top: 16px; }
+  .entry::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: repeating-linear-gradient(90deg, var(--blue) 0 14px, transparent 14px 20px); }
+  .tab { position: absolute; left: -14px; top: 26px; width: 12px; height: 8px; background: var(--blue); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
+  .entry:has(.row:hover) .tab, .entry.is-open .tab { transform: scaleX(1); }
+  .row { display: block; width: 100%; padding: 0 0 14px; }
+  .row:active { background: rgba(31, 43, 216, .06); }
+  .row:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .when { display: block; color: var(--blue); font-size: 15px; line-height: 22px; font-variant-numeric: tabular-nums; }
+  .when i { font-style: normal; margin: 0 6px; }
+  .title { display: block; margin-top: 4px; color: var(--blue); font-size: 17px; line-height: 19px; font-weight: 800; text-transform: uppercase; letter-spacing: .005em; }
+  .title small { font-size: 11px; font-weight: 400; text-transform: none; }
+  .who { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; }
+  .chip { display: inline-block; margin-left: 4px; padding: 1px 5px 0; background: var(--blue); color: var(--paper); font-size: 9px; font-weight: 800; letter-spacing: .04em; vertical-align: 2px; }
+  .kick { display: block; color: var(--blue); font-size: 12px; line-height: 14px; font-weight: 800; text-transform: uppercase; }
+  .more { display: inline-block; margin-top: 6px; color: var(--blue); font-size: 11px; font-weight: 500; }
+  .more::after { content: " +"; }
+  .is-open .more::after { content: " −"; }
+  .thumb { float: right; width: 40px; height: 52px; margin: 2px 0 0 10px; background: linear-gradient(160deg, #c9c3b3, #1f2bd8); }
+
+  .sub-in { padding: 0 0 14px; }
+  .sub-in .when { font-size: 13px; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="spine">
+        <div class="entry"><span class="tab"></span>
+          <button class="row"><span class="when">01.03<i>|</i>Sunday<i>|</i>18:00</span>
+            <span class="title">Komety <small>(2015)</small></span><span class="who">Krzysztof Bizio<br>dir. Leszek Dawid</span></button>
+        </div>
+        <div class="entry" data-item><span class="tab"></span>
+          <button class="row" data-expand aria-expanded="false"><span class="kick">World Theatre Day<span class="chip">PREMIERE</span></span>
+            <span class="when">27.03<i>|</i>Friday<i>|</i>20:00</span>
+            <span class="title">Stara kobieta wysiaduje</span><span class="who">Tadeusz Różewicz<br>dir. Natalia Korczakowska</span>
+            <span class="more">2 more dates</span></button>
+          <div class="sub"><div><div class="sub-in">
+            <span class="when">28.03<i>|</i>Saturday<i>|</i>19:00</span>
+            <span class="when">29.03<i>|</i>Sunday<i>|</i>17:00</span>
+          </div></div></div>
+        </div>
+        <div class="entry"><span class="tab"></span>
+          <button class="row"><span class="thumb"></span><span class="when">29.03<i>|</i>Sunday<i>|</i>10:00</span>
+            <span class="title">Niezwykła historia Sebastiana van Pirka <small>(2025)</small></span><span class="who">Marcin Wicha</span></button>
+        </div>
+        <div class="entry"><span class="tab"></span>
+          <button class="row"><span class="when">04.04<i>|</i>Saturday<i>|</i>19:00</span>
+            <span class="title">Wesele</span></button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

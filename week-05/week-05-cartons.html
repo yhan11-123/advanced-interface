@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Cartons</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Cartons: after a shelf of toner boxes. Each row is a long carton seen from a little above:
+     a pale front with line icons, a slanted black stripe, a black panel reversed out, a colour dot
+     and a wordmark; on its top, faint line drawings. The detail does not open a new page: the
+     carton rolls forward in place, top over to the front, and the face that comes round carries
+     the detail. Roll it again and the front comes back. */
+  @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&display=swap");
+  :root { --w: 400px; --len: 360px; --side: 76px; --half: 38px; --paper: #f3f3f1; --top: #e7e7e4; --ink: #111;
+    --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --roll: .9s; --roll-ease: linear(0, .02, .08, .18, .31, .46, .61, .74, .85, .93, .99, 1.03, 1.05, 1.05, 1.04, 1.03, 1.02, 1.01, 1); }
+  body { font-family: var(--font); color: var(--ink); background: #fff; }
+  .level { padding: 8px 0 28px; }
+
+  /* one carton */
+  .flip { display: block; width: 100%; padding: 0; }
+  .flip:focus-visible { outline: none; }
+  .flip:focus-visible .front { box-shadow: inset 0 0 0 2px #2b6cff; }
+  .scene { display: block; height: 116px; perspective: 1000px; perspective-origin: 50% -40%; }
+  .prism { position: relative; display: block; width: var(--len); height: var(--side); margin: 22px auto 0;
+    transform-style: preserve-3d; transform: rotateX(-14deg); transition: transform var(--roll) var(--roll-ease); }
+  .flip:hover .prism { transform: translateY(-3px) rotateX(-20deg); }
+  .flip:active .prism { transform: rotateX(-17deg) scale(.98); transition-duration: .12s; }
+  .is-rolled .prism, .is-rolled .flip:hover .prism, .is-rolled .flip:active .prism { transform: rotateX(-104deg); transition: transform var(--roll) var(--roll-ease); }
+  .face { position: absolute; left: 0; top: 0; width: var(--len); height: var(--side); backface-visibility: hidden; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .07); }
+  .front { transform: translateZ(var(--half)); background: linear-gradient(#fafaf8, var(--paper)); }
+  .top { transform: rotateX(90deg) translateZ(var(--half)); background: var(--top); }
+  .bottom { transform: rotateX(-90deg) translateZ(var(--half)); background: #d6d6d2; }
+  .back { transform: rotateX(180deg) translateZ(var(--half)); background: #dcdcd8; }
+  .end { width: var(--side); background: #e0e0dc; border: 1px solid #cfcfca; }
+  .end.l { left: calc(var(--half) * -1); transform: rotateY(-90deg); }
+  .end.r { left: calc(var(--len) - var(--half)); transform: rotateY(90deg); }
+  .shadow { display: block; width: calc(var(--len) - 20px); height: 10px; margin: -14px auto 0; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0,0,0,.28), transparent); transition: transform var(--roll) var(--roll-ease), opacity .3s; }
+  .is-rolled .shadow { transform: scaleX(.96); opacity: .7; }
+
+  /* the front: icons | slanted stripe | name | black panel | wordmark */
+  .front { display: grid; grid-template-columns: 30px 14px 118px 116px 1fr; }
+  .icons { display: grid; align-content: center; gap: 8px; padding-left: 7px; }
+  .icons i { width: 16px; height: 16px; border: 1.4px solid #555; border-radius: 3px; }
+  .stripe { background: var(--ink); clip-path: polygon(45% 0, 100% 0, 55% 100%, 0 100%); }
+  .name { position: relative; padding: 10px 6px; }
+  .name b { display: block; font-size: 13px; font-weight: 500; letter-spacing: .01em; }
+  .name small { display: block; margin-top: 5px; font-size: 7.5px; font-weight: 500; }
+  .name .dot { position: absolute; right: 8px; top: 11px; width: 13px; height: 13px; border-radius: 50%; background: var(--c); }
+  .name .dots { position: absolute; left: 8px; bottom: 9px; width: 14px; height: 10px; background: radial-gradient(circle, var(--ink) 1.6px, transparent 1.9px) 0 0 / 5px 5px; }
+  .panel { padding: 9px 8px; background: var(--ink); color: #fff; }
+  .panel b { display: block; font-size: 14px; font-weight: 800; }
+  .panel span { display: flex; justify-content: space-between; margin-top: 2px; padding-bottom: 4px; border-bottom: 1px solid #fff; font-size: 7.5px; font-weight: 700; }
+  .panel em { font-style: normal; }
+  .panel small { display: block; margin-top: 4px; font-size: 5.5px; line-height: 1.3; font-weight: 700; }
+  .brand { padding: 9px 8px; text-align: right; }
+  .brand b { font-size: 9px; font-weight: 800; font-style: italic; letter-spacing: .04em; }
+  .brand i { display: block; height: 16px; margin-top: 12px; background: repeating-linear-gradient(transparent 0 2px, #b8b8b4 2px 3px); }
+
+  /* the top: faint drawings at rest; the detail when it rolls round to the front */
+  .art, .info { position: absolute; inset: 0; transition: opacity .3s ease; }
+  .art svg { width: 100%; height: 100%; }
+  .info { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 0 12px 0 16px; background: #fbfbfa; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .07); opacity: 0; }
+  .is-rolled .art { opacity: 0; }
+  .is-rolled .info { opacity: 1; transition-delay: .25s; }
+  .info dl { display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; margin: 0; font-size: 9.5px; line-height: 1.35; }
+  .info dt { color: #777; font-weight: 500; }
+  .info dd { margin: 0; font-weight: 700; }
+  .buy { display: grid; justify-items: end; gap: 4px; }
+  .buy b { font-size: 17px; font-weight: 800; }
+  .buy span { padding: 5px 10px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 9px; font-weight: 700; }
+  .info .swatch { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 50%; background: var(--c); vertical-align: 0; }
+
+  /* the brief's other action: a row that opens in place */
+  .pack { width: var(--len); margin: 6px auto 0; border-top: 2px solid var(--ink); }
+  .pack .row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 2px; font-size: 13px; font-weight: 700; }
+  .pack .row:hover { background: #f4f4f2; }
+  .pack .row:active { background: #e9e9e6; }
+  .pack .row i { font-style: normal; font-size: 16px; transition: rotate .25s ease; }
+  .pack.is-open .row i { rotate: 45deg; }
+  .pack .sub-in { display: flex; gap: 6px; padding: 0 2px 12px; font-size: 11px; }
+  .pack .sub-in span { flex: 1; padding: 8px 6px; border: 1px solid #ddd; }
+  .pack .sub-in span::before { content: ""; display: block; width: 10px; height: 10px; margin-bottom: 4px; border-radius: 50%; background: var(--c); }
+  @media (prefers-reduced-motion: reduce) { .prism, .shadow { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <template id="carton">
+        <div class="carton">
+          <button class="flip" aria-expanded="false">
+            <span class="scene"><span class="prism">
+              <span class="face front">
+                <span class="icons"><i></i><i></i></span><span class="stripe"></span>
+                <span class="name"><b>GPR-61</b><small>Toner Cartridge</small><span class="dot"></span><span class="dots"></span></span>
+                <span class="panel"><b>GPR-61</b><span><em class="cname"></em>Toner Cartridge</span><small>Compatible for: imageRUNNER Advance DX C5840i C5860i C5870i</small></span>
+                <span class="brand"><b>LINEINK</b><i></i></span>
+              </span>
+              <span class="face top">
+                <span class="art"><svg viewBox="0 0 360 76" fill="none" stroke="#6b6b67" stroke-width=".8"><path d="M20 20h60v18H20zM28 26h44M100 18h70l8 20h-78zM200 22h22v14h-22zM230 29h40M236 22a8 8 0 1 0 0.1 0M290 20h50v16h-50zM300 28l30-6"/><path d="M14 52h330" stroke-dasharray="2 4"/></svg></span>
+                <span class="info"><dl><dt>Colour</dt><dd><span class="swatch"></span><span class="cname"></span></dd><dt>Yield</dt><dd class="yield"></dd><dt>Fits</dt><dd>C5840i, C5860i, C5870i</dd></dl>
+                  <span class="buy"><b class="price"></b><span>Add to cart</span></span></span>
+              </span>
+              <span class="face back"></span><span class="face bottom"></span>
+              <span class="face end l"></span><span class="face end r"></span>
+            </span></span>
+            <span class="shadow"></span>
+          </button>
+        </div>
+      </template>
+      <div class="shelf"></div>
+      <div class="pack" data-item>
+        <button class="row" data-expand aria-expanded="false">Value pack &middot; all four colours<i>+</i></button>
+        <div class="sub"><div><div class="sub-in">
+          <span style="--c:#111">Black</span><span style="--c:#2b8cf0">Cyan</span><span style="--c:#f03aa8">Magenta</span><span style="--c:#e6f25a">Yellow</span>
+        </div></div></div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    // four cartons from one build; each rolls in place to show its detail, and rolls back
+    const shelf = document.querySelector('.shelf'), tpl = document.getElementById('carton');
+    [['Black', '#111', '26,000 pages', '$42'], ['Cyan', '#2b8cf0', '22,000 pages', '$48'],
+     ['Magenta', '#f03aa8', '22,000 pages', '$48'], ['Yellow', '#e6f25a', '22,000 pages', '$48']].forEach(([name, c, yieldTxt, price]) => {
+      const el = tpl.content.firstElementChild.cloneNode(true);
+      el.style.setProperty('--c', c);
+      el.querySelectorAll('.cname').forEach(n => n.textContent = name);
+      el.querySelector('.yield').textContent = yieldTxt;
+      el.querySelector('.price').textContent = price;
+      const btn = el.querySelector('.flip');
+      btn.setAttribute('aria-label', `${name} toner cartridge`);
+      btn.addEventListener('click', () => {
+        const rolled = el.classList.toggle('is-rolled');
+        btn.setAttribute('aria-expanded', rolled);
+      });
+      shelf.appendChild(el);
+    });
+  </script>
+</body>
+</html>

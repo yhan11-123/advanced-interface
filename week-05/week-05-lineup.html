@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Lineup</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Lineup: after a festival stage timetable. A thick green bar caps the column, a heavy title
+     sits under it with one thin diagonal slicing the corner, and a thin green rule closes the
+     header. Below, tight rows: a small time, then the act in heavy type; a green asterisk marks
+     a special set. Hover runs a green bar in from the left and turns the time green. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;800;900&display=swap");
+  :root { --w: 300px; --green: #33c46a; --ink: #111; --navy: #1f2a4a; --muted: #6d6d6d; --font: "Inter", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: #fff; }
+  .level { padding: 18px 18px 28px; }
+
+  .cap { height: 9px; background: var(--green); }
+  .head { position: relative; padding: 12px 0 10px; border-bottom: 2px solid var(--green); }
+  .head h1 { margin: 0; font-size: 38px; line-height: 1; font-weight: 900; letter-spacing: -.03em; }
+  .head svg { position: absolute; right: 0; top: 8px; width: 110px; height: 44px; }
+  .head small { position: absolute; right: 0; bottom: 8px; font-size: 10px; color: var(--muted); }
+
+  .list { padding-top: 10px; }
+  .row { position: relative; display: grid; grid-template-columns: 76px 1fr auto; align-items: baseline; gap: 6px; width: 100%; padding: 3px 0 3px 0; }
+  .row::before { content: ""; position: absolute; left: -18px; top: 4px; bottom: 4px; width: 4px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
+  .row:hover::before, .is-open > .row::before { transform: scaleX(1); }
+  .row:hover .time { color: var(--green); }
+  .row:active { background: #f2fbf5; }
+  .row:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+  .time { font-size: 10.5px; color: var(--ink); font-variant-numeric: tabular-nums; transition: color .15s ease; }
+  .act { font-size: 14px; line-height: 18px; font-weight: 800; letter-spacing: -.01em; }
+  .act sup { color: var(--green); font-size: 12px; font-weight: 900; }
+  .act small { display: block; font-size: 14px; }
+  .end { font-size: 11px; color: var(--muted); }
+  .face { width: 18px; height: 18px; border-radius: 50%; background: var(--f); align-self: center; }
+
+  .sub-in { padding: 2px 0 8px 82px; font-size: 11px; line-height: 15px; color: var(--muted); }
+  .sub-in b { color: var(--ink); }
+  .foot { height: 9px; margin-top: 14px; background: var(--navy); }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="cap"></div>
+      <div class="head"><h1>Talent</h1>
+        <svg viewBox="0 0 110 44" fill="none" stroke="#111" stroke-width="1"><path d="M8 44 L110 0"/></svg>
+        <small>Pop stage</small></div>
+      <div class="list">
+        <button class="row"><span class="time">11:40–12:30</span><span class="act">Gecko</span></button>
+        <button class="row"><span class="time">13:20–14:10</span><span class="act">HiJack</span></button>
+        <button class="row"><span class="time">15:00–15:40</span><span class="act">Taipei Flat</span><span class="face" style="--f:#e8b88f"></span></button>
+        <button class="row"><span class="time">16:10–17:00</span><span class="act">Orange</span></button>
+        <div data-item>
+          <button class="row" data-expand aria-expanded="false"><span class="time">17:20–18:10</span><span class="act">DJ Umbra<sup>*</sup><small>/ Paul Chuang</small></span><span class="end">b2b</span></button>
+          <div class="sub"><div><div class="sub-in"><b>* Special set.</b> Two DJs, one booth, trading records every track.</div></div></div>
+        </div>
+        <button class="row"><span class="time">18:10–19:00</span><span class="act">Tiger Chocolate</span></button>
+        <button class="row"><span class="time">19:20–19:40</span><span class="act">Starfish<sup>*</sup></span></button>
+        <button class="row"><span class="time">20:10–21:00</span><span class="act">Random</span><span class="end">→</span></button>
+      </div>
+      <div class="foot"></div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

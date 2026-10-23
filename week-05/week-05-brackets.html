@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Brackets</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Brackets: after a plain-text coffee list. Nothing but monospace type on off-white: no boxes,
+     no rules, no colour. The leading slot is a pair of brackets, and what goes inside them says
+     what the row does: [→] goes deeper, [+] opens, [-] closes. Branches are drawn with box characters. */
+  @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap");
+  :root { --w: 340px; --ink: #151515; --muted: #8a8780; --bg: #f3f1ec; --font: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  body { font: 400 14px/1.55 var(--font); color: var(--ink); background: var(--bg); }
+  .level { padding: 16px 16px 28px; }
+  .label { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+
+  .row { display: flex; gap: 1ch; width: 100%; padding: 1px 4px; margin: 0 -4px; white-space: pre; }
+  .row:hover { background: rgba(0, 0, 0, .05); }
+  .row:active { background: var(--ink); color: var(--bg); }
+  .row:active .end { color: inherit; }
+  .row:focus-visible { outline: 1px dashed var(--ink); outline-offset: 0; }
+  /* leading: the brackets, and the mark inside them */
+  .mark::before { content: "[ ]"; }
+  .row:hover .mark[data-k="go"]::before { content: "[→]"; }
+  .mark[data-k="ex"]::before { content: "[+]"; }
+  .is-open .mark[data-k="ex"]::before { content: "[-]"; }
+  .mark[data-k="who"]::before { content: "(" attr(data-i) ")"; }
+  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .end { color: var(--muted); }
+  .two .name small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .two { white-space: normal; }
+
+  .branch { white-space: pre; color: var(--muted); padding-left: 4ch; }
+  .branch b { color: var(--ink); font-weight: 400; }
+
+  h2 { margin: 0; font-size: 14px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <p class="label">// single origin, 13 in stock</p>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">Finca El Morito</span><span class="end">COL</span></button>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">Las Delicias</span><span class="end">SLV</span></button>
+      <div data-item>
+        <button class="row" data-expand aria-expanded="false"><span class="mark" data-k="ex"></span><span class="name">Finca Bom Jesus</span><span class="end">3 lots</span></button>
+        <div class="sub"><div>
+          <div class="branch">├─ <b>Washed</b>        250g</div>
+          <div class="branch">├─ <b>Natural</b>       250g</div>
+          <div class="branch">└─ <b>Honey</b>         1kg</div>
+        </div></div>
+      </div>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">Big Buddy Blend</span><span class="end">€14</span></button>
+      <button class="row two"><span class="mark" data-k="go"></span><span class="name">Golden Huila<small>panela, red apple, cocoa</small></span><span class="end">COL</span></button>
+      <button class="row"><span class="mark" data-k="who" data-i="EH"></span><span class="name">Roasted by Elena</span><span class="end">→</span></button>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">La Esmeralda</span></button>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">El Diviso</span><span class="end">COL</span></button>
+      <button class="row"><span class="mark" data-k="go"></span><span class="name">La Cabaña</span><span class="end">PER</span></button>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

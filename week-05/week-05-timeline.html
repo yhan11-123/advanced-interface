@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Timeline</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Timeline: after a day plan. One thin blue line runs down the left with a hollow node per row;
+     rows are pale grey slabs, title left and time right. The open row floods blue, its text turns
+     white, faces and a white square button appear, and its node becomes a ring around a dot. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+  :root { --w: 340px; --blue: #5a8eea; --ink: #1d1d1f; --muted: #9a9ba3; --slab: #f5f6fa; --font: "Inter", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: #fff; }
+  .level { padding: 14px 14px 28px; }
+
+  .line { position: relative; display: grid; gap: 8px; padding-left: 26px; }
+  .line::before { content: ""; position: absolute; left: 6px; top: 14px; bottom: 14px; width: 2px; background: var(--blue); }
+  .step { position: relative; }
+  .node { position: absolute; left: -26px; top: 15px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--blue); background: #fff; transition: transform .25s ease; }
+  .node::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--blue); transform: scale(0); transition: transform .25s ease; }
+  .step:has(.row:hover) .node::after { transform: scale(.5); }
+  .step.is-open .node { transform: scale(1.35); }
+  .step.is-open .node::after { transform: scale(1); }
+
+  .slab { border-radius: 14px; background: var(--slab); transition: background-color .3s ease, color .3s ease; }
+  .slab:has(> .row:hover) { background: #edf0f7; }
+  .is-open .slab { background: var(--blue); color: #fff; }
+  .row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 12px 14px; border-radius: 14px; transition: transform .15s ease; }
+  .row:active { transform: scale(.985); }
+  .row:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .t { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; }
+  .t small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--muted); }
+  .is-open .t small { color: rgba(255, 255, 255, .8); }
+  .time { flex: none; font-size: 12px; color: #6d6e75; font-variant-numeric: tabular-nums; }
+  .is-open .time { color: #fff; }
+  .icon { flex: none; width: 20px; height: 20px; color: var(--blue); }
+  .go { flex: none; width: 12px; color: var(--muted); }
+
+  .sub-in { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 14px 14px; }
+  .sub-in p { margin: 0 0 10px; font-size: 12px; line-height: 17px; }
+  .faces { display: flex; }
+  .faces span { width: 24px; height: 24px; margin-right: -6px; border-radius: 50%; border: 2px solid var(--blue); background: var(--f); }
+  .square { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #fff; color: var(--blue); }
+  .square:hover { transform: scale(1.06); }
+  .square svg { width: 16px; height: 16px; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="line">
+        <div class="step"><span class="node"></span>
+          <div class="slab"><button class="row"><span class="t">Wake up<small>Early, and fresh</small></span><span class="time">7:00 AM</span></button></div>
+        </div>
+        <div class="step"><span class="node"></span>
+          <div class="slab"><button class="row">
+            <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10h12M6 7v6M14 7v6M3 9v2M17 9v2"/></svg>
+            <span class="t">Morning exercise</span><span class="time">8:00 AM</span></button></div>
+        </div>
+        <div class="step can-open is-open"><span class="node"></span>
+          <div class="slab is-open" data-item>
+            <button class="row" data-expand aria-expanded="true"><span class="t">Meeting<small>Zoom call</small></span><span class="time">9:00 AM</span></button>
+            <div class="sub"><div><div class="sub-in">
+              <div><p>Talk through the team's tasks for the day.</p>
+                <div class="faces"><span style="--f:#f2c6a8"></span><span style="--f:#ffd9b0"></span><span style="--f:#3e4a55"></span><span style="--f:#e79c7c"></span></div></div>
+              <button class="square" aria-label="Open meeting"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 11.5l7-7M6 4.5h5.5V10"/></svg></button>
+            </div></div></div>
+          </div>
+        </div>
+        <div class="step can-open"><span class="node"></span>
+          <div class="slab" data-item>
+            <button class="row" data-expand aria-expanded="false"><span class="t">Breakfast<small>Bread, banana, tea</small></span><span class="time">10:00 AM</span></button>
+            <div class="sub"><div><div class="sub-in"><p>An egg bowl too, if there is time.</p></div></div></div>
+          </div>
+        </div>
+        <div class="step"><span class="node"></span>
+          <div class="slab"><button class="row"><span class="t">Walk</span><svg class="go" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    // only one step open at a time, like a playhead moving down the day; the node follows its slab
+    const steps = [...document.querySelectorAll('.step.can-open')];
+    steps.forEach(step => step.querySelector('[data-expand]').addEventListener('click', () => setTimeout(() => {
+      const open = step.querySelector('.slab').classList.contains('is-open');
+      step.classList.toggle('is-open', open);
+      if (open) steps.forEach(o => { if (o !== step && o.classList.contains('is-open')) {
+        o.classList.remove('is-open'); o.querySelector('.slab').classList.remove('is-open'); o.querySelector('[data-expand]').setAttribute('aria-expanded', 'false'); } });
+    })));
+  </script>
+</body>
+</html>

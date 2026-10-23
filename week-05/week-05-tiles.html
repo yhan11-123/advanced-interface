@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Tiles</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Tiles, laid sideways: after a grid of tool cards. Soft white cards with a big radius sit in
+     one row on a cool grey-blue ground and slide sideways, the next card peeking in at the edge.
+     The slots turn with the row: leading is the pastel square at the top, content the title and
+     two lines in the middle, trailing the round button in the corner and the grey pill at the foot.
+     Opening a card does not push anything down; the card widens and its options appear beside it. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+  :root { --w: 360px; --ink: #121316; --muted: #8b9099; --pill: #eef0f4; --card-w: 184px; --open-w: 330px;
+    --ease: cubic-bezier(.2, .8, .2, 1); --font: "Inter", system-ui, sans-serif; }
+  body { font-family: var(--font); color: var(--ink); background: linear-gradient(170deg, #f3f5f8, #e3e8ef); }
+  .level { padding: 18px 0 28px; overflow: hidden; }
+
+  .head { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; margin-bottom: 12px; }
+  .head h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+  .head h1 small { margin-left: 6px; font-size: 13px; font-weight: 400; color: var(--muted); }
+  .nav { display: flex; gap: 6px; }
+  .nav button { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #fff; box-shadow: 0 4px 12px -8px rgba(20,30,50,.5); transition: background .2s, color .2s, opacity .2s; }
+  .nav button:hover { background: var(--ink); color: #fff; }
+  .nav button:disabled { opacity: .35; cursor: default; background: #fff; color: var(--ink); }
+  .nav svg { width: 12px; height: 12px; }
+
+  /* the row: slides sideways, a card snaps to the left edge, the next one peeks in */
+  .track { display: flex; align-items: stretch; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px;
+    padding: 4px 16px 22px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .track::-webkit-scrollbar { display: none; }
+
+  .card { flex: none; display: flex; width: var(--card-w); min-height: 236px; overflow: hidden; scroll-snap-align: start; background: #fff; border-radius: 22px;
+    box-shadow: 0 1px 2px rgba(20, 30, 50, .04), 0 10px 24px -18px rgba(20, 30, 50, .35);
+    transition: width .45s var(--ease), box-shadow .2s ease, transform .2s ease; }
+  .card:has(.row:hover) { box-shadow: 0 1px 2px rgba(20, 30, 50, .04), 0 16px 30px -16px rgba(20, 30, 50, .45); transform: translateY(-2px); }
+  .card:has(.row:active) { transform: scale(.985); }
+  .card.is-open { width: var(--open-w); }
+  .main { flex: none; display: flex; flex-direction: column; width: var(--card-w); padding: 14px; }
+  .row { display: flex; flex-direction: column; align-items: flex-start; flex: 1; width: 100%; border-radius: 14px; }
+  .row:focus-visible { outline: 2px solid #5b7cfa; outline-offset: 6px; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+  .tile { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--c); color: #2a2d33; }
+  .tile svg { width: 16px; height: 16px; }
+  .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e6e2fb; color: #4a3fb0; font-size: 12px; font-weight: 600; }
+  .dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--pill); transition: background .2s ease, color .2s ease, rotate .35s var(--ease); }
+  .dot svg { width: 12px; height: 12px; }
+  .row:hover .dot { background: var(--ink); color: #fff; }
+  .is-open .dot { rotate: -90deg; background: var(--ink); color: #fff; }
+  .meta { font-size: 12px; color: var(--muted); }
+  .t { margin-top: 14px; font-size: 17px; line-height: 21px; font-weight: 600; letter-spacing: -.01em; }
+  .s { margin-top: 6px; font-size: 12px; line-height: 17px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .pill { display: block; width: 100%; margin-top: 12px; padding: 10px; border-radius: 999px; background: var(--pill); text-align: center; font-size: 13px; font-weight: 500; transition: background .2s ease; }
+  .pill:hover { background: #e3e6ec; }
+  .pill:active { background: #d9dde4; }
+
+  /* opened: the options sit to the right of the card's own content */
+  .side { flex: none; width: calc(var(--open-w) - var(--card-w)); padding: 14px 14px 14px 0; opacity: 0; transition: opacity .2s ease; }
+  .is-open .side { opacity: 1; transition: opacity .3s ease .18s; }
+  .side p { margin: 4px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .opt { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #f1f2f5; font-size: 12px; white-space: nowrap; }
+  .opt span { color: var(--muted); white-space: nowrap; margin-left: 8px; }
+  @media (prefers-reduced-motion: reduce) { .card, .side { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="head"><h1>Tools<small>6</small></h1>
+        <div class="nav">
+          <button type="button" data-step="-1" aria-label="Previous tools"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7.5 2.5L4 6l3.5 3.5"/></svg></button>
+          <button type="button" data-step="1" aria-label="More tools"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></button>
+        </div>
+      </div>
+
+      <div class="track" role="list">
+        <div class="card" role="listitem">
+          <div class="main"><button class="row">
+            <span class="top"><span class="tile" style="--c:#dfe7ff"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5.5 6h5M5.5 9h3"/></svg></span>
+              <span class="dot"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></span>
+            <span class="t">Tone Analyzer</span><span class="s">Reads a draft and tells you how it sounds before anyone else does.</span>
+          </button><span class="pill">Learn more</span></div>
+        </div>
+        <div class="card" role="listitem" data-item>
+          <div class="main"><button class="row" data-expand aria-expanded="false">
+            <span class="top"><span class="tile" style="--c:#dcf3e6"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 13.5c-3-2-5-4-5-6.5a3 3 0 0 1 5-2.2A3 3 0 0 1 13 7c0 2.5-2 4.5-5 6.5z"/></svg></span>
+              <span class="dot"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5l3 3 3-3"/></svg></span></span>
+            <span class="t">Content Optimizer</span><span class="s">Three ways to tighten a page.</span>
+          </button><span class="pill">Learn more</span></div>
+          <div class="side"><p>Choose one</p>
+            <div class="opt">Shorten<span>2 min</span></div>
+            <div class="opt">Restructure<span>5 min</span></div>
+            <div class="opt">Rewrite headings<span>1 min</span></div>
+          </div>
+        </div>
+        <div class="card" role="listitem">
+          <div class="main"><button class="row">
+            <span class="top"><span class="avatar">JP</span><span class="meta">3 tools</span></span>
+            <span class="t">Shared by Jun</span><span class="s">A set Jun put together for launch week.</span>
+          </button><span class="pill">Open set</span></div>
+        </div>
+        <div class="card" role="listitem">
+          <div class="main"><button class="row">
+            <span class="top"><span class="tile" style="--c:#fff0cf"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="5"/><path d="M8 5.5V8l2 1.5"/></svg></span>
+              <span class="dot"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></span>
+            <span class="t">Post Scheduler</span><span class="s">Queue it up, let it go out on time.</span>
+          </button><span class="pill">Learn more</span></div>
+        </div>
+        <div class="card" role="listitem">
+          <div class="main"><button class="row">
+            <span class="top"><span class="tile" style="--c:#ffe1e1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="4" width="11" height="8" rx="1.5"/><path d="M5 8h6"/></svg></span>
+              <span class="dot"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></span>
+            <span class="t">Command Optimizer</span>
+          </button><span class="pill">Learn more</span></div>
+        </div>
+        <div class="card" role="listitem">
+          <div class="main"><button class="row">
+            <span class="top"><span class="tile" style="--c:#e6f6f8"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12V4M8 12V7M13 12V2"/></svg></span>
+              <span class="dot"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></span>
+            <span class="t">Browse all tools</span>
+          </button><span class="pill">See 24 more</span></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    // sideways: the arrows move one card at a time and grey out at either end;
+    // a card that opens slides fully into view, since it grows to the right
+    const track = document.querySelector('.track');
+    const [prev, next] = document.querySelectorAll('.nav button');
+    const step = () => track.querySelector('.card').offsetWidth + 10;
+    const ends = () => { prev.disabled = track.scrollLeft < 4; next.disabled = track.scrollLeft > track.scrollWidth - track.clientWidth - 4; };
+    document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => track.scrollBy({ left: step() * b.dataset.step, behavior: 'smooth' })));
+    track.addEventListener('scroll', ends, { passive: true }); ends();
+    document.querySelectorAll('.card [data-expand]').forEach(b => b.addEventListener('click', () => setTimeout(() => {
+      const card = b.closest('.card');
+      if (card.classList.contains('is-open')) track.scrollTo({ left: card.offsetLeft - 16, behavior: 'smooth' });
+      ends();
+    }, 460)));
+  </script>
+</body>
+</html>

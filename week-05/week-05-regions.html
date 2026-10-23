@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Regions</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Regions: after a VPN country picker. Near-black, every row a long capsule with a hairline
+     edge; a round flag leads, a big round button with a chevron trails. The open row turns
+     violet-ink with a violet edge, its button fills violet, and the choice made inside it
+     is repeated in violet next to the name. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+  :root { --bg: #111113; --row: #1c1c1f; --edge: #2b2b30; --ink: #f4f4f6; --muted: #85858d; --vio: #6b5cff; --vio-ink: #262144;
+    --font: "Inter", system-ui, sans-serif; color-scheme: dark; }
+  body { font-family: var(--font); color: var(--ink); background: var(--bg); }
+  .level { padding: 14px 12px 28px; }
+  .head { display: flex; align-items: center; gap: 10px; margin: 0 4px 14px; }
+  .head h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+  .list { display: grid; gap: 8px; }
+
+  .cap { border: 1px solid var(--edge); border-radius: 30px; background: var(--row); transition: border-color .2s ease, background-color .25s ease; }
+  .cap:has(> .row:hover) { border-color: #45454c; }
+  .cap.is-open { background: var(--vio-ink); border-color: var(--vio); }
+  .row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 6px 6px 6px 10px; border-radius: 30px; transition: transform .15s ease; }
+  .row:active { transform: scale(.985); }
+  .row:focus-visible { outline: 2px solid var(--vio); outline-offset: 2px; }
+
+  .flag { flex: none; width: 32px; height: 32px; border-radius: 50%; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .flag.h { background: linear-gradient(var(--a) 33.3%, var(--b) 0 66.6%, var(--c) 0); }
+  .flag.v { background: linear-gradient(90deg, var(--a) 33.3%, var(--b) 0 66.6%, var(--c) 0); }
+  .text { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; }
+  .text small { margin-left: 6px; font-size: 14px; font-weight: 400; color: var(--muted); }
+  .is-open .text small { color: var(--vio); color: #8e83ff; }
+  .btn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #29292e; transition: background .25s ease; }
+  .btn svg { width: 14px; height: 14px; transition: rotate .3s ease; }
+  .row:hover .btn { background: #34343a; }
+  .is-open .btn { background: var(--vio); }
+  .is-open .btn svg { rotate: 180deg; }
+
+  .sub-in { padding: 0 10px 10px; }
+  .opt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 7px 4px; border-radius: 14px; font-size: 14px; }
+  .opt:hover { background: rgba(255, 255, 255, .04); }
+  .opt:active { background: rgba(255, 255, 255, .08); }
+  .sig { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #2b2650; color: var(--vio); }
+  .sig svg { width: 12px; height: 12px; }
+  .opt[aria-pressed="true"] .sig { background: var(--vio); color: #fff; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="head"><h1>Choose a Region</h1></div>
+      <div class="list">
+        <div class="cap is-open" data-item>
+          <button class="row" data-expand aria-expanded="true">
+            <span class="flag h" style="--a:#d52b1e; --b:#fff; --c:#d52b1e"></span>
+            <span class="text">Austria<small class="pick">Vienna</small></span>
+            <span class="btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5l4 4 4-4"/></svg></span>
+          </button>
+          <div class="sub"><div><div class="sub-in">
+            <button class="opt" aria-pressed="false"><span class="sig"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="7" width="2" height="4"/><rect x="5" y="4" width="2" height="7"/><rect x="9" y="1" width="2" height="10" opacity=".35"/></svg></span>Graz</button>
+            <button class="opt" aria-pressed="true"><span class="sig"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="7" width="2" height="4"/><rect x="5" y="4" width="2" height="7"/><rect x="9" y="1" width="2" height="10"/></svg></span>Vienna</button>
+            <button class="opt" aria-pressed="false"><span class="sig"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="7" width="2" height="4"/><rect x="5" y="4" width="2" height="7" opacity=".35"/><rect x="9" y="1" width="2" height="10" opacity=".35"/></svg></span>Salzburg</button>
+          </div></div></div>
+        </div>
+        <div class="cap" data-item>
+          <button class="row" data-expand aria-expanded="false">
+            <span class="flag h" style="--a:#ae1c28; --b:#fff; --c:#21468b"></span>
+            <span class="text">Netherlands<small>2 Regions</small></span>
+            <span class="btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5l4 4 4-4"/></svg></span>
+          </button>
+          <div class="sub"><div><div class="sub-in">
+            <button class="opt" aria-pressed="false"><span class="sig"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="7" width="2" height="4"/><rect x="5" y="4" width="2" height="7"/><rect x="9" y="1" width="2" height="10"/></svg></span>Amsterdam</button>
+            <button class="opt" aria-pressed="false"><span class="sig"><svg viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="7" width="2" height="4"/><rect x="5" y="4" width="2" height="7"/><rect x="9" y="1" width="2" height="10" opacity=".35"/></svg></span>Rotterdam</button>
+          </div></div></div>
+        </div>
+        <div class="cap"><button class="row">
+          <span class="flag h" style="--a:#000; --b:#dd0000; --c:#ffce00"></span>
+          <span class="text">Germany<small>16 Regions</small></span>
+          <span class="btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" style="rotate:-90deg"><path d="M3 5l4 4 4-4"/></svg></span>
+        </button></div>
+        <div class="cap"><button class="row">
+          <span class="flag v" style="--a:#002395; --b:#fff; --c:#ed2939"></span>
+          <span class="text">France<small>8 Regions</small></span>
+          <span class="btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" style="rotate:-90deg"><path d="M3 5l4 4 4-4"/></svg></span>
+        </button></div>
+        <div class="cap"><button class="row">
+          <span class="text" style="padding-left:4px">Fastest available</span>
+          <span class="btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" style="rotate:-90deg"><path d="M3 5l4 4 4-4"/></svg></span>
+        </button></div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+  <script>
+    // choosing a city inside an open country: it lights, and its name is repeated beside the country
+    document.querySelectorAll('.cap[data-item]').forEach(cap => cap.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+      cap.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === o));
+      const small = cap.querySelector('.text small');
+      small.textContent = o.textContent.trim();
+    })));
+  </script>
+</body>
+</html>

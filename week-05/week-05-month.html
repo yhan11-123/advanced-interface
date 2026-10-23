@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Month</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Month: after a club's monthly calendar poster. Pale paper, black hairline boxes, and one
+     green ink in a bitmap monospace. Titles are set in capitals and forced to justify edge to
+     edge, so every line fills its box; names below are spread the same way. A narrow column of
+     small boxes for the empty days before it leads each row. Hover floods the box green and turns the type paper. */
+  @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+  :root { --w: 380px; --paper: #eeefe9; --green: #17c873; --green-2: #0fa95f; --line: #1b1b1b; --font: "VT323", ui-monospace, monospace; }
+  body { font-family: var(--font); color: var(--green); background: var(--paper); }
+  .level { padding: 14px 14px 28px; }
+
+  .cal { border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .wk { display: grid; grid-template-columns: 40px 1fr; }
+  .days { display: grid; }
+  .days span, .box { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .days span { display: flex; align-items: center; padding-left: 6px; min-height: 26px; font-size: 19px; }
+
+  .box { transition: background-color .12s steps(2), color .12s steps(2); }
+  .box { display: flex; flex-direction: column; }
+  .row { flex: 1; display: flex; flex-direction: column; justify-content: space-between; width: 100%; padding: 4px 8px 6px; }
+  .box:has(> .row:hover) { background: var(--green); color: var(--paper); }
+  .box:has(> .row:active) { background: var(--green-2); color: var(--paper); }
+  .row:focus-visible { outline: 2px dashed var(--line); outline-offset: -4px; }
+  .no { font-size: 19px; line-height: 1; }
+  .t { display: block; margin-top: 2px; font-size: 31px; line-height: .95; text-transform: uppercase; text-align: justify; text-align-last: justify; }
+  .who { display: block; margin-top: 10px; font-size: 16px; line-height: 1.05; }
+  .who span { display: flex; justify-content: space-between; }
+  .who i, .sub-in i { font-style: normal; }
+  .pic { display: block; height: 52px; margin: 2px -8px -6px; }
+  .pic svg { display: block; width: 100%; height: 100%; }
+  .box:has(> .row:hover) .pic path { fill: var(--paper); }
+  .sign { float: right; font-size: 22px; line-height: 18px; }
+  .is-open .sign { rotate: 45deg; }
+
+  .sub-in { padding: 0 8px 8px; font-size: 16px; line-height: 1.1; }
+  .sub-in div { display: flex; justify-content: space-between; border-top: 1px dashed currentColor; padding-top: 3px; margin-top: 3px; }
+  .box.is-open { background: var(--paper); color: var(--green); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="cal">
+        <div class="wk"><div class="days"><span></span></div>
+          <div class="box"><button class="row"><span class="no">01</span>
+            <span class="t">DJB present B night: Cora B2B Knopha</span>
+            <span class="who"><span><i>Amezeng,</i><i>Cora B2B Knopha</i></span></span></button></div>
+        </div>
+        <div class="wk"><div class="days"><span></span></div>
+          <div class="box" data-item><button class="row" data-expand aria-expanded="false"><span class="no">02-03 <span class="sign">+</span></span>
+            <span class="t">Zhaodai golden week</span>
+            <span class="who"><span><i>Knopha,</i><i>Fafa Parrrk</i></span><span><i>Dj Chiro,</i><i>Illsee</i></span></span></button>
+            <div class="sub"><div><div class="sub-in">
+              <div><i>10-2</i><i>Knopha, Fafa Parrrk</i></div>
+              <div><i>10-2</i><i>Mohemann, Pocario</i></div>
+              <div><i>10-3</i><i>Dj Chiro, Illsee</i></div>
+              <div><i>10-3</i><i>Simon Frank</i></div>
+            </div></div></div>
+          </div>
+        </div>
+        <div class="wk"><div class="days"><span>04</span><span>05</span><span>06</span></div>
+          <div class="box"><button class="row" aria-label="07, Tiger night"><span class="no">07</span>
+            <span class="pic"><svg viewBox="0 0 320 52" preserveAspectRatio="xMidYMid meet"><path fill="#17c873" d="M96 30h8v-4h8v-4h40v-4h24v4h16v-4h12v-4h8v4h4v8h-4v4h-8v8h-4v8h-8v-8h-8v8h-8v-8h-36v8h-8v-8h-12v8h-8v-8h-8v-4h-8z"/></svg></span></button></div>
+        </div>
+        <div class="wk"><div class="days"><span>10</span><span>11</span><span>12</span></div>
+          <div class="box"><button class="row"><span class="no">13</span>
+            <span class="t">Vibrations of the jack</span>
+            <span class="who"><span><i>Darcy,</i><i>Jiahao</i></span><span><i>Jackin001</i></span></span></button></div>
+        </div>
+        <div class="wk"><div class="days"><span>14</span></div>
+          <div class="box"><button class="row"><span class="no">15</span>
+            <span class="t">Tunnel #19</span>
+            <span class="who"><span><i>Fafa Parrrk,</i><i>Mohemann</i></span></span></button></div>
+        </div>
+        <div class="wk"><div class="days"><span>20</span><span>21</span><span>22</span></div>
+          <div class="box" data-item><button class="row" data-expand aria-expanded="false"><span class="no">23 <span class="sign">+</span></span>
+            <span class="t">5 years genome 6.66 MBP</span>
+            <span class="who"><span><i>Darphy,</i><i>Kilo-Vee</i></span><span><i>Yikii (live),</i><i>Zooy</i></span></span></button>
+            <div class="sub"><div><div class="sub-in">
+              <div><i>22:00</i><i>Darphy</i></div>
+              <div><i>00:00</i><i>Yikii (live)</i></div>
+              <div><i>02:00</i><i>Kilo-Vee b2b Zooy</i></div>
+            </div></div></div>
+          </div>
+        </div>
+        <div class="wk"><div class="days"><span>27</span><span>28</span><span>29</span></div>
+          <div class="box"><button class="row"><span class="no">30</span>
+            <span class="t">Hallo ween</span>
+            <span class="who"><span><i>Luxixi,</i><i>LOU</i></span></span></button></div>
+        </div>
+        <div class="wk"><div class="days"><span>31</span></div><div class="box"></div></div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>

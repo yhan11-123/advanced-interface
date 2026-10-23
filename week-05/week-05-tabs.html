@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 05 sketch &middot; Tabs</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-05-sketch.css?v=3" />
+  <style>
+  /* Tabs: after a project schedule. Deep navy; each row is a pastel card with a folder tab rising
+     from its top-left corner that carries the status, faces and a progress bar sit on the shoulder
+     beside it. A navy diamond leads, a kebab trails. Times run down a dashed rail on the left. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+  :root { --navy: #1e2a44; --deep: #142038; --ink: #10182b; --rail: #8792a8; --font: "Inter", system-ui, sans-serif; color-scheme: dark; }
+  body { font-family: var(--font); color: #fff; background: var(--navy); }
+  .level { padding: 12px 12px 28px; }
+
+  .slot { display: grid; grid-template-columns: 38px 1fr; gap: 8px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px dashed rgba(255, 255, 255, .14); }
+  .slot:last-child { border-bottom: 0; }
+  .when { display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0 6px; font-size: 10.5px; color: var(--rail); }
+  .when::after { content: ""; order: 1; flex: 1; margin: 6px 0 6px 10px; border-left: 1px dashed rgba(255, 255, 255, .25); }
+  .when span:last-child { order: 2; }
+
+  .job { --c: #cfe8a8; position: relative; }
+  .shoulder { display: flex; align-items: center; gap: 8px; height: 30px; }
+  .tab { position: relative; height: 30px; padding: 8px 14px 0; border-radius: 12px 12px 0 0; background: var(--c); color: var(--ink); font-size: 10.5px; font-weight: 600; }
+  .tab::after { content: ""; position: absolute; right: -12px; bottom: 0; width: 12px; height: 12px; background: radial-gradient(circle at 100% 0, transparent 11.5px, var(--c) 12px); }
+  .faces { display: flex; margin-left: 10px; }
+  .faces span { width: 20px; height: 20px; margin-right: -5px; border-radius: 50%; border: 2px solid var(--navy); background: var(--f); }
+  .bar { flex: 1; height: 4px; margin-left: 10px; border-radius: 2px; background: rgba(255, 255, 255, .12); }
+  .bar i { display: block; height: 100%; width: var(--p); border-radius: 2px; background: var(--c); }
+  .pct { font-size: 10px; color: var(--c); font-variant-numeric: tabular-nums; }
+
+  .body { border-radius: 0 16px 16px 16px; background: var(--c); color: var(--ink); transition: transform .2s ease; }
+  .job:has(.row:hover) .body { transform: translateX(3px); }
+  .job:has(.row:active) .body { transform: scale(.98); }
+  .row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 10px 12px 14px; border-radius: inherit; }
+  .row:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .dia { position: relative; flex: none; display: grid; place-items: center; width: 34px; height: 34px; }
+  .dia::before { content: ""; position: absolute; width: 26px; height: 26px; border-radius: 6px; background: var(--deep); rotate: 45deg; transition: rotate .4s ease; }
+  .row:hover .dia::before, .is-open .dia::before { rotate: 135deg; }
+  .dia svg { position: relative; width: 14px; height: 14px; color: var(--c); }
+  .text { flex: 1; min-width: 0; }
+  .t { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+  .s { display: block; margin-top: 1px; font-size: 12px; color: rgba(16, 24, 43, .65); }
+  .kebab { flex: none; width: 4px; height: 16px; background: radial-gradient(circle, var(--ink) 1.8px, transparent 2.2px) 0 0 / 4px 6px repeat-y; margin-right: 6px; }
+  .chev { flex: none; width: 16px; height: 16px; transition: rotate .3s ease; }
+  .is-open .chev { rotate: 180deg; }
+
+  .sub-in { padding: 0 14px 12px 60px; }
+  .task { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12.5px; border-top: 1px solid rgba(16, 24, 43, .12); }
+  .task b { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--ink); }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <section class="level is-on" id="home">
+      <div class="slot"><div class="when"><span>10 am</span><span>02 pm</span></div>
+        <div class="job" style="--c:#cfe8a8">
+          <div class="shoulder"><span class="tab">Done</span><span class="faces"><span style="--f:#f2c6a8"></span><span style="--f:#c8d6e5"></span><span style="--f:#e8a77c"></span></span><span class="bar" style="--p:100%"><i></i></span><span class="pct">100%</span></div>
+          <div class="body"><button class="row">
+            <span class="dia"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l1.2 1.2L5.5 3M7.5 4.5h4.5M2 9.5l1.2 1.2 2.3-2.2M7.5 10h4.5"/></svg></span>
+            <span class="text"><span class="t">Web Design</span><span class="s">Client project</span></span>
+            <span class="kebab"></span>
+          </button></div>
+        </div>
+      </div>
+      <div class="slot"><div class="when"><span>03 pm</span><span>04 pm</span></div>
+        <div class="job" style="--c:#62c5e5">
+          <div class="shoulder"><span class="tab">On hold</span><span class="faces"><span style="--f:#e6d2b5"></span><span style="--f:#56483e"></span></span><span class="bar" style="--p:0%"><i></i></span><span class="pct">0%</span></div>
+          <div class="body" data-item>
+            <button class="row" data-expand aria-expanded="false">
+              <span class="dia"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l1.2 1.2L5.5 3M7.5 4.5h4.5M2 9.5l1.2 1.2 2.3-2.2M7.5 10h4.5"/></svg></span>
+              <span class="text"><span class="t">Family Program</span><span class="s">3 tasks</span></span>
+              <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"/></svg>
+            </button>
+            <div class="sub"><div><div class="sub-in">
+              <div class="task"><b></b>Pick a weekend</div>
+              <div class="task"><b></b>Book the cabin</div>
+              <div class="task"><b></b>Pack the car</div>
+            </div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="slot"><div class="when"><span>06 pm</span><span>08 pm</span></div>
+        <div class="job" style="--c:#d3c8e8">
+          <div class="shoulder"><span class="tab">Running</span><span class="faces"><span style="--f:#e79c7c"></span></span><span class="bar" style="--p:72%"><i></i></span><span class="pct">72%</span></div>
+          <div class="body"><button class="row">
+            <span class="text"><span class="t">Market Research</span></span>
+            <span class="kebab"></span>
+          </button></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <a class="back-pill" href="week-05.html" hidden>&larr; Week 05</a>
+  <script src="week-05-sketch.js?v=3"></script>
+</body>
+</html>
