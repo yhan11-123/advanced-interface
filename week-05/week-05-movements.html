@@ -26,7 +26,7 @@
     --orange: #f47a12; --butter: #f6d33c; --ink-c: #111111; --cream: #d9d2c0; --pink: #f57aa2; --plum: #7d2f8f; --slate: #5f7682;
     --label-w: 292px; --lane: 28px; --lane-open: 38px; --lane-gap: 4px; --row-pad: 22px; --gap: 3px; --col-gap: 20px; --trail-w: 32px;
     --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-    --ease: cubic-bezier(.2, .8, .2, 1); --page-dur: .5s; --reveal-dur: .85s; --reveal-ease: cubic-bezier(.86, 0, .1, 1); --reveal-delay: .15s; --reveal-step: .08s; --open-dur: .45s; --zoom-dur: .6s;
+    --ease: cubic-bezier(.2, .8, .2, 1); --page-dur: .5s; --reveal-dur: 1s; --reveal-ease: cubic-bezier(.7, 0, .2, 1); --reveal-delay: .15s; --reveal-step: .08s; --open-dur: .45s; --zoom-dur: .6s;
   }
   @media (prefers-reduced-motion: reduce) { :root { --open-dur: .01s; --zoom-dur: .01s; --page-dur: .01s; --reveal-dur: .01s; --reveal-delay: 0s; --reveal-step: 0s; } }
   * { box-sizing: border-box; }
@@ -152,10 +152,11 @@
   .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--paper); }
   /* the works arrive in turn, each wiped open: the first from the top down, the next from the bottom up,
      and so on; the picture inside settles the other way as it is uncovered */
-  /* a beat behind the page; a steep ease-in-out, slow to lift, quick through the middle, slow to land */
+  /* a beat behind the page; an ease-in-out that lifts gently, crosses the middle and lands long; the picture
+     inside settles a little longer on an ease-out, so the two tails overlap and nothing stops at once */
   .work .ph { animation: wipe-down var(--reveal-dur) var(--reveal-ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step)) both; }
   .work:nth-child(even) .ph { animation-name: wipe-up; }
-  .work .ph img { animation: settle-down var(--reveal-dur) var(--reveal-ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step)) both; }
+  .work .ph img { animation: settle-down calc(var(--reveal-dur) * 1.3) var(--ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step)) both; }
   .work:nth-child(even) .ph img { animation-name: settle-up; }
   .work figcaption { animation: caption-in .5s var(--ease) calc(var(--reveal-delay) + var(--i, 0) * var(--reveal-step) + var(--reveal-dur) * .45) both; }
   @keyframes wipe-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
@@ -274,7 +275,7 @@
     <h3>Motion</h3>
     <table>
       <tr><td>Open in place</td><td><span data-var="--open-dur"></span> ease-out; the drawer grows under the row, its contents fade in after</td></tr>
-      <tr><td>The works arriving</td><td>Each picture is wiped open over <span data-var="--reveal-dur"></span> on a steep ease-in-out, <code>cubic-bezier(.86, 0, .1, 1)</code>, top down, then bottom up, in turn: the first <span data-var="--reveal-delay"></span> after the drawer starts to open, the rest <span data-var="--reveal-step"></span> apart; the picture inside settles from 1.08 the other way; its caption follows</td></tr>
+      <tr><td>The works arriving</td><td>Each picture is wiped open over <span data-var="--reveal-dur"></span> on an ease-in-out, <code>cubic-bezier(.7, 0, .2, 1)</code>, top down, then bottom up, in turn: the first <span data-var="--reveal-delay"></span> after the drawer starts to open, the rest <span data-var="--reveal-step"></span> apart; the picture inside settles from 1.08 the other way, on an ease-out a third longer; its caption follows</td></tr>
       <tr><td>Into an era, and back</td><td><span data-var="--zoom-dur"></span> ease-out; blocks slide and stretch to the new span</td></tr>
     </table>
   </details>
