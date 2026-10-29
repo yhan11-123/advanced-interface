@@ -21,10 +21,10 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | Paris | Fauvism | Charing Cross Bridge | André Derain | 1906 | `derain-charing-cross-bridge.jpg` | in |
 | Paris | Fauvism | The Joy of Life | Henri Matisse | 1906 | `matisse-the-joy-of-life.jpg` | in |
 | Paris | Cubism | Les Demoiselles d’Avignon | Pablo Picasso | 1907 | `picasso-les-demoiselles-d-avignon.jpg` | in |
-| Paris | Cubism | Violin and Candlestick | Georges Braque | 1910 | `braque-violin-and-candlestick.jpg` | missing |
+| Paris | Cubism | Violin and Candlestick | Georges Braque | 1910 | `braque-violin-and-candlestick.jpg` | in |
 | Paris | Dada | L.H.O.O.Q. | Marcel Duchamp | 1919 | `duchamp-l-h-o-o-q.jpg` | in |
 | Paris | Dada | L’Œil cacodylate | Francis Picabia | 1921 | `picabia-l-il-cacodylate.jpg` | in |
-| Paris | Surrealism | Harlequin’s Carnival | Joan Miró | 1925 | `miro-harlequin-s-carnival.jpg` | missing |
+| Paris | Surrealism | Harlequin’s Carnival | Joan Miró | 1925 | `miro-harlequin-s-carnival.jpg` | in |
 | Paris | Surrealism | The Treachery of Images | René Magritte | 1929 | `magritte-the-treachery-of-images.jpg` | in |
 | Paris | Surrealism | The Persistence of Memory | Salvador Dalí | 1931 | `dali-the-persistence-of-memory.jpg` | in |
 | Paris | Art Deco | Young Lady with Gloves | Tamara de Lempicka | 1930 | `lempicka-young-lady-with-gloves.jpg` | missing |
@@ -40,10 +40,10 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | London | Impressionism | Girls Running, Walberswick Pier | Philip Wilson Steer | 1894 | `steer-girls-running-walberswick-pier.jpg` | in |
 | London | Impressionism | Little Dot Hetherington at the Old Bedford | Walter Sickert | 1889 | `sickert-little-dot-hetherington-at-the-old-bedford.jpg` | in |
 | London | Vorticism | Hieratic Head of Ezra Pound | Henri Gaudier-Brzeska | 1914 | `gaudier-brzeska-hieratic-head-of-ezra-pound.jpg` | in |
-| London | Vorticism | The Crowd | Wyndham Lewis | 1915 | `lewis-the-crowd.jpg` | missing |
+| London | Vorticism | The Crowd | Wyndham Lewis | 1915 | `lewis-the-crowd.jpg` | in |
 | London | Surrealism | Night and Day | Roland Penrose | 1937 | `penrose-night-and-day.jpg` | missing |
-| London | Surrealism | Landscape from a Dream | Paul Nash | 1938 | `nash-landscape-from-a-dream.jpg` | missing |
-| London | Pop Art | Just what is it that makes today’s homes so different, so appealing? | Richard Hamilton | 1956 | `hamilton-just-what-is-it-that-makes-today-s-home.jpg` | missing |
+| London | Surrealism | Landscape of the Vernal Equinox | Paul Nash | 1943 | `nash-landscape-of-the-vernal-equinox.jpg` | in |
+| London | Pop Art | Just what is it that makes today’s homes so different, so appealing? | Richard Hamilton | 1956 | `hamilton-just-what-is-it-that-makes-today-s-home.jpg` | in |
 | London | Pop Art | Sgt. Pepper’s sleeve | Peter Blake | 1967 | `blake-sgt-pepper-s-sleeve.jpg` | in |
 | London | Conceptual art | Index 01 | Art & Language | 1972 | `language-index-01.jpg` | in |
 | London | Young British Artists | The Physical Impossibility of Death in the Mind of Someone Living | Damien Hirst | 1991 | `hirst-the-physical-impossibility-of-death-in-the.jpg` | in |
@@ -52,7 +52,7 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | Vienna | Secession | Secession Building | Joseph Maria Olbrich | 1898 | `olbrich-secession-building.jpg` | in |
 | Vienna | Secession | Beethoven Frieze | Gustav Klimt | 1902 | `klimt-beethoven-frieze.jpg` | in |
 | Vienna | Secession | The Kiss | Gustav Klimt | 1908 | `klimt-the-kiss.jpg` | in |
-| Vienna | Art Nouveau | Armchair for Purkersdorf | Koloman Moser | 1903 | `moser-armchair-for-purkersdorf.jpg` | missing |
+| Vienna | Art Nouveau | Armchair for Purkersdorf | Koloman Moser | 1903 | `moser-armchair-for-purkersdorf.jpg` | in |
 | Vienna | Art Nouveau | Palais Stoclet | Josef Hoffmann | 1911 | `hoffmann-palais-stoclet.jpg` | in |
 | Vienna | Expressionism | Self-Portrait with Physalis | Egon Schiele | 1912 | `schiele-self-portrait-with-physalis.jpg` | in |
 | Vienna | Expressionism | The Bride of the Wind | Oskar Kokoschka | 1914 | `kokoschka-the-bride-of-the-wind.jpg` | in |
@@ -63,10 +63,10 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | Munich, Berlin, Weimar | Secession | The Sin | Franz von Stuck | 1893 | `stuck-the-sin.jpg` | in |
 | Munich, Berlin, Weimar | Secession | Bathing Boys | Max Liebermann | 1900 | `liebermann-bathing-boys.jpg` | in |
 | Munich, Berlin, Weimar | Art Nouveau | Whiplash | Hermann Obrist | 1895 | `obrist-whiplash.jpg` | in |
-| Munich, Berlin, Weimar | Expressionism | Street, Dresden | Ernst Ludwig Kirchner | 1908 | `kirchner-street-dresden.jpg` | missing |
+| Munich, Berlin, Weimar | Expressionism | Street, Dresden | Ernst Ludwig Kirchner | 1908 | `kirchner-street-dresden.jpg` | in |
 | Munich, Berlin, Weimar | Expressionism | Composition VII | Wassily Kandinsky | 1913 | `kandinsky-composition-vii.jpg` | in |
 | Munich, Berlin, Weimar | Expressionism | The Tower of Blue Horses | Franz Marc | 1913 | `marc-the-tower-of-blue-horses.jpg` | in |
-| Munich, Berlin, Weimar | Dada | Cut with the Kitchen Knife | Hannah Höch | 1919 | `hoch-cut-with-the-kitchen-knife.jpg` | missing |
+| Munich, Berlin, Weimar | Dada | Cut with the Kitchen Knife | Hannah Höch | 1919 | `hoch-cut-with-the-kitchen-knife.jpg` | in |
 | Munich, Berlin, Weimar | Dada | Mechanical Head | Raoul Hausmann | 1920 | `hausmann-mechanical-head.jpg` | missing |
 | Munich, Berlin, Weimar | Bauhaus | Wassily Chair | Marcel Breuer | 1925 | `breuer-wassily-chair.jpg` | in |
 | Munich, Berlin, Weimar | Bauhaus | Bauhaus Building, Dessau | Walter Gropius | 1926 | `gropius-bauhaus-building-dessau.jpg` | in |
@@ -74,7 +74,7 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | Munich, Berlin, Weimar | New Objectivity | Portrait of the Journalist Sylvia von Harden | Otto Dix | 1926 | `dix-portrait-of-the-journalist-sylvia-von-harden.jpg` | in |
 | Munich, Berlin, Weimar | New Objectivity | Self-Portrait with Model | Christian Schad | 1927 | `schad-self-portrait-with-model.jpg` | missing |
 | Munich, Berlin, Weimar | Zero | Light Ballet | Otto Piene | 1961 | `piene-light-ballet.jpg` | missing |
-| Munich, Berlin, Weimar | Zero | White Field | Günther Uecker | 1964 | `uecker-white-field.jpg` | missing |
+| Munich, Berlin, Weimar | Zero | White Field | Günther Uecker | 1964 | `uecker-white-field.jpg` | in |
 | Munich, Berlin, Weimar | Fluxus | Exposition of Music – Electronic Television | Nam June Paik | 1963 | `paik-exposition-of-music-electronic-television.jpg` | missing |
 | Munich, Berlin, Weimar | Fluxus | How to Explain Pictures to a Dead Hare | Joseph Beuys | 1965 | `beuys-how-to-explain-pictures-to-a-dead-hare.jpg` | missing |
 | Munich, Berlin, Weimar | Neo-Expressionism | The Wood on Its Head | Georg Baselitz | 1969 | `baselitz-the-wood-on-its-head.jpg` | missing |
@@ -98,7 +98,7 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | Moscow, St Petersburg | Suprematism | Black Square | Kazimir Malevich | 1915 | `malevich-black-square.jpg` | in |
 | Moscow, St Petersburg | Suprematism | Painterly Architectonic | Lyubov Popova | 1917 | `popova-painterly-architectonic.jpg` | in |
 | Moscow, St Petersburg | Constructivism | Monument to the Third International | Vladimir Tatlin | 1920 | `tatlin-monument-to-the-third-international.jpg` | in |
-| Moscow, St Petersburg | Constructivism | Books (Lengiz poster) | Alexander Rodchenko | 1924 | `rodchenko-books-lengiz-poster.jpg` | missing |
+| Moscow, St Petersburg | Constructivism | Books (Lengiz poster) | Alexander Rodchenko | 1924 | `rodchenko-books-lengiz-poster.jpg` | in |
 | Moscow, St Petersburg | Socialist Realism | Worker and Kolkhoz Woman | Vera Mukhina | 1937 | `mukhina-worker-and-kolkhoz-woman.jpg` | in |
 | Moscow, St Petersburg | Socialist Realism | Future Pilots | Aleksandr Deineka | 1938 | `deineka-future-pilots.jpg` | missing |
 | Moscow, St Petersburg | Sots Art | Glory to the CPSU | Erik Bulatov | 1975 | `bulatov-glory-to-the-cpsu.jpg` | missing |
@@ -106,7 +106,7 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | New York | Hudson River School | Niagara | Frederic Edwin Church | 1857 | `church-niagara.jpg` | in |
 | New York | Hudson River School | Heart of the Andes | Frederic Edwin Church | 1859 | `church-heart-of-the-andes.jpg` | in |
 | New York | Impressionism | The Child’s Bath | Mary Cassatt | 1893 | `cassatt-the-child-s-bath.jpg` | in |
-| New York | Impressionism | Allies Day, May 1917 | Childe Hassam | 1917 | `hassam-allies-day-may-1917.jpg` | missing |
+| New York | Impressionism | Allies Day, May 1917 | Childe Hassam | 1917 | `hassam-allies-day-may-1917.jpg` | in |
 | New York | Dada | The Rope Dancer Accompanies Herself with Her Shadows | Man Ray | 1916 | `ray-the-rope-dancer-accompanies-herself-with-her.jpg` | missing |
 | New York | Dada | Fountain | Marcel Duchamp | 1917 | `duchamp-fountain.jpg` | in |
 | New York | Art Deco | The Metropolis of Tomorrow | Hugh Ferriss | 1929 | `ferriss-the-metropolis-of-tomorrow.jpg` | in |
@@ -120,26 +120,26 @@ Save each image as a JPG in this folder (`week-05/images/art/`) with exactly the
 | New York | Abstract Expressionism | No. 61 (Rust and Blue) | Mark Rothko | 1953 | `rothko-no-61-rust-and-blue.jpg` | in |
 | New York | Pop Art | Campbell’s Soup Cans | Andy Warhol | 1962 | `warhol-campbell-s-soup-cans.jpg` | in |
 | New York | Pop Art | Whaam! | Roy Lichtenstein | 1963 | `lichtenstein-whaam.jpg` | in |
-| New York | Fluxus | Fluxus 1 | George Maciunas | 1964 | `maciunas-fluxus-1.jpg` | missing |
+| New York | Fluxus | Fluxus 1 | George Maciunas | 1964 | `maciunas-fluxus-1.jpg` | in |
 | New York | Fluxus | Cut Piece | Yoko Ono | 1965 | `ono-cut-piece.jpg` | missing |
 | New York | Minimalism | the nominal three | Dan Flavin | 1963 | `flavin-the-nominal-three.jpg` | missing |
 | New York | Minimalism | Untitled (Stack) | Donald Judd | 1967 | `judd-untitled-stack.jpg` | missing |
 | New York | Conceptual art | One and Three Chairs | Joseph Kosuth | 1965 | `kosuth-one-and-three-chairs.jpg` | in |
 | New York | Conceptual art | Wall Drawing #1 | Sol LeWitt | 1968 | `lewitt-wall-drawing-1.jpg` | missing |
 | New York | Neo-Expressionism | The Patient and the Doctors | Julian Schnabel | 1978 | `schnabel-the-patient-and-the-doctors.jpg` | missing |
-| New York | Neo-Expressionism | Untitled (Skull) | Jean-Michel Basquiat | 1981 | `basquiat-untitled-skull.jpg` | missing |
+| New York | Neo-Expressionism | Untitled (Skull) | Jean-Michel Basquiat | 1981 | `basquiat-untitled-skull.jpg` | in |
 | Tokyo, Osaka | Ukiyo-e, late | Sudden Shower over Shin-Ōhashi | Utagawa Hiroshige | 1857 | `hiroshige-sudden-shower-over-shin-ohashi.jpg` | in |
 | Tokyo, Osaka | Ukiyo-e, late | One Hundred Aspects of the Moon | Tsukioka Yoshitoshi | 1885 | `yoshitoshi-one-hundred-aspects-of-the-moon.jpg` | in |
-| Tokyo, Osaka | Yōga | Lakeside | Kuroda Seiki | 1897 | `seiki-lakeside.jpg` | missing |
+| Tokyo, Osaka | Yōga | Lakeside | Kuroda Seiki | 1897 | `seiki-lakeside.jpg` | in |
 | Tokyo, Osaka | Yōga | Portrait of Reiko | Kishida Ryūsei | 1921 | `ryusei-portrait-of-reiko.jpg` | in |
 | Tokyo, Osaka | Nihonga | Floating Lights | Yokoyama Taikan | 1909 | `taikan-floating-lights.jpg` | missing |
 | Tokyo, Osaka | Nihonga | Fallen Leaves | Hishida Shunsō | 1909 | `shunso-fallen-leaves.jpg` | in |
 | Tokyo, Osaka | Mavo | Construction | Murayama Tomoyoshi | 1925 | `tomoyoshi-construction.jpg` | missing |
 | Tokyo, Osaka | Gutai | Challenging Mud | Kazuo Shiraga | 1955 | `shiraga-challenging-mud.jpg` | missing |
-| Tokyo, Osaka | Gutai | Electric Dress | Atsuko Tanaka | 1956 | `tanaka-electric-dress.jpg` | missing |
+| Tokyo, Osaka | Gutai | Electric Dress | Atsuko Tanaka | 1956 | `tanaka-electric-dress.jpg` | in |
 | Tokyo, Osaka | Fluxus | Water Music | Mieko Shiomi | 1964 | `shiomi-water-music.jpg` | missing |
 | Tokyo, Osaka | Fluxus | Spatial Poem | Mieko Shiomi | 1965 | `shiomi-spatial-poem.jpg` | missing |
 | Tokyo, Osaka | Mono-ha | Phase—Mother Earth | Nobuo Sekine | 1968 | `sekine-phase-mother-earth.jpg` | in |
-| Tokyo, Osaka | Mono-ha | Relatum | Lee Ufan | 1968 | `ufan-relatum.jpg` | missing |
+| Tokyo, Osaka | Mono-ha | Relatum | Lee Ufan | 1968 | `ufan-relatum.jpg` | in |
 | Tokyo, Osaka | Superflat | 727 | Takashi Murakami | 1996 | `murakami-727.jpg` | missing |
 | Tokyo, Osaka | Superflat | Knife Behind Back | Yoshitomo Nara | 2000 | `nara-knife-behind-back.jpg` | missing |
