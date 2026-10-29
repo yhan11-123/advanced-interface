@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Terminal</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Terminal: a menu drawn with type only. One monospace size, a hard 1.5px box, no radius,
+     no shadow, no colour. Icons are glyphs, the badge is a bracketed count, sections are a
+     comment line. Hover inverts the row; pressing makes it blink twice, with no easing. */
+  @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+  :root { --w: 500px; --h: 330px; --ink: #141414; --paper: #f2f0ea; --muted: #8b877d; --font: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  body { background: var(--paper); color: var(--ink); font: 400 13px/1 var(--font); }
+  .menu { position: absolute; left: 24px; top: 24px; width: 260px; border: 1.5px solid var(--ink); background: var(--paper); padding: 6px 0; }
+  .menu::before { content: "┤ file ├"; position: absolute; top: -8px; left: 12px; padding: 0 2px; background: var(--paper); font-size: 12px; line-height: 14px; }
+  .item { display: flex; align-items: center; gap: 1ch; width: 100%; height: 28px; padding: 0 12px; white-space: pre; }
+  .item .ico { width: 2ch; color: var(--muted); }
+  .item .label { flex: 1; }
+  .item kbd, .item .end { color: var(--muted); }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { background: var(--ink); color: var(--paper); outline: none; }
+  .item:hover .ico, .item:hover kbd, .item:hover .end, .item:focus-visible kbd, .item:focus-visible .ico, .has-sub.is-open > .item .end, .has-sub.is-open > .item .ico { color: var(--paper); }
+  .item.is-picked { animation: blink .3s steps(1) 2; }
+  @keyframes blink { 50% { background: var(--paper); color: var(--ink); } }
+  .item[aria-disabled="true"] { color: var(--muted); }
+  .item[aria-disabled="true"]:hover { background: none; color: var(--muted); }
+  .item[aria-disabled="true"] .label { text-decoration: line-through; }
+  .sect { height: 26px; padding: 8px 12px 0; color: var(--muted); font-size: 12px; }
+  .rule { margin: 4px 12px; border-top: 1.5px dashed var(--muted); }
+  .badge::before { content: "["; } .badge::after { content: "]"; }
+  .submenu { position: absolute; left: calc(100% + 26px); bottom: -8px; width: 170px; border: 1.5px solid var(--ink); background: var(--paper); padding: 6px 0; }
+  .submenu::before { content: ""; position: absolute; right: 100%; bottom: 21px; width: 26px; border-top: 1.5px solid var(--ink); }
+  .submenu .item .ico { color: inherit; }
+  .submenu [aria-checked="false"] .ico::before { content: " "; }
+  .submenu [aria-checked="true"] .ico::before { content: "*"; }
+  .said { position: absolute; left: 24px; bottom: 14px; color: var(--muted); font-size: 12px; }
+  .said:not(:empty)::before { content: "$ "; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="menu" role="menu" aria-label="File">
+      <button class="item" role="menuitem"><span class="ico">+</span><span class="label">new file</span><kbd>⌘N</kbd></button>
+      <button class="item" role="menuitem"><span class="ico">&gt;</span><span class="label">open…</span><kbd>⌘O</kbd></button>
+      <button class="item" role="menuitem" aria-disabled="true"><span class="ico">#</span><span class="label">save</span><kbd>⌘S</kbd></button>
+      <button class="item" role="menuitem"><span class="ico"> </span><span class="label">select all</span><kbd>⌘A</kbd></button>
+      <div class="rule" role="separator"></div>
+      <div class="sect">// git</div>
+      <button class="item" role="menuitem" data-say="3 changes to commit"><span class="ico">●</span><span class="label">commit</span><span class="end badge">3</span></button>
+      <button class="item" role="menuitem"><span class="ico">↑</span><span class="label">push</span><span class="end">↗</span></button>
+      <div class="has-sub">
+        <button class="item" role="menuitem"><span class="ico">⑂</span><span class="label">branch</span><span class="end">─&gt;</span></button>
+        <div class="submenu" role="menu" aria-label="Branch">
+          <button class="item" role="menuitemradio" aria-checked="true"><span class="ico"></span><span class="label">main</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="ico"></span><span class="label">dev</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="ico"></span><span class="label">sketch/menus</span></button>
+        </div>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=1"></script>
+</body>
+</html>

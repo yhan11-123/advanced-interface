@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Index cards</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Index cards: each section is its own ruled card, and the section name is the card's tab, so
+     the divider is the edge of the next card. Items sit on the blue rules, icons left of the red
+     margin, shortcuts written small at the right like a page reference. Hover nudges the item
+     right and inks its rule; pressing ticks it in pencil. The submenu is a smaller card pulled up
+     from behind, held with a clip. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap");
+  :root { --w: 500px; --h: 420px; --card: #fffefa; --rule: #bcd4ec; --margin: #e8888a; --ink: #273043; --muted: #8b93a3; --font: "Inter", system-ui, sans-serif; }
+  body { background: #cfc9bd; color: var(--ink); font: 500 14px/1 var(--font); }
+  .menu { position: absolute; left: 30px; top: 30px; width: 262px; }
+  .card { position: relative; background: var(--card); padding: 6px 0 8px; border-radius: 2px 4px 4px 4px; box-shadow: 0 1px 2px rgba(0,0,0,.15), 0 10px 18px -12px rgba(0,0,0,.35);
+    background-image: linear-gradient(90deg, transparent 39px, var(--margin) 39px 40px, transparent 40px); }
+  .card + .card { margin-top: 22px; }
+  .tab { position: absolute; bottom: 100%; left: var(--x, 0); height: 20px; padding: 0 12px; border-radius: 6px 6px 0 0; background: var(--card); font-size: 11px; font-weight: 600; letter-spacing: .06em; line-height: 21px; color: var(--muted); box-shadow: 0 -1px 2px rgba(0,0,0,.1); }
+  .item { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; height: 32px; padding: 0 14px 0 12px; border-bottom: 1px solid var(--rule); transition: padding .15s; }
+  .item:last-child { border-bottom: 0; }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { padding-left: 16px; border-bottom-color: var(--ink); outline: none; }
+  .item::after { content: "✓"; position: absolute; right: 54px; top: 2px; font: 600 24px/1 "Caveat", cursive; color: #5b6475; opacity: 0; translate: 0 -4px; }
+  .item.is-picked::after { animation: tick .6s ease-out; }
+  @keyframes tick { 20%, 70% { opacity: 1; translate: 0 0; } 100% { opacity: 0; } }
+  .ico { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  .item:hover .ico, .item:focus-visible .ico { color: var(--ink); }
+  .label { flex: 1; }
+  kbd, .end { font-size: 12px; color: var(--muted); }
+  .item[aria-disabled="true"] { color: #b9bfca; }
+  .item[aria-disabled="true"]:hover { padding-left: 12px; border-bottom-color: var(--rule); }
+  .badge { font: 600 20px/1 "Caveat", cursive; color: #d0474d; border: 1.5px solid #d0474d; border-radius: 50% 45% 50% 40%; padding: 0 6px; line-height: 20px; rotate: -6deg; }
+  .submenu { position: absolute; left: calc(100% - 20px); top: -40px; width: 150px; z-index: -1; background: #fdf6da; padding: 6px 0; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.15), 0 10px 18px -12px rgba(0,0,0,.35);
+    translate: -60px 20px; rotate: 0deg; transition: translate .4s cubic-bezier(.2, .8, .2, 1), rotate .4s cubic-bezier(.2, .8, .2, 1); }
+  .has-sub.is-open > .submenu { translate: 28px 0; rotate: 3deg; }
+  .submenu::before { content: ""; position: absolute; left: 24px; top: -10px; width: 10px; height: 30px; border: 2px solid #8a929e; border-radius: 6px; }
+  .submenu .item { border-bottom-color: #ecdca0; padding-left: 14px; }
+  .submenu .ico { font-size: 13px; text-align: center; color: var(--ink); visibility: hidden; }
+  .submenu [aria-checked="true"] .ico { visibility: visible; }
+  .card:has(.has-sub) { z-index: 1; }
+  .said { position: absolute; right: 30px; bottom: 20px; font: 600 22px/1 "Caveat", cursive; color: #3c4456; rotate: -3deg; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="menu" role="menu" aria-label="Note">
+      <div class="card">
+        <span class="tab" aria-hidden="true">NOTE</span>
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="label">New note</span><kbd>⌘N</kbd></button>
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 5V2h9v9h-3M2 5h9v9H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="label">Duplicate</span><kbd>⌘D</kbd></button>
+        <button class="item" role="menuitem" aria-disabled="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v3H2zM3 6v7h10V6M6 9h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="label">Archive</span><kbd>⌘E</kbd></button>
+        <button class="item" role="menuitem"><span class="ico"></span><span class="label">Rename</span><kbd>⌘R</kbd></button>
+      </div>
+      <div class="card" role="group" aria-label="Shared">
+        <span class="tab" style="--x: 96px" aria-hidden="true">SHARED</span>
+        <button class="item" role="menuitem" data-say="12 comments"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H7l-3 3v-3H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="label">Comments</span><span class="badge">12</span></button>
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 9a3 3 0 0 0 4 0l2-2a3 3 0 0 0-4-4L8 4M9 7a3 3 0 0 0-4 0L3 9a3 3 0 0 0 4 4l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="label">Copy link</span><span class="end">↗</span></button>
+        <div class="has-sub">
+          <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h4l1.5 2H14v7H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="label">Move to</span><span class="end">→</span></button>
+          <div class="submenu" role="menu" aria-label="Move to">
+            <button class="item" role="menuitemradio" aria-checked="false"><span class="ico">✓</span><span class="label">Studio</span></button>
+            <button class="item" role="menuitemradio" aria-checked="true"><span class="ico">✓</span><span class="label">Thesis</span></button>
+            <button class="item" role="menuitemradio" aria-checked="false"><span class="ico">✓</span><span class="label">Personal</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=1"></script>
+</body>
+</html>

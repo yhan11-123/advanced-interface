@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Label maker</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Label maker: every item is a strip of embossed plastic tape, the kind punched out letter by
+     letter. Each section is a tape colour, so colour does the grouping and the gap between strips
+     is the divider. Hover lifts a strip off the board at a slight angle; pressing flattens it back
+     down hard. The submenu feeds out of its item as a shorter run of tape. */
+  @import url("https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap");
+  :root { --w: 520px; --h: 420px; --board: #e9e4da; --font: "Rubik Mono One", ui-monospace, monospace; }
+  body { background: var(--board); background-image: radial-gradient(rgba(0,0,0,.06) 1px, transparent 1.2px); background-size: 10px 10px; font: 400 13px/1 var(--font); }
+  .menu { position: absolute; left: 34px; top: 26px; width: 270px; display: grid; gap: 6px; }
+  .sect { margin: 10px 0 0 4px; font: 700 10px/1 ui-monospace, Menlo, monospace; letter-spacing: .2em; color: #8a8478; }
+  .sect:first-child { margin-top: 0; }
+  .item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; height: 36px; padding: 0 12px; background: var(--tape); color: #fff;
+    clip-path: polygon(0 0, 100% 0, 98% 50%, 100% 100%, 0 100%, 2% 50%);
+    text-shadow: 0 -1px 0 rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.35); letter-spacing: .06em;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.18); transition: transform .18s cubic-bezier(.3, 1.4, .5, 1), filter .18s; }
+  .item:nth-of-type(odd) { --tilt: -1.2deg; } .item:nth-of-type(even) { --tilt: 1deg; }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { transform: translateX(6px) rotate(var(--tilt)) scale(1.02); filter: drop-shadow(0 6px 4px rgba(0,0,0,.25)); outline: none; }
+  .item:active, .item.is-picked { transform: scale(.98); filter: brightness(.85); transition-duration: .05s; }
+  .black { --tape: #1f1f1f; } .red { --tape: #c83a32; } .blue { --tape: #2f5fb3; }
+  .ico { width: 16px; height: 16px; flex: none; }
+  .label { flex: 1; text-transform: uppercase; }
+  kbd, .end { font: 700 12px/1 ui-monospace, Menlo, monospace; opacity: .75; }
+  .item[aria-disabled="true"] { --tape: #9a9a9a; color: #dcdcdc; }
+  .item[aria-disabled="true"]:hover { transform: none; filter: none; }
+  .badge { min-width: 24px; height: 20px; padding: 0 5px; border-radius: 10px; background: #ffe24a; color: #1f1f1f; text-shadow: none; font-size: 11px; line-height: 20px; text-align: center; }
+  .submenu { position: absolute; left: calc(100% + 10px); bottom: 0; width: 160px; display: grid; gap: 4px; clip-path: inset(-10px 100% -10px 0); transition: clip-path .5s steps(10); }
+  .has-sub.is-open > .submenu { clip-path: inset(-10px -20px -10px 0); }
+  .submenu .item { --tape: #1f1f1f; height: 30px; }
+  .submenu .ico { visibility: hidden; text-align: center; }
+  .submenu [aria-checked="true"] { --tape: #2f8f5b; }
+  .submenu [aria-checked="true"] .ico { visibility: visible; }
+  .said { position: absolute; right: 28px; bottom: 20px; padding: 8px 12px; background: #1f1f1f; color: #fff; clip-path: polygon(0 0, 100% 0, 97% 50%, 100% 100%, 0 100%, 3% 50%); text-transform: uppercase; font-size: 11px; }
+  .said:empty { display: none; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="menu" role="menu" aria-label="Pantry">
+      <div class="sect" aria-hidden="true">KITCHEN</div>
+      <button class="item black" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2v12M2 2v4a2 2 0 0 0 4 0V2M11 2c-2 0-2 6 0 6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Recipes</span><kbd>⌘R</kbd></button>
+      <button class="item black" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">List</span><kbd>⌘L</kbd></button>
+      <button class="item black" role="menuitem" aria-disabled="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 6v3l2 1M6 2h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Timer</span><kbd>⌘T</kbd></button>
+      <button class="item black" role="menuitem"><span class="ico"></span><span class="label">Notes</span><kbd>⌘N</kbd></button>
+      <div class="sect" role="separator">SHELF</div>
+      <button class="item red" role="menuitem" data-say="3 running low"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h6v3l2 3v6H3V8l2-3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="label">Low</span><span class="badge">3</span></button>
+      <button class="item red" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h2l2 8h7l1-6H5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7" cy="14" r="1" fill="currentColor"/><circle cx="12" cy="14" r="1" fill="currentColor"/></svg><span class="label">Order</span><span class="end">↗</span></button>
+      <div class="has-sub">
+        <button class="item blue" role="menuitem"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M5 8h6M7 12h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Sort</span><span class="end">▶</span></button>
+        <div class="submenu" role="menu" aria-label="Sort">
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="ico">✓</span><span class="label">A–Z</span></button>
+          <button class="item" role="menuitemradio" aria-checked="true"><span class="ico">✓</span><span class="label">Expiry</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="ico">✓</span><span class="label">Shelf</span></button>
+        </div>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=1"></script>
+</body>
+</html>
