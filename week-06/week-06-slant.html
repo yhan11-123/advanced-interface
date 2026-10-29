@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Slant</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Slant: after a game's settings screen. The items step down a diagonal, each one further
+     right, and a hot orange rule leans the same way, splitting the menu from its submenu. The lit
+     item is an orange band cut on the slant; the shortcut is a controller button. The submenu
+     opens on the other side of the rule, stepping down the same diagonal. */
+  @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap");
+  :root { --w: 640px; --h: 400px; --orange: #e8603a; --ink: #f1ece4; --muted: #9fb0c6; --font: "Rajdhani", "Arial Narrow", sans-serif; }
+  body { background: #0b1a33; color: var(--ink); font: 600 15px/1 var(--font); letter-spacing: .08em; text-transform: uppercase; }
+  .stage { overflow: hidden; background: radial-gradient(60% 80% at 30% 40%, #22416e, transparent 70%), radial-gradient(50% 60% at 80% 70%, #1b345c, transparent 70%), #0b1a33; }
+  .stage::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,190,190,.55) 1.2px, transparent 2px), radial-gradient(circle, rgba(255,255,255,.35) 1px, transparent 1.6px);
+    background-size: 90px 70px, 60px 110px; background-position: 10px 20px, 40px 0; opacity: .6; filter: blur(.4px); }
+  .rule-slant { position: absolute; left: 300px; top: -20px; width: 3px; height: 460px; background: var(--orange); rotate: -26deg; transform-origin: 0 0; box-shadow: 0 0 14px rgba(232, 96, 58, .6); }
+  .rule-slant.two { left: 520px; background: rgba(255,255,255,.12); box-shadow: none; }
+  .menu { position: absolute; inset: 0; padding: 22px 0 0 18px; }
+  .head { margin: 0 0 6px 6px; color: var(--orange); font-size: 13px; letter-spacing: .14em; }
+  .item, .sect { margin-left: calc(var(--i) * 19px); }
+  .item { position: relative; display: flex; align-items: center; gap: 10px; width: 250px; height: 34px; padding: 0 14px 0 18px; }
+  .item::before { content: ""; position: absolute; inset: 1px 0; background: var(--orange); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); opacity: 0; transform: translateX(-12px); transition: opacity .12s, transform .18s ease-out; }
+  .item:hover::before, .item:focus-visible::before, .has-sub.is-open > .item::before { opacity: 1; transform: none; }
+  .item:active::before, .item.is-picked::before { background: #fff3e8; }
+  .item:active, .item.is-picked { color: #1a1206; }
+  .item:focus-visible { outline: none; }
+  .item > * { position: relative; }
+  .ico { width: 20px; height: 20px; flex: none; color: #f2c37d; }
+  .item:hover .ico, .has-sub.is-open > .item .ico { color: #fff; }
+  .label { flex: 1; }
+  .pad { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; border: 1.5px solid currentColor; font-size: 11px; color: var(--muted); }
+  .item:hover .pad, .has-sub.is-open > .item .pad { color: #fff; }
+  .badge { min-width: 22px; height: 18px; padding: 0 5px; background: var(--orange); color: #fff; clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); font-size: 12px; line-height: 18px; text-align: center; }
+  .item:hover .badge { background: #fff; color: var(--orange); }
+  .item[aria-disabled="true"] { color: #5c6c84; }
+  .item[aria-disabled="true"] .ico { color: #5c6c84; }
+  .item[aria-disabled="true"]::before { display: none; }
+  .sect { display: flex; align-items: center; gap: 8px; width: 250px; height: 26px; padding: 8px 0 0 18px; color: var(--muted); font-size: 11px; letter-spacing: .2em; }
+  .sect::after { content: ""; flex: 1; height: 1px; background: rgba(159, 176, 198, .3); }
+  .has-sub { position: static; }
+  .submenu { position: absolute; left: 330px; top: 22px; width: 220px; opacity: 0; translate: 16px 0; transition: opacity .2s, translate .3s ease-out; }
+  .has-sub.is-open > .submenu { opacity: 1; translate: 0; }
+  .submenu .head { color: var(--muted); }
+  .submenu .item { width: 190px; font-size: 14px; }
+  .submenu .ico { font-size: 14px; text-align: center; color: var(--orange); visibility: hidden; }
+  .submenu [aria-checked="true"] .ico { visibility: visible; }
+  .ver { position: absolute; left: 18px; bottom: 12px; font: 500 11px/1 var(--font); letter-spacing: .04em; text-transform: none; color: #6f7f97; }
+  .said { position: absolute; right: 18px; bottom: 12px; color: var(--orange); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <span class="rule-slant" aria-hidden="true"></span><span class="rule-slant two" aria-hidden="true"></span>
+    <div class="menu" role="menu" aria-label="Settings">
+      <p class="head" aria-hidden="true">Settings</p>
+      <div class="has-sub">
+        <button class="item" role="menuitem" style="--i:0"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.3 4.3l2.1 2.1M13.6 13.6l2.1 2.1M4.3 15.7l2.1-2.1M13.6 6.4l2.1-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Gameplay</span><span class="pad">A</span></button>
+        <div class="submenu" role="menu" aria-label="Difficulty">
+          <p class="head" aria-hidden="true">Gameplay · Difficulty</p>
+          <button class="item" role="menuitemradio" aria-checked="false" style="--i:0"><span class="ico">◆</span><span class="label">Story</span></button>
+          <button class="item" role="menuitemradio" aria-checked="true" style="--i:1"><span class="ico">◆</span><span class="label">Normal</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" style="--i:2"><span class="ico">◆</span><span class="label">Hard</span></button>
+        </div>
+      </div>
+      <button class="item" role="menuitem" style="--i:1"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 6h10a3 3 0 0 1 3 3l1 5a2 2 0 0 1-3.5 1.5L13 13H7l-2.5 2.5A2 2 0 0 1 1 14l1-5a3 3 0 0 1 3-3zM6 8v3M4.5 9.5h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="label">Controls</span><span class="pad">LB</span></button>
+      <button class="item" role="menuitem" style="--i:2"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 13v-2a7 7 0 0 1 14 0v2M3 12h3v5H3zM14 12h3v5h-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="label">Audio</span><span class="pad">RB</span></button>
+      <button class="item" role="menuitem" style="--i:3"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="3" width="16" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 17h6M10 14v3" stroke="currentColor" stroke-width="1.6"/></svg><span class="label">Video</span></button>
+      <button class="item" role="menuitem" style="--i:4"><span class="ico"></span><span class="label">Interface</span></button>
+      <div class="sect" style="--i:5" role="separator">Online</div>
+      <button class="item" role="menuitem" style="--i:6" data-say="2 friend requests"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 18c0-4 3-6 7-6s7 2 7 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="label">Account</span><span class="badge">2</span></button>
+      <button class="item" role="menuitem" style="--i:7"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7h14l-1 10H4zM7 7a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="label">Store</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true" style="width:16px"><path d="M8 4h8v8M16 4 5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="item" role="menuitem" style="--i:8" aria-disabled="true"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 8a12 12 0 0 1 16 0M5 11a8 8 0 0 1 10 0M8 14a4 4 0 0 1 4 0M3 3l14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Co-op</span><span class="pad">X</span></button>
+    </div>
+    <p class="ver">Version: 1.7.0.00 (4222355)</p>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+</body>
+</html>

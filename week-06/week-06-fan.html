@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Fan</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Fan: after a control-room dashboard. The menu fans out from a glowing core on the left, its
+     items laid along an arc and turned to face it, and each deeper level is the next ring out.
+     The lit item is a pane of light with a bright bracket at its outer edge, and the submenu
+     opens on the next ring, level with it. Sections are arcs of the same ring split by a tick. */
+  :root { --w: 640px; --h: 440px; --cyan: #5fd0ff; --fg: #e6f3ff; --muted: #6f8fb0; }
+  body { background: radial-gradient(70% 90% at 0% 50%, #0d2a4a, #050d1c 70%); color: var(--fg); font: 500 15px/1 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  .rings { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+  .core { position: absolute; left: -70px; top: 50%; width: 150px; height: 150px; translate: 0 -50%; border-radius: 50%;
+    background: radial-gradient(circle at 60% 50%, #bff3ff, #2fb6ff 30%, rgba(20, 90, 160, .4) 60%, transparent 72%); box-shadow: 0 0 60px 10px rgba(47, 182, 255, .35); }
+  .menu, .has-sub { position: static; }
+  .menu { position: absolute; inset: 0; }
+  .item { position: absolute; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px 0 14px; translate: 0 -50%; transform-origin: 0 50%; white-space: nowrap; }
+  .lvl1 { width: 210px; }
+  .item::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(95, 208, 255, 0), rgba(95, 208, 255, .28)); border-right: 3px solid var(--cyan); opacity: 0; transition: opacity .15s; }
+  .item:hover::before, .item:focus-visible::before, .has-sub.is-open > .item::before { opacity: 1; }
+  .item:active::before, .item.is-picked::before { background: rgba(95, 208, 255, .5); }
+  .item:focus-visible { outline: none; }
+  .item > * { position: relative; }
+  .ico { width: 18px; height: 18px; flex: none; color: var(--cyan); }
+  .label { flex: 1; }
+  kbd, .end { font-size: 11px; color: var(--muted); }
+  .item[aria-disabled="true"] { color: #3c5571; }
+  .item[aria-disabled="true"] .ico { color: #3c5571; }
+  .item[aria-disabled="true"]::before { display: none; }
+  .badge { min-width: 18px; height: 18px; padding: 0 5px; border: 1px solid #ffcf5a; color: #ffcf5a; font-size: 11px; line-height: 16px; text-align: center; }
+  .sect { position: absolute; translate: 0 -50%; transform-origin: 0 50%; font-size: 10px; letter-spacing: .3em; color: var(--muted); }
+  .submenu .item { height: 28px; font-size: 13px; width: 150px; padding-left: 12px; opacity: 0; translate: -10px -50%; transition: opacity .2s, translate .25s; }
+  .has-sub.is-open .submenu .item { opacity: 1; translate: 0 -50%; }
+  .has-sub.is-open .submenu .item:nth-child(2) { transition-delay: .03s; } .has-sub.is-open .submenu .item:nth-child(3) { transition-delay: .06s; }
+  .has-sub.is-open .submenu .item:nth-child(4) { transition-delay: .09s; } .has-sub.is-open .submenu .item:nth-child(5) { transition-delay: .12s; }
+  .submenu .dot { width: 5px; height: 5px; flex: none; border-radius: 50%; background: var(--muted); }
+  .submenu [aria-checked="true"] { color: #ffcf5a; }
+  .submenu [aria-checked="true"] .dot { background: #ffcf5a; box-shadow: 0 0 6px #ffcf5a; }
+  .said { position: absolute; right: 18px; bottom: 14px; color: var(--cyan); font-size: 12px; letter-spacing: .06em; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <svg class="rings" viewBox="0 0 640 440" aria-hidden="true">
+      <g fill="none" stroke="rgba(95,208,255,.14)">
+        <circle cx="-150" cy="220" r="240"/><circle cx="-150" cy="220" r="400" stroke-dasharray="2 6"/><circle cx="-150" cy="220" r="430"/><circle cx="-150" cy="220" r="600" stroke-dasharray="2 6"/>
+      </g>
+    </svg>
+    <div class="core" aria-hidden="true"></div>
+    <div class="menu" role="menu" aria-label="Operations">
+      <!-- data-ring: radius of the item's arc; data-y: its offset from the middle; the script places it -->
+      <span class="sect" data-ring="250" data-y="-188" aria-hidden="true">MANAGE</span>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="-150"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3h5v5H3zM10 3h5v5h-5zM3 10h5v5H3zM10 10h5v5h-5z" fill="currentColor"/></svg><span class="label">Basics</span><kbd>⌘1</kbd></button>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="-104"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 7h8M5 10h5" stroke="currentColor" stroke-width="1.5"/></svg><span class="label">Planning</span><kbd>⌘2</kbd></button>
+      <div class="has-sub">
+        <button class="item lvl1" role="menuitem" data-ring="250" data-y="-56"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 2v2.5M9 13.5V16M2 9h2.5M13.5 9H16M4 4l1.8 1.8M12.2 12.2 14 14M4 14l1.8-1.8M12.2 5.8 14 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label">Operations</span><span class="end">▸</span></button>
+        <div class="submenu" role="menu" aria-label="Operations">
+          <button class="item" role="menuitemradio" aria-checked="false" data-ring="420" data-y="-112"><span class="dot"></span><span class="label">Task planning</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-ring="420" data-y="-84"><span class="dot"></span><span class="label">Run modes</span></button>
+          <button class="item" role="menuitemradio" aria-checked="true" data-ring="420" data-y="-56"><span class="dot"></span><span class="label">Live monitor</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-ring="420" data-y="-28"><span class="dot"></span><span class="label">Reports</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-ring="420" data-y="0"><span class="dot"></span><span class="label">Energy sales</span></button>
+        </div>
+      </div>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="-8"><span class="ico"></span><span class="label">Archive</span><kbd>⌘4</kbd></button>
+      <span class="sect" data-ring="250" data-y="30" aria-hidden="true">ANALYSE</span>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="66" data-say="3 faults found"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 12l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="label">Diagnosis</span><span class="badge">3</span></button>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="112" aria-disabled="true"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 14l6-6M11 3a3 3 0 0 0 3 4l-2 2-3-3zM3 15l1-3 2 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="label">Maintenance</span><kbd>⌘5</kbd></button>
+      <button class="item lvl1" role="menuitem" data-ring="250" data-y="158"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 15V9M7 15V5M11 15v-4M15 15V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="label">Decisions</span><span class="end">↗</span></button>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // lay every item on its ring round a centre off the left edge, turned to face the centre
+    const cx = -150, cy = 220;
+    document.querySelectorAll('[data-ring]').forEach(el => {
+      const R = +el.dataset.ring, dy = +el.dataset.y, x = cx + Math.sqrt(R * R - dy * dy);
+      el.style.left = x + 'px'; el.style.top = cy + dy + 'px';
+      el.style.rotate = Math.atan2(dy, x - cx) + 'rad';
+    });
+  </script>
+  <script src="week-06-sketch.js?v=2"></script>
+</body>
+</html>

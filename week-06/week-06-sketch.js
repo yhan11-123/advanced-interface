@@ -4,6 +4,8 @@
 //                      ArrowLeft or Escape closes a submenu and goes back to its item
 //   picking an item    marks it .is-picked for a moment; a menuitemradio becomes the checked one
 //   .said              (optional) says what was picked
+//   [data-click-sub]   on an ancestor: its submenus open on click or ArrowRight only, not on hover
+//                      (for a tree that opens in place)
 (() => {
   const ITEM = '[role^="menuitem"]';
   const ownMenu = el => el.closest('[role="menu"]');
@@ -32,13 +34,15 @@
   document.querySelectorAll('.has-sub').forEach(host => {
     host.querySelector(ITEM).setAttribute('aria-haspopup', 'menu');
     host.querySelector(ITEM).setAttribute('aria-expanded', 'false');
-    host.addEventListener('pointerenter', () => open(host));
-    host.addEventListener('pointerleave', () => timers.set(host, setTimeout(() => close(host), 300)));
+    const byHover = () => !host.closest('[data-click-sub]');
+    host.addEventListener('pointerenter', () => byHover() && open(host));
+    host.addEventListener('pointerleave', () => byHover() && timers.set(host, setTimeout(() => close(host), 300)));
   });
   // pointing at a plain item closes any open submenu beside it
   document.querySelectorAll(ITEM).forEach(it => {
     if (hostOf(it)) return;
     it.addEventListener('pointerenter', () => {
+      if (it.closest('[data-click-sub]')) return;
       const menu = ownMenu(it);
       menu.querySelectorAll(':scope > .has-sub.is-open, :scope .has-sub.is-open').forEach(h => { if (ownMenu(h) === menu) close(h); });
     });
@@ -49,7 +53,7 @@
     if (!it) return;
     if (it.getAttribute('aria-disabled') === 'true') { if (said) said.textContent = it.textContent.trim().split(/\s+/)[0] + ' is not available'; return; }
     const host = hostOf(it);
-    if (host) { host.classList.contains('is-open') && e.detail === 0 ? close(host) : open(host, e.detail === 0); return; }
+    if (host) { host.classList.contains('is-open') && (e.detail === 0 || host.closest('[data-click-sub]')) ? close(host) : open(host, e.detail === 0); return; }
     if (it.getAttribute('role') === 'menuitemradio') ownMenu(it).querySelectorAll('[role="menuitemradio"]').forEach(r => r.setAttribute('aria-checked', String(r === it)));
     if (it.getAttribute('role') === 'menuitemcheckbox') it.setAttribute('aria-checked', String(it.getAttribute('aria-checked') !== 'true'));
     it.classList.remove('is-picked'); void it.offsetWidth; it.classList.add('is-picked');

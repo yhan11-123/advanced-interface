@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Action ring</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Action ring: after a tactical game's action menu. The menu is a ring of wedges around a
+     centre that names it; each wedge is a whole target, so the pointer only has to lean the right
+     way. A wider gap splits the ring into two sections. The lit wedge turns gold. The submenu is
+     an outer ring of wedges that unfolds around its item, here the formations a group can take. */
+  @import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&display=swap");
+  :root { --w: 560px; --h: 540px; --wedge: rgba(38, 39, 46, .9); --gold: #b98a2a; --fg: #eceae4; --muted: #8f8d87; --font: "Chakra Petch", system-ui, sans-serif; }
+  body { background: linear-gradient(#c9c8ea, #a9a7c2 46%, #4d4a3a 60%, #8a7a5c); color: var(--fg); font: 500 13px/1.1 var(--font); }
+  .ring { position: absolute; inset: 0; }
+  .item, .has-sub { position: absolute; inset: 0; }
+  .has-sub { pointer-events: none; }
+  .has-sub .item { pointer-events: auto; }
+  .item { background: var(--wedge); transition: background .15s; }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { background: var(--gold); outline: none; }
+  .item:active, .item.is-picked { background: #e2b552; }
+  .item[aria-disabled="true"] { background: rgba(38, 39, 46, .75); color: #5e5d5a; }
+  .item .in { position: absolute; display: grid; justify-items: center; gap: 4px; width: 90px; translate: -50% -50%; text-align: center; pointer-events: none; }
+  .in svg { width: 26px; height: 26px; }
+  .in kbd { font-size: 10px; color: var(--muted); }
+  .item:hover kbd, .has-sub.is-open > .item kbd { color: #3a2a08; }
+  .badge { position: absolute; top: -4px; left: 52px; min-width: 18px; height: 18px; border-radius: 9px; background: #d94a3a; color: #fff; font-size: 11px; line-height: 18px; }
+  .centre { position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; translate: -50% -50%; border-radius: 50%; background: rgba(28, 28, 34, .95); box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+    display: grid; place-content: center; text-align: center; gap: 6px; }
+  .centre b { font-size: 14px; }
+  .centre .said { margin: 0; min-height: 13px; font-size: 11px; color: #e2b552; }
+  .sect { position: absolute; translate: -50% -50%; font-size: 10px; letter-spacing: .3em; color: #2b2a26; }
+  .submenu .item { background: rgba(44, 45, 54, .88); transition: background .15s, opacity .2s; opacity: 0; }
+  .has-sub.is-open .submenu .item { opacity: 1; }
+  .submenu .item[aria-checked="true"] { box-shadow: none; }
+  .submenu .item[aria-checked="true"] .in span { color: #e2b552; }
+  .submenu .in svg { width: 30px; height: 20px; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="ring" role="menu" aria-label="Action menu">
+      <!-- data-a: wedge index, 0 at the top, clockwise; the script cuts each wedge -->
+      <button class="item" role="menuitem" data-a="0" aria-disabled="true"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M11 13V5a2 2 0 0 1 4 0v8l3-1a2 2 0 0 1 2 3l-4 6H10l-3-6 4 1z" fill="currentColor"/></svg><span>Interact</span><kbd>1</kbd></span></button>
+      <button class="item" role="menuitem" data-a="1" data-say="2 wounded"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 8v10M8 13h10" stroke="currentColor" stroke-width="3"/></svg><span>Medical</span><kbd>2</kbd><span class="badge">2</span></span></button>
+      <button class="item" role="menuitem" data-a="2"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M8 3v8a2 2 0 0 0 4 0V3M10 11v12M17 3c-2 2-2 7 0 9v11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Survive</span><kbd>3</kbd></span></button>
+      <button class="item" role="menuitem" data-a="3"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M4 7h18M4 13h18M4 19h18" stroke="currentColor" stroke-width="3"/></svg><span>Custom</span><kbd>4</kbd></span></button>
+      <button class="item" role="menuitem" data-a="4"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M3 6l6-2 8 3 6-2v15l-6 2-8-3-6 2zM9 4v15M17 7v15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Map ↗</span></span></button>
+      <button class="item" role="menuitem" data-a="5"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"></svg><span>Hold fire</span><kbd>6</kbd></span></button>
+      <div class="has-sub">
+        <button class="item" role="menuitem" data-a="6"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><circle cx="9" cy="9" r="4" fill="currentColor"/><circle cx="17" cy="8" r="3.5" fill="currentColor" opacity=".8"/><path d="M2 22c0-5 3-8 7-8s7 3 7 8zM14 15c4-1 9 1 10 7h-6" fill="currentColor"/></svg><span>Group ›</span><kbd>7</kbd></span></button>
+        <div class="submenu" role="menu" aria-label="Formation">
+          <button class="item" role="menuitemradio" aria-checked="false" data-o="0"><span class="in"><svg viewBox="0 0 30 20" aria-hidden="true" fill="currentColor"><circle cx="15" cy="3" r="2"/><circle cx="15" cy="8" r="2"/><circle cx="15" cy="13" r="2"/><circle cx="15" cy="18" r="2"/></svg><span>Column</span></span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-o="1"><span class="in"><svg viewBox="0 0 30 20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="15" r="2"/><circle cx="11" cy="10" r="2"/><circle cx="17" cy="5" r="2"/><circle cx="23" cy="0.5" r="2"/></svg><span>Echelon</span></span></button>
+          <button class="item" role="menuitemradio" aria-checked="true" data-o="2"><span class="in"><svg viewBox="0 0 30 20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="10" cy="11" r="2"/><circle cx="15" cy="16" r="2"/><circle cx="20" cy="11" r="2"/><circle cx="25" cy="5" r="2"/></svg><span>Vee</span></span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-o="3"><span class="in"><svg viewBox="0 0 30 20" aria-hidden="true" fill="currentColor"><circle cx="3" cy="10" r="2"/><circle cx="9" cy="10" r="2"/><circle cx="15" cy="10" r="2"/><circle cx="21" cy="10" r="2"/><circle cx="27" cy="10" r="2"/></svg><span>Line</span></span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" data-o="4"><span class="in"><svg viewBox="0 0 30 20" aria-hidden="true" fill="currentColor"><circle cx="15" cy="3" r="2"/><circle cx="9" cy="10" r="2"/><circle cx="21" cy="10" r="2"/><circle cx="15" cy="17" r="2"/></svg><span>Diamond</span></span></button>
+        </div>
+      </div>
+      <button class="item" role="menuitem" data-a="7"><span class="in"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M8 6h8v4h3v13H5V10h3zM11 6V3h4v3M9 15h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Equipment</span><kbd>8</kbd></span></button>
+    </div>
+    <span class="sect" data-s="1.5" aria-hidden="true">SELF</span>
+    <span class="sect" data-s="5.5" aria-hidden="true">ORDERS</span>
+    <div class="centre"><b>Action Menu</b><span style="font-size:11px;color:#8f8d87">Pte Cage</span><p class="said" aria-live="polite"></p></div>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // cut every wedge: inner ring 66–160, eight wedges of 45°, a 2° gap, a 7° gap between the two
+    // sections (after wedge 3 and after wedge 7); the submenu's five wedges sit 168–244, round its item
+    const W = 560, H = 540, cx = W / 2, cy = H / 2, rad = d => (d - 90) * Math.PI / 180;
+    const pt = (r, d) => `${(cx + r * Math.cos(rad(d))).toFixed(1)} ${(cy + r * Math.sin(rad(d))).toFixed(1)}`;
+    const wedge = (r1, r2, a1, a2) => `path('M ${pt(r2, a1)} A ${r2} ${r2} 0 0 1 ${pt(r2, a2)} L ${pt(r1, a2)} A ${r1} ${r1} 0 0 0 ${pt(r1, a1)} Z')`;
+    const place = (el, r, d) => { const p = pt(r, d).split(' '); el.style.left = p[0] + 'px'; el.style.top = p[1] + 'px'; };
+    document.querySelectorAll('[data-a]').forEach(b => {
+      const i = +b.dataset.a, a1 = i * 45 - 22.5 + (i === 0 || i === 4 ? 3.5 : 1), a2 = i * 45 + 22.5 - (i === 3 || i === 7 ? 3.5 : 1);
+      b.style.clipPath = wedge(66, 160, a1, a2);
+      place(b.querySelector('.in'), 113, (a1 + a2) / 2);
+    });
+    const mid = 6 * 45;
+    document.querySelectorAll('[data-o]').forEach(b => {
+      const k = +b.dataset.o - 2, a1 = mid + k * 27 - 13, a2 = mid + k * 27 + 13;
+      b.style.clipPath = wedge(168, 244, a1, a2);
+      place(b.querySelector('.in'), 206, mid + k * 27);
+    });
+    document.querySelectorAll('[data-s]').forEach(s => place(s, 192, +s.dataset.s * 45));
+  </script>
+  <script src="week-06-sketch.js?v=2"></script>
+</body>
+</html>
