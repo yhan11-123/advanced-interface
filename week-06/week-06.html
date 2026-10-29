@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 &middot; Menus &middot; Advanced Interface</title>
+  <meta name="description" content="Two sets of menus, each a tone: one item build that takes a left icon, a shortcut, a badge or a right icon, grouped in sections, with a submenu." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=22" />
+  <style>
+    /* Week 06 diagram kit: one menu item drawn the same way everywhere.
+       Picts (112 x 68): menu 96 wide, item 14 tall, icon 5, label line 1.6.
+       Anatomy (px, true size): the brief's Material drawing, inset 4, padding 12, icon 20, gap 8, item 48, item gap 2. */
+    .mn-box { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+    .mn-layer { fill: var(--accent); }
+    .mn-label { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; }
+    .mn-sub { fill: none; stroke: var(--fg-muted); stroke-width: 1.2; stroke-linecap: round; }
+    .mn-icon { fill: none; stroke: var(--fg); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .mn-badge { fill: var(--accent); }
+    .mn-rule { stroke: var(--line); stroke-width: 1; }
+    .mn-meta { fill: var(--fg-muted); font: 7px/1 var(--font); }
+    .mn-txt { fill: var(--fg); font: 14px/1 var(--font); }
+    .mn-txt-sub { fill: var(--fg-muted); font: 12px/1 var(--font); }
+    .mn-txt-key { fill: var(--fg-muted); font: 13px/1 var(--font); }
+    .mn-dim { fill: none; stroke: #e2537d; stroke-width: .8; }
+    .mn-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
+    .mn-pad { fill: #e2537d; opacity: .12; }
+    .rv-anat-fig .an-num text { font-size: 7px; }
+
+    /* Try it: a plain menu that does what the brief asks, live */
+    .mn-try { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 20px; align-items: start; margin: 16px 0 24px; padding: 20px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .mn-try-stage { position: relative; min-height: 400px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+    .mn-try-menu { position: relative; width: 248px; max-width: 100%; padding: 4px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px -10px rgb(0 0 0 / .25); }
+    .mn-try-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: 48px; margin: 0; padding: 0 12px; border: 0; border-radius: 12px; background: none; color: var(--fg); font: inherit; font-size: 14px; line-height: 20px; text-align: left; cursor: pointer; }
+    .mn-try-item + .mn-try-item { margin-top: 2px; }
+    .mn-try-item::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--fg); opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+    .mn-try-item:hover::before, .mn-try-item:focus-visible::before, .mn-try-item.is-open::before { opacity: .08; }
+    .mn-try-item:active::before { opacity: .12; transition: none; }
+    .mn-try-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .mn-try-item[aria-disabled="true"] { color: var(--fg-muted); opacity: .5; cursor: default; }
+    .mn-try-item[aria-disabled="true"]::before { display: none; }
+    .mn-try-lead { flex: none; width: 20px; height: 20px; }
+    .mn-try-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mn-try-key { flex: none; font-size: 13px; letter-spacing: .04em; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+    .mn-try-badge { flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent); color: var(--bg-elev); font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
+    .mn-try-trail { flex: none; width: 20px; height: 20px; color: var(--fg-muted); }
+    .mn-try-sep { height: 1px; margin: 8px 12px; background: var(--line); }
+    .mn-try-section { display: flex; align-items: center; height: 32px; padding: 0 12px; font-size: 12px; font-weight: 600; color: var(--fg-muted); }
+    .mn-try-submenu { position: absolute; z-index: 2; bottom: -4px; left: calc(100% + 4px); width: 200px; padding: 4px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px -10px rgb(0 0 0 / .25); opacity: 0; translate: -6px 0; visibility: hidden; transition: opacity .15s ease, translate .15s ease, visibility 0s .15s; }
+    .mn-try-has-sub { position: relative; }
+    .mn-try-has-sub.is-open > .mn-try-submenu { opacity: 1; translate: 0 0; visibility: visible; transition: opacity .15s ease, translate .15s ease; }
+    .mn-try-check { flex: none; width: 20px; height: 20px; color: var(--accent); visibility: hidden; }
+    .mn-try-item[aria-checked="true"] .mn-try-check { visibility: visible; }
+    .mn-try-said { margin-top: 14px; font-size: 13px; color: var(--fg-muted); min-height: 1.4em; }
+    .prose .mn-try-keylist { display: grid; gap: 12px; margin: 0; padding: 4px 0 0; list-style: none; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .prose .mn-try-keylist li { position: relative; margin: 0; padding-left: 30px; }
+    .mn-try-keylist b { display: block; font-size: 13.5px; color: var(--fg); }
+    .mn-try-keylist i { position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); font-style: normal; font-size: 11px; line-height: 18px; text-align: center; color: var(--fg); }
+    .mn-try-keylist .k-hover { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+    .mn-try-keylist .k-press { background: color-mix(in srgb, var(--fg) 12%, var(--bg)); }
+    @media (max-width: 720px) {
+      .mn-try { grid-template-columns: 1fr; }
+      .mn-try-submenu { bottom: calc(100% + 4px); left: 24px; }
+      .mn-try-stage { min-height: 560px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .mn-try-submenu, .mn-try-item::before { transition: none; } }
+
+    /* Numbers to remember: four tiles */
+    .mn-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .mn-nums div { padding: 16px 16px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .mn-nums b { display: block; margin-bottom: 6px; font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .mn-nums small { font-size: 13px; font-weight: 500; margin-left: 1px; }
+    .mn-nums span { display: block; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+    .mn-dd { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .mn-dd { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 06</div>
+      <h1>Menus</h1>
+      <div class="meta">
+        <span>Oct 26, 2026</span>
+        <span class="tag">menus</span>
+        <span class="tag">system</span>
+        <span class="tag">shortcut</span>
+        <span class="tag">submenu</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Two sets of menus, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the menu is for and what it lets you do. A menu's function is to offer a short list of commands, let you pick one, and get out of the way, so the tone has to live in how the items look, answer the pointer and open, without slowing the pick.</p>
+
+      <p>The rule that shapes everything: <strong>the menu item works as a system</strong>. One basic structure, many configurations.</p>
+
+      <h3>What the structure has to take</h3>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Has to support</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Label</td><td>A single line of text</td></tr>
+          <tr><td>Left</td><td>An icon, or nothing</td></tr>
+          <tr><td>Right</td><td>An icon, a keyboard shortcut, or a badge</td></tr>
+          <tr><td>Grouping</td><td>Sections, with a divider or a section label</td></tr>
+          <tr><td>Depth</td><td>A submenu that opens from an item</td></tr>
+        </tbody>
+      </table>
+
+      <h3>States</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Shows</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Enabled</td><td>The item at rest, ready to pick</td></tr>
+          <tr><td>Hover</td><td>The item under the pointer, about to be picked</td></tr>
+          <tr><td>Pressed</td><td>The pick landing</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief shows two drawings. Apple's: a dark menu on a warm gradient, three items with shortcuts right-aligned, a divider, and a Submenu item whose highlighted row opens a second menu beside it, Item X lit in red. Material's: one item build measured out, items 48 tall with 2 between, an icon and label, a trailing shortcut, a section label 32 tall, corners of 16 on the menu and 12 on the active item.</p>
+
+      <h3>The spec</h3>
+
+      <p>As before, no Figma file: every prototype carries its own spec in a section of the page. At least spacing, font, font size and line height, the size of the menu and its items, and every other property that shapes it: roundness, stroke width, shadow, the state layers, how the submenu opens. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>What a menu item is and how it behaves, from Apple's Menus and Material 3's Menus. Nothing about tone yet, only the menu.</p>
+
+      <h3>The parts</h3>
+
+      <p>One container, one item build. Only the container and the label are required.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-34 -32 330 236" role="img" aria-label="A menu drawn at true size: two items 48 tall with an icon, a label, a shortcut and a submenu chevron, a divider, a section label and an item with a badge, with insets, padding and gaps marked and six numbered parts">
+            <rect x="0" y="0" width="248" height="194" rx="16" class="mn-box"/>
+            <!-- inset 4 and item padding 12 -->
+            <rect x="0" y="4" width="4" height="48" class="mn-pad"/><rect x="4" y="4" width="12" height="48" class="mn-pad"/>
+            <rect x="36" y="4" width="8" height="48" class="mn-pad"/><rect x="232" y="4" width="12" height="48" class="mn-pad"/>
+            <!-- item 1: icon, label, shortcut -->
+            <rect x="16" y="18" width="20" height="20" rx="3" fill="none" stroke="var(--line)"/>
+            <path class="mn-icon" d="M20 23 h8 v10 h-8 z M24 21 h8 v10"/>
+            <text x="44" y="33" class="mn-txt">Copy</text>
+            <text x="232" y="33" text-anchor="end" class="mn-txt-key">⌘C</text>
+            <!-- item 2: hovered, submenu -->
+            <rect x="4" y="54" width="240" height="48" rx="12" class="mn-layer" opacity=".1"/>
+            <path class="mn-icon" d="M19 70 h14 M19 78 h10 M19 86 h6"/>
+            <text x="44" y="83" class="mn-txt">Sort by</text>
+            <path class="mn-icon" d="M223 72 L229 78 L223 84"/>
+            <!-- divider and section -->
+            <path class="mn-rule" d="M16 106 H232"/>
+            <text x="16" y="131" class="mn-txt-sub">Section</text>
+            <!-- item 3: badge -->
+            <text x="16" y="171" class="mn-txt">Inbox</text>
+            <rect x="204" y="156" width="28" height="20" rx="10" class="mn-badge"/><text x="218" y="170" text-anchor="middle" style="fill: var(--bg-elev); font: 700 11px/1 var(--font)">12</text>
+            <!-- dimensions -->
+            <path class="mn-dim" d="M0 -8 H4 M0 -11 V-5 M4 -11 V-5 M4 -8 H16 M16 -11 V-5 M16 -8 H36 M36 -11 V-5 M36 -8 H44 M44 -11 V-5 M232 -8 H244 M232 -11 V-5 M244 -11 V-5"/>
+            <text x="2" y="-23" class="mn-dim-txt">4</text><text x="10" y="-14" class="mn-dim-txt">12</text><text x="26" y="-14" class="mn-dim-txt">20</text><text x="40" y="-14" class="mn-dim-txt">8</text><text x="238" y="-14" class="mn-dim-txt">12</text>
+            <path class="mn-dim" d="M-8 4 V52 M-11 4 H-5 M-11 52 H-5 M-8 52 V54 M-11 54 H-5 M-8 110 V142 M-11 110 H-5 M-11 142 H-5"/>
+            <text x="-18" y="31" class="mn-dim-txt">48</text><text x="-18" y="57" class="mn-dim-txt">2</text><text x="-18" y="129" class="mn-dim-txt">32</text>
+            <path class="mn-dim" d="M256 0 Q264 0 264 8"/><text x="274" y="10" class="mn-dim-txt">16</text>
+            <path class="mn-dim" d="M252 56 Q258 56 258 62"/><text x="268" y="66" class="mn-dim-txt">12</text>
+            <!-- numbered parts, each beside its part -->
+            <g class="an-num"><circle cx="124" cy="194" r="5"/><text x="124" y="194">1</text></g>
+            <g class="an-num"><circle cx="26" cy="46" r="5"/><text x="26" y="46">2</text></g>
+            <g class="an-num"><circle cx="86" cy="28" r="5"/><text x="86" y="28">3</text></g>
+            <g class="an-num"><circle cx="193" cy="166" r="5"/><text x="193" y="166">4</text></g>
+            <g class="an-num"><circle cx="124" cy="106" r="5"/><text x="124" y="106">5</text></g>
+            <g class="an-num"><circle cx="72" cy="127" r="5"/><text x="72" y="127">6</text></g>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>The menu; as wide as its longest item</span></li>
+          <li><b>Left icon</b><span>Optional; the same column in every item</span></li>
+          <li><b>Label</b><span>The one required text; one line, a verb</span></li>
+          <li><b>Right</b><span>A shortcut, a badge, an icon, or a submenu chevron</span></li>
+          <li><b>Divider</b><span>Splits the menu into groups</span></li>
+          <li><b>Section label</b><span>Names a group; not pickable</span></li>
+        </ol>
+      </div>
+
+      <h3>One build, many items</h3>
+
+      <p>Each side has a few options. Mixing them gives every item the menu needs, from one build.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="8" y="4" width="96" height="60" rx="6" class="mn-box"/>
+            <path class="mn-label" d="M16 16 H52"/>
+            <path class="mn-icon" d="M16 31 h6 v6 h-6 z"/><path class="mn-label" d="M28 34 H62"/>
+            <path class="mn-icon" d="M16 49 h6 v6 h-6 z"/><path class="mn-label" d="M28 52 H56"/>
+          </svg>
+          <b>Left: nothing or an icon</b>
+          <p>When one item has an icon, the labels still start on one line.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="8" y="4" width="96" height="60" rx="6" class="mn-box"/>
+            <path class="mn-label" d="M16 14 H46"/><text x="96" y="16.5" text-anchor="end" class="mn-meta">⌘C</text>
+            <path class="mn-label" d="M16 27 H50"/><path class="mn-icon" d="M90 24 l3 3 l3 -3 M93 27 v-5"/>
+            <path class="mn-label" d="M16 40 H42"/><rect x="85" y="36" width="11" height="8" rx="4" class="mn-badge"/>
+            <path class="mn-label" d="M16 53 H48"/><path class="mn-icon" d="M92 49 L96 53 L92 57"/>
+          </svg>
+          <b>Right: shortcut, icon, badge, chevron</b>
+          <p>One at a time. The chevron means the item opens a submenu.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="8" y="4" width="96" height="60" rx="6" class="mn-box"/>
+            <path class="mn-label" d="M16 13 H50"/><path class="mn-label" d="M16 23 H44"/>
+            <path class="mn-rule" d="M16 31 H96"/>
+            <path class="mn-sub" d="M16 39 H34"/>
+            <path class="mn-label" d="M16 48 H54"/><path class="mn-label" d="M16 57 H46"/>
+          </svg>
+          <b>Grouping: dividers and sections</b>
+          <p>Related commands sit together; a label names the group when it needs one.</p>
+        </div>
+      </div>
+
+      <h3>Try it</h3>
+
+      <p>A plain menu with no tone, doing everything the brief asks. Point at an item, press it, or use the arrow keys; Sort by opens its submenu to the side.</p>
+
+      <div class="mn-try">
+        <div class="mn-try-stage">
+          <div class="mn-try-menu" role="menu" aria-label="Example menu">
+            <button class="mn-try-item" role="menuitem" type="button" tabindex="0">
+              <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6V4h10v10h-2M4 6h10v10H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              <span class="mn-try-label">Copy</span><kbd class="mn-try-key">⌘C</kbd>
+            </button>
+            <button class="mn-try-item" role="menuitem" type="button" tabindex="-1">
+              <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4h6v2H7zM5 5h-1v12h12V5h-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              <span class="mn-try-label">Paste</span><kbd class="mn-try-key">⌘V</kbd>
+            </button>
+            <button class="mn-try-item" role="menuitem" type="button" tabindex="-1" aria-disabled="true">
+              <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10a5 5 0 1 0 2-4M5 3v3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="mn-try-label">Redo</span><kbd class="mn-try-key">⇧⌘Z</kbd>
+            </button>
+            <div class="mn-try-sep" role="separator"></div>
+            <div class="mn-try-section" role="presentation">Mail</div>
+            <button class="mn-try-item" role="menuitem" type="button" tabindex="-1">
+              <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3zM3 5l7 6 7-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              <span class="mn-try-label">Inbox</span><span class="mn-try-badge" aria-label="12 unread">12</span>
+            </button>
+            <button class="mn-try-item" role="menuitem" type="button" tabindex="-1">
+              <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 9l6-3M7 11l6 3" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span class="mn-try-label">Share</span>
+              <svg class="mn-try-trail" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5h7v7M15 5l-9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="mn-try-has-sub">
+              <button class="mn-try-item" role="menuitem" type="button" tabindex="-1" aria-haspopup="menu" aria-expanded="false" data-sub>
+                <svg class="mn-try-lead" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h8M4 14h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span class="mn-try-label">Sort by</span>
+                <svg class="mn-try-trail" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="mn-try-submenu" role="menu" aria-label="Sort by">
+                <button class="mn-try-item" role="menuitemradio" type="button" tabindex="-1" aria-checked="false"><svg class="mn-try-check" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-try-label">Name</span></button>
+                <button class="mn-try-item" role="menuitemradio" type="button" tabindex="-1" aria-checked="true"><svg class="mn-try-check" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-try-label">Date</span></button>
+                <button class="mn-try-item" role="menuitemradio" type="button" tabindex="-1" aria-checked="false"><svg class="mn-try-check" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-try-label">Size</span></button>
+              </div>
+            </div>
+          </div>
+          <p class="mn-try-said" aria-live="polite"></p>
+        </div>
+        <ul class="mn-try-keylist">
+          <li><i class="k-hover"></i><b>Hover</b>A layer of the text colour, about 8%</li>
+          <li><i class="k-press"></i><b>Pressed</b>The same layer, about 12%</li>
+          <li><i>⌘</i><b>Shortcut</b>Right-aligned, muted, in Apple's order ⌃ ⌥ ⇧ ⌘</li>
+          <li><i>›</i><b>Submenu</b>Opens beside its item on hover, click or →; ← or Esc closes it</li>
+          <li><i style="opacity:.5">R</i><b>Unavailable</b>Dimmed, still in its place, not pickable</li>
+        </ul>
+      </div>
+
+      <h3>Three states</h3>
+
+      <p>The keyboard's highlight looks the same as hover: in a menu, whichever item is lit is the one Return will pick.</p>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" rx="6" class="mn-box"/><path class="mn-icon" d="M9 17 h6 v6 h-6 z"/><path class="mn-label" d="M21 20 H52"/><text x="91" y="22.5" text-anchor="end" class="mn-meta">⌘C</text></svg>
+          <figcaption><b>Enabled</b><span>At rest</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" rx="6" class="mn-box"/><rect x="2" y="8" width="96" height="24" rx="6" class="mn-layer" opacity=".08"/><path class="mn-icon" d="M9 17 h6 v6 h-6 z"/><path class="mn-label" d="M21 20 H52"/><text x="91" y="22.5" text-anchor="end" class="mn-meta">⌘C</text><path d="M60 24 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/></svg>
+          <figcaption><b>Hover</b><span>Layer, about 8%; also the keyboard's highlight</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="8" width="96" height="24" rx="6" class="mn-box"/><rect x="2" y="8" width="96" height="24" rx="6" class="mn-layer" opacity=".12"/><circle cx="40" cy="20" r="14" class="mn-layer" opacity=".12"/><path class="mn-icon" d="M9 17 h6 v6 h-6 z"/><path class="mn-label" d="M21 20 H52"/><text x="91" y="22.5" text-anchor="end" class="mn-meta">⌘C</text></svg>
+          <figcaption><b>Pressed</b><span>Layer about 12%, then the menu closes</span></figcaption>
+        </figure>
+      </div>
+
+      <h3>Numbers to remember</h3>
+
+      <div class="mn-nums">
+        <div><b>48 · 2</b><span>Item height and the gap between items, in the brief's Material drawing.</span></div>
+        <div><b>16 · 12</b><span>Corner of the menu and of the lit item, same drawing.</span></div>
+        <div><b>⌃ ⌥ ⇧ ⌘</b><span>Apple's order for modifier keys in a shortcut: Control, Option, Shift, Command.</span></div>
+        <div><b>1<small> level</small></b><span>How deep a submenu should go. Deeper hides commands.</span></div>
+      </div>
+
+      <h3>Do and don't</h3>
+
+      <div class="rv-dd mn-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="rv-hair" d="M100 2 V42" stroke-dasharray="2 2"/>
+            <path class="mn-label" d="M14 8 H50"/><text x="100" y="10.5" text-anchor="end" class="mn-meta">⌘C</text>
+            <path class="mn-label" d="M14 22 H44"/><text x="100" y="24.5" text-anchor="end" class="mn-meta">⇧⌘V</text>
+            <path class="mn-label" d="M14 36 H56"/><text x="100" y="38.5" text-anchor="end" class="mn-meta">⌥⌘A</text>
+          </svg>
+          <figcaption><b>Do</b>Right-align shortcuts in one column so they read as a list of their own.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="mn-label" d="M14 7 H50"/><path class="mn-label" d="M14 16 H44"/>
+            <path class="mn-rule" d="M14 23 H106"/>
+            <path class="mn-label" d="M14 30 H56"/><path class="mn-label" d="M14 39 H40"/>
+          </svg>
+          <figcaption><b>Do</b>Group related commands and split the groups with a divider.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="mn-label" d="M14 10 H50"/>
+            <path class="mn-label" d="M14 22 H44" opacity=".35"/>
+            <path class="mn-label" d="M14 34 H56"/>
+          </svg>
+          <figcaption><b>Do</b>Dim a command that can't be used now; don't hide it.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="4" y="4" width="36" height="36" rx="3" class="mn-box"/><path class="mn-icon" d="M33 20 l3 3 -3 3"/>
+            <rect x="42" y="14" width="36" height="28" rx="3" class="mn-box"/><path class="mn-icon" d="M71 28 l3 3 -3 3"/>
+            <rect x="80" y="24" width="36" height="18" rx="3" class="mn-box"/>
+          </svg>
+          <figcaption><b>Don't</b>Nest submenus in submenus; past one level, commands get lost.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="6" y="11" width="108" height="22" rx="4" class="mn-box"/><path class="mn-label" d="M14 22 H46"/><text x="90" y="24.5" text-anchor="end" class="mn-meta">⌘S</text><path class="mn-icon" d="M98 18 L102 22 L98 26"/>
+          </svg>
+          <figcaption><b>Don't</b>Give a submenu item a shortcut too; it opens, it doesn't do.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <path class="mn-icon" d="M14 5 h6 v6 h-6 z"/><path class="mn-label" d="M26 8 H60"/>
+            <path class="mn-label" d="M14 22 H48"/>
+            <path class="mn-icon" d="M14 33 h6 v6 h-6 z"/><path class="mn-label" d="M26 36 H54"/>
+          </svg>
+          <figcaption><b>Don't</b>Let labels jump left where an item has no icon; keep the icon column.</figcaption>
+        </figure>
+      </div>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-06-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-06-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-06-NAME.html">View larger</button>
+          </figcaption>
+        </figure> -->
+      <div class="idea-grid"></div>
+
+      <h2>Deliverables</h2>
+
+      <p>Two sets of menus, each a tone. Each set has the menu system, every item configuration from one build, and the menu in use: sections, a submenu, and every item answering hover and press. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-06-TONE-{system,menu}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the menu first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-06-set-1-system.html</span></div>
+                  <figcaption>
+                    <b>Menu system</b>
+                    <span>One item build in every configuration: a single line; a left icon or none; a right icon, shortcut or badge; sections; a submenu item. Enabled, hover and pressed.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-06-set-1-menu.html</span></div>
+                  <figcaption>
+                    <b>In use</b>
+                    <span>A menu that opens from its button, grouped in sections, with a submenu that opens beside its item.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">Menu system</p>
+              <div class="process-grid"></div>
+              <p class="process-label">In use</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">One line on the tone.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-06-set-2-system.html</span></div>
+                  <figcaption>
+                    <b>Menu system</b>
+                    <span>One item build in every configuration: a single line; a left icon or none; a right icon, shortcut or badge; sections; a submenu item. Enabled, hover and pressed.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-06-set-2-menu.html</span></div>
+                  <figcaption>
+                    <b>In use</b>
+                    <span>A menu that opens from its button, grouped in sections, with a submenu that opens beside its item.</span>
+                    <span class="soon">Not built yet</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">Menu system</p>
+              <div class="process-grid"></div>
+              <p class="process-label">In use</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/menus">Menus</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/keyboards">Keyboards</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://m3.material.io/components/menus/overview">Menus</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/foundations/interaction/states/state-layers">State layers</a>, Material Design 3</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/">Menu button pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-05/week-05.html">&larr; Week 05: Lists</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=8"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+  <script>
+    // Try it: arrow keys move the highlight, the submenu opens beside Sort by, picking an item says what was picked
+    (() => {
+      const menu = document.querySelector('.mn-try-menu');
+      if (!menu) return;
+      const said = document.querySelector('.mn-try-said');
+      const host = menu.querySelector('.mn-try-has-sub');
+      const parent = host.querySelector('[data-sub]');
+      const sub = host.querySelector('.mn-try-submenu');
+      const items = el => [...el.querySelectorAll(':scope > .mn-try-item, :scope > .mn-try-has-sub > .mn-try-item')].filter(i => i.getAttribute('aria-disabled') !== 'true');
+      const subItems = () => [...sub.querySelectorAll('.mn-try-item')];
+      let timer;
+
+      const move = (list, from, step) => {
+        const i = list.indexOf(from);
+        const next = list[(i + step + list.length) % list.length];
+        list.forEach(x => x.tabIndex = -1);
+        next.tabIndex = 0; next.focus();
+      };
+      const openSub = focus => {
+        clearTimeout(timer);
+        host.classList.add('is-open'); parent.classList.add('is-open'); parent.setAttribute('aria-expanded', 'true');
+        if (focus) { const first = sub.querySelector('[aria-checked="true"]') || subItems()[0]; first.tabIndex = 0; first.focus(); }
+      };
+      const closeSub = focus => {
+        host.classList.remove('is-open'); parent.classList.remove('is-open'); parent.setAttribute('aria-expanded', 'false');
+        if (focus) parent.focus();
+      };
+      const pick = item => {
+        if (item.getAttribute('aria-disabled') === 'true') { said.textContent = 'Redo is not available right now.'; return; }
+        if (item.role === 'menuitemradio') {
+          subItems().forEach(x => x.setAttribute('aria-checked', String(x === item)));
+          said.textContent = 'Sorted by ' + item.textContent.trim() + '.';
+          closeSub(true); return;
+        }
+        if (item === parent) { openSub(true); return; }
+        said.textContent = 'Picked ' + item.querySelector('.mn-try-label').textContent + '.';
+      };
+
+      menu.addEventListener('click', e => { const it = e.target.closest('.mn-try-item'); if (it) pick(it); });
+      host.addEventListener('pointerenter', () => openSub(false));
+      host.addEventListener('pointerleave', () => { timer = setTimeout(() => closeSub(false), 250); });
+      menu.querySelectorAll(':scope > .mn-try-item').forEach(it => it.addEventListener('pointerenter', () => closeSub(false)));
+
+      menu.addEventListener('keydown', e => {
+        const it = e.target.closest('.mn-try-item');
+        if (!it) return;
+        const inSub = sub.contains(it);
+        const list = inSub ? subItems() : items(menu);
+        if (e.key === 'ArrowDown') { e.preventDefault(); move(list, it, 1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); move(list, it, -1); }
+        else if (e.key === 'ArrowRight' && it === parent) { e.preventDefault(); openSub(true); }
+        else if ((e.key === 'ArrowLeft' || e.key === 'Escape') && inSub) { e.preventDefault(); closeSub(true); }
+      });
+    })();
+  </script>
+</body>
+</html>
