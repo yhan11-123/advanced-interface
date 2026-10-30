@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Flashlight</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Flashlight: a horror game's title menu painted on a wall in a dark room. The pointer is a
+     torch: only what it lights is clear, the rest stays a faint shape, so the menu is still all
+     there to find. The keyboard moves the light too. The beam flickers. Hover stains the item
+     red and makes it tremble; pressing snaps it white. The submenu is scratched beside it. */
+  @import url("https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@1&display=swap");
+  :root { --w: 600px; --h: 440px; --x: 170px; --y: 180px; --paint: #ddd3c2; --blood: #b3261e; --font: "IM Fell English SC", Georgia, serif; }
+  body { background: #000; color: var(--paint); font: 400 22px/1 var(--font); letter-spacing: .04em; cursor: crosshair; }
+  .wall { position: absolute; inset: 0; background: radial-gradient(120% 80% at 30% 40%, #2c2620, #14110e 60%, #080706); }
+  .wall::before { content: ""; position: absolute; inset: 0; opacity: .35; background-image: repeating-linear-gradient(90deg, transparent 0 58px, rgba(0,0,0,.6) 58px 60px), repeating-linear-gradient(0deg, transparent 0 28px, rgba(0,0,0,.5) 28px 30px); }
+  .title { position: absolute; left: 60px; top: 34px; font-size: 40px; letter-spacing: .12em; color: #a99d89; }
+  .menu { position: absolute; left: 60px; top: 100px; width: 250px; }
+  .item { display: flex; align-items: center; gap: 12px; width: 100%; height: 36px; transition: color .2s; }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { color: var(--blood); outline: none; animation: tremble .18s steps(2) infinite; }
+  @keyframes tremble { 50% { translate: 1px -1px; } }
+  .item:active, .item.is-picked { color: #fff; animation: none; text-shadow: 0 0 12px #fff; }
+  .ico { width: 18px; height: 18px; flex: none; opacity: .8; }
+  .label { flex: 1; }
+  kbd, .end { font: italic 15px/1 "IM Fell English", serif; color: #8f8574; }
+  .item[aria-disabled="true"] { color: #5d554a; }
+  .item[aria-disabled="true"]:hover { color: #5d554a; animation: none; }
+  .item[aria-disabled="true"] .label { text-decoration: line-through; text-decoration-color: var(--blood); }
+  .rule { height: 12px; margin: 6px 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='12'%3E%3Cpath d='M2 6 L40 5 L70 8 L110 4 L160 7 L200 5 L238 7' fill='none' stroke='%23786d5c' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat; }
+  .sect { padding: 6px 0 4px; font: italic 15px/1 "IM Fell English", serif; color: #8f8574; }
+  .badge { min-width: 24px; height: 24px; border: 1.5px solid var(--blood); border-radius: 50%; color: var(--blood); font-size: 14px; line-height: 21px; text-align: center; rotate: -8deg; }
+  .submenu { position: absolute; left: calc(100% + 30px); bottom: -6px; width: 170px; opacity: 0; transition: opacity .4s; }
+  .has-sub.is-open > .submenu { opacity: 1; }
+  .submenu .item { font-size: 19px; height: 32px; }
+  .submenu .mark { width: 16px; color: var(--blood); visibility: hidden; }
+  .submenu [aria-checked="true"] .mark { visibility: visible; }
+  /* the dark, with a hole where the torch points */
+  .dark { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle 120px at var(--x) var(--y), rgba(0,0,0,0) 0, rgba(0,0,0,.35) 55%, rgba(0,0,0,.9) 100%); animation: flicker 4s infinite; }
+  @keyframes flicker { 0%, 100% { opacity: 1; } 41% { opacity: 1; } 42% { opacity: .82; } 43% { opacity: 1; } 71% { opacity: .9; } 72% { opacity: 1; } }
+  .said { position: absolute; right: 26px; bottom: 20px; font: italic 15px/1 "IM Fell English", serif; color: var(--blood); }
+  @media (prefers-reduced-motion: reduce) { .dark { animation: none; } .item:hover { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="wall" aria-hidden="true"></div>
+    <div class="title" aria-hidden="true">Hollow House</div>
+    <div class="menu" role="menu" aria-label="Title menu">
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2c-1 2 1 3 0 5M7 8h4v8H7z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="label">New Game</span><kbd>⌘N</kbd></button>
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="6" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 9h7M13 9v3M15 9v2" stroke="currentColor" stroke-width="1.3"/></svg><span class="label">Continue</span><kbd>⌘C</kbd></button>
+      <button class="item" role="menuitem" aria-disabled="true"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="5" width="14" height="9" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6.5" cy="9.5" r="1.6" fill="none" stroke="currentColor"/><circle cx="11.5" cy="9.5" r="1.6" fill="none" stroke="currentColor"/></svg><span class="label">Load Tape</span><kbd>⌘L</kbd></button>
+      <button class="item" role="menuitem"><span class="ico"></span><span class="label">Settings</span><kbd>⌘,</kbd></button>
+      <div class="rule" role="separator"></div>
+      <div class="sect">what was left behind</div>
+      <button class="item" role="menuitem" data-say="seven pages, all in her hand"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 2h8l2 2v12H4zM6 7h6M6 10h6M6 13h4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span class="label">Journal</span><span class="badge">7</span></button>
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 4l4-1.5 6 2 4-1.5v11l-4 1.5-6-2-4 1.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="label">The Map</span><span class="end">↗</span></button>
+      <div class="has-sub">
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M7 7h.1M11 7h.1M7 11c1-1 3-1 4 0M6 13v3M9 13v3M12 13v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="label">Dread</span><span class="end">⟶</span></button>
+        <div class="submenu" role="menu" aria-label="Dread">
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="mark">✕</span><span class="label">Calm</span></button>
+          <button class="item" role="menuitemradio" aria-checked="true"><span class="mark">✕</span><span class="label">Uneasy</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="mark">✕</span><span class="label">Nightmare</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="dark" aria-hidden="true"></div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    // the torch follows the pointer, or the item the keyboard is on; it drifts there, a little behind
+    const stage = document.querySelector('.stage'), root = document.documentElement;
+    let tx = 170, ty = 180, x = tx, y = ty;
+    const fit = () => parseFloat(getComputedStyle(root).getPropertyValue('--fit')) || 1;
+    const aim = (cx, cy) => { const s = stage.getBoundingClientRect(); tx = (cx - s.left) / fit(); ty = (cy - s.top) / fit(); };
+    addEventListener('pointermove', e => aim(e.clientX, e.clientY));
+    document.addEventListener('focusin', e => { const r = e.target.getBoundingClientRect(); aim(r.left + 60, r.top + r.height / 2); });
+    (function drift() { x += (tx - x) * .14; y += (ty - y) * .14; root.style.setProperty('--x', x + 'px'); root.style.setProperty('--y', y + 'px'); requestAnimationFrame(drift); })();
+  </script>
+</body>
+</html>

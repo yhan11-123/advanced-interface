@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; VHS</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* VHS: a found-footage game paused on a tape. The menu is the deck's on-screen display: blocky
+     type with its colours slipping apart, over static and scan lines, PLAY and REC in the corners.
+     Hover drops the deck's blue bar behind the item and points a ▶ at it; pressing makes the
+     picture tear for a moment, like bad tracking. Shortcuts are the remote's buttons. */
+  @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+  :root { --w: 600px; --h: 440px; --osd: #f3f3f3; --blue: #1532d6; --font: "VT323", ui-monospace, monospace; }
+  body { background: #000; color: var(--osd); font: 400 26px/1 var(--font); letter-spacing: .06em; text-transform: uppercase; }
+  .screen { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(90% 90% at 50% 50%, #26302b, #0b0f0d 75%); }
+  .noise { position: absolute; inset: -50%; opacity: .16; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grain .4s steps(4) infinite; }
+  @keyframes grain { 25% { translate: -5% 3%; } 50% { translate: 4% -6%; } 75% { translate: -3% 5%; } }
+  .lines { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px); pointer-events: none; }
+  .band { position: absolute; left: 0; right: 0; height: 26px; background: linear-gradient(transparent, rgba(255,255,255,.08), transparent); animation: roll 6s linear infinite; pointer-events: none; }
+  @keyframes roll { from { top: -30px; } to { top: 100%; } }
+  .osd { position: absolute; text-shadow: 2px 0 rgba(255,0,60,.6), -2px 0 rgba(0,220,255,.6); }
+  .rec::before { content: "● "; color: #ff2a2a; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .menu { position: absolute; left: 70px; top: 86px; width: 330px; }
+  .item { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; height: 34px; padding: 0 10px 0 28px; text-shadow: 2px 0 rgba(255,0,60,.55), -2px 0 rgba(0,220,255,.55); }
+  .item::before { content: "▶"; position: absolute; left: 4px; opacity: 0; }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { background: var(--blue); outline: none; }
+  .item:hover::before, .item:focus-visible::before, .has-sub.is-open > .item::before { opacity: 1; }
+  .item:active, .item.is-picked { animation: tear .35s steps(3); }
+  @keyframes tear { 33% { translate: 14px 0; clip-path: inset(0 0 50% 0); } 66% { translate: -9px 0; clip-path: inset(40% 0 0 0); } }
+  .ico { width: 20px; height: 20px; flex: none; }
+  .label { flex: 1; }
+  kbd, .end { font-size: 20px; color: #b9c1bd; }
+  .item[aria-disabled="true"] { color: #6f7672; text-shadow: none; }
+  .item[aria-disabled="true"]:hover { background: none; }
+  .item[aria-disabled="true"]:hover::before { opacity: 0; }
+  .rule { height: 2px; margin: 8px 28px 8px 28px; background: repeating-linear-gradient(90deg, var(--osd) 0 8px, transparent 8px 14px); opacity: .6; }
+  .sect { padding: 2px 0 6px 28px; font-size: 18px; color: #9aa39e; }
+  .badge { padding: 0 6px; background: var(--osd); color: #111; text-shadow: none; font-size: 20px; }
+  .submenu { position: absolute; left: calc(100% + 20px); bottom: 0; width: 170px; padding: 6px 0; border: 2px solid var(--osd); background: rgba(0,0,0,.35); }
+  .submenu .item { padding-left: 26px; }
+  .submenu .mark { width: 14px; visibility: hidden; }
+  .submenu [aria-checked="true"] .mark { visibility: visible; }
+  .said { position: absolute; right: 26px; top: 50px; margin: 0; font-size: 20px; color: #cfd6d2; }
+  @media (prefers-reduced-motion: reduce) { .noise, .band { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="screen" aria-hidden="true"><div class="noise"></div><div class="band"></div></div>
+    <div class="osd" style="left:26px;top:22px" aria-hidden="true">Pause ❚❚</div>
+    <div class="osd rec" style="right:26px;top:22px" aria-hidden="true">Rec</div>
+    <div class="osd" style="right:26px;bottom:22px" aria-hidden="true">SP 0:13:37</div>
+    <div class="osd" style="left:26px;bottom:22px;font-size:18px;color:#9aa39e" aria-hidden="true">Oct. 31 1997</div>
+    <div class="menu" role="menu" aria-label="Tape menu">
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3v14l11-7z" fill="currentColor"/></svg><span class="label">Resume</span><kbd>[PLAY]</kbd></button>
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12L2 10zM18 4v12l-8-6z" fill="currentColor"/></svg><span class="label">Rewind</span><kbd>[REW]</kbd></button>
+      <button class="item" role="menuitem" aria-disabled="true"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 4v12l8-6zM10 4v12l8-6z" fill="currentColor"/></svg><span class="label">Fast fwd</span><kbd>[FF]</kbd></button>
+      <button class="item" role="menuitem"><span class="ico"></span><span class="label">Restart</span><kbd>[0]</kbd></button>
+      <div class="rule" role="separator"></div>
+      <div class="sect">Evidence</div>
+      <button class="item" role="menuitem" data-say="3 tapes found"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="13.5" cy="10" r="2" fill="currentColor"/></svg><span class="label">Tapes</span><span class="badge">3</span></button>
+      <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 12h12l-6-8zM4 15h12" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span class="label">Eject</span><span class="end">⏏</span></button>
+      <div class="has-sub">
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h3l2-5 3 10 3-8 2 3h3" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="label">Tracking</span><span class="end">▸</span></button>
+        <div class="submenu" role="menu" aria-label="Tracking">
+          <button class="item" role="menuitemradio" aria-checked="true"><span class="mark">*</span><span class="label">Auto</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="mark">*</span><span class="label">Manual</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false"><span class="mark">*</span><span class="label">Off</span></button>
+        </div>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+    <div class="lines" aria-hidden="true"></div>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+</body>
+</html>
