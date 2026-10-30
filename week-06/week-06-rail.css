@@ -1,0 +1,98 @@
+/* Week 06, Set 2 · Rail: the Notch sketch, turned for the web. On the phone, the menu button sat
+   in a scoop cut out of the bottom tab bar. On a web page the bar stands up: a navigation rail down
+   the left edge, the scoop cut into its right side, the round button sitting in it, and the menu
+   blooming out of the scoop to the right, in the rail's green-to-blue.
+   Shared by the two prototypes (the menu system, the menu in use). Every value the spec reports
+   is set here, once, as a token; the pages and the spec read the same numbers. */
+
+:root {
+  /* colour */
+  --g1: #86cba4;             /* the green end */
+  --g2: #7fa6c7;             /* the blue end */
+  --page: #e4e8e7;           /* the web page behind */
+  --card: #f4f6f5;
+  --ink: #ffffff;            /* text on the gradient */
+  --soft: rgba(255, 255, 255, .72);  /* shortcut, right icon, section label */
+  --off: rgba(255, 255, 255, .42);   /* unavailable */
+  --hover: rgba(255, 255, 255, .2);
+  --press: rgba(255, 255, 255, .34);
+  --deep: #3f7778;           /* text on white: the badge, the page */
+
+  /* type */
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --size: 14px; --weight: 500;
+  --key-size: 12px;
+  --sect-size: 11px;
+
+  /* the rail and its scoop */
+  --rail-w: 88px;
+  --rail-r: 28px;            /* the rail's outer corners */
+  --scoop: 54px;             /* radius of the cut the button sits in */
+  --fab: 84px;               /* the round button */
+
+  /* the menu and its item */
+  --menu-w: 256px; --menu-pad: 8px; --menu-r: 24px;
+  --item-h: 40px; --item-px: 12px; --item-gap: 10px; --item-r: 14px;
+  --icon: 18px; --icon-stroke: 1.5;
+  --badge: 20px;
+  --gap-out: 16px;           /* from the scoop's edge to the menu */
+
+  /* motion */
+  --spring: cubic-bezier(.3, 1.3, .5, 1);   /* the bloom: overshoots a touch, then settles */
+  --open-time: 420ms;        /* the menu blooms out of the scoop */
+  --close-time: 200ms;       /* and draws back in, without the spring */
+  --stagger: 22ms;           /* rows come in one after another */
+  --morph-time: 300ms;       /* the three lines turn to a cross */
+  --hover-time: 150ms;
+}
+
+/* ---------- the menu: a gradient sheet with rounded corners ---------- */
+.r-menu { position: relative; width: var(--menu-w); padding: var(--menu-pad); border-radius: var(--menu-r); color: var(--ink);
+  background: linear-gradient(160deg, var(--g1), var(--g2)); box-shadow: 0 18px 34px -16px rgba(40, 80, 90, .55); font: var(--weight) var(--size)/1 var(--font); }
+
+/* ---------- one item, every configuration ---------- */
+.r-item { display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px); border: 0; border-radius: var(--item-r);
+  background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color var(--hover-time) ease, translate var(--hover-time) ease; }
+.r-item:focus-visible { outline: none; }
+/* hover: a soft white wash */
+.r-item:hover, .r-item:focus-visible, .r-item.is-hover, .has-sub.is-open > .r-item { background: var(--hover); }
+/* pressed: the wash deepens and the row sinks a pixel */
+.r-item:active, .r-item.is-press, .r-item.is-picked { background: var(--press); translate: 0 1px; }
+.r-item[aria-disabled="true"] { color: var(--off); cursor: default; background: transparent; translate: none; }
+.r-ico { width: var(--icon); height: var(--icon); flex: none; }
+.r-ico * { stroke-width: var(--icon-stroke); }
+.r-label { flex: 1; white-space: nowrap; }
+.r-key { font: 500 var(--key-size)/1 var(--font); color: var(--soft); }
+.r-item[aria-disabled="true"] .r-key { color: var(--off); }
+.r-end { width: 16px; height: 16px; flex: none; color: var(--soft); }
+.r-badge { min-width: var(--badge); height: var(--badge); padding: 0 6px; border-radius: calc(var(--badge) / 2); background: #fff; color: var(--deep);
+  font: 800 11px/var(--badge) var(--font); text-align: center; }
+.r-sect { padding: 8px var(--item-px) 6px; font: 700 var(--sect-size)/1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--soft); }
+.r-rule { height: 1px; margin: 6px var(--item-px); background: rgba(255, 255, 255, .3); }
+.r-tick { width: 14px; flex: none; visibility: hidden; }
+[aria-checked="true"] > .r-tick { visibility: visible; }
+
+/* ---------- the round button ---------- */
+.fab { position: relative; width: var(--fab); height: var(--fab); padding: 0; border: 0; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--g1), var(--g2)); box-shadow: 0 8px 18px -8px rgba(40, 80, 90, .6);
+  transition: scale var(--hover-time) ease, box-shadow var(--hover-time) ease; }
+.fab i { position: absolute; width: 30px; height: 3px; border-radius: 2px; background: #fff; transition: translate var(--morph-time) ease, rotate var(--morph-time) var(--spring), opacity 200ms; }
+.fab i:nth-child(1) { translate: 0 -9px; } .fab i:nth-child(3) { translate: 0 9px; }
+.fab:hover, .fab:focus-visible, .fab.is-hover { scale: 1.05; box-shadow: 0 12px 22px -8px rgba(40, 80, 90, .65), 0 0 0 6px rgba(134, 203, 164, .25); outline: none; }
+.fab:active, .fab.is-press { scale: .94; box-shadow: 0 4px 10px -6px rgba(40, 80, 90, .6); }
+.fab[aria-expanded="true"] i:nth-child(1) { translate: 0; rotate: 45deg; }
+.fab[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+.fab[aria-expanded="true"] i:nth-child(3) { translate: 0; rotate: -45deg; }
+
+/* ---------- the spec, under each prototype ---------- */
+.spec { padding: 48px 32px 64px; background: #f2f4f3; color: #34494a; font: 15px/1.5 var(--font); }
+.spec h2 { margin: 0 0 4px; font: 700 26px/1.2 var(--font); color: var(--deep); }
+.spec > p { margin: 0 0 24px; color: #5e7475; max-width: 62ch; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.spec-card { padding: 14px 16px 12px; border-radius: 14px; background: #fff; box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 6px 18px -12px rgba(40, 80, 90, .3); }
+.spec-card h3 { margin: 0 0 10px; font: 700 12px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: #6e9a8c; }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
+.spec-card dt { color: #6a7d7e; }
+.spec-card dd { margin: 0; color: #213436; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
