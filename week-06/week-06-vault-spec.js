@@ -74,16 +74,17 @@
     ]],
     ['Submenu', [
       ['Form', 'a smaller board, stacked above the first'],
-      ['Sits', 'above the board, over its row'],
+      ['Sits', 'above the board, centred over Gear, 12px clear of it'],
+      ['Opens', `out of Gear: its corners leave Gear's corners for its own, the glass stretching between them, ${tok('--sub-open')}; then its boxes`],
       ['Its boxes', `built the same five steps, quicker: ${tok('--sub-phase')} apart, rise ${tok('--sub-time')}, ${tok('--sub-step')} between boxes`],
-      ['Put away', `the same five steps backwards, ${tok('--out-phase')} apart`],
+      ['Put away', `the same five steps backwards, ${tok('--out-phase')} apart; then the glass draws back onto Gear, ${tok('--sub-close')}`],
       ['Tiles', 'three, one chosen at a time'],
     ]],
     ['Motion · the board', [
-      ['Opens', `${tok('--open-time')}: a line of light, then the glass rises from it`],
+      ['Opens', `${tok('--open-time')}: out of the MENU prompt, its corners leaving the prompt's corners for the board's`],
       ['Boxes built', `left to right, ${tok('--stack-step')} apart`],
       ['Taken down', `right to left, ${tok('--leave-step')} apart`],
-      ['Glass folds', `${tok('--close-time')}, back into its line`],
+      ['Glass draws back', `${tok('--close-time')}, onto the prompt, which comes back`],
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
     ]],
     ['Motion · one box built', [

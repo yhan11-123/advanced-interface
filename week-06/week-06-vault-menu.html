@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use and every state</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=9" />
+  <link rel="stylesheet" href="week-06-vault.css?v=12" />
   <style>
   /* In use: the field menu of VAULT, a sci-fi salvage game, on its own. Shut, it is a MENU prompt.
-     Opened (the prompt, or Tab), a board of glass rises out of a line of light, seen straight on. Its items are wide, low boxes in sections, each built in steps like
+     Opened (the prompt, or Tab), a board of glass grows out of the prompt itself, seen straight on. Its items are wide, low boxes in sections, each built in steps like
      stacked frames. Point at a box and it steps up and fills with light; press it and it lights right
-     through. Gear opens a submenu: a second, smaller board stacked above the first. Esc, Resume or a
-     click outside takes it all down again, right to left, and folds the glass back into its line. */
+     through. Gear opens a submenu: a rack that grows out of Gear and rises above the board. Esc, Resume or a
+     click outside takes it all down again, right to left, and draws the glass back onto the prompt. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
@@ -27,23 +27,41 @@
   /* the prompt: all of the menu there is while it is shut */
   .prompt { left: 520px; top: 290px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
     background: rgba(57, 213, 255, .1); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); color: var(--ink); font: 600 15px/1 var(--font); letter-spacing: .2em;
-    transition: background-color var(--hover-time), box-shadow var(--hover-time), color var(--hover-time), opacity 160ms; }
+    transition: background-color var(--hover-time), box-shadow var(--hover-time), color var(--hover-time), opacity 120ms linear calc(var(--close-time) - 40ms); }
   .prompt kbd { padding: 3px 6px; border: 1px solid rgba(95, 179, 196, .5); font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); }
   .prompt:hover, .prompt:focus-visible { outline: none; background: rgba(57, 213, 255, .26); color: var(--cyan-hi); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 22px rgba(57, 213, 255, .45); }
   .prompt:active { background: linear-gradient(#bff6ff, #39d5ff); color: #04232b; }
-  .stage.is-menu .prompt { opacity: 0; pointer-events: none; }
+  .stage.is-menu .prompt { opacity: 0; pointer-events: none; transition: opacity 80ms linear; }
 
-  /* ---------- the board: the bottom half of the screen ---------- */
-  .board { left: 30px; top: 190px; width: 1140px; height: 238px; visibility: hidden;
+  /* ---------- the board, and the Gear rack: each grows out of what was pressed ----------
+     A menu in a game shares the screen with everything else, so neither box asks for room it does not
+     own. Each starts as the frame of the thing pressed: its glass sits exactly on it and its two
+     corners sit on that thing's corners. Then the corners travel out to the box's own corners, top
+     left one way and bottom right the other, and the glass stretches between them. Put away, they
+     travel back onto the thing pressed and go out. --t0 --r0 --b0 --l0: where that thing sits,
+     measured in from each edge of the box. */
+  .grow > .board-glass { top: var(--t0); right: var(--r0); bottom: var(--b0); left: var(--l0); scale: 1 1; opacity: 0;
+    transition: top var(--gc) var(--ease-in-out) var(--gd), right var(--gc) var(--ease-in-out) var(--gd), bottom var(--gc) var(--ease-in-out) var(--gd), left var(--gc) var(--ease-in-out) var(--gd),
+      opacity 80ms linear calc(var(--gd) + var(--gc) - 40ms); }
+  .grow > .board-glass::before, .grow > .board-glass::after { display: none; }
+  .corner { position: absolute; width: 18px; height: 18px; border: var(--edge) solid var(--cyan); box-shadow: 0 0 8px rgba(57, 213, 255, .6); pointer-events: none; opacity: 0;
+    transition: top var(--gc) var(--ease-in-out) var(--gd), right var(--gc) var(--ease-in-out) var(--gd), bottom var(--gc) var(--ease-in-out) var(--gd), left var(--gc) var(--ease-in-out) var(--gd),
+      opacity 80ms linear calc(var(--gd) + var(--gc)); }
+  .corner.a { left: calc(var(--l0) - 3px); top: calc(var(--t0) - 3px); border-right: 0; border-bottom: 0; }
+  .corner.b { right: calc(var(--r0) - 3px); bottom: calc(var(--b0) - 3px); border-left: 0; border-top: 0; }
+  .stage.is-menu .board > .board-glass, .stage.is-menu .board > .corner, .sub.is-open > .board-glass, .sub.is-open > .corner { opacity: 1;
+    transition: top calc(var(--go) * .85) var(--ease-out) calc(var(--go) * .15), right calc(var(--go) * .85) var(--ease-out) calc(var(--go) * .15),
+      bottom calc(var(--go) * .85) var(--ease-out) calc(var(--go) * .15), left calc(var(--go) * .85) var(--ease-out) calc(var(--go) * .15), opacity 60ms linear; }
+  .stage.is-menu .board > .board-glass, .sub.is-open > .board-glass { top: 0; right: 0; bottom: 0; left: 0; }
+  .stage.is-menu .board > .corner.a, .sub.is-open > .corner.a { left: -3px; top: -3px; }
+  .stage.is-menu .board > .corner.b, .sub.is-open > .corner.b { right: -3px; bottom: -3px; }
+
+  /* the board takes the bottom half of the screen; it grows out of the MENU prompt, which sits inside it */
+  .board { --go: var(--open-time); --gc: var(--close-time); --gd: 0ms;
+    --t0: 100px; --r0: 490px; --b0: 98px; --l0: 490px;          /* the prompt: 160 x 40 at 490, 100 in the board */
+    left: 30px; top: 190px; width: 1140px; height: 238px; visibility: hidden;
     transition: visibility 0s calc(var(--close-time) + 160ms); }
   .stage.is-menu .board { visibility: visible; transition: visibility 0s; }
-  /* the line of light along its foot, then the glass rising out of it */
-  .board-line { position: absolute; left: -10px; right: -10px; bottom: -1px; height: 2px; background: var(--cyan-hi); box-shadow: 0 0 16px 3px var(--cyan); scale: 0 1; opacity: 0;
-    transition: scale 160ms var(--ease-out) var(--close-time), opacity 120ms linear calc(var(--close-time) + 120ms); }
-  .stage.is-menu .board-line { scale: 1 1; opacity: 1; transition: scale calc(var(--open-time) * .45) var(--ease-out), opacity 60ms linear; }
-  .stage.is-menu.is-settled .board-line { opacity: .35; transition: opacity 300ms; }
-  .board-glass { transform-origin: 50% 100%; scale: 1 0; opacity: 0; transition: scale var(--close-time) cubic-bezier(.6, 0, .4, 1), opacity 80ms linear calc(var(--close-time) - 80ms); }
-  .stage.is-menu .board-glass { scale: 1 1; opacity: 1; transition: scale calc(var(--open-time) * .7) var(--ease-out) calc(var(--open-time) * .3), opacity 60ms linear calc(var(--open-time) * .3); }
   .board-head, .detail { opacity: 0; transition: opacity 120ms; }
   .stage.is-menu .board-head, .stage.is-menu .detail { opacity: 1; transition: opacity 260ms var(--open-time); }
   .stage.is-leaving .board-head, .stage.is-leaving .detail { opacity: 0; transition: opacity 120ms; }
@@ -67,7 +85,7 @@
   .sections .slot { --ph: var(--phase); --st: var(--stack-time); --dt: var(--draw-time);
     --d: calc(var(--open-time) + var(--k) * var(--stack-step)); --dl: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
   .sub .slot { --ph: var(--sub-phase); --st: var(--sub-time); --dt: calc(var(--draw-time) * .6);
-    --d: calc(20ms + var(--k) * var(--sub-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
+    --d: calc(var(--sub-open) + var(--k) * var(--sub-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
   .b-dot, .b-foot, .b-mid, .b-flash { position: absolute; pointer-events: none; }
 
   /* taken down (and at rest when shut): step 5 to step 1 */
@@ -111,14 +129,19 @@
   .log p.is-done::after { display: none; }
   @keyframes caret { 50% { opacity: 0; } }
 
-  /* ---------- the submenu: a smaller board, stacked above the first ---------- */
-  .sub { position: absolute; left: 330px; top: -132px; width: 616px; padding: 14px 16px 16px; visibility: hidden;
-    transition: visibility 0s calc(2 * var(--leave-step) + 4 * var(--out-phase) + 160ms); }
+  /* ---------- the submenu: the Gear rack ----------
+     It grows out of Gear and rises above the board, centred over Gear, a row of three boxes: its
+     corners leave Gear's corners and climb to its own, the glass stretching up between them. Its
+     boxes are built once the glass is out, the same steps as the board's, quicker. Put away, the
+     boxes come down first, then the glass sinks back onto Gear. */
+  .stage { --sub-down: calc(2 * var(--leave-step) + 4 * var(--out-phase) + 120ms); }   /* the rack's boxes are down by now */
+  .sub { --go: var(--sub-open); --gc: var(--sub-close); --gd: var(--sub-down);
+    --t0: 183px; --r0: 214px; --b0: -135px; --l0: 214px;          /* Gear, stepped up: 188 x 56 at 432, 67 in the board */
+    position: absolute; left: 218px; top: -116px; width: 616px; height: 104px; padding: 16px 16px 10px; visibility: hidden;
+    transition: visibility 0s calc(var(--sub-down) + var(--sub-close) + 120ms); }
   .sub.is-open { visibility: visible; transition: visibility 0s; }
-  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear calc(2 * var(--leave-step) + 4 * var(--out-phase)); }
-  .sub.is-open .board-glass { opacity: 1; transition: opacity 80ms linear; }
-  .sub .t-sect { margin-bottom: 18px; opacity: 0; transition: opacity 120ms; }
-  .sub.is-open .t-sect { opacity: 1; transition: opacity 200ms 80ms; }
+  .sub .t-sect { margin: 0 0 10px 10px; opacity: 0; transition: opacity 120ms; }   /* clear of its top corner */
+  .sub.is-open .t-sect { opacity: 1; transition: opacity 200ms var(--sub-open); }
   .sub .t-grid { --cols: 3; }
 
   .stage.is-still *, .stage.is-still *::before, .stage.is-still *::after { transition: none !important; animation: none !important; }
@@ -149,9 +172,9 @@
 
       <button class="prompt" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="board">MENU <kbd>TAB</kbd></button>
 
-      <div class="board" id="board">
-        <span class="board-line" aria-hidden="true"></span>
+      <div class="board grow" id="board">
         <span class="board-glass" aria-hidden="true"></span>
+        <span class="corner a" aria-hidden="true"></span><span class="corner b" aria-hidden="true"></span>
         <div class="board-head" aria-hidden="true"><b>VAULT // FIELD MENU</b><span>ESC · RESUME</span></div>
         <div class="sections" role="menu" aria-label="Field menu">
           <div class="section" role="group" aria-labelledby="sec-mission">
@@ -185,8 +208,9 @@
           <div class="log"><p>&gt; DOCKED · SECTOR 07</p><p>&gt; CORE FRAGMENT 2 OF 3</p></div>
         </div>
 
-        <div class="sub" id="sub-gear" role="menu" aria-label="Gear">
+        <div class="sub grow" id="sub-gear" role="menu" aria-label="Gear">
           <span class="board-glass" aria-hidden="true"></span>
+          <span class="corner a" aria-hidden="true"></span><span class="corner b" aria-hidden="true"></span>
           <div class="t-sect">Gear · in your hands</div>
           <div class="t-grid">
             <span class="slot" style="--k:0"><button class="tile" role="menuitemradio" aria-checked="true" data-gear="PULSE RIFLE" data-desc="Fast, light, short reach. Twelve rounds."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h14l3-2v6l-3-2H9l-2 4H4l1-4H3z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note">EQUIPPED</span><span class="t-label">Pulse rifle</span></button></span>
@@ -320,8 +344,9 @@
         if (t.getAttribute('aria-disabled') === 'true') { t.classList.remove('is-no'); void t.offsetWidth; t.classList.add('is-no'); write(t.dataset.log); return; }
         if (t.dataset.act === 'gear') {
           const on = !sub.classList.contains('is-open');
-          sub.classList.toggle('is-open', on); gear.setAttribute('aria-expanded', on);
-          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 20 + 3 * ms('--sub-phase') + ms('--sub-time') * .5);
+          if (!on) { closeSub(false); return; }
+          sub.classList.add('is-open'); gear.setAttribute('aria-expanded', 'true');
+          setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), ms('--sub-open') + 3 * ms('--sub-phase') + ms('--sub-time') * .5);
           return;
         }
         closeSub(false); flash(t);
@@ -396,6 +421,6 @@
     addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
       })();
   </script>
-  <script src="week-06-vault-spec.js?v=7"></script>
+  <script src="week-06-vault-spec.js?v=11"></script>
 </body>
 </html>
