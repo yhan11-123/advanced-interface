@@ -19,7 +19,7 @@
       <div class="s-sect" data-k="sect">TRANSMIT</div>
       <div class="s-rule" data-k="rule"></div>
       <button class="s-node" data-k="node"><span class="s-label">Node 7</span></button>
-      <button class="core" data-k="core"><svg viewBox="0 0 72 80"></svg></button>
+      <button class="folder" data-k="folder"></button>
     </div>`;
   document.body.append(sample);
   const el = k => sample.querySelector(`[data-k="${k}"]`);
@@ -33,7 +33,6 @@
   const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
   const fam = f => f.split(',')[0].replace(/"/g, '');
 
-  const ms = n => parseFloat(tok(n));
   const item = cs('item'), menu = cs('menu'), ico = el('item').querySelector('.s-ico');
   const cards = [
     ['Menu', [
@@ -41,8 +40,8 @@
       ['Padding', px(menu.paddingTop)],
       ['Glass', sw(menu.backgroundColor)],
       ['Edge', `1px, ${hex(menu.borderTopColor)}`],
-      ['Corners', `14px brackets, ${tok('--edge')} green`],
-      ['Inner glow', '30px'],
+      ['Corners', `14px brackets, ${tok('--edge')} light`],
+      ['Behind it', 'blur 4px, inner glow 30px'],
     ]],
     ['Item', [
       ['Height', px(el('item').offsetHeight)],
@@ -73,44 +72,29 @@
     ]],
     ['States', [
       ['Enabled', sw(item.color)],
-      ['Hover, first', '4px green dots, top-left and bottom-right'],
-      ['Hover, then', `lines drawn out of each dot, ${tok('--trace-time')}`],
-      ['Hover, last', 'light fills the frame, 20% to 3%'],
-      ['Hover text', `${sw(cs('hover').color)}, glow 8px`],
-      ['Leaving', 'lines pulled back, then the dots go'],
-      ['Pressed', `${sw(cs('press').color)}, frame and fill turn green`],
-      ['Unavailable', `${sw(cs('off').color)}, nothing drawn`],
+      ['Hover', `${sw(cs('hover').color)}, glow 8px`],
+      ['Hover fill', 'light from the left, 22% to 3%'],
+      ['Hover edge', `${tok('--edge')} bar, grows from 30%`],
+      ['Hover shift', '4px in'],
+      ['Pressed', `${sw(cs('press').color)}, fill 45%`],
+      ['Unavailable', sw(cs('off').color)],
     ]],
-    ['Core (the trigger)', [
-      ['Size', `${px(el('core').offsetWidth)} × ${px(el('core').offsetHeight)}, a hexagon`],
-      ['At rest', 'dim glyph, tiers lie flat at 30%'],
-      ['Hover', 'dots at two corners, a frame drawn out of them; tiers stir 5px each'],
-      ['Pressed', 'shrinks to 92%, green'],
-      ['Open', 'frame stays, ring turning'],
+    ['Folder (the trigger)', [
+      ['Size', `${px(el('folder').offsetWidth)} × ${px(el('folder').offsetHeight)}`],
+      ['Hover', `lifts ${tok('--lift')} off the plane`],
+      ['Pressed', 'sinks to 4px'],
+      ['Open', 'filled with light, 34px glow'],
     ]],
     ['Submenu (nodes)', [
       ['Row', `${px(el('node').offsetHeight)}, signal bars beside the name`],
       ['Chosen', '1px light frame'],
-      ['Opens', `one more layer: a dotted plate, the nodes ${tok('--plate-gap')} above it`],
+      ['Opens', 'beside its row, same materialise'],
     ]],
-    ['Motion · open', [
-      ['Order', 'a dot, a line, then layer on layer'],
-      ['Line', `${tok('--line-time')}, drawn out of a dot at the core`],
-      ['Layers', `4: dotted plate, plate, plate, menu`],
-      ['Layer gap', tok('--plate-gap')],
-      ['Each layer lands', `${tok('--tier-time')}, ${tok('--tier-step')} after the one below`],
-      ['Pyramid', `4 tiers, ${tok('--tier-gap')} apart, rising with it`],
-      ['Rows arrive', `${tok('--stagger')} apart, top first`],
-      ['Rows in reach', `${Math.round(ms('--line-time') + 3 * ms('--tier-step') + ms('--tier-time') * .5)}ms`],
-    ]],
-    ['Motion · dismiss', [
-      ['Order', 'the layers taken off in reverse'],
-      ['Rows leave', '110ms, bottom first, 10ms apart'],
-      ['Each layer comes off', `${tok('--sink-time')}, ${tok('--sink-step')} after the one above`],
-      ['Line', `${tok('--line-time')}, pulled back into its dot`],
-      ['Pyramid', 'comes down from the top, the same way'],
-      ['Easing', tok('--ease-sink')],
-      ['All down', `${Math.round(110 + 6 * ms('--sink-step') + ms('--sink-time') * 1.6 + ms('--line-time') * .5)}ms`],
+    ['Motion', [
+      ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
+      ['Menu opens', `${tok('--open-time')}: a line of light, then the panel`],
+      ['Rows arrive', `${tok('--stagger')} apart`],
+      ['Menu closes', `${tok('--close-time')}, back to a line`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];

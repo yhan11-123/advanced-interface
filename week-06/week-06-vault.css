@@ -1,26 +1,24 @@
 /* Week 06, Set 1 · Vault: the file menu of a holographic file database.
    Shared by the two prototypes (the menu system, the menu in use). Every value the spec
    reports is set here, once, as a token; the pages and the spec read the same numbers.
-   The tone: light projected on dark glass. The menu is built in tiers, like a stepped pyramid, and taken apart the same way. */
+   The tone: light projected on dark glass. Things glow, lift off the plane, and materialise. */
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
 
 :root {
   /* colour */
-  --void: #03061c;           /* the room: deep navy */
-  --plane: #060d33;          /* the floor, dotted */
-  --glass: rgba(10, 28, 72, .78);  /* the menu */
-  --cyan: #3de3ff;           /* light */
-  --cyan-hi: #c2f7ff;        /* hot light: hover text, the open folder */
-  --green: #39ff9a;          /* the corner nodes; pressed */
-  --orange: #ffa040;         /* what needs you: badges, the chosen node, the newest log line */
-  --ink: #a6e9f7;            /* item text */
-  --ink-2: #5fb8d0;          /* icons */
-  --ink-3: #4a7fa8;          /* keys, section labels */
-  --ink-off: rgba(95, 184, 208, .3); /* unavailable */
-  --line: rgba(61, 227, 255, .3);
-  --hot: rgba(61, 227, 255, .2);     /* hover fill */
-  --hot-press: rgba(57, 255, 154, .35);
-  --alert: #ffa040;
+  --void: #03161b;           /* the room */
+  --plane: #062a31;          /* the glass plane */
+  --glass: rgba(9, 70, 82, .55);   /* the menu */
+  --cyan: #39d5ff;           /* light */
+  --cyan-hi: #b6f4ff;        /* hot light: hover text, the open folder */
+  --ink: #9fe3f2;            /* item text */
+  --ink-2: #5fb3c4;          /* icons */
+  --ink-3: #3d8796;          /* keys, section labels */
+  --ink-off: rgba(95, 179, 196, .32); /* unavailable */
+  --line: rgba(57, 213, 255, .28);
+  --hot: rgba(57, 213, 255, .22);    /* hover fill */
+  --hot-press: rgba(57, 213, 255, .45);
+  --alert: #ff8a6b;
 
   /* type */
   --font: "Rajdhani", "Arial Narrow", sans-serif;
@@ -31,66 +29,43 @@
   --menu-w: 270px; --menu-pad: 8px;
   --item-h: 36px; --item-px: 12px; --item-gap: 10px;
   --icon: 16px; --icon-stroke: 1.4;
-  --edge: 2px;               /* the green corner brackets */
+  --edge: 2px;               /* the bright bar at the lit item's left edge */
   --glow: 0 0 12px rgba(57, 213, 255, .55);
 
   /* motion */
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --hover-time: 220ms;
-  --trace-time: 200ms;       /* hover: from a corner dot, the row's frame is drawn out */
-  /* opening: the menu is laid down in layers, one plate on top of the last */
-  --plate-gap: 26px;         /* each plate of the menu stands this far above the one below */
-  --tier-gap: 38px;          /* each tier of the pyramid under the core */
-  --tier-time: 340ms;        /* how long one plate (or tier) takes to rise */
-  --tier-step: 90ms;         /* one after another, the lowest first */
-  --line-time: 180ms;        /* the leader line, drawn out of a dot at the core */
-  /* dismissing: the same layers taken off in reverse, never all at once */
-  --ease-sink: cubic-bezier(.6, 0, .3, 1);
-  --sink-time: 300ms;        /* how long one plate (or tier) takes to come down */
-  --sink-step: 90ms;         /* one after another, the top first */
+  --lift: 14px;              /* a folder rises off the plane */
+  --open-time: 420ms;        /* the menu materialises: a line, then the panel */
+  --close-time: 200ms;
   --stagger: 26ms;
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 
 /* ---------- the menu: projected glass with bracketed corners ---------- */
 .v-menu { position: relative; width: var(--menu-w); padding: var(--menu-pad); background: var(--glass); border: 1px solid var(--line);
-  box-shadow: inset 0 0 30px rgba(57, 213, 255, .08), 0 0 24px rgba(57, 213, 255, .12); transform-style: preserve-3d; }
-.v-menu::before, .v-menu::after { content: ""; position: absolute; width: 14px; height: 14px; border: var(--edge) solid var(--green); box-shadow: 0 0 8px rgba(57, 255, 154, .5); pointer-events: none; }
+  box-shadow: inset 0 0 30px rgba(57, 213, 255, .08), 0 0 24px rgba(57, 213, 255, .12); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.v-menu::before, .v-menu::after { content: ""; position: absolute; width: 14px; height: 14px; border: var(--edge) solid var(--cyan); pointer-events: none; }
 .v-menu::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
 .v-menu::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
 .v-head { display: flex; justify-content: space-between; padding: 4px var(--item-px) 8px; font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .06em; }
 .v-head b { color: var(--cyan); font-weight: 400; }
 
 /* ---------- one item, every configuration ---------- */
-/* hover is drawn, not switched on: a green dot lands at two opposite corners of the row, and from
-   each a line runs out along both edges until the frame closes; then light fills it. Leaving, the
-   lines are pulled back into their dots first, and the dots go last. */
-@property --dot { syntax: "<length>"; inherits: false; initial-value: 0px; }
-@property --draw { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
-@property --fill { syntax: "<number>"; inherits: false; initial-value: 0; }
-.s-item, .s-node { --mark: var(--green); --trace: var(--cyan); --fc: 61, 227, 255;
-  background:
-    linear-gradient(var(--mark), var(--mark)) 0 0 / var(--dot) var(--dot) no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 100% 100% / var(--dot) var(--dot) no-repeat,
-    linear-gradient(var(--trace), var(--trace)) 0 0 / var(--draw) 1px no-repeat,
-    linear-gradient(var(--trace), var(--trace)) 0 0 / 1px var(--draw) no-repeat,
-    linear-gradient(var(--trace), var(--trace)) 100% 100% / var(--draw) 1px no-repeat,
-    linear-gradient(var(--trace), var(--trace)) 100% 100% / 1px var(--draw) no-repeat,
-    linear-gradient(90deg, rgba(var(--fc), calc(var(--fill) * .2)), rgba(var(--fc), calc(var(--fill) * .03)));
-  transition: --draw 150ms var(--ease-sink), --fill 150ms linear, --dot 90ms ease 130ms,
-    color var(--hover-time) var(--ease-out), text-shadow var(--hover-time) var(--ease-out); }
 .s-item { position: relative; display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px);
-  border: 0; color: var(--ink); cursor: pointer; text-align: left;
-  font: 600 var(--size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; }
+  border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left;
+  font: 600 var(--size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase;
+  transition: background-color var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out), text-shadow var(--hover-time) var(--ease-out), padding-left var(--hover-time) var(--ease-out); }
+.s-item::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: var(--edge); background: var(--cyan); box-shadow: var(--glow); opacity: 0; scale: 1 .3; transition: opacity var(--hover-time) var(--ease-out), scale var(--hover-time) var(--ease-out); }
 .s-item:focus-visible { outline: none; }
-.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item,
-.s-node:hover, .s-node:focus-visible, .s-node.is-hover {
-  --dot: 4px; --draw: 100%; --fill: 1; color: var(--cyan-hi); text-shadow: 0 0 8px rgba(57, 213, 255, .8);
-  transition: --dot 80ms var(--ease-out), --draw var(--trace-time) var(--ease-out) 60ms, --fill var(--hover-time) var(--ease-out) 140ms,
-    color var(--hover-time) var(--ease-out), text-shadow var(--hover-time) var(--ease-out); }
-/* pressed: the frame and the fill turn green */
-.s-item:active, .s-item.is-press, .s-item.is-picked, .s-node:active, .s-node.is-press { --dot: 4px; --draw: 100%; --fill: 2; --trace: var(--green); --fc: 57, 255, 154; color: #eafff4; text-shadow: 0 0 12px var(--green); }
-.s-item[aria-disabled="true"] { --dot: 0px !important; --draw: 0% !important; --fill: 0 !important; color: var(--ink-off); text-shadow: none; cursor: default; }
+/* hover: light pours into the row from its left edge; the label brightens and moves in */
+.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item {
+  background: linear-gradient(90deg, var(--hot), rgba(57, 213, 255, .03)); color: var(--cyan-hi); text-shadow: 0 0 8px rgba(57, 213, 255, .8); padding-left: calc(var(--item-px) + 4px); }
+.s-item:hover::before, .s-item:focus-visible::before, .s-item.is-hover::before, .has-sub.is-open > .s-item::before { opacity: 1; scale: 1 1; }
+/* pressed: the row flares */
+.s-item:active, .s-item.is-press, .s-item.is-picked { background: linear-gradient(90deg, var(--hot-press), rgba(57, 213, 255, .12)); color: #fff; text-shadow: 0 0 12px var(--cyan); }
+.s-item[aria-disabled="true"] { color: var(--ink-off); background: transparent; text-shadow: none; padding-left: var(--item-px); cursor: default; }
+.s-item[aria-disabled="true"]::before { display: none; }
 .s-ico { width: var(--icon); height: var(--icon); flex: none; color: var(--ink-2); transition: color var(--hover-time); }
 .s-ico * { stroke-width: var(--icon-stroke); }
 .s-item:hover .s-ico, .s-item.is-hover .s-ico, .s-item:focus-visible .s-ico, .has-sub.is-open > .s-item .s-ico { color: var(--cyan-hi); }
@@ -100,47 +75,37 @@
 .s-item:hover .s-key, .s-item.is-hover .s-key { color: var(--cyan); }
 .s-end { width: 14px; height: 14px; flex: none; color: var(--ink-3); }
 .s-note { font: 400 11px/1 var(--mono); color: var(--ink-off); letter-spacing: .04em; }
-.s-badge { min-width: 22px; height: 18px; padding: 0 6px; border: 1px solid var(--orange); color: var(--orange); font: 400 12px/16px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 160, 64, .4); }
+.s-badge { min-width: 22px; height: 18px; padding: 0 6px; border: 1px solid var(--alert); color: var(--alert); font: 400 12px/16px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .35); }
 .s-sect { display: flex; align-items: center; gap: 8px; padding: 10px var(--item-px) 6px; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3); }
 .s-sect::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
 .s-rule { height: 1px; margin: 6px var(--item-px); background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
 
 /* the submenu: nodes to transmit to, each with its signal */
-.s-node { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; margin: 0; padding: 0 12px; border: 0; color: var(--ink); cursor: pointer; text-align: left;
-  font: 600 15px/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; }
-.s-node:focus-visible { outline: none; }
-.s-node[aria-checked="true"] { color: #ffd9b0; box-shadow: inset 0 0 0 1px var(--orange), 0 0 10px rgba(255, 160, 64, .3); }
+.s-node { display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; margin: 0; padding: 0 12px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left;
+  font: 600 15px/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; transition: background-color var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
+.s-node:hover, .s-node:focus-visible, .s-node.is-hover { background: linear-gradient(90deg, var(--hot), transparent); color: var(--cyan-hi); outline: none; }
+.s-node:active, .s-node.is-press { background: var(--hot-press); color: #fff; }
+.s-node[aria-checked="true"] { color: var(--cyan-hi); box-shadow: inset 0 0 0 1px var(--cyan); }
 .s-node .sig { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
 .s-node .sig i { width: 3px; background: var(--ink-3); }
 .s-node .sig i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
 .s-node small { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
 
-/* ---------- the core: what opens the menu ---------- */
-/* a hexagon of light floating over its pad; the stack is built under it */
-.core { position: relative; width: 72px; height: 80px; padding: 0; border: 0; background: transparent; cursor: pointer; color: var(--cyan);
-  transition: translate var(--hover-time) var(--ease-out), scale 120ms var(--ease-out), color var(--hover-time); }
-.core svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 0 6px rgba(61, 227, 255, .55)); transition: filter var(--hover-time); }
-.core .ring { stroke-dasharray: 5 4; transition: opacity var(--hover-time); opacity: .55; }
-.core .glyph { opacity: .55; transition: opacity var(--hover-time); }
-.core .cn { position: absolute; width: 6px; height: 6px; background: var(--green); box-shadow: 0 0 8px var(--green); opacity: 0; scale: 0; transition: opacity 80ms 130ms, scale 80ms 130ms; }
-.core .cn.a { left: -11px; top: -1px; } .core .cn.b { left: 77px; top: 81px; }
-.core .trace path { fill: none; stroke: var(--cyan); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 150ms var(--ease-sink); }
-.core:hover .trace path, .core:focus-visible .trace path, .core.is-hover .trace path, .core.is-press .trace path, .core[aria-expanded="true"] .trace path { stroke-dashoffset: 0; transition: stroke-dashoffset var(--trace-time) var(--ease-out) 60ms; }
-.core:active .trace path, .core.is-press .trace path { stroke: var(--green); }
-.core:focus-visible { outline: none; }
-.core:hover, .core:focus-visible, .core.is-hover { color: var(--cyan-hi); }
-.core:hover svg, .core:focus-visible svg, .core.is-hover svg { filter: drop-shadow(0 0 12px rgba(61, 227, 255, .9)); }
-.core:hover .ring, .core:hover .glyph, .core:focus-visible .ring, .core:focus-visible .glyph, .core.is-hover .ring, .core.is-hover .glyph { opacity: 1; }
-.core:hover .cn, .core:focus-visible .cn, .core.is-hover .cn, .core.is-press .cn, .core[aria-expanded="true"] .cn { opacity: 1; scale: 1; transition: opacity 80ms, scale 80ms var(--ease-out); }
-.core:active, .core.is-press { scale: .92; color: var(--green); }
-.core:active svg, .core.is-press svg { filter: drop-shadow(0 0 14px rgba(57, 255, 154, .9)); }
-.core[aria-expanded="true"] { color: var(--cyan-hi); }
-.core[aria-expanded="true"] .ring, .core[aria-expanded="true"] .glyph { opacity: 1; }
-.core[aria-expanded="true"] .ring { animation: orbit 1.6s linear infinite; }
-@keyframes orbit { to { stroke-dashoffset: -18; } }
+/* ---------- a folder on the plane ---------- */
+.folder { position: relative; width: 82px; height: 58px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-style: preserve-3d;
+  transition: transform var(--hover-time) var(--ease-out); }
+.folder::before { content: ""; position: absolute; left: 0; top: 0; width: 34px; height: 10px; background: rgba(57, 213, 255, .18); clip-path: polygon(0 0, 78% 0, 100% 100%, 0 100%); transition: background-color var(--hover-time); }
+.folder::after { content: ""; position: absolute; inset: 9px 0 0; background: rgba(57, 213, 255, .16); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); transition: background-color var(--hover-time), box-shadow var(--hover-time); }
+.folder:hover, .folder:focus-visible, .folder.is-hover { transform: translateZ(var(--lift)); outline: none; }
+.folder:hover::after, .folder:focus-visible::after, .folder.is-hover::after { background: rgba(57, 213, 255, .34); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 24px rgba(57, 213, 255, .45); }
+.folder:hover::before, .folder.is-hover::before { background: rgba(57, 213, 255, .4); }
+.folder:active, .folder.is-press { transform: translateZ(4px); }
+.folder[aria-expanded="true"] { transform: translateZ(var(--lift)); }
+.folder[aria-expanded="true"]::after { background: linear-gradient(#bff6ff, #39d5ff); box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
+.folder[aria-expanded="true"]::before { background: #8fe9ff; }
 
 /* ---------- the spec, under each prototype ---------- */
-.spec { padding: 48px 32px 64px; background: #020414; color: #9fd8e4; font: 15px/1.5 var(--font); }
+.spec { padding: 48px 32px 64px; background: #020f12; color: #9fd8e4; font: 15px/1.5 var(--font); }
 .spec h2 { margin: 0 0 4px; font: 700 26px/1.2 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan-hi); text-shadow: 0 0 10px rgba(57,213,255,.5); }
 .spec > p { margin: 0 0 24px; color: #5f9fae; max-width: 62ch; }
 .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }

@@ -5,21 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · Menu system</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=4" />
+  <link rel="stylesheet" href="week-06-vault.css?v=1" />
   <style>
   /* Menu system: one item build, every configuration the brief asks for, each in its three
      states, laid flat so it can be read. The Enabled column is live; the other two hold the
-     states still, to compare. The core that opens the menu is here too. */
+     states still, to compare. The folder that opens the menu is here too. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: radial-gradient(80% 60% at 50% 0%, #0a1650, var(--void) 70%) var(--void); color: var(--ink); font: 500 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  body { background: radial-gradient(80% 60% at 50% 0%, #08313a, var(--void) 70%) var(--void); color: var(--ink); font: 500 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
-  .core-pair { display: flex; gap: 40px; } td .core { margin: 8px 12px; }
-  .core .cn { position: absolute; }
   .top { padding: 30px 32px 22px; }
   .top h1 { margin: 0; font: 700 28px/1.1 var(--font); letter-spacing: .1em; color: var(--cyan); text-shadow: 0 0 12px rgba(57,213,255,.6); }
   .top p { margin: 6px 0 0; font: 400 13px/1.4 var(--mono); color: var(--ink-3); }
-  .sheet { margin: 0 20px; padding: 12px 16px 16px; overflow: hidden; background: linear-gradient(rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, rgba(6,13,51,.6); box-shadow: inset 0 0 0 1px rgba(61,227,255,.2); }
+  .sheet { margin: 0 20px; padding: 12px 16px 16px; overflow: hidden; background: linear-gradient(rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, rgba(6,42,49,.6); box-shadow: inset 0 0 0 1px rgba(57,213,255,.18); }
   .fitbox { position: relative; }
   table { width: 1060px; border-collapse: collapse; transform-origin: 0 0; }
   th { padding: 10px 12px; text-align: left; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3); }
@@ -35,7 +33,7 @@
 <body>
   <header class="top">
     <h1>VAULT · MENU SYSTEM</h1>
-    <p>One item, every configuration, every state. Laid flat to read; in use it is laid down in layers, plate on plate.</p>
+    <p>One item, every configuration, every state. Laid flat to read; in use it sits on the tilted plane.</p>
   </header>
 
   <div class="sheet">
@@ -82,10 +80,10 @@
           <td colspan="3"><div class="cell"><div class="s-rule"></div><div class="s-sect">TRANSMIT</div></div></td>
         </tr>
         <tr>
-          <td>Core<small>what opens the menu: at rest · hover · pressed · open</small></td>
-          <td><button class="core" type="button" aria-label="Core, live"><svg viewBox="0 0 72 80" aria-hidden="true"><ellipse class="ring" cx="36" cy="12" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/><path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g><g class="trace"><path d="M-8 2H80" pathLength="1"/><path d="M-8 2V84" pathLength="1"/><path d="M80 84H-8" pathLength="1"/><path d="M80 84V2" pathLength="1"/></g></svg><i class="cn a"></i><i class="cn b"></i></button></td>
-          <td><button class="core is-hover" type="button" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 72 80" aria-hidden="true"><ellipse class="ring" cx="36" cy="12" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/><path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g><g class="trace"><path d="M-8 2H80" pathLength="1"/><path d="M-8 2V84" pathLength="1"/><path d="M80 84H-8" pathLength="1"/><path d="M80 84V2" pathLength="1"/></g></svg><i class="cn a"></i><i class="cn b"></i></button></td>
-          <td><span class="core-pair"><button class="core is-press" type="button" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 72 80" aria-hidden="true"><ellipse class="ring" cx="36" cy="12" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/><path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g><g class="trace"><path d="M-8 2H80" pathLength="1"/><path d="M-8 2V84" pathLength="1"/><path d="M80 84H-8" pathLength="1"/><path d="M80 84V2" pathLength="1"/></g></svg><i class="cn a"></i><i class="cn b"></i></button><button class="core" type="button" aria-expanded="true" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 72 80" aria-hidden="true"><ellipse class="ring" cx="36" cy="12" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/><path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g><g class="trace"><path d="M-8 2H80" pathLength="1"/><path d="M-8 2V84" pathLength="1"/><path d="M80 84H-8" pathLength="1"/><path d="M80 84V2" pathLength="1"/></g></svg><i class="cn a"></i><i class="cn b"></i></button></span></td>
+          <td>Folder<small>what opens the menu: at rest · lifted · open</small></td>
+          <td><button class="folder" type="button" aria-label="Folder, live"></button></td>
+          <td><button class="folder is-hover" type="button" tabindex="-1" aria-hidden="true"></button></td>
+          <td><button class="folder" type="button" aria-expanded="true" tabindex="-1" aria-hidden="true"></button></td>
         </tr>
       </tbody>
     </table></div>
@@ -108,12 +106,14 @@
         row.append(td);
       });
     });
+    // flat here, a lifted folder shows its rise as a drop of light below it
+    document.querySelectorAll('.folder').forEach(f => f.style.transformStyle = 'flat');
     // shrink the table to the sheet's width when the window is narrower than it
     const box = document.querySelector('.fitbox'), table = box.querySelector('table');
     const fit = () => { const f = Math.min(1, box.clientWidth / table.offsetWidth); table.style.transform = `scale(${f})`; box.style.height = table.offsetHeight * f + 'px'; };
     addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
-  <script src="week-06-vault-spec.js?v=4"></script>
+  <script src="week-06-vault-spec.js?v=1"></script>
 </body>
 </html>
