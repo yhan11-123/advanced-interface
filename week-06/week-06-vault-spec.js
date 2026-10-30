@@ -93,8 +93,11 @@
     ['Motion', [
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
       ['Menu opens', `${tok('--open-time')}: a line of light, then the panel`],
-      ['Rows arrive', `${tok('--stagger')} apart`],
-      ['Menu closes', `${tok('--close-time')}, back to a line`],
+      ['Rows stack on', `one layer at a time, ${tok('--stack-step')} apart, top first`],
+      ['Each row lands', `from ${tok('--stack-drop')} above, ${tok('--stack-time')}, outline flashes on touch`],
+      ['Landing curve', tok('--stack-ease')],
+      ['Submenu', 'panel shows, nodes stacked on the same way'],
+      ['Menu closes', `rows lift off bottom first, ${tok('--leave-step')} apart; then ${tok('--close-time')} back to a line`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];

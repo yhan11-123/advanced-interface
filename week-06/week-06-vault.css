@@ -39,6 +39,12 @@
   --open-time: 420ms;        /* the menu materialises: a line, then the panel */
   --close-time: 200ms;
   --stagger: 26ms;
+  /* the rows are stacked onto the panel, one layer at a time */
+  --stack-drop: 34px;        /* each row starts this far above the panel */
+  --stack-time: 320ms;       /* and takes this long to land */
+  --stack-step: 55ms;        /* the next row follows this much later, top to bottom */
+  --stack-ease: cubic-bezier(.2, .9, .3, 1.12);  /* lands with the slightest settle */
+  --leave-step: 18ms;        /* closing: the rows lift off bottom first, this far apart */
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 
