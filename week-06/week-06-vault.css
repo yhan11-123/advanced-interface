@@ -29,10 +29,10 @@
 
   /* the board and its tile */
   --board-tilt: 30deg;       /* the board leans back, like the reference's sheet of glass */
-  --tile-w: 136px; --tile-h: 92px; --tile-gap: 14px; --tile-pad: 12px;
-  --icon: 22px; --icon-stroke: 1.4;
-  --label-size: 15px; --track: .08em;
-  --section-gap: 34px;
+  --tile-w: 118px; --tile-h: 86px; --tile-gap: 10px; --tile-pad: 11px;
+  --icon: 26px; --icon-stroke: 1.5;
+  --label-size: 17px; --track: .05em;
+  --section-gap: 28px;
   --edge: 2px;               /* the corner brackets of the board */
 
   /* motion */
@@ -80,10 +80,11 @@
 .tile:focus-visible { outline: none; }
 .t-ico { position: absolute; left: var(--tile-pad); top: var(--tile-pad); width: var(--icon); height: var(--icon); color: var(--ink-2); transition: color var(--hover-time); }
 .t-ico * { stroke-width: var(--icon-stroke); }
-.t-label { position: absolute; left: var(--tile-pad); right: 28px; bottom: var(--tile-pad); white-space: nowrap; }
-.t-note { position: absolute; left: var(--tile-pad); bottom: calc(var(--tile-pad) + 21px); font: 400 10px/1 var(--mono); letter-spacing: .08em; color: var(--ink-3); }
-.t-key { position: absolute; right: 10px; top: 10px; min-width: 24px; padding: 3px 5px; border: 1px solid rgba(95, 179, 196, .45); font: 400 11px/1 var(--mono); letter-spacing: .04em; color: var(--ink-3); text-align: center; transition: color var(--hover-time), border-color var(--hover-time); }
-.t-badge { position: absolute; right: 10px; top: 10px; min-width: 22px; height: 18px; padding: 0 5px; border: 1px solid var(--alert); color: var(--alert); font: 400 12px/16px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .4); }
+.t-label { position: absolute; left: var(--tile-pad); right: 8px; bottom: var(--tile-pad); white-space: nowrap; }
+.tile:has(.t-more) .t-label { right: 26px; }
+.t-note { position: absolute; left: var(--tile-pad); bottom: calc(var(--tile-pad) + 22px); font: 400 10.5px/1 var(--mono); letter-spacing: .08em; color: var(--ink-3); }
+.t-key { position: absolute; right: 10px; top: 10px; min-width: 24px; padding: 3px 5px; border: 1px solid rgba(95, 179, 196, .45); font: 400 12px/1 var(--mono); letter-spacing: .04em; color: var(--ink-3); text-align: center; transition: color var(--hover-time), border-color var(--hover-time); }
+.t-badge { position: absolute; right: 10px; top: 10px; min-width: 22px; height: 20px; padding: 0 5px; border: 1px solid var(--alert); color: var(--alert); font: 400 13px/18px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .4); }
 .t-end, .t-more { position: absolute; right: 10px; width: 14px; height: 14px; color: var(--ink-3); transition: color var(--hover-time), translate var(--hover-time) var(--ease-out); }
 .t-end { top: 11px; } .t-more { bottom: 12px; }
 /* hover: the tile lifts off the glass and fills with light */
