@@ -1,7 +1,9 @@
-/* Week 06, Set 1 · Vault: the file menu of a holographic file database.
+/* Week 06, Set 1 · Vault: the field menu of a sci-fi salvage game, after a holographic file
+   database. The menu is a board of glass that fills the bottom half of the play screen; its items
+   are tiles laid out on it in sections, the way the reference lays out its folders.
    Shared by the two prototypes (the menu system, the menu in use). Every value the spec
    reports is set here, once, as a token; the pages and the spec read the same numbers.
-   The tone: light projected on dark glass. Things glow, lift off the plane, and materialise. */
+   The tone: light projected on dark glass. Tiles glow, lift off the glass, and are stacked on. */
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
 
 :root {
@@ -25,90 +27,83 @@
   --mono: "Share Tech Mono", ui-monospace, monospace;
   --size: 16px; --track: .08em;
 
-  /* the menu and its item */
-  --menu-w: 270px; --menu-pad: 8px;
-  --item-h: 36px; --item-px: 12px; --item-gap: 10px;
-  --icon: 16px; --icon-stroke: 1.4;
-  --edge: 2px;               /* the bright bar at the lit item's left edge */
-  --glow: 0 0 12px rgba(57, 213, 255, .55);
+  /* the board and its tile */
+  --board-tilt: 30deg;       /* the board leans back, like the reference's sheet of glass */
+  --tile-w: 136px; --tile-h: 92px; --tile-gap: 14px; --tile-pad: 12px;
+  --tab-w: 46px; --tab-h: 7px;     /* the folder tab on each tile */
+  --icon: 22px; --icon-stroke: 1.4;
+  --label-size: 15px; --track: .08em;
+  --section-gap: 34px;
+  --edge: 2px;               /* the corner brackets of the board */
 
   /* motion */
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --hover-time: 220ms;
-  --lift: 14px;              /* a folder rises off the plane */
-  --open-time: 420ms;        /* the menu materialises: a line, then the panel */
-  --close-time: 200ms;
-  --stagger: 26ms;
-  /* the rows are stacked onto the panel, one layer at a time */
-  --stack-drop: 34px;        /* each row starts this far above the panel */
-  --stack-time: 320ms;       /* and takes this long to land */
-  --stack-step: 55ms;        /* the next row follows this much later, top to bottom */
+  --lift: 14px;              /* a tile rises off the glass when pointed at */
+  --open-time: 380ms;        /* the board: a line of light along the bottom, then the glass rises from it */
+  --close-time: 240ms;       /* the glass folds back down into its line */
+  /* the tiles are stacked onto the board, one layer at a time */
+  --stack-drop: 46px;        /* each tile starts this far above the glass */
+  --stack-time: 340ms;       /* and takes this long to land */
+  --stack-step: 40ms;        /* the next tile follows this much later, left to right */
   --stack-ease: cubic-bezier(.2, .9, .3, 1.12);  /* lands with the slightest settle */
-  --leave-step: 18ms;        /* closing: the rows lift off bottom first, this far apart */
+  --leave-step: 22ms;        /* closing: the tiles lift off right to left, this far apart */
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 
-/* ---------- the menu: projected glass with bracketed corners ---------- */
-.v-menu { position: relative; width: var(--menu-w); padding: var(--menu-pad); background: var(--glass); border: 1px solid var(--line);
-  box-shadow: inset 0 0 30px rgba(57, 213, 255, .08), 0 0 24px rgba(57, 213, 255, .12); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-.v-menu::before, .v-menu::after { content: ""; position: absolute; width: 14px; height: 14px; border: var(--edge) solid var(--cyan); pointer-events: none; }
-.v-menu::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
-.v-menu::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
-.v-head { display: flex; justify-content: space-between; padding: 4px var(--item-px) 8px; font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .06em; }
-.v-head b { color: var(--cyan); font-weight: 400; }
+/* ---------- the board: a sheet of projected glass ---------- */
+.board-glass { position: absolute; inset: 0; pointer-events: none; border: 1px solid var(--line);
+  background: radial-gradient(rgba(57, 213, 255, .16) 1px, transparent 1.4px) 0 0 / 20px 20px, linear-gradient(180deg, rgba(9, 70, 82, .62), rgba(6, 42, 49, .8));
+  box-shadow: inset 0 0 60px rgba(57, 213, 255, .1), 0 0 40px rgba(57, 213, 255, .12); }
+.board-glass::before, .board-glass::after { content: ""; position: absolute; width: 18px; height: 18px; border: var(--edge) solid var(--cyan); box-shadow: 0 0 8px rgba(57, 213, 255, .6); }
+.board-glass::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
+.board-glass::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
 
-/* ---------- one item, every configuration ---------- */
-.s-item { position: relative; display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px);
-  border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left;
-  font: 600 var(--size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase;
-  transition: background-color var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out), text-shadow var(--hover-time) var(--ease-out), padding-left var(--hover-time) var(--ease-out); }
-.s-item::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: var(--edge); background: var(--cyan); box-shadow: var(--glow); opacity: 0; scale: 1 .3; transition: opacity var(--hover-time) var(--ease-out), scale var(--hover-time) var(--ease-out); }
-.s-item:focus-visible { outline: none; }
-/* hover: light pours into the row from its left edge; the label brightens and moves in */
-.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item {
-  background: linear-gradient(90deg, var(--hot), rgba(57, 213, 255, .03)); color: var(--cyan-hi); text-shadow: 0 0 8px rgba(57, 213, 255, .8); padding-left: calc(var(--item-px) + 4px); }
-.s-item:hover::before, .s-item:focus-visible::before, .s-item.is-hover::before, .has-sub.is-open > .s-item::before { opacity: 1; scale: 1 1; }
-/* pressed: the row flares */
-.s-item:active, .s-item.is-press, .s-item.is-picked { background: linear-gradient(90deg, var(--hot-press), rgba(57, 213, 255, .12)); color: #fff; text-shadow: 0 0 12px var(--cyan); }
-.s-item[aria-disabled="true"] { color: var(--ink-off); background: transparent; text-shadow: none; padding-left: var(--item-px); cursor: default; }
-.s-item[aria-disabled="true"]::before { display: none; }
-.s-ico { width: var(--icon); height: var(--icon); flex: none; color: var(--ink-2); transition: color var(--hover-time); }
-.s-ico * { stroke-width: var(--icon-stroke); }
-.s-item:hover .s-ico, .s-item.is-hover .s-ico, .s-item:focus-visible .s-ico, .has-sub.is-open > .s-item .s-ico { color: var(--cyan-hi); }
-.s-item[aria-disabled="true"] .s-ico { color: var(--ink-off); }
-.s-label { flex: 1; white-space: nowrap; }
-.s-key { font: 400 12px/1 var(--mono); letter-spacing: .04em; color: var(--ink-3); }
-.s-item:hover .s-key, .s-item.is-hover .s-key { color: var(--cyan); }
-.s-end { width: 14px; height: 14px; flex: none; color: var(--ink-3); }
-.s-note { font: 400 11px/1 var(--mono); color: var(--ink-off); letter-spacing: .04em; }
-.s-badge { min-width: 22px; height: 18px; padding: 0 6px; border: 1px solid var(--alert); color: var(--alert); font: 400 12px/16px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .35); }
-.s-sect { display: flex; align-items: center; gap: 8px; padding: 10px var(--item-px) 6px; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3); }
-.s-sect::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
-.s-rule { height: 1px; margin: 6px var(--item-px); background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
+/* a section: its label and a dotted rule, then its tiles in a grid */
+.t-sect { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 11px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); text-transform: uppercase; }
+.t-sect::after { content: ""; flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
+.t-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), var(--tile-w)); gap: calc(var(--tile-gap) + var(--tab-h)) var(--tile-gap); transform-style: preserve-3d; }
 
-/* the submenu: nodes to transmit to, each with its signal */
-.s-node { display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; margin: 0; padding: 0 12px; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left;
-  font: 600 15px/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; transition: background-color var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
-.s-node:hover, .s-node:focus-visible, .s-node.is-hover { background: linear-gradient(90deg, var(--hot), transparent); color: var(--cyan-hi); outline: none; }
-.s-node:active, .s-node.is-press { background: var(--hot-press); color: #fff; }
-.s-node[aria-checked="true"] { color: var(--cyan-hi); box-shadow: inset 0 0 0 1px var(--cyan); }
-.s-node .sig { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
-.s-node .sig i { width: 3px; background: var(--ink-3); }
-.s-node .sig i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-.s-node small { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
-
-/* ---------- a folder on the plane ---------- */
-.folder { position: relative; width: 82px; height: 58px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-style: preserve-3d;
-  transition: transform var(--hover-time) var(--ease-out); }
-.folder::before { content: ""; position: absolute; left: 0; top: 0; width: 34px; height: 10px; background: rgba(57, 213, 255, .18); clip-path: polygon(0 0, 78% 0, 100% 100%, 0 100%); transition: background-color var(--hover-time); }
-.folder::after { content: ""; position: absolute; inset: 9px 0 0; background: rgba(57, 213, 255, .16); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); transition: background-color var(--hover-time), box-shadow var(--hover-time); }
-.folder:hover, .folder:focus-visible, .folder.is-hover { transform: translateZ(var(--lift)); outline: none; }
-.folder:hover::after, .folder:focus-visible::after, .folder.is-hover::after { background: rgba(57, 213, 255, .34); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 24px rgba(57, 213, 255, .45); }
-.folder:hover::before, .folder.is-hover::before { background: rgba(57, 213, 255, .4); }
-.folder:active, .folder.is-press { transform: translateZ(4px); }
-.folder[aria-expanded="true"] { transform: translateZ(var(--lift)); }
-.folder[aria-expanded="true"]::after { background: linear-gradient(#bff6ff, #39d5ff); box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
-.folder[aria-expanded="true"]::before { background: #8fe9ff; }
+/* ---------- one tile, every configuration ---------- */
+/* a menu item is a folder-shaped tile: icon top left, what is on its right top right, the label at
+   the foot, a note above the label, and a chevron at the foot's right when it opens a submenu */
+.tile { position: relative; display: block; width: var(--tile-w); height: var(--tile-h); margin: 0; padding: 0; border: 0; cursor: pointer; text-align: left; color: var(--ink);
+  background: rgba(57, 213, 255, .13); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .4);
+  font: 600 var(--label-size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase;
+  transform: translateZ(0); transform-style: preserve-3d;
+  transition: transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
+.tile::before { content: ""; position: absolute; left: 0; bottom: 100%; width: var(--tab-w); height: var(--tab-h); background: rgba(57, 213, 255, .26); clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%); transition: background-color var(--hover-time); }
+.tile:focus-visible { outline: none; }
+.t-ico { position: absolute; left: var(--tile-pad); top: var(--tile-pad); width: var(--icon); height: var(--icon); color: var(--ink-2); transition: color var(--hover-time); }
+.t-ico * { stroke-width: var(--icon-stroke); }
+.t-label { position: absolute; left: var(--tile-pad); right: 28px; bottom: var(--tile-pad); white-space: nowrap; }
+.t-note { position: absolute; left: var(--tile-pad); bottom: calc(var(--tile-pad) + 21px); font: 400 10px/1 var(--mono); letter-spacing: .08em; color: var(--ink-3); }
+.t-key { position: absolute; right: 10px; top: 10px; min-width: 24px; padding: 3px 5px; border: 1px solid rgba(95, 179, 196, .45); font: 400 11px/1 var(--mono); letter-spacing: .04em; color: var(--ink-3); text-align: center; transition: color var(--hover-time), border-color var(--hover-time); }
+.t-badge { position: absolute; right: 10px; top: 10px; min-width: 22px; height: 18px; padding: 0 5px; border: 1px solid var(--alert); color: var(--alert); font: 400 12px/16px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .4); }
+.t-end, .t-more { position: absolute; right: 10px; width: 14px; height: 14px; color: var(--ink-3); transition: color var(--hover-time), translate var(--hover-time) var(--ease-out); }
+.t-end { top: 11px; } .t-more { bottom: 12px; }
+/* hover: the tile lifts off the glass and fills with light */
+.tile:hover, .tile:focus-visible, .tile.is-hover { transform: translateZ(var(--lift)); background: rgba(57, 213, 255, .3); color: var(--cyan-hi);
+  box-shadow: inset 0 0 0 1px var(--cyan), 0 0 26px rgba(57, 213, 255, .45); }
+.tile:hover::before, .tile:focus-visible::before, .tile.is-hover::before { background: rgba(57, 213, 255, .5); }
+.tile:hover .t-ico, .tile:focus-visible .t-ico, .tile.is-hover .t-ico, .tile:hover .t-end, .tile.is-hover .t-end, .tile:hover .t-more, .tile.is-hover .t-more { color: var(--cyan-hi); }
+.tile:hover .t-key, .tile:focus-visible .t-key, .tile.is-hover .t-key { color: var(--cyan); border-color: var(--cyan); }
+.tile:hover .t-more, .tile.is-hover .t-more { translate: 3px 0; }
+/* pressed, or holding its submenu open: lit right through, like the open folder in the reference */
+.tile:active, .tile.is-press, .tile[aria-expanded="true"] { background: linear-gradient(#bff6ff, #39d5ff); color: #04232b; box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
+.tile:active, .tile.is-press { transform: translateZ(3px); }
+.tile[aria-expanded="true"] { transform: translateZ(var(--lift)); }
+.tile:active::before, .tile.is-press::before, .tile[aria-expanded="true"]::before { background: #8fe9ff; }
+.tile:active .t-ico, .tile.is-press .t-ico, .tile[aria-expanded="true"] .t-ico, .tile:active .t-key, .tile.is-press .t-key, .tile[aria-expanded="true"] .t-more, .tile:active .t-more, .tile.is-press .t-more, .tile:active .t-note, .tile.is-press .t-note, .tile[aria-expanded="true"] .t-note, .tile:active .t-end, .tile.is-press .t-end { color: #04232b; border-color: #04232b; }
+/* chosen, in a submenu */
+.tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .4); }
+.tile[aria-checked="true"] .t-note { color: var(--cyan-hi); }
+/* unavailable: kept in place, an outline of dashes, never lifts */
+.tile[aria-disabled="true"] { cursor: default; color: var(--ink-off); background: rgba(57, 213, 255, .03); box-shadow: none; outline: 1px dashed rgba(95, 179, 196, .35); outline-offset: -1px; transform: translateZ(0); }
+.tile[aria-disabled="true"]::before { background: rgba(57, 213, 255, .08); }
+.tile[aria-disabled="true"] .t-ico, .tile[aria-disabled="true"] .t-note, .tile[aria-disabled="true"] .t-key { color: var(--ink-off); border-color: rgba(95, 179, 196, .2); }
+.tile.is-no { animation: deny 360ms var(--ease-out); }
+@keyframes deny { 30% { outline-color: var(--alert); color: var(--alert); translate: -4px 0; } 60% { translate: 3px 0; } }
 
 /* ---------- the spec, under each prototype ---------- */
 .spec { padding: 48px 32px 64px; background: #020f12; color: #9fd8e4; font: 15px/1.5 var(--font); }

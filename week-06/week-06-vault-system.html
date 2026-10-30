@@ -5,85 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · Menu system</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=2" />
+  <link rel="stylesheet" href="week-06-vault.css?v=3" />
   <style>
-  /* Menu system: one item build, every configuration the brief asks for, each in its three
-     states, laid flat so it can be read. The Enabled column is live; the other two hold the
-     states still, to compare. The folder that opens the menu is here too. */
+  /* Menu system: one tile build, every configuration the brief asks for, each in its states, laid
+     flat so it can be read. The Enabled column is live; the others hold the states still, to
+     compare. Flat, a tile's lift is shown as a rise of 6px and a shadow below it. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: radial-gradient(80% 60% at 50% 0%, #08313a, var(--void) 70%) var(--void); color: var(--ink); font: 500 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  body { background: radial-gradient(80% 60% at 50% 0%, #0b3a44, var(--void) 70%) var(--void); color: var(--ink); font: 500 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
   .top { padding: 30px 32px 22px; }
   .top h1 { margin: 0; font: 700 28px/1.1 var(--font); letter-spacing: .1em; color: var(--cyan); text-shadow: 0 0 12px rgba(57,213,255,.6); }
   .top p { margin: 6px 0 0; font: 400 13px/1.4 var(--mono); color: var(--ink-3); }
-  .sheet { margin: 0 20px; padding: 12px 16px 16px; overflow: hidden; background: linear-gradient(rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(57,213,255,.04) 1px, transparent 1px) 0 0 / 40px 40px, rgba(6,42,49,.6); box-shadow: inset 0 0 0 1px rgba(57,213,255,.18); }
-  .fitbox { position: relative; }
-  table { width: 1060px; border-collapse: collapse; transform-origin: 0 0; }
-  th { padding: 10px 12px; text-align: left; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3); }
-  th:first-child { width: 190px; }
-  td { padding: 10px 12px 10px 20px; border-top: 1px dashed rgba(57,213,255,.16); vertical-align: middle; }
-  td:first-child { padding-left: 12px; font: 600 15px/1.3 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
-  td:first-child small { display: block; font: 400 11px/1.3 var(--mono); letter-spacing: .02em; text-transform: none; color: var(--ink-3); }
-  .cell { width: var(--menu-w); }
-  .none { font: 400 11px/1 var(--mono); color: var(--ink-3); }
+  .sheet { position: relative; margin: 0 20px; padding: 14px 18px 18px; overflow: hidden; }
+  .sheet > .board-glass { z-index: -1; }
+  .fitbox { overflow: hidden; }
+  table { border-collapse: collapse; transform-origin: 0 0; }
+  th { padding: 8px 14px 12px; text-align: left; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3); text-transform: uppercase; }
+  td { padding: 18px 14px 14px; border-top: 1px dashed rgba(57, 213, 255, .16); vertical-align: middle; }
+  td:first-child { width: 190px; font: 600 14px/1.2 var(--font); letter-spacing: .1em; color: var(--ink); text-transform: uppercase; }
+  td:first-child small { display: block; margin-top: 4px; font: 400 11px/1.3 var(--mono); letter-spacing: .02em; color: var(--ink-3); text-transform: none; }
+  .none { font: 400 11px/1 var(--mono); color: var(--ink-off); letter-spacing: .08em; }
+  .sect-cell { width: 300px; }
+  /* flat, the lift is shown as a rise and a shadow */
+  .sheet .tile:hover, .sheet .tile.is-hover, .sheet .tile[aria-expanded="true"] { translate: 0 -6px; box-shadow: inset 0 0 0 1px var(--cyan), 0 0 26px rgba(57, 213, 255, .45), 0 12px 14px -6px rgba(0, 0, 0, .6); }
+  .sheet .tile[aria-expanded="true"] { box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6), 0 12px 14px -6px rgba(0, 0, 0, .6); }
+  .sheet .tile:active, .sheet .tile.is-press { translate: 0 -1px; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
   </style>
 </head>
 <body>
   <header class="top">
-    <h1>VAULT · MENU SYSTEM</h1>
-    <p>One item, every configuration, every state. Laid flat to read; in use it sits on the tilted plane.</p>
+    <h1>Vault · Menu system</h1>
+    <p>One tile, every configuration, every state. Laid flat to read; in use the tiles sit on a board of glass that fills the bottom half of the play screen.</p>
   </header>
 
   <div class="sheet">
+    <span class="board-glass" aria-hidden="true"></span>
     <div class="fitbox"><table>
-      <thead><tr><th>CONFIGURATION</th><th>ENABLED · LIVE</th><th>HOVER</th><th>PRESSED</th></tr></thead>
+      <thead><tr><th>Configuration</th><th>Enabled · live</th><th>Hover</th><th>Pressed</th><th>Open · chosen</th></tr></thead>
       <tbody>
         <tr data-row>
-          <td>Single line<small>label only, icon column kept</small></td>
-          <td><div class="cell"><button class="s-item"><span class="s-ico"></span><span class="s-label">Copy path</span></button></div></td>
+          <td>Label only<small>no icon, nothing on the right</small></td>
+          <td><button class="tile"><span class="t-label">Save &amp; quit</span></button></td>
         </tr>
         <tr data-row>
-          <td>Left icon</td>
-          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h4l1.5 1.5h7.5v8h-13zM1.5 7h13" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Open</span></button></div></td>
+          <td>Left icon<small>22px, top left</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4a5 5 0 0 0-5 6.5L3.5 16.5l3 3 6-6A5 5 0 0 0 19 8.5l-3 3-2.5-1-1-2.5z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-label">Crafting</span></button></td>
         </tr>
         <tr data-row>
-          <td>Right shortcut</td>
-          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="8" r="3" fill="none" stroke="currentColor"/><path d="M8 8h7M12 8v2.5M14 8v2" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Decrypt</span><kbd class="s-key">D</kbd></button></div></td>
+          <td>Right shortcut<small>the key, boxed</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">M</kbd><span class="t-label">Map</span></button></td>
         </tr>
         <tr data-row>
-          <td>Right badge</td>
-          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14V2.5M3.5 3h8l-1.5 3 1.5 3h-8" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Flags</span><span class="s-badge">2</span></button></div></td>
+          <td>Right badge<small>a count waiting</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-8M7.5 9.5a6.5 6.5 0 0 1 9 0M4.5 6.5a10.5 10.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="12" cy="12.5" r="1.5" fill="currentColor"/></svg><span class="t-badge">1</span><span class="t-label">Comms</span></button></td>
         </tr>
         <tr data-row>
           <td>Right icon<small>opens elsewhere</small></td>
-          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3" stroke="currentColor"/></svg><span class="s-label">Trace origin</span><svg class="s-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3h6v6M11 3 3 11" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></div></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><svg class="t-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3h6v6M11 3 3 11" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="t-label">Field guide</span></button></td>
         </tr>
         <tr data-row>
-          <td>Submenu item<small>its nodes open beside</small></td>
-          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V7M4.5 9.5a5 5 0 0 1 7 0M2.5 7.5a8 8 0 0 1 11 0" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="8" cy="13.5" r="1" fill="currentColor"/></svg><span class="s-label">Send to node</span><svg class="s-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></div></td>
+          <td>Note<small>a second line, above the label</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">I</kbd><span class="t-note">36 / 40</span><span class="t-label">Inventory</span></button></td>
+        </tr>
+        <tr data-row data-open>
+          <td>Submenu item<small>chevron at the foot; open, it stays lit</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note">PULSE RIFLE</span><span class="t-label">Gear</span><svg class="t-more" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></td>
+        </tr>
+        <tr data-row data-chosen>
+          <td>Submenu tile<small>one of three, chosen is outlined</small></td>
+          <td><button class="tile"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l7-7M11 13l2-6 4 4-6 2zM15 5l4 4" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note"></span><span class="t-label">Arc cutter</span></button></td>
         </tr>
         <tr>
-          <td>Submenu<small>a node: at rest · pointed at · chosen</small></td>
-          <td><div class="cell"><button class="s-node"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 03</span><small>42 MS</small></button></div></td>
-          <td><div class="cell"><button class="s-node is-hover" tabindex="-1" aria-hidden="true"><span class="sig"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 03</span><small>42 MS</small></button></div></td>
-          <td><div class="cell"><button class="s-node" aria-checked="true" tabindex="-1" aria-hidden="true"><span class="sig"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 03</span><small>42 MS</small></button></div></td>
+          <td>Unavailable<small>stays in place, dashed, never lifts</small></td>
+          <td><button class="tile" aria-disabled="true"><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6M6 19l6-6 6 6" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note">LOCKED · LV 4</span><span class="t-label">Upgrades</span></button></td>
+          <td><span class="none">NO HOVER</span></td><td><span class="none">NO PRESS</span></td><td></td>
         </tr>
         <tr>
-          <td>Unavailable<small>dim, says why</small></td>
-          <td><div class="cell"><button class="s-item" aria-disabled="true"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.8 9.5h5.4l.8-9.5" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Purge</span><span class="s-note">LOCKED</span></button></div></td>
-          <td><span class="none">NO HOVER</span></td><td><span class="none">NO PRESS</span></td>
-        </tr>
-        <tr>
-          <td>Sections<small>a divider, then a label</small></td>
-          <td colspan="3"><div class="cell"><div class="s-rule"></div><div class="s-sect">TRANSMIT</div></div></td>
-        </tr>
-        <tr>
-          <td>Folder<small>what opens the menu: at rest · lifted · open</small></td>
-          <td><button class="folder" type="button" aria-label="Folder, live"></button></td>
-          <td><button class="folder is-hover" type="button" tabindex="-1" aria-hidden="true"></button></td>
-          <td><button class="folder" type="button" aria-expanded="true" tabindex="-1" aria-hidden="true"></button></td>
+          <td>Sections<small>a label, then a dashed rule</small></td>
+          <td colspan="4"><div class="sect-cell"><div class="t-sect">Loadout</div></div></td>
         </tr>
       </tbody>
     </table></div>
@@ -97,23 +98,24 @@
 
   <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
   <script>
-    // each item row: the live item, then the same item held in hover, then held in pressed
+    // each row: the live tile, then the same tile held in hover, in pressed, and open or chosen where it has one
     document.querySelectorAll('[data-row]').forEach(row => {
       const cell = row.children[1];
-      ['is-hover', 'is-press'].forEach(state => {
-        const td = cell.cloneNode(true), it = td.querySelector('.s-item');
-        it.classList.add(state); it.tabIndex = -1; it.setAttribute('aria-hidden', 'true');
+      ['is-hover', 'is-press', 'last'].forEach(state => {
+        const td = cell.cloneNode(true), t = td.querySelector('.tile');
+        t.tabIndex = -1; t.setAttribute('aria-hidden', 'true');
+        if (state !== 'last') t.classList.add(state);
+        else if (row.hasAttribute('data-open')) t.setAttribute('aria-expanded', 'true');
+        else if (row.hasAttribute('data-chosen')) { t.setAttribute('aria-checked', 'true'); t.querySelector('.t-note').textContent = 'EQUIPPED'; }
+        else td.innerHTML = '';
         row.append(td);
       });
     });
-    // flat here, a lifted folder shows its rise as a drop of light below it
-    document.querySelectorAll('.folder').forEach(f => f.style.transformStyle = 'flat');
-    // shrink the table to the sheet's width when the window is narrower than it
     const box = document.querySelector('.fitbox'), table = box.querySelector('table');
     const fit = () => { const f = Math.min(1, box.clientWidth / table.offsetWidth); table.style.transform = `scale(${f})`; box.style.height = table.offsetHeight * f + 'px'; };
     addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
     if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
   </script>
-  <script src="week-06-vault-spec.js?v=2"></script>
+  <script src="week-06-vault-spec.js?v=3"></script>
 </body>
 </html>

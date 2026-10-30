@@ -1,103 +1,95 @@
 // Week 06, Set 1 · Vault: the spec, read from the values the prototype runs on.
-// It builds a hidden sample of every part in every state, asks the browser what it computed,
+// It builds a hidden sample of a tile in every state, asks the browser what it computed,
 // and writes the numbers into <section class="spec">. Nothing here is typed in by hand.
 (() => {
   const out = document.querySelector('.spec-grid');
   if (!out) return;
   const root = getComputedStyle(document.documentElement);
   const tok = n => root.getPropertyValue(n).trim();
+  const ms = n => parseFloat(tok(n));
 
   const sample = document.createElement('div');
   sample.className = 'spec-measure';
   sample.innerHTML = `
-    <div class="v-menu" data-k="menu">
-      <button class="s-item" data-k="item"><svg class="s-ico" viewBox="0 0 16 16"><path d="M2 8h12" fill="none" stroke="currentColor"/></svg><span class="s-label">Open</span><kbd class="s-key" data-k="key">ENTER</kbd></button>
-      <button class="s-item is-hover" data-k="hover"><span class="s-label">Open</span></button>
-      <button class="s-item is-press" data-k="press"><span class="s-label">Open</span></button>
-      <button class="s-item" aria-disabled="true" data-k="off"><span class="s-label">Purge</span></button>
-      <button class="s-item"><span class="s-label">Flags</span><span class="s-badge" data-k="badge">2</span></button>
-      <div class="s-sect" data-k="sect">TRANSMIT</div>
-      <div class="s-rule" data-k="rule"></div>
-      <button class="s-node" data-k="node"><span class="s-label">Node 7</span></button>
-      <button class="folder" data-k="folder"></button>
-    </div>`;
+    <div class="t-sect" data-k="sect">Mission</div>
+    <div class="t-grid" data-k="grid">
+      <button class="tile" data-k="tile"><svg class="t-ico" data-k="ico" viewBox="0 0 24 24"></svg><kbd class="t-key" data-k="key">M</kbd><span class="t-note" data-k="note">2 NEW</span><span class="t-label" data-k="label">Map</span></button>
+      <button class="tile is-hover" data-k="hover"><span class="t-label">Map</span></button>
+      <button class="tile is-press" data-k="press"><span class="t-label">Map</span></button>
+      <button class="tile" aria-expanded="true" data-k="open"><span class="t-label">Gear</span></button>
+      <button class="tile" aria-disabled="true" data-k="off"><span class="t-label">Upgrades</span></button>
+      <button class="tile"><span class="t-badge" data-k="badge">2</span></button>
+    </div>
+    <span class="board-glass" data-k="glass" style="position:relative;display:block;width:10px;height:10px"></span>`;
   document.body.append(sample);
   const el = k => sample.querySelector(`[data-k="${k}"]`);
   const cs = k => getComputedStyle(el(k));
   const px = v => `${Math.round(parseFloat(v) * 10) / 10}px`;
   const hex = c => {
     const m = c.match(/[\d.]+/g); if (!m) return c;
-    const [r, g, b, a = 1] = m.map(Number), h = [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    const [r, g, b, a = 1] = m.map(Number), h = [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
     return `#${h}${a < 1 ? ` · ${Math.round(a * 100)}%` : ''}`;
   };
   const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
   const fam = f => f.split(',')[0].replace(/"/g, '');
+  const tile = cs('tile');
 
-  const item = cs('item'), menu = cs('menu'), ico = el('item').querySelector('.s-ico');
   const cards = [
-    ['Menu', [
-      ['Width', px(menu.width)],
-      ['Padding', px(menu.paddingTop)],
-      ['Glass', sw(menu.backgroundColor)],
-      ['Edge', `1px, ${hex(menu.borderTopColor)}`],
-      ['Corners', `14px brackets, ${tok('--edge')} light`],
-      ['Behind it', 'blur 4px, inner glow 30px'],
+    ['Board', [
+      ['Fills', 'the bottom half of the play screen'],
+      ['Leans back', tok('--board-tilt')],
+      ['Glass', 'dotted every 20px, 62% to 80%'],
+      ['Edge', `1px, ${hex(cs('glass').borderTopColor)}`],
+      ['Corners', `18px brackets, ${tok('--edge')}`],
+      ['Sections', `side by side, ${tok('--section-gap')} apart`],
     ]],
-    ['Item', [
-      ['Height', px(el('item').offsetHeight)],
-      ['Padding, sides', px(item.paddingLeft)],
-      ['Gap between parts', px(item.columnGap)],
-      ['Font', `${fam(item.fontFamily)} ${item.fontWeight}, capitals`],
-      ['Size', px(item.fontSize)],
-      ['Letter spacing', px(item.letterSpacing)],
+    ['Tile', [
+      ['Size', `${px(el('tile').offsetWidth)} × ${px(el('tile').offsetHeight)}`],
+      ['Folder tab', `${tok('--tab-w')} × ${tok('--tab-h')}, on top left`],
+      ['Padding', tok('--tile-pad')],
+      ['Gap', `${tok('--tile-gap')} across, ${px(cs('grid').rowGap)} down (clears the tab)`],
+      ['Fill', sw(tile.backgroundColor)],
+      ['Label', `${fam(tile.fontFamily)} ${tile.fontWeight}, ${px(tile.fontSize)}, capitals, ${px(tile.letterSpacing)}`],
     ]],
-    ['Left icon', [
-      ['Size', `${px(ico.getBoundingClientRect().width)} square`],
-      ['Stroke', `${tok('--icon-stroke')}px`],
-      ['Colour, at rest', sw(getComputedStyle(ico).color)],
-      ['Colour, lit', 'hot light'],
-    ]],
-    ['Right side', [
-      ['Shortcut', `${fam(cs('key').fontFamily)}, ${px(cs('key').fontSize)}`],
-      ['Shortcut colour', sw(cs('key').color)],
-      ['Badge', `${px(el('badge').offsetHeight)}, 1px outline`],
-      ['Badge colour', sw(cs('badge').color)],
-      ['Right icon', '14px, key colour'],
+    ['Parts', [
+      ['Left icon', `${px(el('ico').getBoundingClientRect().width)}, top left, stroke ${tok('--icon-stroke')}`],
+      ['Shortcut', `${fam(cs('key').fontFamily)} ${px(cs('key').fontSize)}, boxed, top right`],
+      ['Badge', `${px(el('badge').offsetHeight)}, ${hex(cs('badge').color)} outline, top right`],
+      ['Right icon', '14px arrow, top right'],
+      ['Note', `${fam(cs('note').fontFamily)} ${px(cs('note').fontSize)}, above the label`],
+      ['Submenu', '14px chevron, foot right'],
     ]],
     ['Sections', [
       ['Label', `${fam(cs('sect').fontFamily)} ${px(cs('sect').fontSize)}, ${px(cs('sect').letterSpacing)} apart`],
       ['Label colour', sw(cs('sect').color)],
-      ['Trailing rule', 'fades out to the right'],
-      ['Divider', `${px(el('rule').offsetHeight)}, dashes of 6 and 4`],
+      ['Rule', 'dashes of 6 and 4, after the label'],
     ]],
     ['States', [
-      ['Enabled', sw(item.color)],
-      ['Hover', `${sw(cs('hover').color)}, glow 8px`],
-      ['Hover fill', 'light from the left, 22% to 3%'],
-      ['Hover edge', `${tok('--edge')} bar, grows from 30%`],
-      ['Hover shift', '4px in'],
-      ['Pressed', `${sw(cs('press').color)}, fill 45%`],
-      ['Unavailable', sw(cs('off').color)],
+      ['Enabled', `${sw(tile.color)} on 13% light`],
+      ['Hover', `lifts ${tok('--lift')}, fill ${hex(cs('hover').backgroundColor)}, 26px glow`],
+      ['Pressed', `lit through, ink ${hex(cs('press').color)}, sinks to 3px`],
+      ['Submenu open', 'lit through, stays lifted'],
+      ['Chosen', '2px hot outline, “EQUIPPED”'],
+      ['Unavailable', `${sw(cs('off').color)}, dashed outline, never lifts`],
     ]],
-    ['Folder (the trigger)', [
-      ['Size', `${px(el('folder').offsetWidth)} × ${px(el('folder').offsetHeight)}`],
-      ['Hover', `lifts ${tok('--lift')} off the plane`],
-      ['Pressed', 'sinks to 4px'],
-      ['Open', 'filled with light, 34px glow'],
+    ['Submenu', [
+      ['Form', 'a smaller board, stacked above the first'],
+      ['Stands', '70px above the board'],
+      ['Tiles', 'three, one chosen at a time'],
+      ['Opens', `tiles stacked on, ${tok('--stack-step')} apart`],
     ]],
-    ['Submenu (nodes)', [
-      ['Row', `${px(el('node').offsetHeight)}, signal bars beside the name`],
-      ['Chosen', '1px light frame'],
-      ['Opens', 'beside its row, same materialise'],
-    ]],
-    ['Motion', [
+    ['Motion · open', [
+      ['Board', `${tok('--open-time')}: a line of light, then the glass rises from it`],
+      ['Tiles stack on', `${tok('--stack-step')} apart, left to right`],
+      ['Each tile lands', `from ${tok('--stack-drop')} above, ${tok('--stack-time')}`],
+      ['Landing', `${tok('--stack-ease')}, outline flashes on touch`],
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
-      ['Menu opens', `${tok('--open-time')}: a line of light, then the panel`],
-      ['Rows stack on', `one layer at a time, ${tok('--stack-step')} apart, top first`],
-      ['Each row lands', `from ${tok('--stack-drop')} above, ${tok('--stack-time')}, outline flashes on touch`],
-      ['Landing curve', tok('--stack-ease')],
-      ['Submenu', 'panel shows, nodes stacked on the same way'],
-      ['Menu closes', `rows lift off bottom first, ${tok('--leave-step')} apart; then ${tok('--close-time')} back to a line`],
+      ['Play', 'dims to 50% and pauses'],
+    ]],
+    ['Motion · close', [
+      ['Tiles lift off', `right to left, ${tok('--leave-step')} apart, 160ms each`],
+      ['Glass', `${tok('--close-time')}, folds back down into its line`],
+      ['All gone', `${Math.round(10 * ms('--leave-step') + 160 + ms('--close-time') + 160)}ms`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];

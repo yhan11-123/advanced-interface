@@ -5,118 +5,181 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=2" />
+  <link rel="stylesheet" href="week-06-vault.css?v=3" />
   <style>
-  /* In use: a holographic file database, projected on a tilted sheet of glass. Folders sit on the
-     plane; pointing at one lifts it off the glass. Clicking it opens its menu: a line of light
-     that opens into a panel, the rows arriving one by one. The submenu sends the folder to a node.
-     Every pick is answered in the log on the right, typed out a letter at a time. */
+  /* In use: VAULT, a salvage game played on a derelict station. In play, the menu is shut: only a
+     MENU prompt sits at the foot of the screen. Opened (the prompt, or Tab), the play pauses and a
+     board of glass rises out of a line of light to fill the bottom half of the screen, leaning back
+     like the reference's sheet of glass. Its items are tiles, laid out in sections; they are stacked
+     onto the glass one after another, left to right. Point at a tile and it lifts and fills with
+     light; press it and it lights right through. Gear opens a submenu: a second, smaller board
+     stacked above the first. Esc, Resume or a click on the play takes it all off again, the tiles
+     lifting away right to left before the glass folds back into its line. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
-  :root { --w: 1000px; --h: 640px; --fit: 1; }
-  .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(70% 70% at 50% 55%, #08313a, var(--void) 70%); }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1800px; }
+  :root { --w: 1280px; --h: 720px; --fit: 1; }
+  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #010a0c; }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1500px; perspective-origin: 50% 30%; overflow: hidden; }
+  .stage > * { position: absolute; }
 
-  /* the tilted plane: everything sits on it, so it all shares one perspective */
-  .plane { position: absolute; left: 30px; top: 60px; width: 940px; height: 520px; transform-style: preserve-3d; transform: rotateX(46deg) rotateZ(-24deg) scale(.92); transform-origin: 50% 50%;
-    background: linear-gradient(rgba(57,213,255,.05) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(57,213,255,.05) 1px, transparent 1px) 0 0 / 40px 40px, rgba(6, 42, 49, .7);
-    box-shadow: inset 0 0 0 1px rgba(57,213,255,.18), 0 0 80px rgba(57,213,255,.08); }
-  .plane > * { position: absolute; }
-  .title { left: 36px; top: 26px; font: 600 22px/1 var(--font); letter-spacing: .1em; color: var(--cyan); text-shadow: 0 0 10px rgba(57,213,255,.6); }
-  .ticks { left: 380px; top: 24px; font: 400 18px/1 var(--mono); color: var(--ink-3); }
-  .grid { left: 36px; top: 76px; display: grid; grid-template-columns: repeat(4, 82px); gap: 30px 24px; transform-style: preserve-3d; }
-  .cell { display: grid; justify-items: start; gap: 6px; transform-style: preserve-3d; }
-  .cell span { font: 400 10px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); transition: color var(--hover-time); }
-  .cell:hover span, .cell:focus-within span { color: var(--cyan-hi); }
-  .strip { left: 36px; top: 392px; width: 420px; height: 64px; background: rgba(57,213,255,.06); box-shadow: inset 0 0 0 1px rgba(57,213,255,.14); }
-  .strip::before { content: "▶"; position: absolute; left: 12px; top: 20px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
-  .log { left: 730px; top: 30px; width: 190px; height: 450px; padding: 14px; overflow: hidden; background: rgba(57,213,255,.05); box-shadow: inset 0 0 0 1px rgba(57,213,255,.16);
-    font: 400 10.5px/1.45 var(--mono); color: rgba(95,179,196,.55); letter-spacing: .03em; }
-  .log p { margin: 0 0 6px; }
-  .log p.is-new { color: var(--cyan-hi); text-shadow: 0 0 6px rgba(57,213,255,.7); }
+  /* ---------- the play ---------- */
+  .play { inset: 0; overflow: hidden; background: linear-gradient(#082a31, #041619 48%, #020c0e); transition: filter var(--open-time) var(--ease-out); }
+  .play > * { position: absolute; }
+  .floor { left: -400px; right: -400px; top: 330px; height: 700px; transform: perspective(520px) rotateX(72deg); transform-origin: 50% 0;
+    background: repeating-linear-gradient(90deg, rgba(57, 213, 255, .18) 0 1px, transparent 1px 70px), repeating-linear-gradient(0deg, rgba(57, 213, 255, .18) 0 1px, transparent 1px 70px);
+    -webkit-mask: linear-gradient(transparent, #000 30%, #000); mask: linear-gradient(transparent, #000 30%, #000); }
+  .wreck { left: 0; top: 70px; width: 1280px; height: 280px; }
+  .reticle { left: 616px; top: 236px; width: 48px; height: 48px; }
+  .hud { font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-2); }
+  .hud.tl { left: 32px; top: 28px; display: grid; gap: 9px; }
+  .hud.tl div { display: grid; grid-template-columns: 42px 160px 34px; align-items: center; gap: 10px; }
+  .hud .bar { height: 6px; background: rgba(57, 213, 255, .15); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .3); }
+  .hud .bar i { display: block; height: 100%; width: var(--v); background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .hud.tr { right: 32px; top: 28px; text-align: right; line-height: 1.7; }
+  .hud.tr b { display: block; font: 600 16px/1.2 var(--font); letter-spacing: .12em; color: var(--cyan-hi); }
+  .paused { left: 0; right: 0; top: 30px; text-align: center; font: 600 13px/1 var(--mono); letter-spacing: .5em; color: var(--cyan-hi); opacity: 0; transition: opacity 200ms; }
+  .stage.is-menu .play { filter: brightness(.5) saturate(.7); }
+  .stage.is-menu .paused { opacity: 1; transition: opacity 300ms var(--open-time); }
+
+  /* the prompt: all of the menu there is while you play */
+  .prompt { left: 560px; top: 652px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
+    background: rgba(57, 213, 255, .1); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); color: var(--ink); font: 600 15px/1 var(--font); letter-spacing: .2em;
+    transition: background-color var(--hover-time), box-shadow var(--hover-time), color var(--hover-time), opacity 160ms; }
+  .prompt kbd { padding: 3px 6px; border: 1px solid rgba(95, 179, 196, .5); font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); }
+  .prompt:hover, .prompt:focus-visible { outline: none; background: rgba(57, 213, 255, .26); color: var(--cyan-hi); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 22px rgba(57, 213, 255, .45); }
+  .prompt:active { background: linear-gradient(#bff6ff, #39d5ff); color: #04232b; }
+  .stage.is-menu .prompt { opacity: 0; pointer-events: none; }
+
+  /* ---------- the board: the bottom half of the screen ---------- */
+  .board { left: 40px; top: 372px; width: 1200px; height: 318px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
+    transition: visibility 0s calc(var(--close-time) + 160ms); }
+  .stage.is-menu .board { visibility: visible; transition: visibility 0s; }
+  /* the line of light along its foot, then the glass rising out of it */
+  .board-line { position: absolute; left: -10px; right: -10px; bottom: -1px; height: 2px; background: var(--cyan-hi); box-shadow: 0 0 16px 3px var(--cyan); scale: 0 1; opacity: 0;
+    transition: scale 160ms var(--ease-out) var(--close-time), opacity 120ms linear calc(var(--close-time) + 120ms); }
+  .stage.is-menu .board-line { scale: 1 1; opacity: 1; transition: scale calc(var(--open-time) * .45) var(--ease-out), opacity 60ms linear; }
+  .stage.is-menu.is-settled .board-line { opacity: .35; transition: opacity 300ms; }
+  .board-glass { transform-origin: 50% 100%; scale: 1 0; opacity: 0; transition: scale var(--close-time) cubic-bezier(.6, 0, .4, 1), opacity 80ms linear calc(var(--close-time) - 80ms); }
+  .stage.is-menu .board-glass { scale: 1 1; opacity: 1; transition: scale calc(var(--open-time) * .7) var(--ease-out) calc(var(--open-time) * .3), opacity 60ms linear calc(var(--open-time) * .3); }
+  .board-head, .detail { opacity: 0; transition: opacity 120ms; }
+  .stage.is-menu .board-head, .stage.is-menu .detail { opacity: 1; transition: opacity 260ms var(--open-time); }
+  .stage.is-leaving .board-head, .stage.is-leaving .detail { opacity: 0; transition: opacity 120ms; }
+  .board-head { position: absolute; left: 28px; right: 28px; top: 16px; display: flex; align-items: baseline; gap: 18px; font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }
+  .board-head b { font: 700 18px/1 var(--font); letter-spacing: .16em; color: var(--cyan); text-shadow: 0 0 10px rgba(57, 213, 255, .6); }
+  .board-head span:last-child { margin-left: auto; }
+  .sections { position: absolute; left: 28px; top: 58px; display: flex; gap: var(--section-gap); transform-style: preserve-3d; }
+  .section { transform-style: preserve-3d; }
+
+  /* the tiles are stacked on: each comes down from above the glass and lands, left to right */
+  .slot { display: block; position: relative; transform-style: preserve-3d; opacity: 0; transform: translateZ(var(--stack-drop)); }
+  .stage.is-menu .slot { opacity: 1; transform: translateZ(0);
+    transition: transform var(--stack-time) var(--stack-ease), opacity 120ms linear; transition-delay: calc(var(--open-time) + var(--k) * var(--stack-step)); }
+  .stage.is-leaving .slot { opacity: 0; transform: translateZ(var(--stack-drop));
+    transition: transform 160ms cubic-bezier(.5, 0, .9, .5), opacity 160ms linear; transition-delay: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
+  .slot::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 16px rgba(57, 213, 255, .7); opacity: 0; }
+  .stage.is-menu .slot::after { animation: land var(--stack-time) linear both; animation-delay: calc(var(--open-time) + var(--k) * var(--stack-step)); }
+  @keyframes land { 0%, 50% { opacity: 0; } 66% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* the panel on the right: what the tile you point at does, and the log */
+  .detail { position: absolute; left: 954px; top: 58px; width: 218px; height: 232px; padding: 14px; border-left: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
+  .detail h3 { margin: 0 0 6px; font: 700 17px/1.1 var(--font); letter-spacing: .12em; color: var(--cyan-hi); text-transform: uppercase; }
+  .detail p { margin: 0; }
+  .detail .desc { min-height: 64px; color: var(--ink-2); }
+  .log { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .log p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log p.is-new { color: var(--cyan-hi); text-shadow: 0 0 6px rgba(57, 213, 255, .7); }
   .log p.is-new::after { content: "▌"; animation: caret .6s steps(1) infinite; }
   .log p.is-done::after { display: none; }
   @keyframes caret { 50% { opacity: 0; } }
 
-  /* the menu: shut, it is nothing; opening, a line of light that widens into the panel */
-  .v-pop { left: 456px; top: 30px; z-index: 5; visibility: hidden; opacity: 0; clip-path: inset(49.5% 0 49.5% 0);
-    transition: clip-path var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out), visibility 0s var(--close-time); }
-  .v-pop.is-open { visibility: visible; opacity: 1; clip-path: inset(-20px -20px -20px -20px);
-    transition: clip-path var(--open-time) var(--ease-out) 90ms, opacity 60ms linear, visibility 0s; animation: flicker var(--open-time) linear; }
-  /* once it has materialised, nothing clips it, so the submenu can reach out beside */
-  .v-pop.is-open.is-settled { clip-path: none; }
-  @keyframes flicker { 0%, 20% { filter: brightness(1.8); } 70% { filter: brightness(1); } 76% { filter: brightness(.7); } 80% { filter: brightness(1.2); } 100% { filter: none; } }
-  .v-pop .flash { position: absolute; left: -10px; right: -10px; top: 50%; height: 2px; margin-top: -1px; background: var(--cyan-hi); box-shadow: 0 0 14px 2px var(--cyan); opacity: 0; scale: 0 1; pointer-events: none; }
-  .v-pop.is-open .flash { animation: beam var(--open-time) var(--ease-out); }
-  @keyframes beam { 0% { opacity: 1; scale: 0 1; } 25% { opacity: 1; scale: 1 1; } 60% { opacity: 0; scale: 1 1; } 100% { opacity: 0; } }
-  /* the rows: once the panel has materialised, they are stacked onto it one layer at a time. Each
-     row comes down from above the glass and lands, its outline flashing as it touches; the next one
-     follows. Closing, they lift off again bottom first before the panel goes back to a line. */
-  .v-pop, .v-pop .v-menu, .v-pop .rows, .v-pop .has-sub { transform-style: preserve-3d; }
-  .v-pop .rows > * { opacity: 0; transform: translateZ(var(--stack-drop)); }
-  .v-pop.is-settled .rows > * { opacity: 1; transform: translateZ(0);
-    transition: transform var(--stack-time) var(--stack-ease), opacity 140ms linear; transition-delay: calc(var(--i) * var(--stack-step)); }
-  .v-pop.is-leaving .rows > * { opacity: 0; transform: translateZ(var(--stack-drop));
-    transition: transform 140ms cubic-bezier(.5, 0, .9, .5), opacity 140ms linear; transition-delay: calc((8 - var(--i)) * var(--leave-step)); }
-  .v-pop .rows > .s-item::after, .v-pop .rows > .has-sub > .s-item::after, .submenu .s-node::after { content: ""; position: absolute; inset: 0; pointer-events: none;
-    border: 1px solid var(--cyan); box-shadow: 0 0 10px rgba(57, 213, 255, .6), inset 0 0 10px rgba(57, 213, 255, .3); opacity: 0; }
-  .v-pop.is-settled .rows > .s-item::after, .v-pop.is-settled .rows > .has-sub > .s-item::after { animation: land var(--stack-time) linear both; animation-delay: calc(var(--i) * var(--stack-step)); }
-  @keyframes land { 0%, 55% { opacity: 0; } 70% { opacity: 1; } 100% { opacity: 0; } }
+  /* ---------- the submenu: a smaller board, stacked above the first ---------- */
+  .sub { position: absolute; left: 326px; top: -96px; width: 474px; padding: 14px 16px 16px; transform-style: preserve-3d; transform: translateZ(70px); visibility: hidden;
+    transition: visibility 0s 260ms; }
+  .sub.is-open { visibility: visible; transition: visibility 0s; }
+  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 160ms linear 100ms; }
+  .sub.is-open .board-glass { opacity: 1; transition: opacity 120ms linear; }
+  .sub .t-sect { margin-bottom: 18px; opacity: 0; transition: opacity 120ms; }
+  .sub.is-open .t-sect { opacity: 1; transition: opacity 200ms 80ms; }
+  .sub .t-grid { --cols: 3; }
+  .sub .slot { opacity: 0; transform: translateZ(var(--stack-drop)); transition: transform 150ms cubic-bezier(.5, 0, .9, .5), opacity 150ms linear; transition-delay: calc((2 - var(--k)) * var(--leave-step)); }
+  .sub.is-open .slot { opacity: 1; transform: translateZ(0); transition: transform var(--stack-time) var(--stack-ease), opacity 120ms linear; transition-delay: calc(80ms + var(--k) * var(--stack-step)); }
+  .sub .slot::after { animation: none; }
+  .sub.is-open .slot::after { animation: land var(--stack-time) linear both; animation-delay: calc(80ms + var(--k) * var(--stack-step)); }
 
-  .has-sub { position: relative; }
-  /* the submenu is stacked the same way, beside its row: the panel shows, then the nodes land on it */
-  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; transform-style: preserve-3d;
-    transition: opacity 120ms linear calc(3 * var(--leave-step) + 120ms), visibility 0s calc(3 * var(--leave-step) + 240ms); }
-  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; transition: opacity 100ms linear, visibility 0s; }
-  .submenu > * { opacity: 0; transform: translateZ(var(--stack-drop)); transition: transform 140ms cubic-bezier(.5, 0, .9, .5), opacity 140ms linear; transition-delay: calc((3 - var(--j, 0)) * var(--leave-step)); }
-  .has-sub.is-open > .submenu > * { opacity: 1; transform: translateZ(0); transition: transform var(--stack-time) var(--stack-ease), opacity 140ms linear; transition-delay: calc(80ms + var(--j, 0) * var(--stack-step)); }
-  .has-sub.is-open > .submenu .s-node::after { animation: land var(--stack-time) linear both; animation-delay: calc(80ms + var(--j, 0) * var(--stack-step)); }
-
-  .s-item.is-no { animation: deny 360ms var(--ease-out); }
-  @keyframes deny { 0%, 100% { color: var(--ink-off); } 30% { color: var(--alert); text-shadow: 0 0 8px var(--alert); translate: -3px 0; } 60% { translate: 2px 0; } }
+  .stage.is-still *, .stage.is-still *::before, .stage.is-still *::after { transition: none !important; animation: none !important; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
-  @media (prefers-reduced-motion: reduce) { .v-pop, .v-pop.is-open, .v-pop .rows > *, .submenu, .submenu > *, .v-pop .s-item::after, .s-node::after { transition-duration: 1ms !important; animation: none !important; } .folder { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .stage *, .stage *::before, .stage *::after { transition-duration: 1ms !important; transition-delay: 0s !important; animation: none !important; } }
   </style>
 </head>
 <body>
   <section class="hero">
     <div class="stage">
-      <div class="plane">
-        <div class="title" aria-hidden="true">FILE DATABASE #4SKTD</div>
-        <div class="ticks" aria-hidden="true">//</div>
-        <div class="grid" role="group" aria-label="Folders"></div>
-        <div class="strip" aria-hidden="true"></div>
-        <div class="log" aria-live="polite" aria-label="Log">
-          <p>SERVER ELECTION OK. BREAK EATEN BY A GRUE IF NULL. CTL-C FLUSH DATA COPIED ACK.</p>
-          <p>SECTOR MAP LOADED. 12 FOLDERS. 3 ENCRYPTED.</p>
-          <p>NODES ONLINE: 03 07 12</p>
+      <div class="play" aria-hidden="true">
+        <div class="floor"></div>
+        <svg class="wreck" viewBox="0 0 1280 280">
+          <g fill="#06262c" stroke="rgba(57,213,255,.35)" stroke-width="1">
+            <path d="M120 280V150l40-30h60l20 30v130z"/><path d="M300 280V90l30-40h40l30 40v190z"/><path d="M520 280V160h90l30-50h60l30 50h60v120z"/>
+            <path d="M880 280V70l20-30h50l20 30v210z"/><path d="M1040 280V130l50-40 50 40v150z"/>
+          </g>
+          <g fill="#39d5ff" opacity=".7"><rect x="335" y="110" width="6" height="3"/><rect x="355" y="150" width="6" height="3"/><rect x="905" y="100" width="6" height="3"/><rect x="925" y="160" width="6" height="3"/><rect x="600" y="190" width="10" height="3"/><rect x="1080" y="170" width="6" height="3"/></g>
+          <g fill="#ff8a6b"><circle cx="925" cy="40" r="3"/><circle cx="350" cy="50" r="2"/></g>
+        </svg>
+        <svg class="reticle" viewBox="0 0 48 48"><g fill="none" stroke="#b6f4ff" stroke-width="1.5"><path d="M24 4v10M24 34v10M4 24h10M34 24h10"/><circle cx="24" cy="24" r="3"/></g></svg>
+        <div class="hud tl"><div>HULL<span class="bar" style="--v:72%"><i></i></span>72%</div><div>O2<span class="bar" style="--v:54%"><i></i></span>54%</div></div>
+        <div class="hud tr"><b>RECOVER THE CORE · 2/3</b>SECTOR 07 · DERELICT HAULER<br />CREDITS 4,180</div>
+      </div>
+      <div class="paused" aria-hidden="true">PAUSED</div>
+
+      <button class="prompt" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="board">MENU <kbd>TAB</kbd></button>
+
+      <div class="board" id="board">
+        <span class="board-line" aria-hidden="true"></span>
+        <span class="board-glass" aria-hidden="true"></span>
+        <div class="board-head" aria-hidden="true"><b>VAULT // FIELD MENU</b><span>SECTOR 07 · DAY 12 · 03:41</span><span>ESC · RESUME</span></div>
+        <div class="sections" role="menu" aria-label="Field menu">
+          <div class="section" role="group" aria-labelledby="sec-mission">
+            <div class="t-sect" id="sec-mission">Mission</div>
+            <div class="t-grid">
+              <span class="slot"><button class="tile" role="menuitem" data-act="resume" data-desc="Back to the hauler. Nothing is lost."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">ESC</kbd><span class="t-label">Resume</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-log="OBJECTIVES · 2 NEW, MARKED ON MAP" data-desc="Recover the core. Two new leads came in from the crew."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><span class="t-badge" aria-label="2 new">2</span><span class="t-note">2 NEW</span><span class="t-label">Objectives</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-key="m" data-log="MAP · SECTOR 07, 3 DOORS SEALED" data-desc="The derelict, deck by deck. Sealed doors in orange."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">M</kbd><span class="t-label">Map</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-log="COMMS · 1 MESSAGE FROM RHEA" data-desc="Your crew on the line. One message waiting."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-8M7.5 9.5a6.5 6.5 0 0 1 9 0M4.5 6.5a10.5 10.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="12" cy="12.5" r="1.5" fill="currentColor"/></svg><span class="t-badge" aria-label="1 message">1</span><span class="t-label">Comms</span></button></span>
+            </div>
+          </div>
+          <div class="section" role="group" aria-labelledby="sec-loadout">
+            <div class="t-sect" id="sec-loadout">Loadout</div>
+            <div class="t-grid">
+              <span class="slot"><button class="tile" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="sub-gear" data-act="gear" data-desc="What you carry in your hands. Opens the rack."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note" id="gear-now">PULSE RIFLE</span><span class="t-label">Gear</span><svg class="t-more" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-key="i" data-log="INVENTORY · 36 OF 40 SLOTS" data-desc="Salvage, parts and the core fragments you have found."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">I</kbd><span class="t-note">36 / 40</span><span class="t-label">Inventory</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" aria-disabled="true" data-log="UPGRADES · LOCKED UNTIL LEVEL 4" data-desc="Locked. Reach level 4 at a station bench to open it."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6M6 19l6-6 6 6" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note">LOCKED · LV 4</span><span class="t-label">Upgrades</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-key="c" data-log="CRAFTING · 2 RECIPES READY" data-desc="Turn salvage into parts. Two recipes are ready."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4a5 5 0 0 0-5 6.5L3.5 16.5l3 3 6-6A5 5 0 0 0 19 8.5l-3 3-2.5-1-1-2.5z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><kbd class="t-key">C</kbd><span class="t-label">Crafting</span></button></span>
+            </div>
+          </div>
+          <div class="section" role="group" aria-labelledby="sec-system">
+            <div class="t-sect" id="sec-system">System</div>
+            <div class="t-grid">
+              <span class="slot"><button class="tile" role="menuitem" data-key="," data-log="SETTINGS · OPENED" data-desc="Sound, controls, how bright the glass is."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h3M11 17h9" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="16" cy="7" r="2.5" fill="none" stroke="currentColor"/><circle cx="9" cy="17" r="2.5" fill="none" stroke="currentColor"/></svg><kbd class="t-key">,</kbd><span class="t-label">Settings</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-log="FIELD GUIDE · OPENS IN A NEW WINDOW" data-desc="Every part and hazard, explained. Opens in a new window."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><svg class="t-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3h6v6M11 3 3 11" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="t-label">Field guide</span></button></span>
+              <span class="slot"><button class="tile" role="menuitem" data-act="quit" data-log="SAVED · DAY 12, 03:41" data-desc="Save where you stand and go back to the title."><span class="t-label">Save &amp; quit</span></button></span>
+            </div>
+          </div>
         </div>
 
-        <div class="v-pop" id="file-menu">
-          <span class="flash" aria-hidden="true"></span>
-          <div class="v-menu">
-            <div class="v-head" aria-hidden="true"><b id="menu-folder">SECTOR_07</b><span id="menu-count">14 FILES</span></div>
-            <div class="rows" role="menu" aria-labelledby="menu-folder">
-              <button class="s-item" role="menuitem" style="--i:0" data-log="OPEN {F} ... {N} FILES LISTED"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h4l1.5 1.5h7.5v8h-13zM1.5 7h13" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Open</span><kbd class="s-key">ENTER</kbd></button>
-              <button class="s-item" role="menuitem" style="--i:1" data-log="DECRYPT {F} ... KEY ACCEPTED"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="8" r="3" fill="none" stroke="currentColor"/><path d="M8 8h7M12 8v2.5M14 8v2" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Decrypt</span><kbd class="s-key">D</kbd></button>
-              <button class="s-item" role="menuitem" style="--i:2" data-log="COPY PATH /DB/4SKTD/{F} ... COPIED"><span class="s-ico"></span><span class="s-label">Copy path</span><kbd class="s-key">C</kbd></button>
-              <div class="s-rule" role="separator" style="--i:3"></div>
-              <div class="s-sect" aria-hidden="true" style="--i:4">TRANSMIT</div>
-              <div class="has-sub" style="--i:5">
-                <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V7M4.5 9.5a5 5 0 0 1 7 0M2.5 7.5a8 8 0 0 1 11 0" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="8" cy="13.5" r="1" fill="currentColor"/></svg><span class="s-label">Send to node</span><svg class="s-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
-                <div class="submenu v-menu" role="menu" aria-label="Nodes">
-                  <div class="v-head" aria-hidden="true" style="--j:0"><b>NODES</b><span>LINK</span></div>
-                  <button class="s-node" role="menuitemradio" aria-checked="false" data-node="03" style="--j:1"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 03</span><small>42 MS</small></button>
-                  <button class="s-node" role="menuitemradio" aria-checked="true" data-node="07" style="--j:2"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i></span><span class="s-label">Node 07</span><small>12 MS</small></button>
-                  <button class="s-node" role="menuitemradio" aria-checked="false" data-node="12" style="--j:3"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 12</span><small>WEAK</small></button>
-                </div>
-              </div>
-              <button class="s-item" role="menuitem" style="--i:6" data-log="FLAGS {F} ... 2 ACCESS ATTEMPTS, 03:12 AND 03:40"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14V2.5M3.5 3h8l-1.5 3 1.5 3h-8" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Flags</span><span class="s-badge" aria-label="2 flags">2</span></button>
-              <button class="s-item" role="menuitem" style="--i:7" data-log="TRACE {F} ... ORIGIN OPENS IN A NEW WINDOW"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3" stroke="currentColor"/></svg><span class="s-label">Trace origin</span><svg class="s-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3h6v6M11 3 3 11" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
-              <button class="s-item" role="menuitem" aria-disabled="true" style="--i:8" data-log="PURGE {F} ... DENIED. SECTOR LOCKED BY ADMIN"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.8 9.5h5.4l.8-9.5" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Purge</span><span class="s-note">LOCKED</span></button>
-            </div>
+        <div class="detail" aria-live="polite">
+          <h3 id="d-title">Resume</h3>
+          <p class="desc" id="d-desc">Back to the hauler. Nothing is lost.</p>
+          <div class="log"><p>&gt; DOCKED · SECTOR 07</p><p>&gt; CORE FRAGMENT 2 OF 3</p></div>
+        </div>
+
+        <div class="sub" id="sub-gear" role="menu" aria-label="Gear">
+          <span class="board-glass" aria-hidden="true"></span>
+          <div class="t-sect">Gear · in your hands</div>
+          <div class="t-grid">
+            <span class="slot" style="--k:0"><button class="tile" role="menuitemradio" aria-checked="true" data-gear="PULSE RIFLE" data-desc="Fast, light, short reach. Twelve rounds."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h14l3-2v6l-3-2H9l-2 4H4l1-4H3z" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note">EQUIPPED</span><span class="t-label">Pulse rifle</span></button></span>
+            <span class="slot" style="--k:1"><button class="tile" role="menuitemradio" aria-checked="false" data-gear="ARC CUTTER" data-desc="Opens sealed doors. Slow, and loud."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l7-7M11 13l2-6 4 4-6 2zM15 5l4 4" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="t-note"></span><span class="t-label">Arc cutter</span></button></span>
+            <span class="slot" style="--k:2"><button class="tile" role="menuitemradio" aria-checked="false" data-gear="GRAPPLE" data-desc="Crosses the gaps between decks."><svg class="t-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M12 15a4 4 0 1 1-4 4M12 15a4 4 0 1 0 4 4M9 6l3-3 3 3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t-note"></span><span class="t-label">Grapple</span></button></span>
           </div>
         </div>
       </div>
@@ -125,79 +188,121 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. Light does the work: rows fill with it, folders rise on it, the menu is drawn out of a single line of it.</p>
+    <p>Read from the values this page runs on. The menu is a board of glass that fills the bottom half of the play screen; its items are tiles, laid out in sections and stacked onto the glass one at a time.</p>
     <div class="spec-grid"></div>
   </section>
 
   <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
   <script>
-    // the folders on the plane
-    const names = ['ARCHIVE_01', 'LEDGER_02', 'SIGNAL_03', 'ROSTER_04', 'NIGHT_05', 'ORBIT_06', 'SECTOR_07', 'VAULT_08', 'MIRROR_09', 'ECHO_10', 'RELAY_11', 'GHOST_12'];
-    document.querySelector('.grid').innerHTML = names.map((n, i) => `<div class="cell"><button class="folder" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu" aria-label="${n}" data-files="${[14, 9, 31, 6, 22, 3, 14, 40, 11, 8, 17, 2][i]}"></button><span aria-hidden="true">${n}</span></div>`).join('');
-  </script>
-  <script src="week-06-sketch.js?v=2"></script>
-  <script>
     (() => {
-      const pop = document.getElementById('file-menu'), rows = pop.querySelector('.rows'), log = document.querySelector('.log');
-      const own = [...rows.querySelectorAll('.s-item')].filter(i => i.closest('[role="menu"]') === rows);
-      const isOpen = () => pop.classList.contains('is-open') && !pop.classList.contains('is-leaving');
-      let folder = null;
+      const root = document.documentElement, stage = document.querySelector('.stage'), board = document.getElementById('board'), prompt = document.querySelector('.prompt');
+      const sub = document.getElementById('sub-gear'), gear = board.querySelector('[data-act="gear"]');
+      const tiles = [...board.querySelectorAll('.sections .tile')], subTiles = [...sub.querySelectorAll('.tile')];
+      const ms = n => parseFloat(getComputedStyle(root).getPropertyValue(n));
+      const log = board.querySelector('.log'), dTitle = document.getElementById('d-title'), dDesc = document.getElementById('d-desc');
 
-      const open = f => {
-        if (folder && folder !== f) folder.setAttribute('aria-expanded', 'false');
-        folder = f; f.setAttribute('aria-expanded', 'true');
-        document.getElementById('menu-folder').textContent = f.getAttribute('aria-label');
-        document.getElementById('menu-count').textContent = f.dataset.files + ' FILES';
-        if (isOpen()) { pop.classList.remove('is-open'); void pop.offsetWidth; }   // replay the opening for a new folder
-        clearTimeout(pop._leave); pop.classList.remove('is-settled', 'is-leaving'); pop.classList.add('is-open');
-        clearTimeout(pop._settle); pop._settle = setTimeout(() => pop.classList.add('is-settled'), parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--open-time')));
-        setTimeout(() => own[0].focus({ preventScroll: true }), 120);
+      // fit the 1280 × 720 frame to the window
+      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1280, innerHeight / 720));
+      addEventListener('resize', fit); fit();
+
+      // the order the tiles are stacked in: left to right, column by column, then top to bottom
+      const slots = [...board.querySelectorAll('.sections .slot')];
+      slots.map(s => [s, s.offsetLeft + s.closest('.section').offsetLeft, s.offsetTop])
+        .sort((a, b) => a[1] - b[1] || a[2] - b[2]).forEach(([s], k) => { s.style.setProperty('--k', k); s.style.setProperty('--n', slots.length); });
+
+      const isOpen = () => stage.classList.contains('is-menu') && !stage.classList.contains('is-leaving');
+      let t1, t2;
+      const open = () => {
+        clearTimeout(t1); clearTimeout(t2);
+        stage.classList.remove('is-leaving', 'is-settled'); stage.classList.add('is-menu'); prompt.setAttribute('aria-expanded', 'true');
+        t1 = setTimeout(() => stage.classList.add('is-settled'), ms('--open-time'));
+        t2 = setTimeout(() => tiles[0].focus({ preventScroll: true }), ms('--open-time') + ms('--stack-step') * 2);
       };
-      const close = (back = true) => {
+      const closeSub = (back = true) => { if (!sub.classList.contains('is-open')) return; sub.classList.remove('is-open'); gear.setAttribute('aria-expanded', 'false'); if (back) gear.focus({ preventScroll: true }); };
+      const close = () => {
         if (!isOpen()) return;
-        pop.querySelectorAll('.has-sub.is-open').forEach(h => { h.classList.remove('is-open'); h.querySelector('.s-item').setAttribute('aria-expanded', 'false'); });
-        // the rows lift off first, bottom row first; then the panel goes back to a line
-        clearTimeout(pop._settle); clearTimeout(pop._leave);
-        const tok = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
-        if (pop.classList.contains('is-settled')) {
-          pop.classList.add('is-leaving');
-          pop._leave = setTimeout(() => pop.classList.remove('is-open', 'is-settled', 'is-leaving'), 8 * tok('--leave-step') + 140);
-        } else pop.classList.remove('is-open', 'is-settled');
-        if (folder) { folder.setAttribute('aria-expanded', 'false'); if (back) folder.focus({ preventScroll: true }); }
+        clearTimeout(t1); clearTimeout(t2); closeSub(false);
+        // the tiles lift off right to left; then the glass folds back into its line
+        stage.classList.add('is-leaving'); prompt.setAttribute('aria-expanded', 'false');
+        t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 160);
       };
-      document.querySelectorAll('.folder').forEach(f => f.addEventListener('click', () => (isOpen() && folder === f) ? close() : open(f)));
-      document.querySelector('.stage').addEventListener('pointerdown', e => { if (isOpen() && !pop.contains(e.target) && !e.target.closest('.folder')) close(false); });
-      addEventListener('keydown', e => {
-        if (e.metaKey || e.ctrlKey || e.altKey || !isOpen()) return;
-        if (e.key === 'Escape' && !pop.querySelector('.has-sub.is-open')) { e.preventDefault(); close(); }
-        else if (e.key === 'Enter' && document.activeElement === own[0]) return;
-        else if (e.key.length === 1) { const k = [...rows.querySelectorAll('.s-key')].find(x => x.textContent.toLowerCase() === e.key.toLowerCase()); if (k) { e.preventDefault(); k.closest('.s-item').click(); } }
-      });
+      prompt.addEventListener('click', open);
+      stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play, .paused')) close(); });
+
+      // the panel follows what you point at
+      const show = t => { dTitle.textContent = t.querySelector('.t-label').textContent; dDesc.textContent = t.dataset.desc || ''; };
+      [...tiles, ...subTiles].forEach(t => { t.addEventListener('pointerenter', () => show(t)); t.addEventListener('focus', () => show(t)); });
 
       // the log types each answer out a letter at a time
-      const speed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--type-speed'));
       const write = text => {
         log.querySelectorAll('.is-new').forEach(p => { p.classList.remove('is-new'); p.classList.add('is-done'); });
         const p = document.createElement('p'); p.className = 'is-new'; log.append(p);
-        let i = 0; const t = setInterval(() => { p.textContent = '> ' + text.slice(0, ++i); if (i >= text.length) clearInterval(t); }, speed);
-        setTimeout(() => { clearInterval(t); p.textContent = '> ' + text; }, text.length * speed + 60);   // the whole line always lands on time
-        while (log.children.length > 9) log.firstElementChild.remove();
+        const speed = ms('--type-speed'); let i = 0;
+        const iv = setInterval(() => { p.textContent = '> ' + text.slice(0, ++i); if (i >= text.length) clearInterval(iv); }, speed);
+        setTimeout(() => { clearInterval(iv); p.textContent = '> ' + text; }, text.length * speed + 60);   // the whole line always lands on time
+        while (log.children.length > 4) log.firstElementChild.remove();
       };
+      const flash = t => { t.classList.add('is-press'); setTimeout(() => t.classList.remove('is-press'), 160); };
 
-      pop.addEventListener('click', e => {
-        const it = e.target.closest('.s-item, .s-node');
-        if (!it || (it.parentElement.classList.contains('has-sub') && it === it.parentElement.querySelector('.s-item'))) return;
-        const f = folder ? folder.getAttribute('aria-label') : '';
-        if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); write(it.dataset.log.replace('{F}', f)); return; }
-        if (it.dataset.node) write(`TRANSMIT ${f} -> NODE ${it.dataset.node} ... 100%`);
-        else write(it.dataset.log.replace('{F}', f).replace('{N}', folder.dataset.files));
-        setTimeout(() => close(), 160);
+      tiles.forEach(t => t.addEventListener('click', () => {
+        if (t.getAttribute('aria-disabled') === 'true') { t.classList.remove('is-no'); void t.offsetWidth; t.classList.add('is-no'); write(t.dataset.log); return; }
+        if (t.dataset.act === 'gear') {
+          const on = !sub.classList.contains('is-open');
+          sub.classList.toggle('is-open', on); gear.setAttribute('aria-expanded', on);
+          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 80 + ms('--stack-step') * 2);
+          return;
+        }
+        closeSub(false); flash(t);
+        if (t.dataset.act === 'resume') { setTimeout(close, 160); return; }
+        write(t.dataset.log);
+        if (t.dataset.act === 'quit') setTimeout(close, 500);
+      }));
+      subTiles.forEach(t => t.addEventListener('click', () => {
+        subTiles.forEach(o => { o.setAttribute('aria-checked', o === t); o.querySelector('.t-note').textContent = o === t ? 'EQUIPPED' : ''; });
+        document.getElementById('gear-now').textContent = t.dataset.gear;
+        flash(t); write(`EQUIPPED · ${t.dataset.gear}`);
+        setTimeout(() => closeSub(), 260);
+      }));
+
+      // keys: Tab opens; Esc steps back; arrows move between tiles by where they sit; the letters on the keys pick
+      const move = (from, dir, set) => {
+        const a = from.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+        let best = null, score = Infinity;
+        set.forEach(t => {
+          if (t === from) return;
+          const b = t.getBoundingClientRect(), dx = b.left + b.width / 2 - ax, dy = b.top + b.height / 2 - ay;
+          const along = { ArrowRight: dx, ArrowLeft: -dx, ArrowDown: dy, ArrowUp: -dy }[dir], across = dir === 'ArrowRight' || dir === 'ArrowLeft' ? Math.abs(dy) : Math.abs(dx);
+          if (along <= 4) return;
+          const s = along + across * 2.5; if (s < score) { score = s; best = t; }
+        });
+        if (best) best.focus({ preventScroll: true });
+      };
+      addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (!stage.classList.contains('is-menu')) { if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); open(); } return; }   // in play, Tab is the menu key
+        if (!isOpen()) return;
+        if (e.key === 'Escape') { e.preventDefault(); sub.classList.contains('is-open') ? closeSub() : close(); return; }
+        if (e.key.startsWith('Arrow')) {
+          e.preventDefault();
+          const inSub = sub.classList.contains('is-open') && sub.contains(document.activeElement);
+          if (inSub && e.key === 'ArrowDown') { closeSub(); return; }
+          if (document.activeElement === gear && e.key === 'ArrowUp' && sub.classList.contains('is-open')) { sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }); return; }
+          const set = inSub ? subTiles : tiles;
+          move(set.includes(document.activeElement) ? document.activeElement : set[0], e.key, set);
+          return;
+        }
+        const k = tiles.find(t => t.dataset.key === e.key.toLowerCase());
+        if (k) { e.preventDefault(); k.focus({ preventScroll: true }); k.click(); }
       });
 
-      // #open shows SECTOR_07's menu (and the node submenu) already open, for the set's thumbnail
-      if (location.hash === '#open') { const f = document.querySelectorAll('.folder')[6]; pop.style.transition = 'none'; open(f); pop.classList.add('is-settled'); const h = pop.querySelector('.has-sub'); h.classList.add('is-open'); }
+      // #open shows the board open with the Gear rack out, for the set's thumbnail
+      if (location.hash === '#open') {
+        stage.classList.add('is-still'); open(); stage.classList.add('is-settled');
+        sub.classList.add('is-open'); gear.setAttribute('aria-expanded', 'true'); show(gear);
+      }
+      if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=2"></script>
+  <script src="week-06-vault-spec.js?v=3"></script>
 </body>
 </html>
