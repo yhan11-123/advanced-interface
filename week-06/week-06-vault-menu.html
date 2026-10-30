@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=6" />
+  <link rel="stylesheet" href="week-06-vault.css?v=7" />
   <style>
   /* In use: VAULT, a salvage game played on a derelict station. In play, the menu is shut: only a
      MENU prompt sits at the foot of the screen. Opened (the prompt, or Tab), the play pauses and a
@@ -53,7 +53,7 @@
   .stage.is-menu .prompt { opacity: 0; pointer-events: none; }
 
   /* ---------- the board: the bottom half of the screen ---------- */
-  .board { left: 210px; top: 400px; width: 860px; height: 290px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
+  .board { left: 70px; top: 452px; width: 1140px; height: 238px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
     transition: visibility 0s calc(var(--close-time) + 160ms); }
   .stage.is-menu .board { visibility: visible; transition: visibility 0s; }
   /* the line of light along its foot, then the glass rising out of it */
@@ -69,7 +69,7 @@
   .board-head { position: absolute; left: 28px; right: 28px; top: 16px; display: flex; align-items: baseline; gap: 18px; font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }
   .board-head b { font: 700 18px/1 var(--font); letter-spacing: .16em; color: var(--cyan); text-shadow: 0 0 10px rgba(57, 213, 255, .6); }
   .board-head span:last-child { margin-left: auto; }
-  .sections { position: absolute; left: 28px; top: 58px; display: flex; gap: var(--section-gap); transform-style: preserve-3d; }
+  .sections { position: absolute; left: 28px; top: 54px; display: flex; gap: var(--section-gap); transform-style: preserve-3d; }
   .section { transform-style: preserve-3d; }
 
   /* ---------- each box is built in steps, like the reference's stacked frames ----------
@@ -115,10 +115,10 @@
     transition: opacity 180ms linear calc(var(--d) + 4.5 * var(--phase)), translate 220ms var(--ease-out) calc(var(--d) + 4.5 * var(--phase)); }
 
   /* the panel on the right: what the tile you point at does, and the log */
-  .detail { position: absolute; left: 594px; top: 58px; width: 238px; height: 206px; padding: 14px; border-left: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
+  .detail { position: absolute; left: 874px; top: 52px; width: 238px; height: 162px; padding: 14px; border-left: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
   .detail h3 { margin: 0 0 6px; font: 700 20px/1.1 var(--font); letter-spacing: .12em; color: var(--cyan-hi); text-transform: uppercase; }
   .detail p { margin: 0; }
-  .detail .desc { min-height: 54px; font-size: 12px; color: var(--ink-2); }
+  .detail .desc { min-height: 36px; font-size: 12px; color: var(--ink-2); }
   .log { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--line); }
   .log p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .log p.is-new { color: var(--cyan-hi); text-shadow: 0 0 6px rgba(57, 213, 255, .7); }
@@ -127,7 +127,7 @@
   @keyframes caret { 50% { opacity: 0; } }
 
   /* ---------- the submenu: a smaller board, stacked above the first ---------- */
-  .sub { position: absolute; left: 236px; top: -128px; width: 406px; padding: 14px 16px 16px; transform-style: preserve-3d; transform: translateZ(70px); visibility: hidden;
+  .sub { position: absolute; left: 330px; top: -110px; width: 616px; padding: 14px 16px 16px; transform-style: preserve-3d; transform: translateZ(70px); visibility: hidden;
     transition: visibility 0s 340ms; }
   .sub.is-open { visibility: visible; transition: visibility 0s; }
   .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear 220ms; }

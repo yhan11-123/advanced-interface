@@ -53,12 +53,12 @@
       ['Label', `${fam(tile.fontFamily)} ${tile.fontWeight}, ${px(tile.fontSize)}, capitals, ${px(tile.letterSpacing)}`],
     ]],
     ['Parts', [
-      ['Left icon', `${px(el('ico').getBoundingClientRect().width)}, top left, stroke ${tok('--icon-stroke')}`],
-      ['Shortcut', `${fam(cs('key').fontFamily)} ${px(cs('key').fontSize)}, boxed, top right`],
-      ['Badge', `${px(el('badge').offsetHeight)}, ${hex(cs('badge').color)} outline, top right`],
-      ['Right icon', '14px arrow, top right'],
-      ['Note', `${fam(cs('note').fontFamily)} ${px(cs('note').fontSize)}, above the label`],
-      ['Submenu', '14px chevron, foot right'],
+      ['Left icon', `${px(el('ico').getBoundingClientRect().width)}, at the left, stroke ${tok('--icon-stroke')}`],
+      ['Shortcut', `${fam(cs('key').fontFamily)} ${px(cs('key').fontSize)}, boxed, at the right`],
+      ['Badge', `${px(el('badge').offsetHeight)}, ${hex(cs('badge').color)} outline, at the right`],
+      ['Right icon', '14px arrow, at the right'],
+      ['Note', `${fam(cs('note').fontFamily)} ${px(cs('note').fontSize)}, under the label`],
+      ['Submenu', '14px chevron, at the right'],
     ]],
     ['Sections', [
       ['Label', `${fam(cs('sect').fontFamily)} ${px(cs('sect').fontSize)}, ${px(cs('sect').letterSpacing)} apart`],
