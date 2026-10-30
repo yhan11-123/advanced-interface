@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=3" />
+  <link rel="stylesheet" href="week-06-vault.css?v=4" />
   <style>
-  /* In use: the archive core of a holographic file database. A hexagon of light floats over a
-     dotted floor, its tiers lying flat beneath it. Point at it and the tiers stir; click it and they
-     are built up into a stepped pyramid, one tier at a time, the widest first. The core rides up
-     to the top, a leader line draws out to the side, and the menu unfolds down out of that line.
-     Dismissing takes the same build apart in reverse, one deliberate step after another: the rows
-     go out bottom first, the menu folds back up into its line, the line pulls back into the core,
-     and the tiers come down from the top. Every pick is answered in the log, typed out. */
+  /* In use: the archive core of a holographic file database. A hexagon of light floats over flat
+     tiers on a dotted floor. Pointing at it is drawn: dots land at two corners and lines run out of
+     them into a frame. Clicking it lays the menu down in layers, the way the reference stacks its
+     frames: a dot at the core, a line drawn out of it, then plate on plate, the lowest first (a dotted
+     outline, an outline, another), and the menu itself settles on top. The pyramid under the core
+     rises with it. Dismissing takes the layers off in reverse, one at a time: the rows go out bottom
+     first, the plates come down from the top, the line is pulled back into its dot, the tiers sink. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
@@ -22,11 +22,10 @@
   .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(60% 70% at 32% 60%, #0a1650, var(--void) 70%); }
   .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1900px;
     /* when each step happens, worked out from the tokens */
-    --line-at: calc(3 * var(--tier-step) + var(--tier-time) * .7);
-    --unfold-at: calc(var(--line-at) + var(--line-time));
-    --fold-at: 80ms;
-    --line-back-at: calc(var(--fold-at) + var(--fold-time));
-    --sink-at: calc(var(--line-back-at) + var(--line-time) * .6);
+    --plate-at: var(--line-time);
+    --rows-out: 110ms;
+    --line-back-at: calc(var(--rows-out) + 3 * var(--sink-step) + var(--sink-time) * .6);
+    --sink-at: calc(var(--line-back-at) + var(--line-time) * .5);
     --rise: calc(var(--tier-gap) * -2.6); }
   .stage > * { position: absolute; }
 
@@ -70,31 +69,50 @@
   .stage.is-near .hint { color: var(--cyan); }
   .stage.is-open .hint { opacity: 0; transition: opacity 120ms; }
 
-  /* the leader line: drawn out from the core to where the menu will hang, pulled back in on the way out */
+  /* the leader line: a dot lands at the core, the line is drawn out of it, a dot closes it */
   .lead { inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
   .lead path { fill: none; stroke: var(--cyan); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px rgba(61, 227, 255, .8));
     transition: stroke-dashoffset var(--line-time) var(--ease-sink) var(--line-back-at); }
-  .stage.is-open .lead path { stroke-dashoffset: 0; transition: stroke-dashoffset var(--line-time) var(--ease-out) var(--line-at); }
-  .lead rect { fill: var(--green); filter: drop-shadow(0 0 5px var(--green)); opacity: 0; transition: opacity 120ms var(--line-back-at); }
-  .stage.is-open .lead rect { opacity: 1; transition: opacity 120ms calc(var(--line-at) + var(--line-time) * var(--k)); }
+  .stage.is-open .lead path { stroke-dashoffset: 0; transition: stroke-dashoffset var(--line-time) var(--ease-out); }
+  .lead rect { fill: var(--green); filter: drop-shadow(0 0 5px var(--green)); opacity: 0; transition: opacity 100ms calc(var(--line-back-at) + var(--line-time) * var(--back)); }
+  .stage.is-open .lead rect { opacity: 1; transition: opacity 80ms calc(var(--line-time) * var(--k)); }
 
-  /* the menu unfolds down out of the line, and folds back up into it */
-  .v-pop { left: 560px; top: 168px; z-index: 5; visibility: hidden; pointer-events: none; transition: visibility 0s var(--line-back-at); }
-  .stage.is-open .v-pop { visibility: visible; pointer-events: auto; transition: visibility 0s var(--unfold-at); }
-  .v-pop > .v-menu { transform-origin: 50% 0; scale: 1 0; opacity: 0;
-    transition: scale var(--fold-time) var(--ease-sink) var(--fold-at), opacity 100ms linear calc(var(--line-back-at) - 100ms); }
-  .stage.is-open .v-pop > .v-menu { scale: 1 1; opacity: 1; transition: scale var(--unfold-time) var(--ease-out) var(--unfold-at), opacity 60ms linear var(--unfold-at); }
-  /* rows: in from the top as it unfolds, out from the bottom before it folds */
-  .v-pop .rows > * { opacity: 0; translate: -6px 0; transition: opacity 120ms ease calc((8 - var(--i)) * 12ms), translate 120ms ease calc((8 - var(--i)) * 12ms); }
-  .stage.is-open .v-pop .rows > * { opacity: 1; translate: 0 0; transition: opacity 240ms var(--ease-out), translate 320ms var(--ease-out);
-    transition-delay: calc(var(--unfold-at) + var(--unfold-time) * .35 + var(--i) * var(--stagger)); }
-  .v-pop .v-head { opacity: 0; transition: opacity 100ms var(--fold-at); }
-  .stage.is-open .v-pop .v-head { opacity: 1; transition: opacity 200ms calc(var(--unfold-at) + 60ms); }
+  /* the menu: laid down in layers. Three plates and the menu stand on one another, --plate-gap apart,
+     seen from a little above, so each layer shows under the one on top of it */
+  .v-pop { left: 590px; top: 150px; z-index: 5; visibility: hidden; pointer-events: none; transform-style: preserve-3d;
+    transform: rotateX(40deg) rotateZ(-8deg); transform-origin: 50% 100%;
+    transition: visibility 0s calc(var(--rows-out) + 3 * var(--sink-step) + var(--sink-time)); }
+  .stage.is-open .v-pop { visibility: visible; pointer-events: auto; transition: visibility 0s; }
+  .plate, .v-pop > .v-menu { opacity: 0; transform: translateZ(0);
+    /* coming off: the top layer first, each one after the one above */
+    transition: transform var(--sink-time) var(--ease-sink) calc(var(--rows-out) + (3 - var(--n)) * var(--sink-step)),
+                opacity var(--sink-time) cubic-bezier(.7, 0, 1, 1) calc(var(--rows-out) + (3 - var(--n)) * var(--sink-step)); }
+  .stage.is-open .plate, .stage.is-open .v-pop > .v-menu { opacity: var(--o, 1); transform: translateZ(calc(var(--n) * var(--plate-gap)));
+    /* going on: the lowest layer first */
+    transition: transform var(--tier-time) var(--ease-out) calc(var(--plate-at) + var(--n) * var(--tier-step)),
+                opacity 120ms linear calc(var(--plate-at) + var(--n) * var(--tier-step)); }
+  .plate { position: absolute; inset: 0; pointer-events: none; border: 1px solid rgba(61, 227, 255, .55); background: rgba(61, 227, 255, .035); box-shadow: 0 0 16px rgba(61, 227, 255, .12); }
+  .plate.is-dotted { border: 2px dotted rgba(57, 255, 154, .65); background: transparent; box-shadow: none; }
+  .plate::before, .plate::after { content: ""; position: absolute; width: 7px; height: 7px; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .plate::before { left: -4px; top: -4px; } .plate::after { right: -4px; bottom: -4px; }
+  .v-pop .v-menu, .v-pop .rows, .v-pop .has-sub { transform-style: preserve-3d; }
+  /* rows: in from the top once the menu has landed, out from the bottom before the plates come off */
+  .v-pop .rows > *, .v-pop .v-head { opacity: 0; transition: opacity 110ms ease calc((8 - var(--i, 0)) * 10ms); }
+  .stage.is-open .v-pop .rows > *, .stage.is-open .v-pop .v-head { opacity: 1;
+    transition: opacity 220ms var(--ease-out) calc(var(--plate-at) + 3 * var(--tier-step) + var(--tier-time) * .5 + var(--i, 0) * var(--stagger)); }
 
   .has-sub { position: relative; }
-  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; translate: -10px 0;
-    transition: translate 200ms var(--ease-sink), opacity 160ms, visibility 0s 200ms; }
-  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; translate: 0 0; transition: translate var(--unfold-time) var(--ease-out), opacity 160ms, visibility 0s; }
+  /* the submenu is one more layer: a dotted plate, then the nodes on it */
+  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; transform-style: preserve-3d; transition: visibility 0s calc(var(--sink-time) + var(--sink-step)); }
+  .submenu .plate { --n: 0; inset: -1px; }
+  .submenu > :not(.plate) { opacity: 0; transform: translateZ(0); transition: transform var(--sink-time) var(--ease-sink), opacity var(--sink-time) cubic-bezier(.7, 0, 1, 1); }
+  .submenu .plate { opacity: 0; transition: opacity 160ms var(--sink-step); }
+  .has-sub.is-open > .submenu { visibility: visible; transition: visibility 0s; }
+  .has-sub.is-open > .submenu .plate { opacity: .7; transition: opacity 100ms; }
+  .has-sub.is-open > .submenu > :not(.plate) { opacity: 1; transform: translateZ(var(--plate-gap)); transition: transform var(--tier-time) var(--ease-out) var(--tier-step), opacity 120ms linear var(--tier-step); }
+  .v-pop .submenu.v-menu { background: transparent; border-color: transparent; box-shadow: none; }
+  .v-pop .submenu.v-menu::before, .v-pop .submenu.v-menu::after { display: none; }
+  .submenu .sub-face { position: relative; padding: var(--menu-pad); background: var(--glass); border: 1px solid var(--line); box-shadow: inset 0 0 30px rgba(57, 213, 255, .08), 0 0 24px rgba(57, 213, 255, .12); }
 
   .log { left: 40px; bottom: 30px; width: 380px; font: 400 10.5px/1.5 var(--mono); color: rgba(95, 179, 196, .55); letter-spacing: .03em; }
   .log p { margin: 0; }
@@ -131,18 +149,22 @@
             <path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/>
             <path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
             <g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g>
+            <g class="trace"><path d="M-8 2H80" pathLength="1"/><path d="M-8 2V84" pathLength="1"/><path d="M80 84H-8" pathLength="1"/><path d="M80 84V2" pathLength="1"/></g>
           </svg>
           <i class="cn a"></i><i class="cn b"></i>
         </button>
       </div>
 
       <svg class="lead" viewBox="0 0 1120 660" aria-hidden="true">
-        <path d="M342 228 L426 168 L560 168" pathLength="1"/>
-        <rect x="422" y="164" width="8" height="8" style="--k:.45"/><rect x="556" y="164" width="8" height="8" style="--k:1"/>
+        <path d="M346 230 L372 254 L548 254" pathLength="1"/>
+        <rect x="342" y="226" width="8" height="8" style="--k:0;--back:1"/><rect x="368" y="250" width="8" height="8" style="--k:.15;--back:.85"/><rect x="544" y="250" width="8" height="8" style="--k:1;--back:0"/>
       </svg>
 
       <div class="v-pop" id="file-menu">
-          <div class="v-menu">
+        <span class="plate is-dotted" style="--n:0;--o:.8" aria-hidden="true"></span>
+        <span class="plate" style="--n:1;--o:.7" aria-hidden="true"></span>
+        <span class="plate" style="--n:2;--o:.85" aria-hidden="true"></span>
+          <div class="v-menu" style="--n:3">
             <div class="v-head" aria-hidden="true"><b id="menu-folder">CORE_07</b><span>14 FILES</span></div>
             <div class="rows" role="menu" aria-labelledby="menu-folder">
               <button class="s-item" role="menuitem" style="--i:0" data-log="OPEN {F} ... {N} FILES LISTED"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h4l1.5 1.5h7.5v8h-13zM1.5 7h13" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Open</span><kbd class="s-key">ENTER</kbd></button>
@@ -153,10 +175,13 @@
               <div class="has-sub" style="--i:5">
                 <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V7M4.5 9.5a5 5 0 0 1 7 0M2.5 7.5a8 8 0 0 1 11 0" fill="none" stroke="currentColor" stroke-linecap="round"/><circle cx="8" cy="13.5" r="1" fill="currentColor"/></svg><span class="s-label">Send to node</span><svg class="s-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
                 <div class="submenu v-menu" role="menu" aria-label="Nodes">
+                  <span class="plate is-dotted" aria-hidden="true"></span>
+                  <div class="sub-face">
                   <div class="v-head" aria-hidden="true"><b>NODES</b><span>LINK</span></div>
                   <button class="s-node" role="menuitemradio" aria-checked="false" data-node="03"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 03</span><small>42 MS</small></button>
                   <button class="s-node" role="menuitemradio" aria-checked="true" data-node="07"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i></span><span class="s-label">Node 07</span><small>12 MS</small></button>
                   <button class="s-node" role="menuitemradio" aria-checked="false" data-node="12"><span class="sig" aria-hidden="true"><i class="on" style="height:4px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i></span><span class="s-label">Node 12</span><small>WEAK</small></button>
+                  </div>
                 </div>
               </div>
               <button class="s-item" role="menuitem" style="--i:6" data-log="FLAGS {F} ... 2 ACCESS ATTEMPTS, 03:12 AND 03:40"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14V2.5M3.5 3h8l-1.5 3 1.5 3h-8" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Flags</span><span class="s-badge" aria-label="2 flags">2</span></button>
@@ -175,7 +200,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The menu is built, not shown: four tiers rise off the floor one after another, the core rides to the top, a line draws out, and the menu unfolds out of it. Dismissing takes the build apart in the reverse order, one step at a time.</p>
+    <p>Read from the values this page runs on. The menu is laid down in layers: a line drawn out of a dot, three plates one on another, the menu on top. Hover is drawn the same way, out of two corner dots. Dismissing takes the layers off in reverse, one at a time.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -189,11 +214,11 @@
       const root = getComputedStyle(document.documentElement), ms = n => parseFloat(root.getPropertyValue(n));
       const isOpen = () => stage.classList.contains('is-open');
       // the rows are in reach once the menu has unfolded
-      const ready = () => 3 * ms('--tier-step') + ms('--tier-time') * .7 + ms('--line-time') + ms('--unfold-time') * .5;
+      const ready = () => ms('--line-time') + 3 * ms('--tier-step') + ms('--tier-time') * .5;
       let t;
 
       // the whole dismiss, from the first row leaving to the last tier landing
-      const downTime = () => 80 + ms('--fold-time') + ms('--line-time') * .6 + 3 * ms('--sink-step') + ms('--sink-time');
+      const downTime = () => 110 + 3 * ms('--sink-step') + ms('--sink-time') * .6 + ms('--line-time') * .5 + 3 * ms('--sink-step') + ms('--sink-time');
       let closing = 0, settle;
       // pointing at the core stirs the tiers; not while the stack is still coming down
       const near = on => stage.classList.toggle('is-near', on && !isOpen() && Date.now() > closing);
@@ -244,6 +269,6 @@
       if (location.hash === '#open') { stage.classList.add('is-still'); open(); pop.querySelector('.has-sub').classList.add('is-open'); }
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=3"></script>
+  <script src="week-06-vault-spec.js?v=4"></script>
 </body>
 </html>
