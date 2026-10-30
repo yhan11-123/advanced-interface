@@ -26,6 +26,7 @@
   const cs = k => getComputedStyle(el(k));
   const px = v => `${Math.round(parseFloat(v) * 10) / 10}px`;
   const hex = c => {
+    if (c.startsWith('#')) return c;
     const m = c.match(/[\d.]+/g); if (!m) return c;
     const [r, g, b, a = 1] = m.map(Number), h = [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
     return `#${h}${a < 1 ? ` · ${Math.round(a * 100)}%` : ''}`;
@@ -75,21 +76,30 @@
     ['Submenu', [
       ['Form', 'a smaller board, stacked above the first'],
       ['Stands', '70px above the board'],
+      ['Its boxes', 'built the same way, in five steps'],
       ['Tiles', 'three, one chosen at a time'],
-      ['Opens', `tiles stacked on, ${tok('--stack-step')} apart`],
     ]],
-    ['Motion · open', [
-      ['Board', `${tok('--open-time')}: a line of light, then the glass rises from it`],
-      ['Tiles stack on', `${tok('--stack-step')} apart, left to right`],
-      ['Each tile lands', `from ${tok('--stack-drop')} above, ${tok('--stack-time')}`],
-      ['Landing', `${tok('--stack-ease')}, outline flashes on touch`],
-      ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
+    ['Motion · the board', [
+      ['Opens', `${tok('--open-time')}: a line of light, then the glass rises from it`],
+      ['Boxes built', `left to right, ${tok('--stack-step')} apart`],
+      ['Taken down', `right to left, ${tok('--leave-step')} apart`],
+      ['Glass folds', `${tok('--close-time')}, back into its line`],
       ['Play', 'dims to 50% and pauses'],
+      ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
     ]],
-    ['Motion · close', [
-      ['Tiles lift off', `right to left, ${tok('--leave-step')} apart, 160ms each`],
-      ['Glass', `${tok('--close-time')}, folds back down into its line`],
-      ['All gone', `${Math.round(10 * ms('--leave-step') + 160 + ms('--close-time') + 160)}ms`],
+    ['Motion · one box built', [
+      ['1 · nodes', `two, opposite corners, 6px ${hex(tok('--node'))}`],
+      ['2 · footprint', `+${tok('--phase')}, lines run out of the nodes, ${tok('--draw-time')}`],
+      ['3 · dotted layer', `+${2 * ms('--phase')}ms, rises to ${tok('--mid-z')}`],
+      ['4 · the box', `+${3 * ms('--phase')}ms, rises to ${tok('--rest')}, ${tok('--stack-time')}, edge flash`],
+      ['Rise curve', tok('--stack-ease')],
+      ['5 · its writing', `+${4.5 * ms('--phase')}ms, comes up 3px`],
+    ]],
+    ['Motion · one box taken down', [
+      ['Writing, box', 'out together, 140–160ms'],
+      ['Dotted layer', '+60ms, sinks'],
+      ['Footprint', '+100ms, lines pulled back into the nodes'],
+      ['Nodes', '+180ms, go last'],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];

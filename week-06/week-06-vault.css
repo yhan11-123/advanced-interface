@@ -42,11 +42,17 @@
   --open-time: 380ms;        /* the board: a line of light along the bottom, then the glass rises from it */
   --close-time: 240ms;       /* the glass folds back down into its line */
   /* the tiles are stacked onto the board, one layer at a time */
-  --stack-drop: 46px;        /* each tile starts this far above the glass */
-  --stack-time: 340ms;       /* and takes this long to land */
-  --stack-step: 40ms;        /* the next tile follows this much later, left to right */
-  --stack-ease: cubic-bezier(.2, .9, .3, 1.12);  /* lands with the slightest settle */
-  --leave-step: 22ms;        /* closing: the tiles lift off right to left, this far apart */
+  --stack-time: 340ms;       /* the box takes this long to rise onto its stack */
+  --stack-step: 45ms;        /* the next box starts this much later, left to right */
+  --stack-ease: cubic-bezier(.2, .9, .3, 1.12);  /* arrives with the slightest settle */
+  --leave-step: 22ms;        /* closing: the tiles are taken down right to left, this far apart */
+  /* each box is built in steps, like the reference's stacked frames: corner nodes land, a footprint
+     is drawn out of them, a dotted layer rises, then the box itself rises onto the stack */
+  --node: #5cffc0;           /* the corner nodes */
+  --phase: 75ms;             /* one step of a box's build after the next */
+  --draw-time: 200ms;        /* the footprint lines run out of the nodes */
+  --mid-z: 5px;              /* the dotted layer stands this high */
+  --rest: 10px;              /* the box rests this high, on top of its stack */
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=4" />
+  <link rel="stylesheet" href="week-06-vault.css?v=5" />
   <style>
   /* In use: VAULT, a salvage game played on a derelict station. In play, the menu is shut: only a
      MENU prompt sits at the foot of the screen. Opened (the prompt, or Tab), the play pauses and a
@@ -72,15 +72,47 @@
   .sections { position: absolute; left: 28px; top: 58px; display: flex; gap: var(--section-gap); transform-style: preserve-3d; }
   .section { transform-style: preserve-3d; }
 
-  /* the tiles are stacked on: each comes down from above the glass and lands, left to right */
-  .slot { display: block; position: relative; transform-style: preserve-3d; opacity: 0; transform: translateZ(var(--stack-drop)); }
-  .stage.is-menu .slot { opacity: 1; transform: translateZ(0);
-    transition: transform var(--stack-time) var(--stack-ease), opacity 120ms linear; transition-delay: calc(var(--open-time) + var(--k) * var(--stack-step)); }
-  .stage.is-leaving .slot { opacity: 0; transform: translateZ(var(--stack-drop));
-    transition: transform 160ms cubic-bezier(.5, 0, .9, .5), opacity 160ms linear; transition-delay: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
-  .slot::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 16px rgba(57, 213, 255, .7); opacity: 0; }
-  .stage.is-menu .slot::after { animation: land var(--stack-time) linear both; animation-delay: calc(var(--open-time) + var(--k) * var(--stack-step)); }
-  @keyframes land { 0%, 50% { opacity: 0; } 66% { opacity: 1; } 100% { opacity: 0; } }
+  /* ---------- each box is built in steps, like the reference's stacked frames ----------
+     1 two corner nodes land on the glass
+     2 the footprint is drawn out of them, a line running both ways from each
+     3 a dotted layer rises off the footprint
+     4 the box rises onto the top of the stack, its light filling in, an edge flash as it arrives
+     5 what is written on it comes up last
+     Taking it down runs the same steps backwards, faster. Boxes are built left to right, and taken
+     down right to left. */
+  @property --draw { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  .slot { display: block; position: relative; transform-style: preserve-3d; }
+  .sections .slot { --d: calc(var(--open-time) + var(--k) * var(--stack-step)); --dl: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
+  .sub .slot { --d: calc(80ms + var(--k) * var(--stack-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
+  .b-dot, .b-foot, .b-mid, .b-flash { position: absolute; pointer-events: none; }
+  .b-dot { width: 6px; height: 6px; background: var(--node); box-shadow: 0 0 8px var(--node); opacity: 0; scale: 0;
+    transition: opacity 80ms linear calc(var(--dl) + 180ms), scale 80ms linear calc(var(--dl) + 180ms); }
+  .b-dot.a { left: -9px; top: -9px; } .b-dot.b { right: -9px; bottom: -9px; }
+  .b-foot { inset: -6px; --c: rgba(57, 213, 255, .5);
+    background: linear-gradient(var(--c), var(--c)) 0 0 / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 0 0 / 1px var(--draw) no-repeat,
+                linear-gradient(var(--c), var(--c)) 100% 100% / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 1px var(--draw) no-repeat;
+    transition: --draw 120ms cubic-bezier(.6, 0, .9, .4) calc(var(--dl) + 100ms); }
+  .b-mid { inset: -3px; border: 1px dotted rgba(57, 213, 255, .55); opacity: 0; translate: 0 0 0;
+    transition: translate 140ms ease-in calc(var(--dl) + 60ms), opacity 120ms linear calc(var(--dl) + 60ms); }
+  .b-flash { inset: 0; translate: 0 0 var(--rest); box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .8); opacity: 0; }
+  .slot > .tile { opacity: 0; translate: 0 0 0;
+    transition: translate 160ms cubic-bezier(.5, 0, .9, .5) var(--dl), opacity 140ms linear var(--dl),
+      transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
+  .slot > .tile > * { opacity: 0; translate: 0 3px; transition: opacity 80ms linear var(--dl), translate 80ms linear var(--dl); }
+
+  /* built: the main board while it is open, the submenu while it is out */
+  .stage.is-menu:not(.is-leaving) .sections .slot, .sub.is-open .slot { --on: 1; }
+  .stage.is-menu:not(.is-leaving) .sections .b-dot, .sub.is-open .b-dot { opacity: .85; scale: 1; transition: opacity 90ms linear var(--d), scale 160ms var(--stack-ease) var(--d); }
+  .stage.is-menu:not(.is-leaving) .sections .b-foot, .sub.is-open .b-foot { --draw: 100%; transition: --draw var(--draw-time) var(--ease-out) calc(var(--d) + var(--phase)); }
+  .stage.is-menu:not(.is-leaving) .sections .b-mid, .sub.is-open .b-mid { opacity: 1; translate: 0 0 var(--mid-z);
+    transition: translate 240ms var(--ease-out) calc(var(--d) + 2 * var(--phase)), opacity 120ms linear calc(var(--d) + 2 * var(--phase)); }
+  .stage.is-menu:not(.is-leaving) .sections .slot > .tile, .sub.is-open .slot > .tile { opacity: 1; translate: 0 0 var(--rest);
+    transition: translate var(--stack-time) var(--stack-ease) calc(var(--d) + 3 * var(--phase)), opacity 160ms linear calc(var(--d) + 3 * var(--phase)),
+      transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
+  .stage.is-menu:not(.is-leaving) .sections .b-flash, .sub.is-open .b-flash { animation: arrive var(--stack-time) linear both; animation-delay: calc(var(--d) + 3 * var(--phase)); }
+  @keyframes arrive { 0%, 45% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 0; } }
+  .stage.is-menu:not(.is-leaving) .sections .slot > .tile > *, .sub.is-open .slot > .tile > * { opacity: 1; translate: 0 0;
+    transition: opacity 180ms linear calc(var(--d) + 4.5 * var(--phase)), translate 220ms var(--ease-out) calc(var(--d) + 4.5 * var(--phase)); }
 
   /* the panel on the right: what the tile you point at does, and the log */
   .detail { position: absolute; left: 954px; top: 58px; width: 218px; height: 232px; padding: 14px; border-left: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
@@ -96,17 +128,13 @@
 
   /* ---------- the submenu: a smaller board, stacked above the first ---------- */
   .sub { position: absolute; left: 326px; top: -96px; width: 474px; padding: 14px 16px 16px; transform-style: preserve-3d; transform: translateZ(70px); visibility: hidden;
-    transition: visibility 0s 260ms; }
+    transition: visibility 0s 340ms; }
   .sub.is-open { visibility: visible; transition: visibility 0s; }
-  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 160ms linear 100ms; }
+  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear 220ms; }
   .sub.is-open .board-glass { opacity: 1; transition: opacity 120ms linear; }
   .sub .t-sect { margin-bottom: 18px; opacity: 0; transition: opacity 120ms; }
   .sub.is-open .t-sect { opacity: 1; transition: opacity 200ms 80ms; }
   .sub .t-grid { --cols: 3; }
-  .sub .slot { opacity: 0; transform: translateZ(var(--stack-drop)); transition: transform 150ms cubic-bezier(.5, 0, .9, .5), opacity 150ms linear; transition-delay: calc((2 - var(--k)) * var(--leave-step)); }
-  .sub.is-open .slot { opacity: 1; transform: translateZ(0); transition: transform var(--stack-time) var(--stack-ease), opacity 120ms linear; transition-delay: calc(80ms + var(--k) * var(--stack-step)); }
-  .sub .slot::after { animation: none; }
-  .sub.is-open .slot::after { animation: land var(--stack-time) linear both; animation-delay: calc(80ms + var(--k) * var(--stack-step)); }
 
   .stage.is-still *, .stage.is-still *::before, .stage.is-still *::after { transition: none !important; animation: none !important; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
@@ -205,6 +233,9 @@
       const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1280, innerHeight / 720));
       addEventListener('resize', fit); fit();
 
+      // each box gets the layers it is built from: two corner nodes, a footprint, a dotted layer, an edge flash
+      board.querySelectorAll('.slot').forEach(sl => sl.insertAdjacentHTML('afterbegin', '<i class="b-foot"></i><i class="b-mid"></i><i class="b-dot a"></i><i class="b-dot b"></i><i class="b-flash"></i>'));
+
       // the order the tiles are stacked in: left to right, column by column, then top to bottom
       const slots = [...board.querySelectorAll('.sections .slot')];
       slots.map(s => [s, s.offsetLeft + s.closest('.section').offsetLeft, s.offsetTop])
@@ -216,7 +247,7 @@
         clearTimeout(t1); clearTimeout(t2);
         stage.classList.remove('is-leaving', 'is-settled'); stage.classList.add('is-menu'); prompt.setAttribute('aria-expanded', 'true');
         t1 = setTimeout(() => stage.classList.add('is-settled'), ms('--open-time'));
-        t2 = setTimeout(() => tiles[0].focus({ preventScroll: true }), ms('--open-time') + ms('--stack-step') * 2);
+        t2 = setTimeout(() => tiles[0].focus({ preventScroll: true }), ms('--open-time') + 3 * ms('--phase') + ms('--stack-time') * .5);
       };
       const closeSub = (back = true) => { if (!sub.classList.contains('is-open')) return; sub.classList.remove('is-open'); gear.setAttribute('aria-expanded', 'false'); if (back) gear.focus({ preventScroll: true }); };
       const close = () => {
@@ -224,7 +255,7 @@
         clearTimeout(t1); clearTimeout(t2); closeSub(false);
         // the tiles lift off right to left; then the glass folds back into its line
         stage.classList.add('is-leaving'); prompt.setAttribute('aria-expanded', 'false');
-        t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 160);
+        t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 260);
       };
       prompt.addEventListener('click', open);
       stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play, .paused')) close(); });
@@ -249,7 +280,7 @@
         if (t.dataset.act === 'gear') {
           const on = !sub.classList.contains('is-open');
           sub.classList.toggle('is-open', on); gear.setAttribute('aria-expanded', on);
-          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 80 + ms('--stack-step') * 2);
+          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 80 + 3 * ms('--phase') + ms('--stack-time') * .5);
           return;
         }
         closeSub(false); flash(t);
@@ -303,6 +334,6 @@
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=4"></script>
+  <script src="week-06-vault-spec.js?v=5"></script>
 </body>
 </html>
