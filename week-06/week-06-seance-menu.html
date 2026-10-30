@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 · Set 1 · Séance · In use</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-seance.css?v=1" />
+  <style>
+  /* In use: the title menu of "The Hollow Séance", a horror game played round a spirit board.
+     The menu is set on the board; the lit item is the planchette, which waits a beat and then
+     drifts to whatever you point at, as if something else were moving it. The text answers at
+     once, so the menu never waits on the ghost. The submenu is the board's own answers. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--room); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --w: 640px; --h: 640px; --fit: 1; }
+  .hero { position: relative; height: 100vh; overflow: hidden;
+    background: radial-gradient(60% 60% at 50% 55%, #2a170c, var(--room) 75%); }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
+  .game { position: absolute; left: 0; right: 0; top: 14px; text-align: center; font: 400 26px/1 var(--f-display); letter-spacing: .14em; color: var(--wood-hi); text-shadow: 0 0 18px rgba(255, 190, 110, .35); }
+  .game small { display: block; margin-top: 8px; font: italic 13px/1 var(--f-note); letter-spacing: .04em; color: #9a7650; }
+  .board, .board-grain { top: 62px; }
+  .abc { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  .abc text { fill: rgba(31, 20, 12, .3); font: 400 20px/1 var(--f-display); }
+  .abc .orn { fill: rgba(31, 20, 12, .3); font-size: 26px; }
+  .candle { position: absolute; inset: 62px 14px 14px; border-radius: 26px; pointer-events: none; mix-blend-mode: soft-light;
+    background: radial-gradient(50% 45% at 50% 50%, rgba(255, 210, 140, .5), transparent 70%); animation: candle 5s ease-in-out infinite; }
+  @keyframes candle { 0%, 100% { opacity: .9; } 30% { opacity: .65; } 34% { opacity: .95; } 60% { opacity: .75; } }
+  .s-menu { position: absolute; left: 190px; top: 222px; }
+  .has-sub { position: static; }
+  /* fixed, so the answers are placed on the board (the scaled stage is their frame), not on the list */
+  .submenu { position: fixed; inset: 0; pointer-events: none; }
+  .said { position: absolute; left: 0; right: 0; top: 522px; margin: 0; text-align: center; font: italic 15px/1 var(--f-note); color: #4a2c12; min-height: 15px; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (prefers-reduced-motion: reduce) { .candle { animation: none; } .planchette { transition-duration: .01s; } }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="stage">
+      <div class="game" aria-hidden="true">The Hollow Séance<small>a game for three players and one guest</small></div>
+      <div class="board" aria-hidden="true"></div>
+      <div class="board-grain" aria-hidden="true"></div>
+      <svg class="abc" viewBox="0 0 640 640" aria-hidden="true">
+        <g class="letters"></g>
+        <text class="orn" x="44" y="608">☀</text><text class="orn" x="576" y="608">☾</text>
+      </svg>
+      <div class="candle" aria-hidden="true"></div>
+      <div class="planchette" aria-hidden="true"></div>
+
+      <div class="s-menu" role="menu" aria-label="Title menu">
+        <button class="s-item" role="menuitem" data-say="The candles gutter. Something is listening."><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1c-1 2 1 3 0 4M6 6h4v9H6z" fill="none" stroke="currentColor"/></svg><span class="s-label">Begin the séance</span><kbd class="s-key">⌘N</kbd></button>
+        <button class="s-item" role="menuitem" data-say="You return to the table. Your chair is warm."><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8c2-4 10-4 12 0-2 4-10 4-12 0z" fill="none" stroke="currentColor"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg><span class="s-label">Continue</span><kbd class="s-key">⌘C</kbd></button>
+        <button class="s-item" role="menuitem" aria-disabled="true" data-say="It will not leave yet."><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v14M3 5h10" fill="none" stroke="currentColor"/></svg><span class="s-label">Banish</span><kbd class="s-key">⌘B</kbd></button>
+        <button class="s-item" role="menuitem" data-say="Light, sound, how much you can bear."><span class="s-ico"></span><span class="s-label">Settings</span><kbd class="s-key">⌘,</kbd></button>
+        <div class="s-rule" role="separator"></div>
+        <div class="s-sect" aria-hidden="true">those who answered</div>
+        <button class="s-item" role="menuitem" data-say="Two are listening. One is not who it says."><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 15V7a4 4 0 0 1 8 0v8l-2-1.5L8 15l-2-1.5zM6.5 7h.1M9.5 7h.1" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Spirits</span><span class="s-badge" aria-label="2 spirits">2</span></button>
+        <button class="s-item" role="menuitem" data-say="The grimoire opens in a new window."><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h5a1 1 0 0 1 1 1v10a1 1 0 0 0-1-1H2zM14 3H9a1 1 0 0 0-1 1v10a1 1 0 0 1 1-1h5z" fill="none" stroke="currentColor"/></svg><span class="s-label">Grimoire</span><svg class="s-ico s-end" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3h7v7M13 3 4 12" fill="none" stroke="currentColor" stroke-linecap="round"/></svg></button>
+        <div class="has-sub">
+          <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor"/><path d="M6 6a2 2 0 1 1 2 2v1.5M8 11.5v.5" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Ask a question</span><span class="s-end">…</span></button>
+          <div class="submenu" role="menu" aria-label="The board answers">
+            <button class="s-answer" role="menuitemradio" aria-checked="false" style="left:64px;top:74px" data-say="Yes.">Yes</button>
+            <button class="s-answer" role="menuitemradio" aria-checked="false" style="right:64px;top:74px" data-say="No.">No</button>
+            <button class="s-answer" role="menuitemradio" aria-checked="false" style="left:50%;top:562px;translate:-50% 0" data-say="It says goodbye. The planchette stops.">Goodbye</button>
+          </div>
+        </div>
+      </div>
+      <p class="said" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on. The text answers the pointer at once; the planchette is the slow layer on top, so the tone never costs the function.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // the alphabet, one letter at a time along the board's arc (a curve from 60,206 over 320,66 to 580,206)
+    (() => {
+      const g = document.querySelector('.letters'), P = [[60, 206], [320, 66], [580, 206]];
+      g.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((ch, i) => {
+        const t = .04 + i * .92 / 25, u = 1 - t;
+        const x = u * u * P[0][0] + 2 * u * t * P[1][0] + t * t * P[2][0], y = u * u * P[0][1] + 2 * u * t * P[1][1] + t * t * P[2][1];
+        const dx = 2 * u * (P[1][0] - P[0][0]) + 2 * t * (P[2][0] - P[1][0]), dy = 2 * u * (P[1][1] - P[0][1]) + 2 * t * (P[2][1] - P[1][1]);
+        const a = Math.atan2(dy, dx) * 180 / Math.PI;
+        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" transform="rotate(${a.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">${ch}</text>`;
+      }).join('');
+    })();
+  </script>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    // the planchette: waits a beat, then drifts to the item pointed at or focused; glows when one is picked
+    (() => {
+      const stage = document.querySelector('.stage'), pl = document.querySelector('.planchette'), root = getComputedStyle(document.documentElement);
+      const fit = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fit')) || 1;
+      const wait = parseFloat(root.getPropertyValue('--plan-wait')), ox = parseFloat(root.getPropertyValue('--plan-out-x')), oy = parseFloat(root.getPropertyValue('--plan-out-y'));
+      let t;
+      const go = it => {
+        if (it.getAttribute('aria-disabled') === 'true') return;
+        clearTimeout(t);
+        t = setTimeout(() => {
+          const s = stage.getBoundingClientRect(), r = it.getBoundingClientRect(), f = fit();
+          pl.style.width = r.width / f + ox * 2 + 'px'; pl.style.height = r.height / f + oy * 2 + 'px';
+          pl.style.translate = `${(r.left - s.left) / f - ox}px ${(r.top - s.top) / f - oy}px`;
+          pl.classList.remove('is-off');
+        }, wait);
+      };
+      document.querySelectorAll('[role^="menuitem"]').forEach(it => {
+        it.addEventListener('pointerenter', () => go(it));
+        it.addEventListener('focus', () => go(it));
+        it.addEventListener('click', () => { if (it.getAttribute('aria-disabled') === 'true') return; pl.classList.add('is-glow'); setTimeout(() => pl.classList.remove('is-glow'), parseFloat(root.getPropertyValue('--press-glow')) * 1000); });
+      });
+      stage.addEventListener('pointerleave', () => { clearTimeout(t); pl.classList.add('is-off'); });
+      // it starts resting on Continue, the way a title screen does
+      const start = document.querySelectorAll('.s-menu > .s-item')[1];
+      pl.style.transition = 'none'; go(start); setTimeout(() => { pl.style.transition = ''; }, wait + 50);
+    })();
+  </script>
+  <script src="week-06-seance-spec.js?v=2"></script>
+</body>
+</html>

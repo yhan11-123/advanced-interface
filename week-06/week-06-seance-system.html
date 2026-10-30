@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 · Set 1 · Séance · Menu system</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-seance.css?v=1" />
+  <style>
+  /* Menu system: one item build, every configuration the brief asks for, each in its three
+     states. The Enabled column is live: point at an item and the planchette appears under it,
+     press and it glows. The other two columns hold the states still, to compare. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--room); color: #e8d7b9; font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  .top { padding: 28px 32px 18px; }
+  .top h1 { margin: 0; font: 400 30px/1.1 var(--f-display); letter-spacing: .08em; color: var(--wood-hi); }
+  .top p { margin: 6px 0 0; font: italic 15px/1.4 var(--f-note); color: #a8916f; }
+  .sheet { position: relative; margin: 0 20px; padding: 18px 18px 22px; border-radius: 22px; overflow: hidden;
+    background: radial-gradient(80% 90% at 50% 40%, var(--wood-hi), var(--wood) 65%, var(--wood-lo));
+    box-shadow: inset 0 0 0 3px var(--frame), inset 0 0 0 9px var(--wood), inset 0 0 0 10px var(--frame), inset 0 0 50px rgba(60, 30, 10, .5); }
+  /* the table keeps its own width and shrinks as one picture in a narrow window, so no column is cut off */
+  .fitbox { position: relative; }
+  table { width: 1060px; border-collapse: collapse; transform-origin: 0 0; }
+  th { padding: 10px 12px 12px; text-align: left; font: italic 14px/1 var(--f-note); font-weight: 400; color: var(--ink-soft); }
+  th:first-child { width: 170px; }
+  td { padding: 14px 12px 14px 34px; border-top: 1px solid rgba(31, 20, 12, .2); vertical-align: middle; }
+  td:first-child { padding-left: 12px; font: 400 15px/1.3 var(--f-display); color: var(--ink); letter-spacing: .04em; }
+  td:first-child small { display: block; font: italic 12px/1.3 var(--f-note); color: var(--ink-soft); letter-spacing: 0; }
+  .cell { width: var(--menu-w); }
+  .none { font: italic 13px/1 var(--f-note); color: rgba(31, 20, 12, .4); }
+  .answers { position: relative; display: flex; gap: 6px; height: 44px; }
+  .answers .s-answer { position: relative; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <h1>Séance · Menu system</h1>
+    <p>One item, every configuration, every state. The lit state is the planchette.</p>
+  </header>
+
+  <div class="sheet">
+    <div class="fitbox"><table>
+      <thead><tr><th>Configuration</th><th>Enabled · live</th><th>Hover</th><th>Pressed</th></tr></thead>
+      <tbody>
+        <tr data-row>
+          <td>Single line<small>label only, icon column kept</small></td>
+          <td><div class="cell"><button class="s-item"><span class="s-ico"></span><span class="s-label">Settings</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Left icon</td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1c-1 2 1 3 0 4M6 6h4v9H6z" fill="none" stroke="currentColor"/></svg><span class="s-label">Begin the séance</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right shortcut</td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8c2-4 10-4 12 0-2 4-10 4-12 0z" fill="none" stroke="currentColor"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg><span class="s-label">Continue</span><kbd class="s-key">⌘C</kbd></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right badge</td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 15V7a4 4 0 0 1 8 0v8l-2-1.5L8 15l-2-1.5zM6.5 7h.1M9.5 7h.1" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Spirits</span><span class="s-badge">2</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right icon<small>opens elsewhere</small></td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h5a1 1 0 0 1 1 1v10a1 1 0 0 0-1-1H2zM14 3H9a1 1 0 0 0-1 1v10a1 1 0 0 1 1-1h5z" fill="none" stroke="currentColor"/></svg><span class="s-label">Grimoire</span><svg class="s-ico s-end" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3h7v7M13 3 4 12" fill="none" stroke="currentColor" stroke-linecap="round"/></svg></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Submenu item<small>its answers wake on the board</small></td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor"/><path d="M6 6a2 2 0 1 1 2 2v1.5M8 11.5v.5" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Ask a question</span><span class="s-end">…</span></button></div></td>
+        </tr>
+        <tr>
+          <td>Submenu<small>asleep · awake · pointed at · chosen</small></td>
+          <td><div class="answers"><button class="s-answer">Yes</button><button class="s-answer is-live">No</button></div></td>
+          <td><div class="answers"><button class="s-answer is-live is-hover">Yes</button></div></td>
+          <td><div class="answers"><button class="s-answer is-live" aria-checked="true">Goodbye</button></div></td>
+        </tr>
+        <tr>
+          <td>Unavailable<small>stays in place, faded</small></td>
+          <td><div class="cell"><button class="s-item" aria-disabled="true"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v14M3 5h10" fill="none" stroke="currentColor"/></svg><span class="s-label">Banish</span><kbd class="s-key">⌘B</kbd></button></div></td>
+          <td><span class="none">no hover</span></td><td><span class="none">no press</span></td>
+        </tr>
+        <tr>
+          <td>Sections<small>divider, then a label</small></td>
+          <td colspan="3"><div class="cell"><div class="s-rule"></div><div class="s-sect">those who answered</div></div></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on, the same ones the menu in use runs on.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // each item row: the live item, then the same item held in hover, then held in pressed
+    document.querySelectorAll('[data-row]').forEach(row => {
+      const cell = row.children[1];
+      ['is-hover', 'is-press'].forEach(state => {
+        const td = cell.cloneNode(true), it = td.querySelector('.s-item');
+        it.classList.add(state); it.tabIndex = -1; it.setAttribute('aria-hidden', 'true');
+        row.append(td);
+      });
+    });
+    // the live column: the planchette appears under what you point at, and glows when you press
+    document.querySelectorAll('[data-row] td:nth-child(2) .s-item').forEach(it => {
+      it.addEventListener('pointerenter', () => it.classList.add('is-hover'));
+      it.addEventListener('pointerleave', () => it.classList.remove('is-hover', 'is-press'));
+      it.addEventListener('focus', () => it.classList.add('is-hover'));
+      it.addEventListener('blur', () => it.classList.remove('is-hover', 'is-press'));
+      it.addEventListener('pointerdown', () => it.classList.add('is-press'));
+      addEventListener('pointerup', () => it.classList.remove('is-press'));
+    });
+    // shrink the table to the sheet's width when the window is narrower than it
+    const box = document.querySelector('.fitbox'), table = box.querySelector('table');
+    const fit = () => { const f = Math.min(1, box.clientWidth / table.offsetWidth); table.style.transform = `scale(${f})`; box.style.height = table.offsetHeight * f + 'px'; };
+    addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-06-seance-spec.js?v=2"></script>
+</body>
+</html>

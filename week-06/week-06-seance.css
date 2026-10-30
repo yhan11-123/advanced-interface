@@ -1,0 +1,104 @@
+/* Week 06, Set 1 · Séance: a horror game's menu on a spirit board.
+   Shared by the two prototypes (the menu system, the menu in use). Every value the spec
+   reports is set here, once, as a token; the pages and the spec read the same numbers. */
+@import url("https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap");
+
+:root {
+  /* colour */
+  --ink: #1f140c;            /* item text, enabled */
+  --ink-deep: #050302;       /* item text, hover */
+  --ink-soft: #5b3a1a;       /* shortcut, right icon, section label */
+  --ink-dim: rgba(31, 20, 12, .35); /* unavailable */
+  --blood: #7a1010;          /* item text, pressed; checked answer */
+  --wood-hi: #e2b97c; --wood: #c99a5b; --wood-lo: #8d6233; --frame: #5b3a1a;
+  --glass: rgba(250, 238, 214, .5);  /* planchette body */
+  --glow: #fff4c8;           /* planchette lens, pressed */
+  --room: #0e0806;
+
+  /* type */
+  --f-display: "IM Fell English SC", Georgia, serif;
+  --f-note: "IM Fell English", Georgia, serif;
+  --size: 20px; --track: .05em;
+  --note-size: 14px;
+  --answer-size: 30px; --answer-track: .14em;
+
+  /* the item */
+  --menu-w: 260px;
+  --item-h: 34px; --item-px: 14px; --item-gap: 10px;
+  --icon: 16px; --icon-stroke: 1.2;
+  --badge: 22px;
+
+  /* the planchette: the lit state, drawn round the item */
+  --plan-out-x: 10px; --plan-out-y: 5px;
+  --plan-stroke: 2px;
+  --lens: 16px;
+
+  /* motion */
+  --hover-ink: .15s;                       /* the text answers at once */
+  --plan-wait: 180ms;                       /* the planchette waits… */
+  --plan-move: 1.1s; --plan-ease: cubic-bezier(.45, .05, .25, 1); /* …then drifts, slowly */
+  --press-glow: .7s;
+  --answer-fade: .8s;
+}
+
+/* ---------- the board ---------- */
+.board { position: absolute; inset: 14px; border-radius: 26px;
+  background: radial-gradient(70% 80% at 50% 45%, var(--wood-hi), var(--wood) 60%, var(--wood-lo));
+  box-shadow: inset 0 0 0 3px var(--frame), inset 0 0 0 9px var(--wood), inset 0 0 0 10px var(--frame), inset 0 0 50px rgba(60, 30, 10, .55); }
+.board-grain { position: absolute; inset: 14px; border-radius: 26px; pointer-events: none; opacity: .18; mix-blend-mode: multiply;
+  background: repeating-linear-gradient(92deg, transparent 0 9px, rgba(80, 40, 10, .5) 9px 10px, transparent 10px 23px); }
+
+/* ---------- one item, every configuration ---------- */
+.s-menu { width: var(--menu-w); }
+.s-item { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px);
+  border: 0; background: none; color: var(--ink); cursor: pointer; text-align: left;
+  font: 400 var(--size)/var(--item-h) var(--f-display); letter-spacing: var(--track); transition: color var(--hover-ink), text-shadow var(--hover-ink); }
+.s-item:focus-visible { outline: none; }
+/* hover: the ink darkens and catches the light at once; the planchette follows, late */
+.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item { color: var(--ink-deep); text-shadow: 0 0 6px rgba(255, 240, 200, .75); }
+/* pressed: the word bleeds, pressed into the board */
+.s-item:active, .s-item.is-press, .s-item.is-picked { color: var(--blood); text-shadow: 0 0 8px rgba(255, 230, 150, .9); translate: 0 1px; }
+.s-item[aria-disabled="true"] { color: var(--ink-dim); text-shadow: none; cursor: default; translate: none; }
+.s-ico { width: var(--icon); height: var(--icon); flex: none; }
+.s-ico * { stroke-width: var(--icon-stroke); }
+.s-label { flex: 1; white-space: nowrap; }
+.s-key, .s-end { font: italic var(--note-size)/1 var(--f-note); letter-spacing: 0; color: var(--ink-soft); }
+.s-item[aria-disabled="true"] .s-key { color: var(--ink-dim); }
+.s-badge { min-width: var(--badge); height: var(--badge); padding: 0 5px; border-radius: calc(var(--badge) / 2); background: var(--ink); color: var(--wood-hi);
+  font: 400 13px/var(--badge) var(--f-display); letter-spacing: 0; text-align: center; }
+.s-sect { padding: 8px var(--item-px) 4px; font: italic var(--note-size)/1 var(--f-note); color: var(--ink-soft); text-align: center; }
+.s-rule { height: 1px; margin: 9px 30px; background: rgba(31, 20, 12, .45); }
+.s-rule::after { content: "☾"; display: block; width: 20px; margin: -9px auto 0; font: 14px/18px var(--f-note); color: var(--ink); text-align: center; background: #d9ad6f; }
+
+/* the planchette: a heart-shaped glass with a lens at its tip */
+.planchette, .s-item.is-hover::before, .s-item.is-press::before {
+  border-radius: 50% 50% 46% 46% / 100%; background: var(--glass);
+  box-shadow: inset 0 0 0 var(--plan-stroke) rgba(60, 35, 15, .55), 0 6px 12px -4px rgba(40, 20, 5, .5); }
+.s-item.is-hover::before, .s-item.is-press::before { content: ""; position: absolute; z-index: -1; inset: calc(-1 * var(--plan-out-y)) calc(-1 * var(--plan-out-x)); }
+.planchette { position: absolute; z-index: 0; left: 0; top: 0; pointer-events: none;
+  transition: translate var(--plan-move) var(--plan-ease), width var(--plan-move) var(--plan-ease), opacity .6s; }
+.planchette::after, .s-item.is-hover::after, .s-item.is-press::after { content: ""; position: absolute; left: calc(-1 * var(--lens)); top: 50%; width: var(--lens); height: var(--lens); margin-top: calc(var(--lens) / -2);
+  border-radius: 50%; border: var(--plan-stroke) solid rgba(60, 35, 15, .7); background: rgba(255, 250, 235, .4); box-sizing: border-box; transition: background .2s, box-shadow .2s; }
+.s-item.is-hover::after, .s-item.is-press::after { left: calc(-1 * var(--plan-out-x) - var(--lens)); }
+.planchette.is-glow::after, .s-item.is-press::after { background: var(--glow); box-shadow: 0 0 18px 6px rgba(255, 230, 150, .8); }
+.planchette.is-off { opacity: 0; }
+
+/* the answers (the submenu): printed on the board, faint until a question is asked */
+.s-answer { position: absolute; z-index: 1; padding: 0 14px; border: 0; background: none; cursor: default; pointer-events: none;
+  font: 400 var(--answer-size)/44px var(--f-display); letter-spacing: var(--answer-track); color: rgba(31, 20, 12, .22); transition: color var(--answer-fade), text-shadow .2s; }
+.has-sub.is-open .s-answer, .s-answer.is-live { color: var(--ink); cursor: pointer; pointer-events: auto; }
+.has-sub.is-open .s-answer:hover, .has-sub.is-open .s-answer:focus-visible, .s-answer.is-live.is-hover { text-shadow: 0 0 10px rgba(255, 240, 200, .95); outline: none; color: var(--ink-deep); }
+.has-sub.is-open .s-answer[aria-checked="true"], .s-answer.is-live[aria-checked="true"] { color: var(--blood); }
+
+/* ---------- the spec, under each prototype ---------- */
+.spec { padding: 48px 32px 64px; background: var(--room); color: #e8d7b9; font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+.spec h2 { margin: 0 0 4px; font: 400 26px/1.2 var(--f-display); letter-spacing: .06em; color: var(--wood-hi); }
+.spec > p { margin: 0 0 24px; color: #a8916f; max-width: 60ch; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.spec-card { padding: 14px 16px 10px; border: 1px solid #3a2616; border-radius: 10px; background: #170e09; }
+.spec-card h3 { margin: 0 0 8px; font: 600 12px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--wood); }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
+.spec-card dt { color: #a8916f; }
+.spec-card dd { margin: 0; color: #f1e4cc; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
