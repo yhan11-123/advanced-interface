@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Big type</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Big type: after a studio site's full-screen menu. The word Menu is set huge on the left and
+     the items in one large grotesk on the right, nothing else: no boxes, no rules, no fills. The
+     type does everything. The current page is blue; a page that is not ready is struck through;
+     hover turns an item blue and slides it a little; pressing sets it in italic. Shortcuts and
+     the badge are small superscripts; the submenu is a smaller list beside its item. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;1,400&display=swap");
+  :root { --w: 720px; --h: 440px; --paper: #efeeec; --ink: #1c1c1c; --blue: #2323d9; --muted: #8d8c88; --font: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  body { background: #383838; color: var(--ink); font: 400 28px/1 var(--font); letter-spacing: -.01em; }
+  .sheet { position: absolute; inset: 0; background: var(--paper); transition: clip-path .5s cubic-bezier(.7, 0, .2, 1); clip-path: inset(0); }
+  .sheet.is-shut { clip-path: inset(0 0 100% 0); }
+  .brand { position: absolute; left: 26px; top: 26px; font-size: 11px; letter-spacing: .2em; }
+  .close { position: absolute; right: 24px; top: 20px; font-size: 14px; letter-spacing: .3em; }
+  .reopen { position: absolute; right: 24px; top: 20px; color: #fff; font-size: 13px; letter-spacing: .1em; }
+  .giant { position: absolute; left: 22px; top: 52px; font-size: 118px; letter-spacing: -.04em; line-height: 1; }
+  .menu { position: absolute; left: 420px; top: 58px; width: 270px; }
+  .item { position: relative; display: flex; align-items: baseline; gap: 8px; height: 40px; transition: color .15s, translate .2s cubic-bezier(.3, 1.3, .5, 1); }
+  .item:hover, .item:focus-visible, .has-sub.is-open > .item { color: var(--blue); translate: 8px 0; outline: none; }
+  .item:active, .item.is-picked { font-style: italic; }
+  .item.is-current { color: var(--blue); }
+  .ico { width: 14px; height: 14px; flex: none; align-self: center; }
+  sup, kbd { font-size: 11px; color: var(--muted); letter-spacing: .02em; translate: 0 -12px; }
+  .item:hover sup, .item:hover kbd { color: var(--blue); }
+  .ext { width: 12px; height: 12px; translate: 0 -2px; }
+  .item[aria-disabled="true"] { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--ink); translate: none; }
+  .item[aria-disabled="true"]:hover { color: var(--ink); }
+  .sect { margin-top: 34px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .social { font-size: 18px; height: 28px; }
+  .submenu { position: absolute; left: 190px; top: 4px; width: 120px; font-size: 16px; opacity: 0; translate: -10px 0; transition: opacity .2s, translate .25s; }
+  .has-sub.is-open > .submenu { opacity: 1; translate: 0; }
+  .submenu .item { height: 24px; }
+  .submenu [aria-checked="true"] { color: var(--blue); }
+  .submenu [aria-checked="true"]::before { content: "—"; position: absolute; right: 100%; margin-right: 4px; }
+  .said { position: absolute; left: 26px; bottom: 22px; font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <button class="reopen" type="button" aria-label="Open the menu">MENU</button>
+    <div class="sheet">
+      <span class="brand" aria-hidden="true">tacto/</span>
+      <button class="close" type="button" aria-label="Close the menu">( × )</button>
+      <div class="giant" aria-hidden="true">Menu</div>
+      <div class="menu" role="menu" aria-label="Site">
+        <button class="item" role="menuitem"><span class="label">Top</span><kbd>⌘1</kbd></button>
+        <button class="item is-current" role="menuitem"><span class="label">Who We Are</span><kbd>⌘2</kbd></button>
+        <button class="item" role="menuitem" aria-disabled="true"><span class="label">What We Do</span></button>
+        <div class="has-sub">
+          <button class="item" role="menuitem"><span class="label">Our Works</span><sup>→</sup></button>
+          <div class="submenu" role="menu" aria-label="Our Works">
+            <button class="item" role="menuitemradio" aria-checked="false"><span class="label">Branding</span></button>
+            <button class="item" role="menuitemradio" aria-checked="true"><span class="label">Web</span></button>
+            <button class="item" role="menuitemradio" aria-checked="false"><span class="label">Print</span></button>
+          </div>
+        </div>
+        <button class="item" role="menuitem" data-say="3 new posts"><span class="label">News</span><sup>(3)</sup></button>
+        <button class="item" role="menuitem"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><path d="M1.5 3h11v8h-11zM1.5 3 7 8l5.5-5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="label">Contact</span></button>
+        <button class="item" role="menuitem"><span class="label">Recruit</span><svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="4" width="7" height="7" fill="none" stroke="currentColor"/><path d="M5 1h6v6M11 1 6 6" fill="none" stroke="currentColor"/></svg></button>
+        <div class="sect" role="separator">Follow</div>
+        <button class="item social" role="menuitem"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span class="label">Instagram</span></button>
+        <button class="item social" role="menuitem"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><path d="M8 13V7.5h2l.3-2H8V4.3c0-.6.2-1 1-1h1.3V1.4A16 16 0 0 0 8.4 1.3C6.8 1.3 6 2.3 6 4v1.5H4.2v2H6V13z" fill="currentColor"/></svg><span class="label">Facebook</span></button>
+      </div>
+      <p class="said" aria-live="polite"></p>
+    </div>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    // ( × ) rolls the sheet up; MENU brings it back down
+    const sheet = document.querySelector('.sheet');
+    document.querySelector('.close').addEventListener('click', () => sheet.classList.add('is-shut'));
+    document.querySelector('.reopen').addEventListener('click', () => sheet.classList.remove('is-shut'));
+  </script>
+</body>
+</html>

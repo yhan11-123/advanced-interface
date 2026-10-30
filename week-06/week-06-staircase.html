@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 sketch &middot; Staircase</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-sketch.css?v=2" />
+  <style>
+  /* Staircase: after a studio's index page. Each item steps down and to the right of the one
+     before, and carries a small superscript number that is also its key: press 3 for the third.
+     Hover draws a rule under the item from left to right. Sections are flights of the stair with
+     a landing between them. The submenu continues the stair from its item, one step further
+     in, in a lighter weight. The word index sits in serif brackets, like a label on a drawer. */
+  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&family=Instrument+Serif:ital@1&display=swap");
+  :root { --w: 700px; --h: 480px; --ink: #151515; --muted: #8e8e8e; --font: "Inter Tight", "Helvetica Neue", sans-serif; }
+  body { background: #fbfbfa; color: var(--ink); font: 400 19px/1 var(--font); letter-spacing: -.01em; }
+  .mail { position: absolute; left: 18px; top: 22px; padding: 1px 3px; border: 1px solid var(--ink); font-size: 11px; }
+  .index { position: absolute; left: 34px; bottom: 30px; padding: 6px 18px; font: italic 30px/1 "Instrument Serif", serif; border: 1px solid var(--ink); border-width: 0 1px; border-radius: 16px / 50%; }
+  .menu { position: absolute; left: 80px; top: 60px; }
+  .item, .sect { margin-left: calc(var(--s) * 58px); }
+  .item { position: relative; display: flex; align-items: baseline; gap: 6px; height: 34px; padding-top: 6px; white-space: nowrap; }
+  .item::after { content: ""; position: absolute; left: 0; right: 14px; bottom: 4px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .3s cubic-bezier(.3, .8, .2, 1); }
+  .item:hover::after, .item:focus-visible::after, .has-sub.is-open > .item::after { transform: scaleX(1); }
+  .item:focus-visible { outline: none; }
+  .item:active, .item.is-picked { color: #4a4ad6; }
+  .ico { width: 13px; height: 13px; flex: none; align-self: center; }
+  sup { font-size: 10px; color: var(--ink); translate: 0 -8px; font-variant-numeric: tabular-nums; }
+  .end { font-size: 13px; color: var(--muted); }
+  .item[aria-disabled="true"] { color: #c3c3c3; }
+  .item[aria-disabled="true"] sup { color: #c3c3c3; }
+  .item[aria-disabled="true"]::after { display: none; }
+  .sect { height: 22px; padding-top: 10px; font: italic 13px/1 "Instrument Serif", serif; color: var(--muted); }
+  .badge { padding: 2px 6px; border: 1px solid var(--ink); border-radius: 10px; font-size: 10px; align-self: center; }
+  .submenu { position: absolute; left: calc(var(--s) * 58px + 210px); top: 0; font-size: 15px; opacity: 0; transition: opacity .2s; }
+  .has-sub { position: relative; }
+  .has-sub.is-open > .submenu { opacity: 1; }
+  .submenu .item { height: 26px; color: #555; }
+  .submenu [aria-checked="true"] { color: var(--ink); font-weight: 500; }
+  .submenu [aria-checked="true"]::before { content: "•"; position: absolute; right: 100%; margin-right: 5px; }
+  .said { position: absolute; right: 24px; top: 22px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <span class="mail" aria-hidden="true">hello@m74.io</span>
+    <div class="menu" role="menu" aria-label="Index">
+      <div class="sect" style="--s:0" aria-hidden="true">studio</div>
+      <button class="item" role="menuitem" style="--s:0" data-key="1"><span class="label">into our studio</span><sup>01</sup></button>
+      <div class="has-sub">
+        <button class="item" role="menuitem" style="--s:1" data-key="2"><span class="label">capabilities</span><sup>02</sup><span class="end">+</span></button>
+        <div class="submenu" role="menu" aria-label="Capabilities" style="--s:1">
+          <button class="item" role="menuitemradio" aria-checked="true" style="--s:0"><span class="label">research and strategy</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" style="--s:.5"><span class="label">digital product design</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" style="--s:1"><span class="label">brand experience</span></button>
+          <button class="item" role="menuitemradio" aria-checked="false" style="--s:1.5"><span class="label">front-end development</span></button>
+        </div>
+      </div>
+      <button class="item" role="menuitem" style="--s:2" data-key="3" data-say="2 new people"><svg class="ico" viewBox="0 0 13 13" aria-hidden="true"><circle cx="6.5" cy="4" r="2.3" fill="none" stroke="currentColor"/><path d="M2 12c0-3 2-4.5 4.5-4.5S11 9 11 12" fill="none" stroke="currentColor"/></svg><span class="label">our team</span><sup>03</sup><span class="badge">+2</span></button>
+      <button class="item" role="menuitem" style="--s:3" data-key="4"><span class="label">core values</span><sup>04</sup></button>
+      <div class="sect" style="--s:4" role="separator">work</div>
+      <button class="item" role="menuitem" style="--s:4" data-key="5"><span class="label">types of engagement</span><sup>05</sup></button>
+      <button class="item" role="menuitem" style="--s:5" data-key="6" aria-disabled="true"><span class="label">case studies</span><sup>06</sup></button>
+      <button class="item" role="menuitem" style="--s:6" data-key="7"><svg class="ico" viewBox="0 0 13 13" aria-hidden="true"><path d="M1.5 3h10v7h-10zM1.5 3l5 4 5-4" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="label">contacts</span><sup>07</sup><span class="end">↗</span></button>
+    </div>
+    <span class="index" aria-hidden="true">index</span>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    // the superscript is the key: pressing a number picks that item
+    addEventListener('keydown', e => { const it = document.querySelector(`[data-key="${e.key}"]`); if (it && !e.metaKey && !e.ctrlKey) { it.focus(); it.click(); } });
+  </script>
+</body>
+</html>
