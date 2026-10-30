@@ -7,44 +7,26 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="week-06-vault.css?v=7" />
   <style>
-  /* In use: VAULT, a salvage game played on a derelict station. In play, the menu is shut: only a
-     MENU prompt sits at the foot of the screen. Opened (the prompt, or Tab), the play pauses and a
-     board of glass rises out of a line of light to fill the bottom half of the screen, leaning back
-     like the reference's sheet of glass. Its items are tiles, laid out in sections; they are stacked
-     onto the glass one after another, left to right. Point at a tile and it lifts and fills with
-     light; press it and it lights right through. Gear opens a submenu: a second, smaller board
-     stacked above the first. Esc, Resume or a click on the play takes it all off again, the tiles
-     lifting away right to left before the glass folds back into its line. */
+  /* In use: the field menu of VAULT, a sci-fi salvage game, on its own. Shut, it is a MENU prompt.
+     Opened (the prompt, or Tab), a board of glass rises out of a line of light, leaning back like the
+     reference's sheet of glass. Its items are wide, low boxes in sections, each built in steps like
+     stacked frames. Point at a box and it lifts and fills with light; press it and it lights right
+     through. Gear opens a submenu: a second, smaller board stacked above the first. Esc, Resume or a
+     click outside takes it all down again, right to left, and folds the glass back into its line. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
-  :root { --w: 1280px; --h: 720px; --fit: 1; }
+  :root { --w: 1200px; --h: 520px; --fit: 1; }
   .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #010a0c; }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1500px; perspective-origin: 50% 30%; overflow: hidden; }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1500px; perspective-origin: 50% 40%; overflow: hidden; }
   .stage > * { position: absolute; }
 
-  /* ---------- the play ---------- */
-  .play { inset: 0; overflow: hidden; background: linear-gradient(#082a31, #041619 48%, #020c0e); transition: filter var(--open-time) var(--ease-out); }
-  .play > * { position: absolute; }
-  .floor { left: -400px; right: -400px; top: 330px; height: 700px; transform: perspective(520px) rotateX(72deg); transform-origin: 50% 0;
-    background: repeating-linear-gradient(90deg, rgba(57, 213, 255, .18) 0 1px, transparent 1px 70px), repeating-linear-gradient(0deg, rgba(57, 213, 255, .18) 0 1px, transparent 1px 70px);
-    -webkit-mask: linear-gradient(transparent, #000 30%, #000); mask: linear-gradient(transparent, #000 30%, #000); }
-  .wreck { left: 0; top: 70px; width: 1280px; height: 280px; }
-  .reticle { left: 616px; top: 236px; width: 48px; height: 48px; }
-  .hud { font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-2); }
-  .hud.tl { left: 32px; top: 28px; display: grid; gap: 9px; }
-  .hud.tl div { display: grid; grid-template-columns: 42px 160px 34px; align-items: center; gap: 10px; }
-  .hud .bar { height: 6px; background: rgba(57, 213, 255, .15); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .3); }
-  .hud .bar i { display: block; height: 100%; width: var(--v); background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
-  .hud.tr { right: 32px; top: 28px; text-align: right; line-height: 1.7; }
-  .hud.tr b { display: block; font: 600 16px/1.2 var(--font); letter-spacing: .12em; color: var(--cyan-hi); }
-  .paused { left: 0; right: 0; top: 30px; text-align: center; font: 600 13px/1 var(--mono); letter-spacing: .5em; color: var(--cyan-hi); opacity: 0; transition: opacity 200ms; }
-  .stage.is-menu .play { filter: brightness(.5) saturate(.7); }
-  .stage.is-menu .paused { opacity: 1; transition: opacity 300ms var(--open-time); }
+  /* ---------- the room: nothing but a dark floor of light, so the menu is all there is ---------- */
+  .play { inset: 0; background: radial-gradient(55% 60% at 50% 70%, #0a3a44, #03161b 60%, #010a0c); }
 
-  /* the prompt: all of the menu there is while you play */
-  .prompt { left: 560px; top: 652px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
+  /* the prompt: all of the menu there is while it is shut */
+  .prompt { left: 520px; top: 340px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
     background: rgba(57, 213, 255, .1); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); color: var(--ink); font: 600 15px/1 var(--font); letter-spacing: .2em;
     transition: background-color var(--hover-time), box-shadow var(--hover-time), color var(--hover-time), opacity 160ms; }
   .prompt kbd { padding: 3px 6px; border: 1px solid rgba(95, 179, 196, .5); font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); }
@@ -53,7 +35,7 @@
   .stage.is-menu .prompt { opacity: 0; pointer-events: none; }
 
   /* ---------- the board: the bottom half of the screen ---------- */
-  .board { left: 70px; top: 452px; width: 1140px; height: 238px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
+  .board { left: 30px; top: 250px; width: 1140px; height: 238px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
     transition: visibility 0s calc(var(--close-time) + 160ms); }
   .stage.is-menu .board { visibility: visible; transition: visibility 0s; }
   /* the line of light along its foot, then the glass rising out of it */
@@ -144,21 +126,7 @@
 <body>
   <section class="hero">
     <div class="stage">
-      <div class="play" aria-hidden="true">
-        <div class="floor"></div>
-        <svg class="wreck" viewBox="0 0 1280 280">
-          <g fill="#06262c" stroke="rgba(57,213,255,.35)" stroke-width="1">
-            <path d="M120 280V150l40-30h60l20 30v130z"/><path d="M300 280V90l30-40h40l30 40v190z"/><path d="M520 280V160h90l30-50h60l30 50h60v120z"/>
-            <path d="M880 280V70l20-30h50l20 30v210z"/><path d="M1040 280V130l50-40 50 40v150z"/>
-          </g>
-          <g fill="#39d5ff" opacity=".7"><rect x="335" y="110" width="6" height="3"/><rect x="355" y="150" width="6" height="3"/><rect x="905" y="100" width="6" height="3"/><rect x="925" y="160" width="6" height="3"/><rect x="600" y="190" width="10" height="3"/><rect x="1080" y="170" width="6" height="3"/></g>
-          <g fill="#ff8a6b"><circle cx="925" cy="40" r="3"/><circle cx="350" cy="50" r="2"/></g>
-        </svg>
-        <svg class="reticle" viewBox="0 0 48 48"><g fill="none" stroke="#b6f4ff" stroke-width="1.5"><path d="M24 4v10M24 34v10M4 24h10M34 24h10"/><circle cx="24" cy="24" r="3"/></g></svg>
-        <div class="hud tl"><div>HULL<span class="bar" style="--v:72%"><i></i></span>72%</div><div>O2<span class="bar" style="--v:54%"><i></i></span>54%</div></div>
-        <div class="hud tr"><b>RECOVER THE CORE · 2/3</b>SECTOR 07 · DERELICT HAULER<br />CREDITS 4,180</div>
-      </div>
-      <div class="paused" aria-hidden="true">PAUSED</div>
+      <div class="play" aria-hidden="true"></div>
 
       <button class="prompt" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="board">MENU <kbd>TAB</kbd></button>
 
@@ -213,7 +181,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The menu is a board of glass that fills the bottom half of the play screen; its items are tiles, laid out in sections and stacked onto the glass one at a time.</p>
+    <p>Read from the values this page runs on. The menu is a board of glass leaning back; its items are wide, low boxes in sections, each built in steps like stacked frames.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -226,8 +194,8 @@
       const ms = n => parseFloat(getComputedStyle(root).getPropertyValue(n));
       const log = board.querySelector('.log'), dTitle = document.getElementById('d-title'), dDesc = document.getElementById('d-desc');
 
-      // fit the 1280 × 720 frame to the window
-      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1280, innerHeight / 720));
+      // fit the 1200 × 520 frame to the window
+      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 520) * .96);
       addEventListener('resize', fit); fit();
 
       // each box gets the layers it is built from: two corner nodes, a footprint, a dotted layer, an edge flash
@@ -255,7 +223,7 @@
         t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 260);
       };
       prompt.addEventListener('click', open);
-      stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play, .paused')) close(); });
+      stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play')) close(); });
 
       // the panel follows what you point at
       const show = t => { dTitle.textContent = t.querySelector('.t-label').textContent; dDesc.textContent = t.dataset.desc || ''; };

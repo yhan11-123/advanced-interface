@@ -37,7 +37,6 @@
 
   const cards = [
     ['Board', [
-      ['Fills', 'the bottom half of the play screen'],
       ['Leans back', tok('--board-tilt')],
       ['Glass', 'dotted every 20px, 62% to 80%'],
       ['Edge', `1px, ${hex(cs('glass').borderTopColor)}`],
@@ -84,7 +83,6 @@
       ['Boxes built', `left to right, ${tok('--stack-step')} apart`],
       ['Taken down', `right to left, ${tok('--leave-step')} apart`],
       ['Glass folds', `${tok('--close-time')}, back into its line`],
-      ['Play', 'dims to 50% and pauses'],
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
     ]],
     ['Motion · one box built', [
