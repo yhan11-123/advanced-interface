@@ -5,24 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Harvest · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-harvest.css?v=1" />
+  <link rel="stylesheet" href="week-06-harvest.css?v=2" />
   <style>
-  /* In use: the in-day menu of "Willowbrook", a cosy pixel farming game, opened over the farm on
-     a spring morning. Parchment in a wooden frame, a pointing hand that bobs beside the lit row,
-     key caps for shortcuts, a red tag for the crates waiting in the shipping bin. Plant seeds opens
-     the seed box beside it. Everything moves in whole game pixels. */
+  /* In use: "Willowbrook", a cosy pixel farming game, on a spring morning. The menu starts shut:
+     a wooden Menu button sits in the corner. Click it or press E and the menu opens over the farm;
+     close it with ×, Esc, E, or a click on the farm. Picking does something you can see: a
+     message over the hotbar, and seeds land in your hand. Everything moves in whole game pixels.
+     The opening motion can be switched, to compare. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: #7cc4e8; -webkit-font-smoothing: none; }
   button { font: inherit; }
-  :root { --w: 720px; --h: 520px; --fit: 1; }
+  :root { --w: 720px; --h: 520px; --fit: 1;
+    /* opening motions: each in a few whole frames, the way a sprite animates */
+    --open-pop: 200ms; --open-unroll: 300ms; --open-slide: 240ms; --open-swing: 480ms;
+    --close-time: 140ms; --row-stagger: 40ms; }
   /* the sky and the grass carry on past the stage, meeting where the stage's horizon is */
   .hero { position: relative; height: 100vh; overflow: hidden; background: linear-gradient(#8fd3f2 calc(50% - 128px * var(--fit)), #6fb94a calc(50% - 128px * var(--fit))); }
   .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
 
-  /* the farm, in game pixels */
+  /* ---------- the farm, in game pixels ---------- */
   .farm { position: absolute; inset: 0; image-rendering: pixelated; }
-  /* the landscape runs on past the stage, out to the window's edges */
   .sky, .hills, .grass, .fence { margin: 0 -1500px; }
   .sky { position: absolute; left: 0; right: 0; top: 0; height: 132px; background: linear-gradient(#8fd3f2 0 33%, #a6ddf3 33% 66%, #bfe7f5 66%); }
   .cloud { position: absolute; height: 18px; background: #fff; box-shadow: 9px -9px 0 0 #fff, 27px -9px 0 0 #fff, -9px 0 0 0 #fff; }
@@ -37,28 +40,90 @@
   .house .roof { position: absolute; inset: 0 0 33px; background: #b5462f; clip-path: polygon(10% 100%, 50% 0, 90% 100%); }
   .house .wall { position: absolute; left: 12px; right: 12px; bottom: 0; height: 36px; background: #d9a066; box-shadow: inset 0 0 0 3px #8a5a33; }
   .house .door { position: absolute; left: 50%; bottom: 0; width: 15px; height: 21px; translate: -50% 0; background: #6b3b1f; }
+  .farmer { position: absolute; left: 300px; top: 300px; width: 27px; height: 39px; }
+  .farmer i { position: absolute; display: block; }
 
-  /* the clock, top right */
+  /* ---------- the clock ---------- */
   .clock { position: absolute; right: 18px; top: 18px; width: 186px; padding: 12px 14px; font: 600 16px/1.3 var(--font); color: var(--ink); text-align: right; }
   .clock b { display: flex; justify-content: flex-end; align-items: center; gap: 6px; font-size: 16px; white-space: nowrap; }
   .clock .gold { color: #9c6a00; }
 
-  /* the menu */
-  .menu-panel { position: absolute; left: 60px; top: 70px; }
+  /* ---------- wooden buttons: the Menu button and the panel's × ---------- */
+  .wood-btn { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border: 3px solid var(--wood-dark); background: var(--wood); color: var(--paper-hi);
+    box-shadow: inset 0 3px 0 var(--wood-hi), 0 6px 0 var(--wood-dark); font: 600 16px/1 var(--font); cursor: pointer; translate: 0 0; transition: translate 80ms steps(1), box-shadow 80ms steps(1); }
+  .wood-btn:hover, .wood-btn:focus-visible { background: #a35d31; translate: 0 -3px; box-shadow: inset 0 3px 0 #dc9a55, 0 9px 0 var(--wood-dark); outline: none; }
+  .wood-btn:active, .wood-btn.is-press { translate: 0 6px; box-shadow: inset 0 3px 0 var(--wood-dark), 0 0 0 var(--wood-dark); background: #7a4423; }
+  .wood-btn[aria-expanded="true"] { translate: 0 6px; box-shadow: inset 0 3px 0 var(--wood-dark), 0 0 0 var(--wood-dark); background: #6b3b1f; color: #f0d39a; }
+  .wood-btn .s-key { translate: 0 0; height: 22px; min-width: 22px; font-size: 12px; }
+  .menu-btn { position: absolute; right: 18px; bottom: 24px; z-index: 3; }
+  .menu-btn svg { width: 24px; height: 24px; }
+  .close { position: absolute; right: -12px; top: -14px; z-index: 2; width: 36px; height: 36px; padding: 0; justify-content: center; }
+  .close svg { width: 15px; height: 15px; }
+
+  /* ---------- the menu, shut and open ---------- */
+  .menu-panel { position: absolute; left: 60px; top: 66px; z-index: 2; transform-origin: 50% 50%; }
+  .menu-panel[hidden] { display: none; }
   .menu-panel .s-menu { margin-top: 4px; }
   .has-sub { position: relative; }
   .submenu.p-panel { position: absolute; left: calc(100% + 34px); bottom: -24px; width: 230px; padding-top: 22px; display: none; }
-  .has-sub.is-open > .submenu { display: block; animation: pop var(--sub-open) steps(2); }
-  @keyframes pop { from { scale: .9; opacity: .5; } }
-  .said { position: absolute; left: 60px; bottom: 18px; margin: 0; padding: 8px 16px; background: var(--paper); border: 3px solid var(--wood-dark); box-shadow: inset 0 0 0 3px var(--wood-hi);
-    font: 400 16px/1 var(--font); color: var(--ink); white-space: nowrap; }
-  .said:empty { display: none; }
+  .has-sub.is-open > .submenu { display: block; animation: sub-pop var(--sub-open) steps(2); }
+  @keyframes sub-pop { from { scale: .9; opacity: .5; } }
+
+  /* the four opening motions; closing plays the same one backwards, faster */
+  .menu-panel.is-opening, .menu-panel.is-closing { animation-fill-mode: both; }
+  [data-motion="pop"] .menu-panel.is-opening { animation: m-pop var(--open-pop) steps(4, jump-none); }
+  [data-motion="pop"] .menu-panel.is-closing { animation: m-pop var(--close-time) steps(3, jump-none) reverse; }
+  @keyframes m-pop { 0% { scale: .7; opacity: 0; } 60% { scale: 1.05; opacity: 1; } 100% { scale: 1; opacity: 1; } }
+  [data-motion="unroll"] .menu-panel.is-opening { animation: m-unroll var(--open-unroll) steps(6, jump-none); }
+  [data-motion="unroll"] .menu-panel.is-closing { animation: m-unroll var(--close-time) steps(3, jump-none) reverse; }
+  @keyframes m-unroll { 0% { clip-path: inset(-30px -40px 100% -40px); } 100% { clip-path: inset(-30px -40px -40px -40px); } }
+  [data-motion="slide"] .menu-panel.is-opening { animation: m-slide var(--open-slide) steps(5, jump-none); }
+  [data-motion="slide"] .menu-panel.is-closing { animation: m-slide var(--close-time) steps(3, jump-none) reverse; }
+  @keyframes m-slide { 0% { translate: 0 90px; opacity: 0; } 70% { translate: 0 -6px; opacity: 1; } 100% { translate: 0 0; opacity: 1; } }
+  [data-motion="swing"] .menu-panel { transform-origin: 50% -30px; }
+  [data-motion="swing"] .menu-panel.is-opening { animation: m-swing var(--open-swing) steps(8, jump-none); }
+  [data-motion="swing"] .menu-panel.is-closing { animation: m-swing var(--close-time) steps(3, jump-none) reverse; }
+  @keyframes m-swing { 0% { translate: 0 -420px; rotate: 0deg; } 35% { translate: 0 0; rotate: -6deg; } 60% { rotate: 4deg; } 80% { rotate: -2deg; } 100% { translate: 0 0; rotate: 0deg; } }
+  /* rows can arrive one after another */
+  .stagger .menu-panel.is-opening .s-menu > * { animation: row-in 120ms steps(2, jump-none) both; animation-delay: calc(var(--i) * var(--row-stagger) + 60ms); }
+  @keyframes row-in { from { opacity: 0; translate: -9px 0; } }
+
+  /* picking a bed you cannot use yet: the row shakes its head */
+  .s-item.is-no { animation: no 240ms steps(4, jump-none); }
+  @keyframes no { 25% { translate: -6px 0; } 50% { translate: 6px 0; } 75% { translate: -3px 0; } }
+
+  /* ---------- the hotbar and the message above it ---------- */
+  .hotbar { position: absolute; left: 50%; bottom: 18px; translate: -50% 0; display: flex; gap: 3px; padding: 6px; background: var(--wood); border: 3px solid var(--wood-dark); box-shadow: inset 0 3px 0 var(--wood-hi); z-index: 1; }
+  .slot { position: relative; display: grid; place-items: center; width: 42px; height: 42px; background: var(--paper); box-shadow: inset 0 0 0 3px #d9b67a; }
+  .slot svg { width: 24px; height: 24px; }
+  .slot.is-on { box-shadow: inset 0 0 0 3px var(--berry); }
+  .slot.is-new { animation: land 300ms steps(3, jump-none); }
+  @keyframes land { 0% { translate: 0 -18px; } 60% { translate: 0 3px; } 100% { translate: 0 0; } }
+  .slot small { position: absolute; right: 3px; bottom: 1px; font: 600 11px/1 var(--font); color: var(--ink); }
+  .toast { position: absolute; left: 50%; bottom: 92px; translate: -50% 0; margin: 0; padding: 8px 14px; background: var(--paper); border: 3px solid var(--wood-dark); box-shadow: inset 0 0 0 3px var(--wood-hi);
+    font: 400 15px/1 var(--font); color: var(--ink); white-space: nowrap; z-index: 3; }
+  .toast:empty { display: none; }
+  .toast.is-new { animation: land 240ms steps(3, jump-none); }
+
+  /* ---------- trying the motions (outside the game) ---------- */
+  .tryout { position: absolute; left: 12px; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; background: rgba(43, 26, 16, .88); color: #f6e3bd; font: 400 13px/1 var(--font); }
+  .tryout[hidden] { display: none; }
+  .tryout b { font-weight: 600; margin-right: 2px; }
+  .tryout button { padding: 5px 9px; border: 2px solid #8e4f2a; background: transparent; color: #f6e3bd; cursor: pointer; }
+  .tryout button[aria-pressed="true"] { background: var(--sun); border-color: var(--sun); color: var(--ink); }
+  .tryout label { display: flex; align-items: center; gap: 5px; margin-left: 4px; cursor: pointer; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (prefers-reduced-motion: reduce) { .menu-panel.is-opening, .menu-panel.is-closing, .slot.is-new, .toast.is-new, .s-item.is-no { animation-duration: 1ms !important; } }
   </style>
 </head>
 <body>
   <section class="hero">
-    <div class="stage">
+    <div class="tryout" role="group" aria-label="Opening motion">
+      <b>Opening</b>
+      <button type="button" data-m="pop">Pop</button><button type="button" data-m="unroll">Unroll</button><button type="button" data-m="slide">Slide up</button><button type="button" data-m="swing">Sign swing</button>
+      <label><input type="checkbox" id="stagger" /> rows one by one</label>
+    </div>
+    <div class="stage" data-motion="pop">
       <div class="farm" aria-hidden="true">
         <div class="sky"></div>
         <div class="cloud" style="left:90px;top:36px;width:54px"></div><div class="cloud" style="left:330px;top:24px;width:72px"></div>
@@ -67,6 +132,11 @@
         <div class="fence"></div>
         <div class="house"><div class="roof"></div><div class="wall"></div><div class="door"></div></div>
         <div class="field"></div>
+        <div class="farmer">
+          <i style="left:6px;top:0;width:15px;height:6px;background:#c9823f"></i><i style="left:3px;top:6px;width:21px;height:3px;background:#a8652f"></i>
+          <i style="left:6px;top:9px;width:15px;height:9px;background:#f2c9a0"></i><i style="left:3px;top:18px;width:21px;height:12px;background:#3f6fb5"></i>
+          <i style="left:6px;top:30px;width:6px;height:9px;background:#4a2614"></i><i style="left:15px;top:30px;width:6px;height:9px;background:#4a2614"></i>
+        </div>
       </div>
 
       <div class="clock p-panel" aria-label="Spring 12, Monday, 9:40 in the morning, 1,250 gold">
@@ -74,28 +144,38 @@
         9:40 am<br /><span class="gold">1,250 g</span>
       </div>
 
-      <div class="menu-panel p-panel">
+      <div class="hotbar" aria-label="Hotbar">
+        <span class="slot"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 1h4v2H1z" fill="#8a8f96"/><path d="M4 3h1v5H4z" fill="#a8652f"/></svg></span>
+        <span class="slot"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h5v4H1z" fill="#6f9fd8"/><path d="M6 2h2v1H6zM6 3h1v1H6z" fill="#4a77b0"/><path d="M2 2h3v1H2z" fill="#4a77b0"/></svg></span>
+        <span class="slot is-on" id="seed-slot" aria-label="In hand: Cauliflower seeds"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 4h6v3H1z" fill="#4f9a2c"/><path d="M2 1h4v4H2z" fill="#f4efe0"/><path d="M3 2h1v1H3zM5 3h1v1H5z" fill="#d8cfb5"/></svg><small>15</small></span>
+        <span class="slot"></span><span class="slot"></span><span class="slot"></span>
+      </div>
+      <p class="toast" aria-live="polite"></p>
+
+      <button class="wood-btn menu-btn" type="button" aria-expanded="false" aria-controls="game-menu"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 1h4v1H2z" fill="#4a2614"/><path d="M1 2h6v6H1z" fill="#e8b46a"/><path d="M1 2h6v1H1zM1 7h6v1H1z" fill="#c9823f"/><path d="M3 4h2v2H3z" fill="#f7c948"/></svg>Menu<kbd class="s-key">E</kbd></button>
+
+      <div class="menu-panel p-panel" id="game-menu" hidden>
         <span class="p-title" aria-hidden="true">Willowbrook Farm</span>
+        <button class="wood-btn close" type="button" aria-label="Close the menu"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 4h1v1H4zM4 0h1v1H4zM3 1h1v1H3zM1 3h1v1H1zM0 4h1v1H0z" fill="currentColor"/></svg></button>
         <div class="s-menu" role="menu" aria-label="Game menu">
-          <button class="s-item" role="menuitem" data-say="Your backpack: 24 slots, 17 full."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h4v1H2z" fill="#4a2614"/><path d="M1 2h6v6H1z" fill="#c9823f"/><path d="M1 2h6v1H1zM1 7h6v1H1z" fill="#8e4f2a"/><path d="M3 4h2v2H3z" fill="#f7c948"/></svg><span class="s-label">Inventory</span><kbd class="s-key">E</kbd></button>
-          <button class="s-item" role="menuitem" data-say="You know 12 recipes."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h5v2H1z" fill="#8a8f96"/><path d="M5 1h1v2H5z" fill="#5e636a"/><path d="M3 3h1v5H3z" fill="#a8652f"/></svg><span class="s-label">Crafting</span><kbd class="s-key">C</kbd></button>
-          <button class="s-item" role="menuitem" aria-disabled="true"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3h6v3H1zM1 6h1v1H1zM6 6h1v1H6z" fill="#b39b85"/><path d="M1 3h2v2H1z" fill="#efe3d3"/></svg><span class="s-label">Go to bed</span><span class="s-note">after 6pm</span></button>
-          <button class="s-item" role="menuitem" data-say="Options: sound, zoom, controls."><span class="s-ico"></span><span class="s-label">Options</span><kbd class="s-key">Esc</kbd></button>
-          <div class="s-sect" role="separator">Farm</div>
-          <button class="s-item" role="menuitem" data-say="12 crates ship tonight at 6pm."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 3h8v5H0z" fill="#a8652f"/><path d="M0 2h8v1H0z" fill="#6b3b1f"/><path d="M0 5h8v1H0z" fill="#8a5a33"/></svg><span class="s-label">Shipping bin</span><span class="s-badge" aria-label="12 crates">12</span></button>
-          <button class="s-item" role="menuitem" data-say="The almanac opens in your browser."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v7H1z" fill="#4f9a2c"/><path d="M2 1h1v7H2z" fill="#2f6418"/><path d="M4 3h2v1H4z" fill="#f7c948"/></svg><span class="s-label">Almanac</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M2 0h4v4H5V2H4V1H2zM3 2h1v1H3zM2 3h1v1H2zM1 4h1v1H1zM0 5h1v1H0z" fill="currentColor"/></svg></button>
-          <div class="has-sub">
+          <button class="s-item" role="menuitem" data-say="Your backpack: 24 slots, 17 full." style="--i:0"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h4v1H2z" fill="#4a2614"/><path d="M1 2h6v6H1z" fill="#c9823f"/><path d="M1 2h6v1H1zM1 7h6v1H1z" fill="#8e4f2a"/><path d="M3 4h2v2H3z" fill="#f7c948"/></svg><span class="s-label">Inventory</span><kbd class="s-key">I</kbd></button>
+          <button class="s-item" role="menuitem" data-say="You know 12 recipes." style="--i:1"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h5v2H1z" fill="#8a8f96"/><path d="M5 1h1v2H5z" fill="#5e636a"/><path d="M3 3h1v5H3z" fill="#a8652f"/></svg><span class="s-label">Crafting</span><kbd class="s-key">C</kbd></button>
+          <button class="s-item" role="menuitem" aria-disabled="true" data-say="Not tired yet. Bed after 6pm." style="--i:2"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3h6v3H1zM1 6h1v1H1zM6 6h1v1H6z" fill="#b39b85"/><path d="M1 3h2v2H1z" fill="#efe3d3"/></svg><span class="s-label">Go to bed</span><span class="s-note">after 6pm</span></button>
+          <button class="s-item" role="menuitem" data-say="Options: sound, zoom, controls." style="--i:3"><span class="s-ico"></span><span class="s-label">Options</span><kbd class="s-key">O</kbd></button>
+          <div class="s-sect" role="separator" style="--i:4">Farm</div>
+          <button class="s-item" role="menuitem" data-say="12 crates ship tonight at 6pm." style="--i:5"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 3h8v5H0z" fill="#a8652f"/><path d="M0 2h8v1H0z" fill="#6b3b1f"/><path d="M0 5h8v1H0z" fill="#8a5a33"/></svg><span class="s-label">Shipping bin</span><span class="s-badge" aria-label="12 crates">12</span></button>
+          <button class="s-item" role="menuitem" data-say="The almanac opens in your browser." style="--i:6"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v7H1z" fill="#4f9a2c"/><path d="M2 1h1v7H2z" fill="#2f6418"/><path d="M4 3h2v1H4z" fill="#f7c948"/></svg><span class="s-label">Almanac</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M2 0h4v4H5V2H4V1H2zM3 2h1v1H3zM2 3h1v1H2zM1 4h1v1H1zM0 5h1v1H0z" fill="currentColor"/></svg></button>
+          <div class="has-sub" style="--i:7">
             <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v6H2z" fill="#e8c27a"/><path d="M2 2h4v1H2z" fill="#a8652f"/><path d="M3 4h2v2H3z" fill="#4f9a2c"/></svg><span class="s-label">Plant seeds</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M1 0h1v1h1v1h1v2H3v1H2v1H1z" fill="currentColor"/></svg></button>
             <div class="submenu p-panel" role="menu" aria-label="Seed box">
               <span class="p-title" aria-hidden="true">Seed box</span>
-              <button class="s-seed" role="menuitemradio" aria-checked="false" data-say="Parsnip seeds in hand. Ready in 4 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button>
-              <button class="s-seed" role="menuitemradio" aria-checked="true" data-say="Cauliflower seeds in hand. Ready in 12 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 4h6v3H1z" fill="#4f9a2c"/><path d="M2 1h4v4H2z" fill="#f4efe0"/><path d="M3 2h1v1H3zM5 3h1v1H5z" fill="#d8cfb5"/></svg><span class="s-label">Cauliflower</span><span class="s-price">80g</span></button>
-              <button class="s-seed" role="menuitemradio" aria-checked="false" data-say="Potato seeds in hand. Ready in 6 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v4H2zM1 3h6v2H1z" fill="#c69a5c"/><path d="M3 3h1v1H3zM5 4h1v1H5z" fill="#8a6a3c"/></svg><span class="s-label">Potato</span><span class="s-price">50g</span></button>
+              <button class="s-seed" role="menuitemradio" aria-checked="false" data-seed="parsnip" data-say="Parsnip seeds in hand. Ready in 4 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button>
+              <button class="s-seed" role="menuitemradio" aria-checked="true" data-seed="cauliflower" data-say="Cauliflower seeds in hand. Ready in 12 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 4h6v3H1z" fill="#4f9a2c"/><path d="M2 1h4v4H2z" fill="#f4efe0"/><path d="M3 2h1v1H3zM5 3h1v1H5z" fill="#d8cfb5"/></svg><span class="s-label">Cauliflower</span><span class="s-price">80g</span></button>
+              <button class="s-seed" role="menuitemradio" aria-checked="false" data-seed="potato" data-say="Potato seeds in hand. Ready in 6 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v4H2zM1 3h6v2H1z" fill="#c69a5c"/><path d="M3 3h1v1H3zM5 4h1v1H5z" fill="#8a6a3c"/></svg><span class="s-label">Potato</span><span class="s-price">50g</span></button>
             </div>
           </div>
         </div>
       </div>
-      <p class="said" aria-live="polite"></p>
     </div>
   </section>
 
@@ -116,9 +196,72 @@
   </script>
   <script src="week-06-sketch.js?v=2"></script>
   <script>
-    // #open in the address shows the seed box already open (used for the set's thumbnail)
-    if (location.hash === '#open') { const h = document.querySelector('.has-sub'); h.classList.add('is-open'); h.querySelector('.s-item').setAttribute('aria-expanded', 'true'); }
+    (() => {
+      const stage = document.querySelector('.stage'), panel = document.getElementById('game-menu'), btn = document.querySelector('.menu-btn');
+      const said = document.querySelector('.toast'), slot = document.getElementById('seed-slot'), root = getComputedStyle(document.documentElement);
+      const ms = v => parseFloat(v) * (String(v).trim().endsWith('ms') ? 1 : 1000);
+      const isOpen = () => !panel.hidden && !panel.classList.contains('is-closing');
+      let toastTimer;
+      const say = text => { said.textContent = text; said.classList.remove('is-new'); void said.offsetWidth; said.classList.add('is-new'); clearTimeout(toastTimer); toastTimer = setTimeout(() => said.textContent = '', 2600); };
+
+      const open = () => {
+        if (isOpen()) return;
+        panel.hidden = false; panel.classList.remove('is-closing'); panel.classList.add('is-opening');
+        btn.setAttribute('aria-expanded', 'true');
+        const t = ms(root.getPropertyValue('--open-' + stage.dataset.motion)) + (document.body.classList.contains('stagger') ? 400 : 0);
+        setTimeout(() => panel.classList.remove('is-opening'), t);
+        panel.querySelector('.s-item').focus({ preventScroll: true });
+      };
+      const close = (back = true) => {
+        if (!isOpen()) return;
+        panel.querySelectorAll('.has-sub.is-open').forEach(h => h.classList.remove('is-open'));
+        panel.classList.remove('is-opening'); panel.classList.add('is-closing');
+        btn.setAttribute('aria-expanded', 'false');
+        setTimeout(() => { panel.hidden = true; panel.classList.remove('is-closing'); }, ms(root.getPropertyValue('--close-time')));
+        if (back) btn.focus({ preventScroll: true });
+      };
+
+      btn.addEventListener('click', () => isOpen() ? close() : open());
+      panel.querySelector('.close').addEventListener('click', () => close());
+      // a click on the farm, outside the menu, shuts it
+      stage.addEventListener('pointerdown', e => { if (isOpen() && !panel.contains(e.target) && !btn.contains(e.target)) close(false); });
+      addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === 'e' || e.key === 'E') { e.preventDefault(); isOpen() ? close() : open(); }
+        else if (e.key === 'Escape' && isOpen() && !panel.querySelector('.has-sub.is-open')) { e.preventDefault(); close(); }
+        else if (isOpen() && e.key.length === 1) { // a key cap picks its item
+          const k = [...panel.querySelectorAll('.s-item .s-key')].find(x => x.textContent.toLowerCase() === e.key.toLowerCase());
+          if (k) { e.preventDefault(); k.closest('.s-item').click(); }
+        }
+      });
+
+      // picking: the shared sketch script marks the pick; here the game answers it
+      panel.addEventListener('click', e => {
+        const it = e.target.closest('.s-item, .s-seed');
+        if (!it || it.parentElement.classList.contains('has-sub') && it === it.parentElement.querySelector('.s-item')) return;
+        if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); say(it.dataset.say); return; }
+        if (it.dataset.seed) {
+          slot.innerHTML = it.querySelector('.s-ico').outerHTML.replace('class="s-ico"', '') + '<small>15</small>';
+          slot.setAttribute('aria-label', 'In hand: ' + it.querySelector('.s-label').textContent + ' seeds');
+          slot.classList.remove('is-new'); void slot.offsetWidth; slot.classList.add('is-new');
+        }
+        say(it.dataset.say);
+        setTimeout(() => close(), 220);
+      });
+
+      // trying the motions
+      const tryout = document.querySelector('.tryout');
+      const pick = m => { stage.dataset.motion = m; tryout.querySelectorAll('[data-m]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === m))); dispatchEvent(new Event('motionchange')); };
+      tryout.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => { pick(b.dataset.m); close(false); setTimeout(open, 260); }));
+      document.getElementById('stagger').addEventListener('change', e => { document.body.classList.toggle('stagger', e.target.checked); close(false); setTimeout(open, 260); });
+      const q = new URLSearchParams(location.search);
+      pick(q.get('motion') || 'pop');
+      if (q.has('stagger')) { document.getElementById('stagger').checked = true; document.body.classList.add('stagger'); }
+      if (window.self !== window.top) tryout.hidden = true;
+      // #open shows the menu (and the seed box) already open, for the set's thumbnail
+      if (location.hash === '#open') { panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); const h = panel.querySelector('.has-sub'); h.classList.add('is-open'); }
+    })();
   </script>
-  <script src="week-06-harvest-spec.js?v=1"></script>
+  <script src="week-06-harvest-spec.js?v=2"></script>
 </body>
 </html>

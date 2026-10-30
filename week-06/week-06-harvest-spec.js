@@ -1,7 +1,7 @@
 // Week 06, Set 1 · Harvest: the spec, read from the values the prototype runs on.
 // It builds a hidden sample of every part in every state, asks the browser what it computed,
 // and writes the numbers into <section class="spec">. Nothing here is typed in by hand.
-(() => {
+const renderSpec = () => {
   const out = document.querySelector('.spec-grid');
   if (!out) return;
   const root = getComputedStyle(document.documentElement);
@@ -96,6 +96,23 @@
       ['Why steps', 'a pixel game never moves half a pixel'],
     ]],
   ];
+  // the menu in use also opens and closes: report the opening chosen on the page
+  const stage = document.querySelector('.stage[data-motion]');
+  if (stage) {
+    const m = stage.dataset.motion, names = { pop: 'Pop: grows past full size, settles', unroll: 'Unroll: parchment opens top to bottom', slide: 'Slide up: rises, overshoots one step', swing: 'Sign swing: drops in, swings to rest' };
+    const frames = { pop: 4, unroll: 6, slide: 5, swing: 8 };
+    cards.push(['Opening and closing', [
+      ['Opens with', 'Menu button, E'],
+      ['Closes with', '×, Esc, E, a click on the farm, a pick'],
+      ['Motion', names[m]],
+      ['Opening', `${tok('--open-' + m)}, ${frames[m]} frames`],
+      ['Closing', `${tok('--close-time')}, the same motion backwards`],
+      ['Rows one by one', document.body.classList.contains('stagger') ? `on, ${tok('--row-stagger')} apart` : 'off'],
+      ['Menu button', '42px tall, 3px frame, 6px drop; pressed sits flush'],
+    ]]);
+  }
   out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
   sample.remove();
-})();
+};
+renderSpec();
+addEventListener('motionchange', renderSpec);
