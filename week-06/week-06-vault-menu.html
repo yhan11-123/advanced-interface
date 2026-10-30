@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=1" />
+  <link rel="stylesheet" href="week-06-vault.css?v=2" />
   <style>
   /* In use: a holographic file database, projected on a tilted sheet of glass. Folders sit on the
      plane; pointing at one lifts it off the glass. Clicking it opens its menu: a line of light
@@ -16,13 +16,13 @@
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
   :root { --w: 1000px; --h: 640px; --fit: 1; }
-  .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(70% 70% at 50% 55%, #08313a, var(--void) 70%); }
+  .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(70% 70% at 50% 55%, #0a1650, var(--void) 70%); }
   .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1800px; }
 
   /* the tilted plane: everything sits on it, so it all shares one perspective */
   .plane { position: absolute; left: 30px; top: 60px; width: 940px; height: 520px; transform-style: preserve-3d; transform: rotateX(46deg) rotateZ(-24deg) scale(.92); transform-origin: 50% 50%;
-    background: linear-gradient(rgba(57,213,255,.05) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(57,213,255,.05) 1px, transparent 1px) 0 0 / 40px 40px, rgba(6, 42, 49, .7);
-    box-shadow: inset 0 0 0 1px rgba(57,213,255,.18), 0 0 80px rgba(57,213,255,.08); }
+    background: radial-gradient(rgba(61,227,255,.28) 1px, transparent 1.5px) 0 0 / 22px 22px, rgba(6, 13, 51, .55);
+    box-shadow: inset 0 0 0 1px rgba(61,227,255,.22), 0 0 90px rgba(61,227,255,.08); }
   .plane > * { position: absolute; }
   .title { left: 36px; top: 26px; font: 600 22px/1 var(--font); letter-spacing: .1em; color: var(--cyan); text-shadow: 0 0 10px rgba(57,213,255,.6); }
   .ticks { left: 380px; top: 24px; font: 400 18px/1 var(--mono); color: var(--ink-3); }
@@ -30,34 +30,42 @@
   .cell { display: grid; justify-items: start; gap: 6px; transform-style: preserve-3d; }
   .cell span { font: 400 10px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); transition: color var(--hover-time); }
   .cell:hover span, .cell:focus-within span { color: var(--cyan-hi); }
-  .strip { left: 36px; top: 392px; width: 420px; height: 64px; background: rgba(57,213,255,.06); box-shadow: inset 0 0 0 1px rgba(57,213,255,.14); }
-  .strip::before { content: "▶"; position: absolute; left: 12px; top: 20px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+  .strip { left: 36px; top: 380px; width: 420px; height: 100px; background: rgba(61,227,255,.04); box-shadow: inset 0 0 0 1px rgba(61,227,255,.16); }
+  .strip svg { width: 100%; height: 100%; display: block; }
   .log { left: 730px; top: 30px; width: 190px; height: 450px; padding: 14px; overflow: hidden; background: rgba(57,213,255,.05); box-shadow: inset 0 0 0 1px rgba(57,213,255,.16);
     font: 400 10.5px/1.45 var(--mono); color: rgba(95,179,196,.55); letter-spacing: .03em; }
   .log p { margin: 0 0 6px; }
-  .log p.is-new { color: var(--cyan-hi); text-shadow: 0 0 6px rgba(57,213,255,.7); }
+  .log p.is-new { color: var(--orange); text-shadow: 0 0 6px rgba(255,160,64,.6); }
   .log p.is-new::after { content: "▌"; animation: caret .6s steps(1) infinite; }
   .log p.is-done::after { display: none; }
   @keyframes caret { 50% { opacity: 0; } }
 
-  /* the menu: shut, it is nothing; opening, a line of light that widens into the panel */
-  .v-pop { left: 456px; top: 30px; z-index: 5; visibility: hidden; opacity: 0; clip-path: inset(49.5% 0 49.5% 0);
-    transition: clip-path var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out), visibility 0s var(--close-time); }
-  .v-pop.is-open { visibility: visible; opacity: 1; clip-path: inset(-20px -20px -20px -20px);
-    transition: clip-path var(--open-time) var(--ease-out) 90ms, opacity 60ms linear, visibility 0s; animation: flicker var(--open-time) linear; }
-  /* once it has materialised, nothing clips it, so the submenu can reach out beside */
-  .v-pop.is-open.is-settled { clip-path: none; }
-  @keyframes flicker { 0%, 20% { filter: brightness(1.8); } 70% { filter: brightness(1); } 76% { filter: brightness(.7); } 80% { filter: brightness(1.2); } 100% { filter: none; } }
-  .v-pop .flash { position: absolute; left: -10px; right: -10px; top: 50%; height: 2px; margin-top: -1px; background: var(--cyan-hi); box-shadow: 0 0 14px 2px var(--cyan); opacity: 0; scale: 0 1; pointer-events: none; }
-  .v-pop.is-open .flash { animation: beam var(--open-time) var(--ease-out); }
-  @keyframes beam { 0% { opacity: 1; scale: 0 1; } 25% { opacity: 1; scale: 1 1; } 60% { opacity: 0; scale: 1 1; } 100% { opacity: 0; } }
+  /* the menu: shut, it lies flat on the floor. Opening, it is built up in tiers, like a stepped
+     pyramid: three frames rise off the floor one after another, the widest and lowest first, and the
+     menu settles on top. Closing, the whole stack sinks back to the floor at once. */
+  .v-pop { left: 456px; top: 30px; z-index: 5; visibility: hidden; transform-style: preserve-3d; transform: translateZ(calc(var(--tier-gap) * 3));
+    transition: visibility 0s var(--close-time); }
+  .v-pop.is-open { visibility: visible; transition: visibility 0s; }
+  .tier { position: absolute; inset: calc(var(--n) * -14px); pointer-events: none; border: 1px solid rgba(61, 227, 255, .4); background: rgba(61, 227, 255, .025);
+    box-shadow: 0 0 18px rgba(61, 227, 255, .12); opacity: 0; transform: translateZ(calc(var(--tier-gap) * -3));
+    transition: transform var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out); }
+  .tier.is-dotted { border: 2px dotted rgba(57, 255, 154, .55); background: transparent; }
+  .tier::before, .tier::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .tier::before { left: -5px; top: -5px; } .tier::after { right: -5px; bottom: -5px; }
+  .tier.is-dotted::before, .tier.is-dotted::after { display: none; }
+  .v-pop.is-open .tier { opacity: 1; transform: translateZ(calc(var(--tier-gap) * -1 * var(--n)));
+    transition: transform var(--tier-time) var(--ease-out) calc((3 - var(--n)) * var(--tier-step)), opacity 180ms ease calc((3 - var(--n)) * var(--tier-step)); }
+  .v-pop > .v-menu { opacity: 0; transform: translateZ(calc(var(--tier-gap) * -3)); transition: transform var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out); }
+  .v-pop.is-open > .v-menu { opacity: 1; transform: translateZ(0); transition: transform var(--tier-time) var(--ease-out) calc(3 * var(--tier-step)), opacity 220ms ease calc(3 * var(--tier-step)); }
+  .v-pop .rows, .v-pop .has-sub { transform-style: preserve-3d; }
   .v-pop .rows > * { opacity: 0; translate: -8px 0; transition: opacity 120ms, translate 120ms; }
-  .v-pop.is-open .rows > * { opacity: 1; translate: 0 0; transition: opacity 260ms var(--ease-out), translate 360ms var(--ease-out); transition-delay: calc(var(--i) * var(--stagger) + 160ms); }
+  .v-pop.is-open .rows > * { opacity: 1; translate: 0 0; transition: opacity 260ms var(--ease-out), translate 360ms var(--ease-out); transition-delay: calc(var(--i) * var(--stagger) + 3 * var(--tier-step) + 120ms); }
 
   .has-sub { position: relative; }
-  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; clip-path: inset(0 100% 0 0);
-    transition: clip-path var(--close-time) var(--ease-out), opacity var(--close-time), visibility 0s var(--close-time); }
-  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; clip-path: inset(-20px -20px -20px -20px); transition: clip-path 340ms var(--ease-out), opacity 80ms, visibility 0s; }
+  /* the submenu is one more tier on the stack: it rises off the menu as it slides out */
+  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; transform: translateZ(0) translateX(-12px);
+    transition: transform var(--close-time) var(--ease-out), opacity var(--close-time), visibility 0s var(--close-time); }
+  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; transform: translateZ(var(--tier-gap)) translateX(0); transition: transform var(--tier-time) var(--ease-out), opacity 160ms, visibility 0s; }
 
   .s-item.is-no { animation: deny 360ms var(--ease-out); }
   @keyframes deny { 0%, 100% { color: var(--ink-off); } 30% { color: var(--alert); text-shadow: 0 0 8px var(--alert); translate: -3px 0; } 60% { translate: 2px 0; } }
@@ -72,7 +80,11 @@
         <div class="title" aria-hidden="true">FILE DATABASE #4SKTD</div>
         <div class="ticks" aria-hidden="true">//</div>
         <div class="grid" role="group" aria-label="Folders"></div>
-        <div class="strip" aria-hidden="true"></div>
+        <div class="strip" aria-hidden="true"><svg viewBox="0 0 420 100" preserveAspectRatio="none">
+          <g fill="rgba(61,227,255,.35)"><rect x="40" y="58" width="8" height="42"/><rect x="52" y="44" width="8" height="56"/><rect x="64" y="66" width="8" height="34"/><rect x="200" y="30" width="8" height="70"/><rect x="212" y="48" width="8" height="52"/><rect x="330" y="52" width="8" height="48"/><rect x="342" y="38" width="8" height="62"/></g>
+          <g fill="rgba(255,160,64,.55)"><rect x="120" y="40" width="6" height="60"/><rect x="130" y="62" width="6" height="38"/><rect x="270" y="24" width="6" height="76"/><rect x="280" y="50" width="6" height="50"/></g>
+          <path d="M0 80 C 40 70, 70 30, 110 40 S 170 90, 220 60 S 300 10, 340 30 S 400 70, 420 50" fill="none" stroke="#ffa040" stroke-width="2"/>
+          <circle cx="220" cy="60" r="5" fill="none" stroke="#ffa040" stroke-width="2"/><circle cx="340" cy="30" r="4" fill="#3de3ff"/></svg></div>
         <div class="log" aria-live="polite" aria-label="Log">
           <p>SERVER ELECTION OK. BREAK EATEN BY A GRUE IF NULL. CTL-C FLUSH DATA COPIED ACK.</p>
           <p>SECTOR MAP LOADED. 12 FOLDERS. 3 ENCRYPTED.</p>
@@ -80,7 +92,9 @@
         </div>
 
         <div class="v-pop" id="file-menu">
-          <span class="flash" aria-hidden="true"></span>
+          <span class="tier" style="--n:3" aria-hidden="true"></span>
+          <span class="tier is-dotted" style="--n:2" aria-hidden="true"></span>
+          <span class="tier" style="--n:1" aria-hidden="true"></span>
           <div class="v-menu">
             <div class="v-head" aria-hidden="true"><b id="menu-folder">SECTOR_07</b><span id="menu-count">14 FILES</span></div>
             <div class="rows" role="menu" aria-labelledby="menu-folder">
@@ -110,7 +124,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. Light does the work: rows fill with it, folders rise on it, the menu is drawn out of a single line of it.</p>
+    <p>Read from the values this page runs on. The menu is built, not shown: three tiers rise off the floor one after another and the menu settles on top; the submenu is one tier more.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -118,7 +132,7 @@
   <script>
     // the folders on the plane
     const names = ['ARCHIVE_01', 'LEDGER_02', 'SIGNAL_03', 'ROSTER_04', 'NIGHT_05', 'ORBIT_06', 'SECTOR_07', 'VAULT_08', 'MIRROR_09', 'ECHO_10', 'RELAY_11', 'GHOST_12'];
-    document.querySelector('.grid').innerHTML = names.map((n, i) => `<div class="cell"><button class="folder" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu" aria-label="${n}" data-files="${[14, 9, 31, 6, 22, 3, 14, 40, 11, 8, 17, 2][i]}"></button><span aria-hidden="true">${n}</span></div>`).join('');
+    document.querySelector('.grid').innerHTML = names.map((n, i) => `<div class="cell"><button class="folder" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu" aria-label="${n}" data-files="${[14, 9, 31, 6, 22, 3, 14, 40, 11, 8, 17, 2][i]}"><i class="node a"></i><i class="node b"></i></button><span aria-hidden="true">${n}</span></div>`).join('');
   </script>
   <script src="week-06-sketch.js?v=2"></script>
   <script>
@@ -177,6 +191,6 @@
       if (location.hash === '#open') { const f = document.querySelectorAll('.folder')[6]; pop.style.transition = 'none'; open(f); pop.classList.add('is-settled'); const h = pop.querySelector('.has-sub'); h.classList.add('is-open'); }
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=1"></script>
+  <script src="week-06-vault-spec.js?v=2"></script>
 </body>
 </html>

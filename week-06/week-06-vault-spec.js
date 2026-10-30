@@ -40,8 +40,8 @@
       ['Padding', px(menu.paddingTop)],
       ['Glass', sw(menu.backgroundColor)],
       ['Edge', `1px, ${hex(menu.borderTopColor)}`],
-      ['Corners', `14px brackets, ${tok('--edge')} light`],
-      ['Behind it', 'blur 4px, inner glow 30px'],
+      ['Corners', `14px brackets, ${tok('--edge')} green`],
+      ['Inner glow', '30px'],
     ]],
     ['Item', [
       ['Height', px(el('item').offsetHeight)],
@@ -83,6 +83,7 @@
       ['Size', `${px(el('folder').offsetWidth)} × ${px(el('folder').offsetHeight)}`],
       ['Hover', `lifts ${tok('--lift')} off the plane`],
       ['Pressed', 'sinks to 4px'],
+      ['Lifted or open', 'two green corner nodes'],
       ['Open', 'filled with light, 34px glow'],
     ]],
     ['Submenu (nodes)', [
@@ -92,9 +93,13 @@
     ]],
     ['Motion', [
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
-      ['Menu opens', `${tok('--open-time')}: a line of light, then the panel`],
+      ['Menu opens', `${tok('--open-time')}, built in tiers`],
+      ['Tiers', `3, ${tok('--tier-gap')} apart, each 14px wider than the one above`],
+      ['Each tier rises', `${tok('--tier-time')}, ${tok('--tier-step')} after the one below`],
+      ['Menu settles', 'on top, after the third tier'],
+      ['Submenu', `one tier more, ${tok('--tier-gap')} above the menu`],
       ['Rows arrive', `${tok('--stagger')} apart`],
-      ['Menu closes', `${tok('--close-time')}, back to a line`],
+      ['Menu closes', `${tok('--close-time')}, the stack sinks at once`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];
