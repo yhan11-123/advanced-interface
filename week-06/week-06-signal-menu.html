@@ -215,7 +215,7 @@
       });
 
       // #open shows the sheet across, Services open and Process pointed at, for the set's thumbnail
-      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); sheet.querySelectorAll('.s-row')[1].classList.add('is-hover'); }
+      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); setTimeout(() => sheet.querySelectorAll('.s-row')[1].focus({ preventScroll: true }), ms('--wipe-time') + 120); }
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
