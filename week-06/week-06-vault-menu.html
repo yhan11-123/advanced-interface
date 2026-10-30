@@ -17,12 +17,13 @@
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
   :root { --w: 1200px; --h: 470px; --fit: 1; }
-  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #010a0c; }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); overflow: hidden; }
+  /* the game's screen fills the whole window: the dark floor of light spreads edge to edge, the menu at its middle */
+  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: radial-gradient(70% 80% at 50% 64%, #0a3a44, #03161b 58%, #010a0c); }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
   .stage > * { position: absolute; }
 
   /* ---------- the room: nothing but a dark floor of light, so the menu is all there is ---------- */
-  .play { inset: 0; background: radial-gradient(55% 60% at 50% 70%, #0a3a44, #03161b 60%, #010a0c); }
+  .play { inset: 0; }
 
   /* the prompt: all of the menu there is while it is shut */
   .prompt { left: 520px; top: 290px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
@@ -295,7 +296,7 @@
       const log = board.querySelector('.log'), dTitle = document.getElementById('d-title'), dDesc = document.getElementById('d-desc');
 
       // fit the 1200 × 520 frame to the window
-      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 470) * .96);
+      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 470) * .94);
       addEventListener('resize', fit); fit();
 
       // each box gets the layers it is built from: two corner nodes, a footprint, a dotted layer, an edge flash
@@ -323,7 +324,8 @@
         t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 4 * ms('--out-phase') + 120);
       };
       prompt.addEventListener('click', open);
-      stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play')) close(); });
+      // a click anywhere on the screen but the menu puts it away
+      document.querySelector('.hero').addEventListener('pointerdown', e => { if (isOpen() && !e.target.closest('.board, .sub, .prompt')) close(); });
 
       // the panel follows what you point at
       const show = t => { dTitle.textContent = t.querySelector('.t-label').textContent; dDesc.textContent = t.dataset.desc || ''; };
