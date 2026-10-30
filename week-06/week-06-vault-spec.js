@@ -37,7 +37,7 @@
 
   const cards = [
     ['Board', [
-      ['Leans back', tok('--board-tilt')],
+      ['View', 'straight on, no tilt'],
       ['Glass', 'dotted every 20px, 62% to 80%'],
       ['Edge', `1px, ${hex(cs('glass').borderTopColor)}`],
       ['Corners', `18px brackets, ${tok('--edge')}`],
@@ -66,15 +66,15 @@
     ]],
     ['States', [
       ['Enabled', `${sw(tile.color)} on 13% light`],
-      ['Hover', `lifts ${tok('--lift')}, fill ${hex(cs('hover').backgroundColor)}, 26px glow`],
+      ['Hover', `steps ${tok('--lift')} up and left, fill ${hex(cs('hover').backgroundColor)}, 26px glow`],
       ['Pressed', `lit through, ink ${hex(cs('press').color)}, sinks to 3px`],
-      ['Submenu open', 'lit through, stays lifted'],
+      ['Submenu open', 'lit through, stays stepped up'],
       ['Chosen', '2px hot outline, “EQUIPPED”'],
-      ['Unavailable', `${sw(cs('off').color)}, dashed outline, never lifts`],
+      ['Unavailable', `${sw(cs('off').color)}, dashed outline, never steps up`],
     ]],
     ['Submenu', [
       ['Form', 'a smaller board, stacked above the first'],
-      ['Stands', '70px above the board'],
+      ['Sits', 'above the board, over its row'],
       ['Its boxes', 'built the same way, in five steps'],
       ['Tiles', 'three, one chosen at a time'],
     ]],
@@ -88,8 +88,8 @@
     ['Motion · one box built', [
       ['1 · nodes', `two, opposite corners, 6px ${hex(tok('--node'))}`],
       ['2 · footprint', `+${tok('--phase')}, lines run out of the nodes, ${tok('--draw-time')}`],
-      ['3 · dotted layer', `+${2 * ms('--phase')}ms, rises to ${tok('--mid-z')}`],
-      ['4 · the box', `+${3 * ms('--phase')}ms, rises to ${tok('--rest')}, ${tok('--stack-time')}, edge flash`],
+      ['3 · dotted layer', `+${2 * ms('--phase')}ms, steps ${tok('--mid-z')} up and left`],
+      ['4 · the box', `+${3 * ms('--phase')}ms, steps ${tok('--rest')} up and left onto it, ${tok('--stack-time')}, edge flash`],
       ['Rise curve', tok('--stack-ease')],
       ['5 · its writing', `+${4.5 * ms('--phase')}ms, comes up 3px`],
     ]],

@@ -1,9 +1,8 @@
 /* Week 06, Set 1 · Vault: the field menu of a sci-fi salvage game, after a holographic file
-   database. The menu is a board of glass that fills the bottom half of the play screen; its items
-   are tiles laid out on it in sections, the way the reference lays out its folders.
+   database. The menu is a board of glass; its items are boxes laid out on it in sections.
    Shared by the two prototypes (the menu system, the menu in use). Every value the spec
    reports is set here, once, as a token; the pages and the spec read the same numbers.
-   The tone: light projected on dark glass. Tiles glow, lift off the glass, and are stacked on. */
+   The tone: light projected on dark glass, seen straight on. Boxes glow, and are built in stacked layers. */
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
 
 :root {
@@ -28,7 +27,6 @@
   --size: 16px; --track: .08em;
 
   /* the board and its tile */
-  --board-tilt: 30deg;       /* the board leans back, like the reference's sheet of glass */
   --tile-w: 188px; --tile-h: 56px; --tile-gap: 10px; --tile-pad: 14px;
   --icon: 26px; --icon-stroke: 1.5;
   --label-size: 17px; --track: .05em;
@@ -38,7 +36,7 @@
   /* motion */
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --hover-time: 220ms;
-  --lift: 14px;              /* a tile rises off the glass when pointed at */
+  --lift: 4px;               /* pointed at, a box steps up and to the left by this much */
   --open-time: 380ms;        /* the board: a line of light along the bottom, then the glass rises from it */
   --close-time: 240ms;       /* the glass folds back down into its line */
   /* the tiles are stacked onto the board, one layer at a time */
@@ -51,8 +49,8 @@
   --node: #5cffc0;           /* the corner nodes */
   --phase: 75ms;             /* one step of a box's build after the next */
   --draw-time: 200ms;        /* the footprint lines run out of the nodes */
-  --mid-z: 5px;              /* the dotted layer stands this high */
-  --rest: 10px;              /* the box rests this high, on top of its stack */
+  --mid-z: 3px;              /* the dotted layer sits this far up and left of the footprint */
+  --rest: 6px;               /* the box rests this far up and left: the stack shows below it */
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 
@@ -67,7 +65,7 @@
 /* a section: its label and a dotted rule, then its tiles in a grid */
 .t-sect { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 11px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); text-transform: uppercase; }
 .t-sect::after { content: ""; flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
-.t-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), var(--tile-w)); gap: var(--tile-gap); transform-style: preserve-3d; }
+.t-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), var(--tile-w)); gap: var(--tile-gap); }
 
 /* ---------- one tile, every configuration ---------- */
 /* a menu item is a plain box, wide and low: the icon at the left, the label beside it (a note under
@@ -75,7 +73,7 @@
 .tile { position: relative; display: block; width: var(--tile-w); height: var(--tile-h); margin: 0; padding: 0; border: 0; cursor: pointer; text-align: left; color: var(--ink);
   background: rgba(57, 213, 255, .13); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .4);
   font: 600 var(--label-size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase;
-  transform: translateZ(0); transform-style: preserve-3d;
+  transform: translate(0, 0);
   transition: transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
 .tile:focus-visible { outline: none; }
 .t-ico { position: absolute; left: var(--tile-pad); top: 50%; margin-top: calc(var(--icon) / -2); width: var(--icon); height: var(--icon); color: var(--ink-2); transition: color var(--hover-time); }
@@ -88,22 +86,22 @@
 .t-badge { position: absolute; right: 12px; top: 50%; margin-top: -10px; min-width: 22px; height: 20px; padding: 0 5px; border: 1px solid var(--alert); color: var(--alert); font: 400 13px/18px var(--mono); text-align: center; box-shadow: 0 0 8px rgba(255, 138, 107, .4); }
 .t-end, .t-more { position: absolute; right: 10px; width: 14px; height: 14px; color: var(--ink-3); transition: color var(--hover-time), translate var(--hover-time) var(--ease-out); }
 .t-end, .t-more { top: 50%; margin-top: -7px; right: 14px; }
-/* hover: the tile lifts off the glass and fills with light */
-.tile:hover, .tile:focus-visible, .tile.is-hover { transform: translateZ(var(--lift)); background: rgba(57, 213, 255, .3); color: var(--cyan-hi);
+/* hover: the box steps up and left, off its stack, and fills with light */
+.tile:hover, .tile:focus-visible, .tile.is-hover { transform: translate(calc(var(--lift) * -1), calc(var(--lift) * -1)); background: rgba(57, 213, 255, .3); color: var(--cyan-hi);
   box-shadow: inset 0 0 0 1px var(--cyan), 0 0 26px rgba(57, 213, 255, .45); }
 .tile:hover .t-ico, .tile:focus-visible .t-ico, .tile.is-hover .t-ico, .tile:hover .t-end, .tile.is-hover .t-end, .tile:hover .t-more, .tile.is-hover .t-more { color: var(--cyan-hi); }
 .tile:hover .t-key, .tile:focus-visible .t-key, .tile.is-hover .t-key { color: var(--cyan); border-color: var(--cyan); }
 .tile:hover .t-more, .tile.is-hover .t-more { translate: 3px 0; }
 /* pressed, or holding its submenu open: lit right through, like the open folder in the reference */
 .tile:active, .tile.is-press, .tile[aria-expanded="true"] { background: linear-gradient(#bff6ff, #39d5ff); color: #04232b; box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
-.tile:active, .tile.is-press { transform: translateZ(3px); }
-.tile[aria-expanded="true"] { transform: translateZ(var(--lift)); }
+.tile:active, .tile.is-press { transform: translate(1px, 1px); }
+.tile[aria-expanded="true"] { transform: translate(calc(var(--lift) * -1), calc(var(--lift) * -1)); }
 .tile:active .t-ico, .tile.is-press .t-ico, .tile[aria-expanded="true"] .t-ico, .tile:active .t-key, .tile.is-press .t-key, .tile[aria-expanded="true"] .t-more, .tile:active .t-more, .tile.is-press .t-more, .tile:active .t-note, .tile.is-press .t-note, .tile[aria-expanded="true"] .t-note, .tile:active .t-end, .tile.is-press .t-end { color: #04232b; border-color: #04232b; }
 /* chosen, in a submenu */
 .tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .4); }
 .tile[aria-checked="true"] .t-note { color: var(--cyan-hi); }
-/* unavailable: kept in place, an outline of dashes, never lifts */
-.tile[aria-disabled="true"] { cursor: default; color: var(--ink-off); background: rgba(57, 213, 255, .03); box-shadow: none; outline: 1px dashed rgba(95, 179, 196, .35); outline-offset: -1px; transform: translateZ(0); }
+/* unavailable: kept in place, an outline of dashes, never steps up */
+.tile[aria-disabled="true"] { cursor: default; color: var(--ink-off); background: rgba(57, 213, 255, .03); box-shadow: none; outline: 1px dashed rgba(95, 179, 196, .35); outline-offset: -1px; transform: translate(0, 0); }
 .tile[aria-disabled="true"] .t-ico, .tile[aria-disabled="true"] .t-note, .tile[aria-disabled="true"] .t-key { color: var(--ink-off); border-color: rgba(95, 179, 196, .2); }
 .tile.is-no { animation: deny 360ms var(--ease-out); }
 @keyframes deny { 30% { outline-color: var(--alert); color: var(--alert); translate: -4px 0; } 60% { translate: 3px 0; } }

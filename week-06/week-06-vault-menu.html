@@ -5,28 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=7" />
+  <link rel="stylesheet" href="week-06-vault.css?v=8" />
   <style>
   /* In use: the field menu of VAULT, a sci-fi salvage game, on its own. Shut, it is a MENU prompt.
-     Opened (the prompt, or Tab), a board of glass rises out of a line of light, leaning back like the
-     reference's sheet of glass. Its items are wide, low boxes in sections, each built in steps like
-     stacked frames. Point at a box and it lifts and fills with light; press it and it lights right
+     Opened (the prompt, or Tab), a board of glass rises out of a line of light, seen straight on. Its items are wide, low boxes in sections, each built in steps like
+     stacked frames. Point at a box and it steps up and fills with light; press it and it lights right
      through. Gear opens a submenu: a second, smaller board stacked above the first. Esc, Resume or a
      click outside takes it all down again, right to left, and folds the glass back into its line. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
-  :root { --w: 1200px; --h: 520px; --fit: 1; }
+  :root { --w: 1200px; --h: 470px; --fit: 1; }
   .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #010a0c; }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1500px; perspective-origin: 50% 40%; overflow: hidden; }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); overflow: hidden; }
   .stage > * { position: absolute; }
 
   /* ---------- the room: nothing but a dark floor of light, so the menu is all there is ---------- */
   .play { inset: 0; background: radial-gradient(55% 60% at 50% 70%, #0a3a44, #03161b 60%, #010a0c); }
 
   /* the prompt: all of the menu there is while it is shut */
-  .prompt { left: 520px; top: 340px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
+  .prompt { left: 520px; top: 290px; width: 160px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; cursor: pointer;
     background: rgba(57, 213, 255, .1); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); color: var(--ink); font: 600 15px/1 var(--font); letter-spacing: .2em;
     transition: background-color var(--hover-time), box-shadow var(--hover-time), color var(--hover-time), opacity 160ms; }
   .prompt kbd { padding: 3px 6px; border: 1px solid rgba(95, 179, 196, .5); font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); }
@@ -35,7 +34,7 @@
   .stage.is-menu .prompt { opacity: 0; pointer-events: none; }
 
   /* ---------- the board: the bottom half of the screen ---------- */
-  .board { left: 30px; top: 250px; width: 1140px; height: 238px; transform-style: preserve-3d; transform: rotateX(var(--board-tilt)); transform-origin: 50% 100%; visibility: hidden;
+  .board { left: 30px; top: 190px; width: 1140px; height: 238px; visibility: hidden;
     transition: visibility 0s calc(var(--close-time) + 160ms); }
   .stage.is-menu .board { visibility: visible; transition: visibility 0s; }
   /* the line of light along its foot, then the glass rising out of it */
@@ -51,8 +50,7 @@
   .board-head { position: absolute; left: 28px; right: 28px; top: 16px; display: flex; align-items: baseline; gap: 18px; font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }
   .board-head b { font: 700 18px/1 var(--font); letter-spacing: .16em; color: var(--cyan); text-shadow: 0 0 10px rgba(57, 213, 255, .6); }
   .board-head span:last-child { margin-left: auto; }
-  .sections { position: absolute; left: 28px; top: 54px; display: flex; gap: var(--section-gap); transform-style: preserve-3d; }
-  .section { transform-style: preserve-3d; }
+  .sections { position: absolute; left: 28px; top: 54px; display: flex; gap: var(--section-gap); }
 
   /* ---------- each box is built in steps, like the reference's stacked frames ----------
      1 two corner nodes land on the glass
@@ -63,21 +61,21 @@
      Taking it down runs the same steps backwards, faster. Boxes are built left to right, and taken
      down right to left. */
   @property --draw { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
-  .slot { display: block; position: relative; transform-style: preserve-3d; }
+  .slot { display: block; position: relative; }
   .sections .slot { --d: calc(var(--open-time) + var(--k) * var(--stack-step)); --dl: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
   .sub .slot { --d: calc(80ms + var(--k) * var(--stack-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
   .b-dot, .b-foot, .b-mid, .b-flash { position: absolute; pointer-events: none; }
   .b-dot { width: 6px; height: 6px; background: var(--node); box-shadow: 0 0 8px var(--node); opacity: 0; scale: 0;
     transition: opacity 80ms linear calc(var(--dl) + 180ms), scale 80ms linear calc(var(--dl) + 180ms); }
-  .b-dot.a { left: -9px; top: -9px; } .b-dot.b { right: -9px; bottom: -9px; }
-  .b-foot { inset: -6px; --c: rgba(57, 213, 255, .5);
+  .b-dot.a { left: -3px; top: -3px; } .b-dot.b { right: -3px; bottom: -3px; }
+  .b-foot { inset: 0; --c: rgba(57, 213, 255, .5);
     background: linear-gradient(var(--c), var(--c)) 0 0 / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 0 0 / 1px var(--draw) no-repeat,
                 linear-gradient(var(--c), var(--c)) 100% 100% / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 1px var(--draw) no-repeat;
     transition: --draw 120ms cubic-bezier(.6, 0, .9, .4) calc(var(--dl) + 100ms); }
-  .b-mid { inset: -3px; border: 1px dotted rgba(57, 213, 255, .55); opacity: 0; translate: 0 0 0;
+  .b-mid { inset: 0; border: 1px dotted rgba(57, 213, 255, .6); opacity: 0; translate: 0 0;
     transition: translate 140ms ease-in calc(var(--dl) + 60ms), opacity 120ms linear calc(var(--dl) + 60ms); }
-  .b-flash { inset: 0; translate: 0 0 var(--rest); box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .8); opacity: 0; }
-  .slot > .tile { opacity: 0; translate: 0 0 0;
+  .b-flash { inset: 0; translate: calc(var(--rest) * -1) calc(var(--rest) * -1); box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .8); opacity: 0; }
+  .slot > .tile { opacity: 0; translate: 0 0;
     transition: translate 160ms cubic-bezier(.5, 0, .9, .5) var(--dl), opacity 140ms linear var(--dl),
       transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
   .slot > .tile > * { opacity: 0; translate: 0 3px; transition: opacity 80ms linear var(--dl), translate 80ms linear var(--dl); }
@@ -86,9 +84,9 @@
   .stage.is-menu:not(.is-leaving) .sections .slot, .sub.is-open .slot { --on: 1; }
   .stage.is-menu:not(.is-leaving) .sections .b-dot, .sub.is-open .b-dot { opacity: .85; scale: 1; transition: opacity 90ms linear var(--d), scale 160ms var(--stack-ease) var(--d); }
   .stage.is-menu:not(.is-leaving) .sections .b-foot, .sub.is-open .b-foot { --draw: 100%; transition: --draw var(--draw-time) var(--ease-out) calc(var(--d) + var(--phase)); }
-  .stage.is-menu:not(.is-leaving) .sections .b-mid, .sub.is-open .b-mid { opacity: 1; translate: 0 0 var(--mid-z);
+  .stage.is-menu:not(.is-leaving) .sections .b-mid, .sub.is-open .b-mid { opacity: 1; translate: calc(var(--mid-z) * -1) calc(var(--mid-z) * -1);
     transition: translate 240ms var(--ease-out) calc(var(--d) + 2 * var(--phase)), opacity 120ms linear calc(var(--d) + 2 * var(--phase)); }
-  .stage.is-menu:not(.is-leaving) .sections .slot > .tile, .sub.is-open .slot > .tile { opacity: 1; translate: 0 0 var(--rest);
+  .stage.is-menu:not(.is-leaving) .sections .slot > .tile, .sub.is-open .slot > .tile { opacity: 1; translate: calc(var(--rest) * -1) calc(var(--rest) * -1);
     transition: translate var(--stack-time) var(--stack-ease) calc(var(--d) + 3 * var(--phase)), opacity 160ms linear calc(var(--d) + 3 * var(--phase)),
       transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
   .stage.is-menu:not(.is-leaving) .sections .b-flash, .sub.is-open .b-flash { animation: arrive var(--stack-time) linear both; animation-delay: calc(var(--d) + 3 * var(--phase)); }
@@ -109,7 +107,7 @@
   @keyframes caret { 50% { opacity: 0; } }
 
   /* ---------- the submenu: a smaller board, stacked above the first ---------- */
-  .sub { position: absolute; left: 330px; top: -110px; width: 616px; padding: 14px 16px 16px; transform-style: preserve-3d; transform: translateZ(70px); visibility: hidden;
+  .sub { position: absolute; left: 330px; top: -132px; width: 616px; padding: 14px 16px 16px; visibility: hidden;
     transition: visibility 0s 340ms; }
   .sub.is-open { visibility: visible; transition: visibility 0s; }
   .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear 220ms; }
@@ -181,7 +179,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The menu is a board of glass leaning back; its items are wide, low boxes in sections, each built in steps like stacked frames.</p>
+    <p>Read from the values this page runs on. The menu is a board of glass, seen straight on; its items are wide, low boxes in sections, each built in steps like stacked frames.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -195,7 +193,7 @@
       const log = board.querySelector('.log'), dTitle = document.getElementById('d-title'), dDesc = document.getElementById('d-desc');
 
       // fit the 1200 × 520 frame to the window
-      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 520) * .96);
+      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 470) * .96);
       addEventListener('resize', fit); fit();
 
       // each box gets the layers it is built from: two corner nodes, a footprint, a dotted layer, an edge flash
@@ -299,6 +297,6 @@
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=5"></script>
+  <script src="week-06-vault-spec.js?v=6"></script>
 </body>
 </html>
