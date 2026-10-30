@@ -5,113 +5,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 2 · Rail · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-rail.css?v=1" />
+  <link rel="stylesheet" href="week-06-rail.css?v=3" />
   <style>
-  /* In use: the web app of a wallet. Its navigation is a rail down the left edge, green at the top
-     and blue at the foot. Halfway down, a scoop is cut out of the rail's right side and the round
-     menu button sits in it. Pressed, the button's three lines turn to a cross, the scoop opens a
-     little wider, and the menu blooms out of the scoop to the right on a spring, its rows coming in
-     one after another. Currency opens a submenu beside its row. Esc, the button or a click on the
-     page draws it back into the scoop. */
+  /* In use: the web app of a wallet, in the Signal style. Its navigation is an orange rail down the
+     left edge of a dark, grainy page. Halfway down, a scoop is cut out of the rail's right side and
+     the round menu button sits in it. Pressed, the button's three lines turn to a cross, the scoop
+     opens a little wider, and the menu wipes out of the scoop to the right: an orange sheet, its
+     numbered rows coming up one after another. Pointing at a row sweeps a black bar under it, its
+     right end cut on a slant, while the label scrambles and settles. Currency opens its own sheet
+     beside its row. Esc, the button or a click on the page wipes it back into the scoop. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: var(--page); font: 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  body { background: #050505; font: 13px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
   :root { --w: 1200px; --h: 760px; --fit: 1; }
-  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #d5dad9; }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); overflow: hidden; border-radius: 18px; background: var(--page);
-    box-shadow: 0 30px 60px -30px rgba(30, 60, 60, .45); }
+  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #050505; }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); overflow: hidden; background: var(--night); }
   .stage > * { position: absolute; }
+  .grain { inset: 0; opacity: .5; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .lines { inset: 0; pointer-events: none;
+    background: linear-gradient(var(--rule-dark), var(--rule-dark)) 0 70px / 100% 1px no-repeat, linear-gradient(var(--rule-dark), var(--rule-dark)) 0 calc(100% - 40px) / 100% 1px no-repeat,
+                linear-gradient(var(--rule-dark), var(--rule-dark)) calc(100% - 24px) 0 / 1px 100% no-repeat; }
 
   /* ---------- the rail ---------- */
-  @property --cut { syntax: "<length>"; inherits: true; initial-value: 54px; }
-  .rail { left: 16px; top: 16px; bottom: 16px; width: var(--rail-w); border-radius: var(--rail-r); --cut: var(--scoop);
-    background: linear-gradient(180deg, var(--g1), var(--g2));
-    -webkit-mask: radial-gradient(circle var(--cut) at 100% 50%, transparent calc(var(--cut) - 1px), #000 var(--cut));
-    mask: radial-gradient(circle var(--cut) at 100% 50%, transparent calc(var(--cut) - 1px), #000 var(--cut));
-    transition: --cut var(--close-time) ease; }
-  .stage.is-open .rail { --cut: calc(var(--scoop) + 6px); transition: --cut var(--open-time) var(--spring); }
-  .rail .logo { position: absolute; left: 50%; top: 26px; width: 30px; height: 30px; translate: -50% 0; border-radius: 10px; background: rgba(255, 255, 255, .9); }
-  .rail .logo::after { content: ""; position: absolute; inset: 8px; border-radius: 4px; background: linear-gradient(135deg, var(--g1), var(--g2)); }
-  .tabs { position: absolute; left: 0; right: 0; display: grid; justify-items: center; gap: 14px; }
-  .tabs.top { top: 110px; } .tabs.bot { bottom: 110px; }
-  .tab { position: relative; width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; color: #fff; opacity: .85; transition: background-color var(--hover-time), opacity var(--hover-time); }
-  .tab svg { width: 22px; height: 22px; }
-  .tab:hover { background: rgba(255, 255, 255, .16); opacity: 1; }
-  .tab.is-on { background: rgba(255, 255, 255, .26); opacity: 1; }
-  .rail .me { position: absolute; left: 50%; bottom: 24px; width: 36px; height: 36px; translate: -50% 0; border-radius: 50%; background: #fff; color: var(--deep); font: 700 13px/36px var(--font); text-align: center; }
+  @property --cut-r { syntax: "<length>"; inherits: true; initial-value: 54px; }
+  .rail { left: 0; top: 0; bottom: 0; width: var(--rail-w); --cut-r: var(--scoop); background: var(--orange); color: var(--ink);
+    -webkit-mask: radial-gradient(circle var(--cut-r) at 100% 50%, transparent calc(var(--cut-r) - 1px), #000 var(--cut-r));
+    mask: radial-gradient(circle var(--cut-r) at 100% 50%, transparent calc(var(--cut-r) - 1px), #000 var(--cut-r));
+    transition: --cut-r var(--close-time) var(--wipe-ease) 80ms; }
+  .stage.is-open .rail { --cut-r: calc(var(--scoop) + 6px); transition: --cut-r var(--wipe-time) var(--wipe-ease); }
+  .rail .logo { position: absolute; left: 0; right: 0; top: 26px; text-align: center; font: 700 11px/1 var(--font); letter-spacing: .14em; }
+  .tabs { position: absolute; left: 0; right: 0; display: grid; justify-items: center; gap: 10px; }
+  .tabs.top { top: 96px; } .tabs.bot { bottom: 96px; }
+  .tab { position: relative; width: 52px; height: 46px; display: grid; place-items: center; color: var(--ink); transition: background-color var(--hover-time), color var(--hover-time); }
+  .tab svg { width: 20px; height: 20px; }
+  .tab:hover { background: rgba(11, 11, 11, .12); }
+  .tab.is-on { background: var(--ink); color: var(--orange); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+  .rail .me { position: absolute; left: 0; right: 0; bottom: 24px; text-align: center; font: 700 11px/1 var(--font); letter-spacing: .1em; }
 
   /* the button sits in the scoop, its centre on the rail's edge */
-  .fab-at { left: calc(16px + var(--rail-w) - var(--fab) / 2); top: calc(var(--h) / 2 - var(--fab) / 2); z-index: 4; }
+  .fab-at { left: calc(var(--rail-w) - var(--fab) / 2); top: calc(var(--h) / 2 - var(--fab) / 2); z-index: 6; }
 
   /* ---------- the page ---------- */
-  .main { left: 150px; right: 40px; top: 36px; bottom: 36px; color: #2b3e40; }
-  .main h1 { margin: 0; font: 700 26px/1.2 var(--font); color: #233638; }
-  .main .sub-h { margin: 4px 0 26px; color: #6b7f80; }
-  .cards { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 18px; }
-  .card { padding: 20px 22px; border-radius: 20px; background: var(--card); box-shadow: 0 1px 0 rgba(0,0,0,.03), 0 10px 24px -18px rgba(40, 80, 90, .4); }
-  .card small { display: block; color: #6b7f80; font-weight: 600; letter-spacing: .04em; }
-  .card b { display: block; margin-top: 10px; font: 700 30px/1.1 var(--font); color: #213436; font-variant-numeric: tabular-nums; }
-  .card.hi { background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; }
-  .card.hi small { color: rgba(255,255,255,.8); } .card.hi b { color: #fff; font-size: 36px; }
-  .list { margin-top: 22px; border-radius: 20px; background: var(--card); padding: 8px 22px; box-shadow: 0 10px 24px -18px rgba(40, 80, 90, .4); }
-  .list h2 { margin: 12px 0 8px; font: 700 15px/1 var(--font); color: #233638; }
-  .row { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid #e3e8e7; }
-  .row i { width: 38px; height: 38px; border-radius: 12px; background: #e3ece8; }
-  .row span small { display: block; color: #7a8c8d; margin-top: 2px; }
+  .topbar { left: calc(var(--rail-w) + 40px); right: 48px; top: 0; height: 70px; display: flex; align-items: center; justify-content: space-between; font: 500 11px/1 var(--font); letter-spacing: .16em; color: var(--dim); }
+  .topbar b { color: var(--paper); font-weight: 700; }
+  .main { left: calc(var(--rail-w) + 40px); right: 48px; top: 100px; bottom: 60px; color: var(--paper); }
+  .main h1 { margin: 0; font: 700 30px/1.15 var(--font); text-transform: uppercase; }
+  .main .sub-h { margin: 8px 0 28px; color: var(--dim); font-size: 12px; letter-spacing: .1em; }
+  .cards { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; }
+  .card { padding: 18px 20px; border: 1px solid var(--rule-dark); background: var(--panel); }
+  .card small { display: block; color: var(--dim); font-size: 11px; letter-spacing: .14em; }
+  .card b { display: block; margin-top: 12px; font: 700 28px/1.1 var(--font); font-variant-numeric: tabular-nums; }
+  .card.hi { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .card.hi small { color: rgba(11,11,11,.55); } .card.hi b { font-size: 34px; }
+  .list { margin-top: 18px; border: 1px solid var(--rule-dark); background: var(--panel); padding: 6px 20px; }
+  .list h2 { margin: 12px 0 8px; font: 700 11px/1 var(--font); letter-spacing: .16em; color: var(--dim); }
+  .row { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--rule-dark); text-transform: uppercase; letter-spacing: .04em; }
+  .row i { width: 34px; height: 34px; border: 1px solid var(--rule-dark); }
+  .row span small { display: block; color: var(--dim); margin-top: 3px; font-size: 11px; }
   .row b { font-weight: 700; font-variant-numeric: tabular-nums; }
-  .toast { left: 50%; top: 22px; translate: -50% -10px; padding: 10px 16px; border-radius: 12px; background: #233638; color: #fff; font-weight: 600; opacity: 0; pointer-events: none; z-index: 6;
-    transition: opacity 180ms, translate 240ms var(--spring); }
+  .toast { left: 50%; bottom: 60px; translate: -50% 8px; padding: 9px 14px; background: var(--orange); color: var(--ink); font: 500 11px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; opacity: 0; pointer-events: none; z-index: 7;
+    transition: opacity 160ms, translate 220ms var(--bar-ease); }
   .toast.is-on { opacity: 1; translate: -50% 0; }
 
-  /* ---------- the menu: it blooms out of the scoop ---------- */
-  .menu-at { left: calc(16px + var(--rail-w) + var(--scoop) + var(--gap-out)); top: 50%; translate: 0 -50%; z-index: 5; visibility: hidden;
-    transition: visibility 0s var(--close-time); }
+  /* ---------- the menu: it wipes out of the scoop, left to right ---------- */
+  .menu-at { left: calc(var(--rail-w) + var(--scoop) + var(--gap-out)); top: 50%; translate: 0 -50%; z-index: 5; visibility: hidden;
+    transition: visibility 0s calc(var(--close-time) + 80ms); }
   .stage.is-open .menu-at { visibility: visible; transition: visibility 0s; }
-  /* grows from the button's centre: that point is --scoop + --gap-out to the left of the menu */
-  .menu-at > .r-menu { transform-origin: calc(-1 * (var(--scoop) + var(--gap-out))) 50%; scale: .2; opacity: 0;
-    transition: scale var(--close-time) ease-in, opacity var(--close-time) ease-in; }
-  .stage.is-open .menu-at > .r-menu { scale: 1; opacity: 1; transition: scale var(--open-time) var(--spring), opacity 160ms ease; }
-  .rows > * { opacity: 0; translate: -8px 0; transition: opacity 100ms, translate 100ms; }
-  .stage.is-open .rows > * { opacity: 1; translate: 0 0; transition: opacity 220ms ease, translate 320ms var(--spring); transition-delay: calc(90ms + var(--i) * var(--stagger)); }
+  .menu-at > .r-menu { clip-path: inset(0 100% 0 0); transition: clip-path var(--close-time) var(--wipe-ease) 80ms; }
+  .stage.is-open .menu-at > .r-menu { clip-path: inset(-2px -400px -400px -2px); transition: clip-path var(--wipe-time) var(--wipe-ease); }
+  /* rows come up one after another once the sheet is across; they go first on the way out */
+  .r-menu > .r-head, .rows > * { opacity: 0; translate: 10px 0; transition: opacity 90ms, translate 90ms; }
+  .stage.is-open .r-menu > .r-head, .stage.is-open .rows > * { opacity: 1; translate: 0 0;
+    transition: opacity var(--row-time) ease, translate var(--row-time) var(--bar-ease); transition-delay: calc(var(--wipe-time) * .6 + var(--i, 0) * var(--row-step)); }
   .has-sub { position: relative; }
-  .r-menu.submenu { position: absolute; left: calc(100% + var(--gap-out)); bottom: -8px; width: 140px; transform-origin: calc(-1 * var(--gap-out)) 100%;
-    scale: .6; opacity: 0; visibility: hidden; transition: scale 160ms ease-in, opacity 140ms, visibility 0s 160ms; }
-  .has-sub.is-open > .submenu { scale: 1; opacity: 1; visibility: visible; transition: scale 340ms var(--spring), opacity 140ms, visibility 0s; }
-  .r-item.is-no { animation: no 360ms ease; }
+  /* the submenu is its own sheet beside its row, wiping out from the row's edge */
+  .r-menu.submenu { position: absolute; left: calc(100% + 6px); bottom: -1px; width: 150px; visibility: hidden; clip-path: inset(0 100% 0 0);
+    transition: clip-path 160ms var(--wipe-ease), visibility 0s 160ms; }
+  .has-sub.is-open > .submenu { visibility: visible; clip-path: inset(0 0 0 0); transition: clip-path 220ms var(--wipe-ease), visibility 0s; }
+  .submenu .r-item { opacity: 0; transition: opacity 100ms, color var(--hover-time); }
+  .has-sub.is-open > .submenu .r-item { opacity: 1; transition: opacity 180ms calc(100ms + var(--j) * 40ms), color var(--hover-time); }
+  .r-item.is-no { animation: no 320ms ease; }
   @keyframes no { 25% { translate: -4px 0; } 50% { translate: 3px 0; } 75% { translate: -2px 0; } }
 
   .stage.is-still *, .stage.is-still *::before { transition: none !important; }
-  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(40, 40, 40, .8); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
   @media (prefers-reduced-motion: reduce) { .stage *, .stage *::before { transition-duration: 1ms !important; transition-delay: 0s !important; } }
   </style>
 </head>
 <body>
   <section class="hero">
     <div class="stage">
+      <div class="grain" aria-hidden="true"></div>
+      <div class="lines" aria-hidden="true"></div>
       <nav class="rail" aria-label="Main">
-        <span class="logo" aria-hidden="true"></span>
+        <span class="logo" aria-hidden="true">LDGR</span>
         <div class="tabs top">
-          <a class="tab is-on" aria-label="Overview"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M3 15a8 8 0 1 1 16 0M11 15l4-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          <a class="tab" aria-label="Cards"><svg viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="5" width="16" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.6"/></svg></a>
+          <a class="tab is-on" aria-label="Overview"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M3 15a8 8 0 1 1 16 0M11 15l4-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></svg></a>
+          <a class="tab" aria-label="Cards"><svg viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="5" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.6"/></svg></a>
         </div>
         <div class="tabs bot">
-          <a class="tab" aria-label="Exchange"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M14.5 6.5C14 5.6 12.8 5 11.3 5 9.3 5 8 6 8 7.4c0 3.4 7 1.9 7 5.6 0 1.5-1.4 2.6-3.6 2.6-1.6 0-2.9-.6-3.4-1.6M11 3v2M11 15.6V18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a>
-          <a class="tab" aria-label="Settings"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M4 7h9M17 7h1M4 15h3M11 15h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+          <a class="tab" aria-label="Exchange"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M4 8h13l-3-3M18 14H5l3 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
+          <a class="tab" aria-label="Settings"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M4 7h9M17 7h1M4 15h3M11 15h7" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="5" width="4" height="4" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="7" y="13" width="4" height="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a>
         </div>
-        <span class="me" aria-hidden="true">M</span>
+        <span class="me" aria-hidden="true">M.K</span>
       </nav>
+      <div class="topbar" aria-hidden="true"><span><b>LEDGER</b> / OVERVIEW</span><span>THU 29 OCT · 09:41</span></div>
 
       <div class="main">
-        <h1>Good morning, Mina</h1>
-        <p class="sub-h">Thursday, 29 October</p>
+        <h1>Good morning, Mina.</h1>
+        <p class="sub-h">ACCOUNT ••42 · ALL CLEAR</p>
         <div class="cards">
-          <div class="card hi"><small>Balance</small><b id="bal">$12,480.20</b></div>
-          <div class="card"><small>In this month</small><b id="in">$4,210</b></div>
-          <div class="card"><small>Out this month</small><b id="out">$2,936</b></div>
+          <div class="card hi"><small>BALANCE</small><b id="bal">$12,480.20</b></div>
+          <div class="card"><small>IN · OCT</small><b id="in">$4,210</b></div>
+          <div class="card"><small>OUT · OCT</small><b id="out">$2,936</b></div>
         </div>
         <div class="list">
-          <h2>Recent</h2>
+          <h2>RECENT</h2>
           <div class="row"><i></i><span>Blue Bottle Coffee<small>Today · Card ••42</small></span><b>−$6.50</b></div>
           <div class="row"><i></i><span>Rent, October<small>Yesterday · Transfer</small></span><b>−$1,850.00</b></div>
           <div class="row"><i></i><span>Studio payout<small>Mon · Deposit</small></span><b>+$2,400.00</b></div>
@@ -123,21 +134,21 @@
 
       <div class="menu-at">
         <div class="r-menu" role="menu" aria-label="Wallet" id="wallet">
+          <div class="r-head" aria-hidden="true"><span>WALLET</span><span>ESC</span></div>
           <div class="rows">
-            <button class="r-item" role="menuitem" style="--i:0" data-key="t" data-say="Transfer: choose who to pay"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 6h11M11 3l3 3-3 3M15 12H4M7 9l-3 3 3 3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="r-label">Transfer</span><kbd class="r-key">⌘T</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:1" data-key="p" data-say="Pay bills: 2 due this week"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="4" width="14" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M2 8h14" stroke="currentColor"/></svg><span class="r-label">Pay bills</span><kbd class="r-key">⌘P</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:2" aria-disabled="true" data-say="Freeze card is off while a transfer is pending"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v14M3 5l12 8M15 5 3 13" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="r-label">Freeze card</span><kbd class="r-key">⌘F</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:3" data-key="s" data-say="Statements: October is ready"><span class="r-ico"></span><span class="r-label">Statements</span><kbd class="r-key">⌘S</kbd></button>
-            <div class="r-rule" role="separator" style="--i:4"></div>
+            <button class="r-item" role="menuitem" style="--i:0" data-key="t" data-say="Transfer: choose who to pay"><span class="r-num">01</span><span class="r-label">Transfer</span><kbd class="r-key">⌘T</kbd></button>
+            <button class="r-item" role="menuitem" style="--i:1" data-key="p" data-say="Pay bills: 2 due this week"><span class="r-num">02</span><span class="r-label">Pay bills</span><kbd class="r-key">⌘P</kbd></button>
+            <button class="r-item" role="menuitem" style="--i:2" aria-disabled="true" data-say="Freeze card is off while a transfer is pending"><span class="r-num">03</span><span class="r-label">Freeze card</span><kbd class="r-key">⌘F</kbd></button>
+            <button class="r-item" role="menuitem" style="--i:3" data-key="s" data-say="Statements: October is ready"><span class="r-num">04</span><span class="r-label">Statements</span><kbd class="r-key">⌘S</kbd></button>
             <div class="r-sect" aria-hidden="true" style="--i:5">Account</div>
-            <button class="r-item" role="menuitem" style="--i:6" data-say="3 new alerts"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M5 12V8a4 4 0 0 1 8 0v4l1.5 2h-11zM7.5 16h3" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="r-label">Alerts</span><span class="r-badge" aria-label="3 new">3</span></button>
-            <button class="r-item" role="menuitem" style="--i:7" data-say="Help centre opens in a new tab"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor"/><path d="M7 7a2 2 0 1 1 2 2v2M9 13.5v.5" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="r-label">Help centre</span><svg class="r-end" viewBox="0 0 18 18" aria-hidden="true"><path d="M7 4h7v7M14 4l-9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+            <button class="r-item" role="menuitem" style="--i:6" data-say="3 new alerts"><span class="r-num">05</span><span class="r-label">Alerts</span><span class="r-badge" aria-label="3 new">03</span></button>
+            <button class="r-item" role="menuitem" style="--i:7" data-say="Help centre opens in a new tab"><svg class="r-ico r-num" viewBox="0 0 15 15" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" fill="none" stroke="currentColor"/><path d="M6 6a1.5 1.5 0 1 1 1.5 1.5V9M7.5 10.8v.4" fill="none" stroke="currentColor"/></svg><span class="r-label">Help centre</span><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
             <div class="has-sub" style="--i:8">
-              <button class="r-item" role="menuitem" aria-haspopup="menu" aria-expanded="false"><svg class="r-ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor"/><path d="M11 6.5c-.5-.7-1.2-1-2-1-1.2 0-2 .7-2 1.6 0 2.2 4 1.2 4 3.6 0 1-.9 1.8-2.1 1.8-.9 0-1.6-.4-2-1M9 4v1.5M9 12.5V14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span class="r-label">Currency</span><svg class="r-end" viewBox="0 0 18 18" aria-hidden="true"><path d="M7 4l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="r-item" role="menuitem" aria-haspopup="menu" aria-expanded="false"><span class="r-num">06</span><span class="r-label">Currency</span><span class="r-key" aria-hidden="true">&gt;</span></button>
               <div class="r-menu submenu" role="menu" aria-label="Currency">
-                <button class="r-item" role="menuitemradio" aria-checked="true" data-cur="USD"><span class="r-tick">✓</span><span class="r-label">USD</span></button>
-                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="EUR"><span class="r-tick">✓</span><span class="r-label">EUR</span></button>
-                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="KRW"><span class="r-tick">✓</span><span class="r-label">KRW</span></button>
+                <button class="r-item" role="menuitemradio" aria-checked="true" data-cur="USD" style="--j:0"><span class="r-tick">●</span><span class="r-label">USD</span></button>
+                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="EUR" style="--j:1"><span class="r-tick">●</span><span class="r-label">EUR</span></button>
+                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="KRW" style="--j:2"><span class="r-tick">●</span><span class="r-label">KRW</span></button>
               </div>
             </div>
           </div>
@@ -150,7 +161,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The rail stands where the phone's tab bar lay; the menu blooms out of the scoop in its side.</p>
+    <p>Read from the values this page runs on. The rail stands where the phone's tab bar lay; the menu wipes out of the scoop in its side, and every row is pointed at with a black bar.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -161,13 +172,29 @@
       const menu = document.getElementById('wallet'), hs = menu.querySelector('.has-sub'), hsBtn = hs.querySelector('.r-item');
       const own = [...menu.querySelectorAll('.rows > .r-item, .rows > .has-sub > .r-item')], subs = [...hs.querySelectorAll('.submenu .r-item')];
       const toast = document.querySelector('.toast'), ms = n => parseFloat(getComputedStyle(root).getPropertyValue(n));
-      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 760) * .96);
+      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 760));
       addEventListener('resize', fit); fit();
+
+      // the label scrambles, then settles into its word, left to right
+      const glyphs = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/%';
+      const scramble = row => {
+        if (row.getAttribute('aria-disabled') === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const l = row.querySelector('.r-label'), word = l.dataset.word || (l.dataset.word = l.textContent), time = ms('--scramble-time'), t0 = performance.now();
+        clearInterval(l._iv); clearTimeout(l._to);
+        l._iv = setInterval(() => { const k = Math.floor((performance.now() - t0) / time * word.length); l.textContent = [...word].map((c, i) => i < k || c === ' ' ? c : glyphs[Math.floor(Math.random() * glyphs.length)]).join(''); }, 30);
+        l._to = setTimeout(() => { clearInterval(l._iv); l.textContent = word; }, time + 20);   // it always lands on the word
+      };
+      // focus follows the pointer, so there is only ever one bar; the bar's row scrambles as it arrives
+      menu.querySelectorAll('.r-item').forEach(r => {
+        r.addEventListener('pointerenter', () => { if (r.getAttribute('aria-disabled') !== 'true') r.focus({ preventScroll: true }); });
+        r.addEventListener('focus', () => scramble(r));
+      });
+      [...menu.querySelector('.rows').children].forEach((el, i) => el.style.setProperty('--i', i + 1));
 
       const isOpen = () => stage.classList.contains('is-open');
       const sub = on => { hs.classList.toggle('is-open', on); hsBtn.setAttribute('aria-expanded', on); };
-      const open = () => { stage.classList.add('is-open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(() => own[0].focus({ preventScroll: true }), 120); };
-      const close = (back = true) => { if (!isOpen()) return; sub(false); stage.classList.remove('is-open'); fab.setAttribute('aria-expanded', 'false'); if (back) fab.focus({ preventScroll: true }); };
+      const open = () => { stage.classList.add('is-open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(() => own[0].focus({ preventScroll: true }), ms('--wipe-time') + 60); };
+      const close = (back = true) => { if (!isOpen()) return; setTimeout(() => sub(false), ms('--close-time') + 80); stage.classList.remove('is-open'); fab.setAttribute('aria-expanded', 'false'); if (back) fab.focus({ preventScroll: true }); };
       fab.addEventListener('click', () => isOpen() ? close() : open());
       stage.addEventListener('pointerdown', e => { if (isOpen() && !e.target.closest('.menu-at, .fab')) close(false); });
 
@@ -177,7 +204,7 @@
       let st;
       hs.addEventListener('pointerenter', () => { clearTimeout(st); sub(true); });
       hs.addEventListener('pointerleave', () => { st = setTimeout(() => sub(false), 220); });
-      own.filter(b => b !== hsBtn).forEach(b => b.addEventListener('pointerenter', () => sub(false)));
+      own.filter(b => b !== hsBtn).forEach(b => b.addEventListener('pointerenter', () => { clearTimeout(st); sub(false); }));
 
       // the balances in each currency
       const rates = { USD: [1, '$', 2], EUR: [.92, '€', 2], KRW: [1382, '₩', 0] };
@@ -206,10 +233,10 @@
       });
 
       // #open shows the menu out with the currency submenu beside it, for the set's thumbnail
-      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); }
+      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); setTimeout(() => hsBtn.focus({ preventScroll: true }), ms('--wipe-time') + 120); }
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
-  <script src="week-06-rail-spec.js?v=1"></script>
+  <script src="week-06-rail-spec.js?v=3"></script>
 </body>
 </html>

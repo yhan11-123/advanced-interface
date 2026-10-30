@@ -9,20 +9,20 @@
 
   const sample = document.createElement('div');
   sample.className = 'spec-measure';
+  sample.style.width = '300px';
   sample.innerHTML = `
     <div class="r-menu" data-k="menu">
-      <button class="r-item" data-k="item"><svg class="r-ico" data-k="ico" viewBox="0 0 18 18"></svg><span class="r-label">Transfer</span><kbd class="r-key" data-k="key">⌘T</kbd></button>
-      <button class="r-item is-hover" data-k="hover"><span class="r-label">Transfer</span></button>
-      <button class="r-item is-press" data-k="press"><span class="r-label">Transfer</span></button>
-      <button class="r-item" aria-disabled="true" data-k="off"><span class="r-label">Freeze card</span></button>
-      <button class="r-item"><span class="r-badge" data-k="badge">3</span></button>
+      <button class="r-item" data-k="item"><span class="r-num" data-k="num">01</span><span class="r-label">Transfer</span><kbd class="r-key" data-k="key">⌘T</kbd></button>
+      <button class="r-item is-hover" data-k="hover"><span class="r-num">02</span><span class="r-label">Pay bills</span></button>
+      <button class="r-item is-press" data-k="press"><span class="r-num">02</span><span class="r-label">Pay bills</span></button>
+      <button class="r-item" aria-disabled="true" data-k="off"><span class="r-num">03</span><span class="r-label">Freeze card</span></button>
+      <button class="r-item"><span class="r-badge" data-k="badge">03</span></button>
       <div class="r-sect" data-k="sect">Account</div>
-      <div class="r-rule" data-k="rule"></div>
     </div>
     <button class="fab" data-k="fab"><i></i><i></i><i></i></button>`;
   document.body.append(sample);
   const el = k => sample.querySelector(`[data-k="${k}"]`);
-  const cs = k => getComputedStyle(el(k));
+  const cs = (k, p) => getComputedStyle(el(k), p);
   const px = v => `${Math.round(parseFloat(v) * 10) / 10}px`;
   const hex = c => {
     if (c.startsWith('#')) return c;
@@ -33,66 +33,72 @@
   const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
   const fam = f => f.split(',')[0].replace(/"/g, '');
   const item = cs('item'), menu = cs('menu');
+  const cs2 = null;
 
+  const bar = cs('hover', '::before');
   const cards = [
     ['Rail', [
       ['Width', tok('--rail-w')],
-      ['Gradient', `${sw(tok('--g1'))} top to ${sw(tok('--g2'))} foot`],
-      ['Corners', tok('--rail-r')],
+      ['Colour', sw(tok('--orange'))],
+      ['Page', `${sw(tok('--night'))}, grain and a 1px grid`],
       ['Scoop', `${tok('--scoop')} radius, halfway down its right side`],
-      ['Scoop, open', '6px wider, on the spring'],
+      ['Scoop, open', '6px wider, as the menu wipes out'],
+      ['Current tab', 'black, its corner cut on a slant'],
     ]],
     ['Menu button', [
       ['Size', `${px(el('fab').offsetWidth)} round, centred on the rail's edge`],
-      ['Lines', '3 × 30px, 3px thick, 9px apart'],
-      ['Hover', 'grows to 105%, a 6px green halo'],
-      ['Pressed', 'shrinks to 94%'],
+      ['At rest', 'black, an orange ring, three orange lines'],
+      ['Hover', 'fills orange, the lines go black'],
+      ['Pressed', 'shrinks to 93%'],
       ['Open', `the lines turn to a cross, ${tok('--morph-time')}`],
     ]],
     ['Menu', [
       ['Width', px(menu.width)],
-      ['Padding', px(menu.paddingTop)],
-      ['Corners', px(menu.borderTopLeftRadius)],
-      ['Fill', 'the rail\'s gradient, at 160°'],
+      ['Colour', sw(menu.backgroundColor)],
+      ['Corners', 'square, 8px marks top left and foot right'],
+      ['Header', '40px, WALLET and ESC'],
       ['Gap from the scoop', tok('--gap-out')],
     ]],
-    ['Item', [
+    ['Row', [
       ['Height', px(el('item').offsetHeight)],
       ['Padding, sides', px(item.paddingLeft)],
       ['Gap between parts', px(item.columnGap)],
-      ['Corners', px(item.borderTopLeftRadius)],
-      ['Font', `${fam(item.fontFamily)} ${item.fontWeight}, ${px(item.fontSize)}`],
-      ['Left icon', `${px(el('ico').getBoundingClientRect().width)}, stroke ${tok('--icon-stroke')}`],
+      ['Font', `${fam(item.fontFamily)} ${item.fontWeight}, ${px(item.fontSize)}, capitals`],
+      ['Letter spacing', px(item.letterSpacing)],
+      ['Rule below', `1px, ${hex(item.borderBottomColor)}`],
     ]],
-    ['Right side', [
+    ['Left and right', [
+      ['Number', `${px(cs('num').fontSize)}, ${hex(cs('num').color)}`],
+      ['Or an icon', `${tok('--icon')}, in the number's place`],
       ['Shortcut', `${px(cs('key').fontSize)}, ${hex(cs('key').color)}`],
-      ['Badge', `${px(el('badge').offsetHeight)} pill, white, ${hex(cs('badge').color)} text`],
-      ['Right icon', '16px, the shortcut colour'],
-      ['Submenu', 'a chevron, the same'],
+      ['Badge', `${px(el('badge').offsetHeight)}, black with orange figures`],
+      ['Right icon', `${tok('--icon')} arrow`],
+      ['Submenu', 'a &gt;'],
     ]],
     ['Sections', [
-      ['Label', `${px(cs('sect').fontSize)} ${cs('sect').fontWeight}, capitals, ${px(cs('sect').letterSpacing)} apart`],
-      ['Label colour', sw(cs('sect').color)],
-      ['Divider', `${px(el('rule').offsetHeight)}, ${hex(cs('rule').backgroundColor)}`],
+      ['Label', `${px(cs('sect').fontSize)} bold, ${px(cs('sect').letterSpacing)} apart`],
+      ['Rule', 'runs out to the right'],
     ]],
     ['States', [
       ['Enabled', sw(item.color)],
-      ['Hover', `white wash ${hex(cs('hover').backgroundColor)}`],
-      ['Pressed', `wash ${hex(cs('press').backgroundColor)}, sinks 1px`],
-      ['Unavailable', `${sw(cs('off').color)}, no wash`],
+      ['Hover bar', `${hex(bar.backgroundColor)}, right end cut ${tok('--cut')} on a slant`],
+      ['Hover text', sw(cs('hover').color)],
+      ['Pressed', `bar to the row's edges, text ${hex(cs('press').color)}, sinks 1px`],
+      ['Unavailable', `${sw(cs('off').color)}, no bar, no scramble`],
     ]],
     ['Submenu', [
-      ['Opens', 'beside its row, from its bottom left corner'],
-      ['Width', '140px'],
-      ['Chosen', 'a tick'],
+      ['Form', 'its own orange sheet, beside its row'],
+      ['Width', '150px'],
+      ['Chosen', 'a dot in the number column'],
       ['Opens on', 'hover, a click, or →'],
     ]],
     ['Motion', [
-      ['Menu opens', `${tok('--open-time')}, from .2, out of the button's centre`],
-      ['Spring', tok('--spring')],
-      ['Rows', `${tok('--stagger')} apart, sliding in 8px`],
-      ['Menu closes', `${tok('--close-time')}, back into the scoop, no spring`],
-      ['Hover', tok('--hover-time')],
+      ['Menu opens', `wipes out of the scoop, left to right, ${tok('--wipe-time')}`],
+      ['Wipe curve', tok('--wipe-ease')],
+      ['Rows', `${tok('--row-step')} apart, 10px in, ${tok('--row-time')}`],
+      ['Bar', `${tok('--bar-time')} in from the left, 160ms back`],
+      ['Label', `scrambles, settles left to right in ${tok('--scramble-time')}`],
+      ['Menu closes', `rows out 90ms, then wipes back into the scoop, ${tok('--close-time')}`],
     ]],
   ];
   out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
