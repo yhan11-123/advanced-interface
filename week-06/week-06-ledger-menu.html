@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 · Set 1 · Ledger · In use</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-ledger.css?v=1" />
+  <style>
+  /* In use: Ledger, a personal finance app. The menu starts shut behind the "Move money" button.
+     Opened, it blooms out of the button on a spring; one soft highlight glides under the pointer
+     from row to row; the transfer submenu slides out beside it. Picks finish the job you can see:
+     moving money rolls the balances to their new numbers. Nothing jumps. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 400 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --w: 760px; --h: 560px; --fit: 1; }
+  .hero { position: relative; height: 100vh; overflow: hidden; background: var(--bg); }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
+
+  /* ---------- the app around the menu ---------- */
+  .bar { position: absolute; left: 28px; right: 28px; top: 22px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 8px; font: 700 17px/1 var(--font); letter-spacing: -.02em; }
+  .logo i { width: 18px; height: 18px; border-radius: 6px; background: var(--ink); transform: rotate(45deg) scale(.8); }
+  .tabs { display: flex; gap: 22px; color: var(--ink-3); font-weight: 500; }
+  .tabs b { color: var(--ink); font-weight: 600; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #f2c7a5, #d98d6b); }
+  .hello { position: absolute; left: 28px; top: 84px; color: var(--ink-2); font-weight: 500; }
+  .total { position: absolute; left: 26px; top: 106px; font: 700 46px/1 var(--font); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .total small { font-size: 26px; color: var(--ink-3); letter-spacing: -.02em; }
+  .delta { position: absolute; left: 28px; top: 162px; color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chart { position: absolute; left: 28px; right: 28px; top: 196px; height: 150px; }
+  .accts { position: absolute; left: 28px; right: 28px; top: 372px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .acct { padding: 14px 14px 16px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow 400ms var(--ease-out); }
+  .acct.is-moved { box-shadow: inset 0 0 0 1px var(--accent), 0 8px 20px -12px rgba(14, 138, 95, .5); }
+  .acct span { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 500; }
+  .acct span i { width: 10px; height: 10px; border-radius: 50%; }
+  .acct b { display: block; margin-top: 10px; font: 650 19px/1 var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+  /* ---------- the Move money button ---------- */
+  .money-btn { position: absolute; right: 28px; top: 108px; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px 0 18px; border: 0; border-radius: 22px; background: var(--ink); color: #fff;
+    font: 600 15px/1 var(--font); cursor: pointer; box-shadow: 0 1px 2px rgba(13,27,42,.2);
+    transition: background-color 260ms var(--ease-out), box-shadow 260ms var(--ease-out), translate 260ms var(--ease-out), scale var(--press-time) var(--ease-out); }
+  .money-btn:hover, .money-btn:focus-visible { background: #1b2f45; translate: 0 -1px; box-shadow: 0 8px 18px -8px rgba(13,27,42,.5); outline: none; }
+  .money-btn:focus-visible { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent); }
+  .money-btn:active { scale: .97; translate: 0 0; }
+  .money-btn[aria-expanded="true"] { background: #1b2f45; }
+  .money-btn svg { width: 16px; height: 16px; transition: rotate var(--open-time) var(--spring); }
+  .money-btn[aria-expanded="true"] svg { rotate: 180deg; }
+
+  /* ---------- the menu: shut, and blooming open ---------- */
+  .l-pop { position: absolute; right: 28px; top: 162px; z-index: 5; transform-origin: 85% -10px;
+    opacity: 0; scale: .94; translate: 0 -8px; filter: blur(6px); visibility: hidden;
+    transition: opacity var(--close-time) var(--ease-out), scale var(--close-time) var(--ease-out), translate var(--close-time) var(--ease-out), filter var(--close-time) var(--ease-out), visibility 0s var(--close-time); }
+  .l-pop.is-open { opacity: 1; scale: 1; translate: 0 0; filter: blur(0); visibility: visible;
+    transition: opacity 240ms var(--ease-out), scale var(--open-time) var(--spring), translate var(--open-time) var(--spring), filter 300ms var(--ease-out), visibility 0s; }
+  .l-pop .rows > * { opacity: 0; translate: 0 6px; transition: opacity 160ms var(--ease-out), translate 160ms var(--ease-out); }
+  .l-pop.is-open .rows > * { opacity: 1; translate: 0 0; transition: opacity 320ms var(--ease-out), translate 420ms var(--spring); transition-delay: calc(var(--i) * var(--stagger) + 40ms); }
+
+  /* the transfer submenu slides out to the left of its row */
+  .has-sub { position: relative; }
+  .submenu.l-menu { position: absolute; right: calc(100% + 10px); top: -8px; width: 250px; opacity: 0; translate: 10px 0; scale: .98; visibility: hidden; transform-origin: 100% 20px;
+    transition: opacity var(--close-time) var(--ease-out), translate var(--close-time) var(--ease-out), scale var(--close-time) var(--ease-out), visibility 0s var(--close-time); }
+  .has-sub.is-open > .submenu { opacity: 1; translate: 0 0; scale: 1; visibility: visible;
+    transition: opacity 220ms var(--ease-out), translate var(--sub-time) var(--spring), scale var(--sub-time) var(--spring), visibility 0s; }
+  .submenu .s-sect { padding-top: 6px; }
+
+  /* an unavailable pick: a soft no, not a shake */
+  .s-item.is-no { animation: no 520ms var(--ease-out); }
+  @keyframes no { 20% { translate: -5px 0; } 45% { translate: 4px 0; } 70% { translate: -2px 0; } }
+
+  /* ---------- the message ---------- */
+  .toast { position: absolute; left: 50%; bottom: 22px; z-index: 6; display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 18px 12px 14px; border-radius: 14px; background: var(--ink); color: #fff;
+    font: 500 14px/1 var(--font); white-space: nowrap; box-shadow: 0 16px 30px -14px rgba(13,27,42,.5);
+    opacity: 0; translate: -50% 16px; scale: .96; transition: opacity 220ms var(--ease-out), translate 220ms var(--ease-out), scale 220ms var(--ease-out); pointer-events: none; }
+  .toast.is-on { opacity: 1; translate: -50% 0; scale: 1; transition: opacity 260ms var(--ease-out), translate 520ms var(--spring), scale 520ms var(--spring); }
+  .toast i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); }
+  .toast i svg { width: 12px; height: 12px; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (prefers-reduced-motion: reduce) { .l-pop, .l-pop.is-open, .l-pop .rows > *, .submenu, .glide, .toast { transition-duration: 1ms !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="stage">
+      <div class="bar" aria-hidden="true">
+        <span class="logo"><i></i>Ledger</span>
+        <span class="tabs"><b>Home</b><span>Spending</span><span>Invest</span><span>Cards</span></span>
+        <span class="avatar"></span>
+      </div>
+      <div class="hello">Good morning, Ana</div>
+      <div class="total" aria-label="Total balance"><span id="total-whole">$49,152</span><small id="total-cents">.73</small></div>
+      <div class="delta">+$1,204.18 · 2.5% this month</div>
+      <svg class="chart" viewBox="0 0 704 150" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0e8a5f" stop-opacity=".18"/><stop offset="1" stop-color="#0e8a5f" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0 118 C 60 112, 90 96, 140 100 S 230 120, 280 92 S 370 70, 420 78 S 510 96, 560 58 S 650 30, 704 24 L704 150 L0 150 Z" fill="url(#fill)"/>
+        <path d="M0 118 C 60 112, 90 96, 140 100 S 230 120, 280 92 S 370 70, 420 78 S 510 96, 560 58 S 650 30, 704 24" fill="none" stroke="#0e8a5f" stroke-width="2"/>
+        <circle cx="704" cy="24" r="4" fill="#0e8a5f"/>
+      </svg>
+      <div class="accts">
+        <div class="acct" data-acct="checking"><span><i style="background:#3b6fd8"></i>Checking ··4821</span><b>$4,210.55</b></div>
+        <div class="acct" data-acct="savings"><span><i style="background:#0e8a5f"></i>Savings</span><b>$12,800.00</b></div>
+        <div class="acct" data-acct="brokerage"><span><i style="background:#8a5cd6"></i>Brokerage</span><b>$31,502.18</b></div>
+        <div class="acct" data-acct="travel"><span><i style="background:#e0913b"></i>Travel pot</span><b>$640.00</b></div>
+      </div>
+
+      <button class="money-btn" type="button" aria-expanded="false" aria-controls="move-menu">Move money<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+      <div class="l-pop" id="move-menu">
+        <div class="l-menu uses-glide">
+          <span class="glide" aria-hidden="true"></span>
+          <div class="rows" role="menu" aria-label="Move money">
+            <button class="s-item" role="menuitem" style="--i:0" data-say="Send: pick who to pay."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M5 13 13 5M7 5h6v6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="s-label">Send</span><kbd class="s-key">S</kbd></button>
+            <button class="s-item" role="menuitem" style="--i:1" data-say="Request: share a link to get paid."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M13 5 5 13M11 13H5V7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="s-label">Request</span><kbd class="s-key">R</kbd></button>
+            <button class="s-item" role="menuitem" style="--i:2" data-say="Pay a bill: 2 bills due this week."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 2.5h10v13l-2-1.3-1.5 1.3L9 14.2l-1.5 1.3L6 14.2l-2 1.3zM7 6h4M7 9h4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="s-label">Pay a bill</span><kbd class="s-key">P</kbd></button>
+            <button class="s-item" role="menuitem" style="--i:3" data-say="Recurring: rent, gym and 3 subscriptions."><span class="s-ico"></span><span class="s-label">Recurring payments</span></button>
+            <div class="s-rule" role="separator" style="--i:4"></div>
+            <div class="s-sect" aria-hidden="true" style="--i:5">Between accounts</div>
+            <div class="has-sub" style="--i:6">
+              <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 6h11M11 3l3 3-3 3M15 12H4M7 9l-3 3 3 3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="s-label">Move $250 from Checking</span><svg class="s-end is-sub" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4 6 8l4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <div class="submenu l-menu" role="menu" aria-label="Move to">
+                <div class="s-sect" aria-hidden="true">Into</div>
+                <button class="s-acct" role="menuitemradio" aria-checked="true" data-to="savings"><span class="dot" style="background:#0e8a5f">S</span><span class="s-label">Savings<small>$12,800.00</small></span><svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button class="s-acct" role="menuitemradio" aria-checked="false" data-to="brokerage"><span class="dot" style="background:#8a5cd6">B</span><span class="s-label">Brokerage<small>$31,502.18</small></span><svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button class="s-acct" role="menuitemradio" aria-checked="false" data-to="travel"><span class="dot" style="background:#e0913b">T</span><span class="s-label">Travel pot<small>$640.00</small></span><svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+            </div>
+            <button class="s-item" role="menuitem" style="--i:7" data-say="3 payments clear by Friday."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor"/><path d="M9 5.5V9l2.5 1.5" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Pending</span><span class="s-badge" aria-label="3 pending">3</span></button>
+            <button class="s-item" role="menuitem" style="--i:8" data-say="October statement opens in a new tab."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M5 2.5h6l3 3v10H5zM11 2.5v3h3M7.5 9.5h4M7.5 12h4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="s-label">Statements</span><svg class="s-end is-out" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4h6v6M12 4l-7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="s-item" role="menuitem" aria-disabled="true" style="--i:9" data-say="Withdrawals from Brokerage open at 9:30am ET."><svg class="s-ico" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 14V8M7 14V5M11 14v-4M15 14V3" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Withdraw</span><span class="s-note">Market closed</span></button>
+          </div>
+        </div>
+      </div>
+      <p class="toast" aria-live="polite"><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5 5 9l4.5-5.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span></span></p>
+    </div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on. One spring for everything that arrives, one ease-out for everything that leaves, so the whole menu moves as one material.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    (() => {
+      const pop = document.getElementById('move-menu'), menu = pop.querySelector('.l-menu'), rows = pop.querySelector('.rows'), glide = pop.querySelector('.glide');
+      const btn = document.querySelector('.money-btn'), toast = document.querySelector('.toast'), root = getComputedStyle(document.documentElement);
+      const ms = n => { const v = root.getPropertyValue(n).trim(); return parseFloat(v) * (v.endsWith('ms') ? 1 : 1000); };
+      const isOpen = () => pop.classList.contains('is-open');
+      const own = [...rows.querySelectorAll('.s-item')].filter(i => i.closest('[role="menu"]') === rows);
+
+      // the gliding highlight: it slides between rows; from nothing, it simply appears where it is needed
+      const glideTo = it => {
+        if (!it || it.getAttribute('aria-disabled') === 'true') { glide.classList.remove('is-on'); return; }
+        const top = it.getBoundingClientRect().top - menu.getBoundingClientRect().top, f = parseFloat(root.getPropertyValue('--fit')) || 1;
+        if (!glide.classList.contains('is-on')) { glide.style.transition = 'none'; glide.style.translate = `0 ${top / f}px`; void glide.offsetWidth; glide.style.transition = ''; }
+        glide.style.translate = `0 ${top / f}px`; glide.classList.add('is-on');
+      };
+      own.forEach(it => { it.addEventListener('pointerenter', () => glideTo(it)); it.addEventListener('focus', () => glideTo(it)); it.addEventListener('pointerdown', () => glide.classList.add('is-down')); });
+      addEventListener('pointerup', () => glide.classList.remove('is-down'));
+      menu.addEventListener('pointerleave', () => { if (!pop.querySelector('.has-sub.is-open') && !rows.contains(document.activeElement)) glide.classList.remove('is-on'); });
+
+      const open = () => { if (isOpen()) return; pop.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); glide.classList.remove('is-on'); setTimeout(() => own[0].focus({ preventScroll: true }), 60); };
+      const close = (back = true) => { if (!isOpen()) return; pop.querySelectorAll('.has-sub.is-open').forEach(h => { h.classList.remove('is-open'); h.querySelector('.s-item').setAttribute('aria-expanded', 'false'); }); pop.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); glide.classList.remove('is-on'); if (back) btn.focus({ preventScroll: true }); };
+      btn.addEventListener('click', () => isOpen() ? close() : open());
+      document.querySelector('.stage').addEventListener('pointerdown', e => { if (isOpen() && !pop.contains(e.target) && !btn.contains(e.target)) close(false); });
+      addEventListener('keydown', e => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === 'm' || e.key === 'M') { e.preventDefault(); isOpen() ? close() : open(); }
+        else if (e.key === 'Escape' && isOpen() && !pop.querySelector('.has-sub.is-open')) { e.preventDefault(); close(); }
+        else if (isOpen() && e.key.length === 1) { const k = [...rows.querySelectorAll('.s-key')].find(x => x.textContent.toLowerCase() === e.key.toLowerCase()); if (k) { e.preventDefault(); k.closest('.s-item').click(); } }
+      });
+
+      // the message rises from the bottom and sinks away
+      let tt; const say = text => { toast.querySelector('span').textContent = text; toast.classList.add('is-on'); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('is-on'), 2800); };
+
+      // balances roll to their new value
+      const money = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const val = b => parseFloat(b.textContent.replace(/[$,]/g, ''));
+      // timed off the clock, not off frames, and it always lands exactly on the new value
+      const roll = (b, to) => { const from = val(b), t0 = performance.now(), d = ms('--roll-time');
+        clearInterval(b._roll);
+        b._roll = setInterval(() => { const p = Math.min(1, (performance.now() - t0) / d), e = 1 - Math.pow(1 - p, 4); b.textContent = money(from + (to - from) * e); if (p >= 1) clearInterval(b._roll); }, 16);
+        setTimeout(() => { clearInterval(b._roll); b.textContent = money(to); }, d + 30); };
+      const card = k => document.querySelector(`[data-acct="${k}"]`);
+
+      pop.addEventListener('click', e => {
+        const it = e.target.closest('.s-item, .s-acct');
+        if (!it || (it.parentElement.classList.contains('has-sub') && it === it.parentElement.querySelector('.s-item'))) return;
+        if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); say(it.dataset.say); return; }
+        if (it.dataset.to) {
+          const from = card('checking'), into = card(it.dataset.to), name = it.querySelector('.s-label').firstChild.textContent;
+          close();
+          setTimeout(() => {
+            roll(from.querySelector('b'), val(from.querySelector('b')) - 250); roll(into.querySelector('b'), val(into.querySelector('b')) + 250);
+            [from, into].forEach(c => { c.classList.add('is-moved'); setTimeout(() => c.classList.remove('is-moved'), 1400); });
+            pop.querySelectorAll('.s-acct').forEach(a => { const b = card(a.dataset.to).querySelector('b'); setTimeout(() => a.querySelector('small').textContent = b.textContent, ms('--roll-time') + 40); });
+            say(`$250.00 moved to ${name}`);
+          }, 160);
+          return;
+        }
+        say(it.dataset.say); setTimeout(() => close(), 120);
+      });
+
+      // #open shows the menu (and the transfer submenu) already open, for the set's thumbnail
+      if (location.hash === '#open') { pop.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); const h = pop.querySelector('.has-sub'); h.classList.add('is-open'); glideTo(h.querySelector('.s-item')); }
+    })();
+  </script>
+  <script src="week-06-ledger-spec.js?v=1"></script>
+</body>
+</html>

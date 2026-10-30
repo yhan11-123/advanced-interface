@@ -1,0 +1,103 @@
+/* Week 06, Set 1 · Ledger: the "Move money" menu of a personal finance app.
+   Shared by the two prototypes (the menu system, the menu in use). Every value the spec
+   reports is set here, once, as a token; the pages and the spec read the same numbers.
+   The tone is smoothness: nothing jumps, everything glides, settles, and rolls. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  /* colour */
+  --bg: #f3f4f1;             /* the app */
+  --surface: #ffffff;        /* cards, the menu */
+  --ink: #0d1b2a;            /* item text */
+  --ink-2: #5b6675;          /* icons, secondary text */
+  --ink-3: #98a1ab;          /* shortcuts, section labels */
+  --ink-off: #c3c9cf;        /* unavailable */
+  --line: rgba(13, 27, 42, .08);
+  --hover: rgba(13, 27, 42, .05);   /* the gliding highlight */
+  --press: rgba(13, 27, 42, .10);
+  --accent: #0e8a5f; --accent-soft: #e2f3eb;
+  --down: #c2412d;
+
+  /* type */
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --size: 15px; --line-h: 20px; --weight: 500;
+  --key-size: 12px; --note-size: 12px;
+
+  /* the menu and its item */
+  --menu-w: 288px; --menu-pad: 6px; --menu-radius: 16px;
+  --menu-shadow: 0 1px 2px rgba(13, 27, 42, .06), 0 16px 40px -12px rgba(13, 27, 42, .22);
+  --item-h: 40px; --item-px: 12px; --item-gap: 12px; --item-radius: 10px;
+  --icon: 18px; --icon-stroke: 1.6;
+  --key: 22px; --badge: 20px;
+
+  /* motion: springs that settle, curves that ease out, never a jump */
+  --spring: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --open-time: 460ms;        /* the menu blooms from its button */
+  --close-time: 180ms;       /* and goes quietly */
+  --glide-time: 340ms;       /* the highlight glides from item to item */
+  --stagger: 18ms;           /* rows arrive a breath apart */
+  --press-time: 120ms;
+  --sub-time: 380ms;         /* the submenu slides out beside */
+  --roll-time: 900ms;        /* numbers roll to their new value */
+}
+
+/* ---------- the menu surface ---------- */
+.l-menu { position: relative; width: var(--menu-w); padding: var(--menu-pad); background: var(--surface); border: 1px solid var(--line); border-radius: var(--menu-radius); box-shadow: var(--menu-shadow); }
+
+/* ---------- one item, every configuration ---------- */
+.s-item { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px);
+  border: 0; border-radius: var(--item-radius); background: transparent; color: var(--ink); cursor: pointer; text-align: left;
+  font: var(--weight) var(--size)/var(--line-h) var(--font); letter-spacing: -.005em;
+  transition: background-color var(--glide-time) var(--ease-out), scale var(--press-time) var(--ease-out), color var(--glide-time) var(--ease-out); }
+.s-item:focus-visible { outline: none; }
+/* hover: a soft fill. In use, one shared highlight glides under the items instead (see .glide) */
+.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item { background: var(--hover); }
+/* pressed: the fill deepens and the row gives a little */
+.s-item:active, .s-item.is-press, .s-item.is-picked { background: var(--press); scale: .985; }
+.s-item[aria-disabled="true"] { color: var(--ink-off); background: transparent; scale: 1; cursor: default; }
+.s-ico { width: var(--icon); height: var(--icon); flex: none; color: var(--ink-2); }
+.s-ico * { stroke-width: var(--icon-stroke); }
+.s-item[aria-disabled="true"] .s-ico { color: var(--ink-off); }
+.s-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-key { display: grid; place-items: center; min-width: var(--key); height: var(--key); padding: 0 6px; border-radius: 6px; background: rgba(13, 27, 42, .04); box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-3); font: 500 var(--key-size)/1 var(--font); }
+.s-end { width: 16px; height: 16px; flex: none; color: var(--ink-3); transition: translate var(--glide-time) var(--ease-out), rotate var(--glide-time) var(--ease-out); }
+.s-item:hover .s-end.is-out { translate: 2px -2px; }
+.has-sub.is-open > .s-item .s-end.is-sub { translate: 2px 0; color: var(--ink-2); }
+.s-note { font: 500 var(--note-size)/1 var(--font); color: var(--ink-3); }
+.s-badge { min-width: var(--badge); height: var(--badge); padding: 0 7px; border-radius: calc(var(--badge) / 2); background: var(--accent-soft); color: var(--accent);
+  font: 600 12px/var(--badge) var(--font); text-align: center; font-variant-numeric: tabular-nums; }
+.s-sect { padding: 10px var(--item-px) 6px; font: 600 11px/1 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.s-rule { height: 1px; margin: 6px var(--item-px); background: var(--line); }
+
+/* the gliding highlight (in use): one pill that follows the pointer from item to item */
+.glide { position: absolute; z-index: 0; left: var(--menu-pad); right: var(--menu-pad); top: 0; height: var(--item-h); border-radius: var(--item-radius); background: var(--hover); opacity: 0; pointer-events: none;
+  transition: translate var(--glide-time) var(--spring), height var(--glide-time) var(--spring), opacity 200ms var(--ease-out), background-color var(--press-time) var(--ease-out), scale var(--press-time) var(--ease-out); }
+.glide.is-on { opacity: 1; }
+.glide.is-down { background: var(--press); scale: .985; }
+.uses-glide .s-item:hover, .uses-glide .s-item:focus-visible, .uses-glide .has-sub.is-open > .s-item, .uses-glide .s-item:active, .uses-glide .s-item.is-picked { background: transparent; scale: 1; }
+
+/* the submenu: accounts, each with its balance; the chosen one is ticked */
+.s-acct { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; margin: 0; padding: 0 12px; border: 0; border-radius: var(--item-radius); background: transparent; color: var(--ink); cursor: pointer; text-align: left;
+  font: var(--weight) var(--size)/1.25 var(--font); transition: background-color var(--glide-time) var(--ease-out), scale var(--press-time) var(--ease-out); }
+.s-acct:hover, .s-acct:focus-visible, .s-acct.is-hover { background: var(--hover); outline: none; }
+.s-acct:active, .s-acct.is-press { background: var(--press); scale: .985; }
+.s-acct .dot { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 600 12px/1 var(--font); }
+.s-acct .s-label small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.s-acct .tick { width: 16px; height: 16px; flex: none; color: var(--accent); opacity: 0; scale: .6; transition: opacity 240ms var(--ease-out), scale 320ms var(--spring); }
+.s-acct[aria-checked="true"] .tick { opacity: 1; scale: 1; }
+
+/* ---------- the spec, under each prototype ---------- */
+.spec { padding: 48px 32px 64px; background: #0d1b2a; color: #dfe6ec; font: 14px/1.5 var(--font); }
+.spec h2 { margin: 0 0 4px; font: 600 24px/1.2 var(--font); letter-spacing: -.01em; color: #fff; }
+.spec > p { margin: 0 0 24px; color: #8fa0b0; max-width: 62ch; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.spec-card { padding: 16px 16px 12px; border-radius: 14px; background: #132538; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.spec-card h3 { margin: 0 0 10px; font: 600 11px/1 var(--font); letter-spacing: .08em; text-transform: uppercase; color: #6fd3a8; }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; }
+.spec-card dt { color: #8fa0b0; }
+.spec-card dd { margin: 0; color: #f3f6f8; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+.spec-card svg { display: block; width: 100%; height: 70px; margin-top: 10px; }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
