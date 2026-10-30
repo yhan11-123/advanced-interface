@@ -45,9 +45,9 @@
     ]],
     ['Tile', [
       ['Size', `${px(el('tile').offsetWidth)} × ${px(el('tile').offsetHeight)}`],
-      ['Folder tab', `${tok('--tab-w')} × ${tok('--tab-h')}, on top left`],
+      ['Shape', 'a plain box, square corners'],
       ['Padding', tok('--tile-pad')],
-      ['Gap', `${tok('--tile-gap')} across, ${px(cs('grid').rowGap)} down (clears the tab)`],
+      ['Gap', `${tok('--tile-gap')} each way`],
       ['Fill', sw(tile.backgroundColor)],
       ['Label', `${fam(tile.fontFamily)} ${tile.fontWeight}, ${px(tile.fontSize)}, capitals, ${px(tile.letterSpacing)}`],
     ]],

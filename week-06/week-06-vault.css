@@ -30,7 +30,6 @@
   /* the board and its tile */
   --board-tilt: 30deg;       /* the board leans back, like the reference's sheet of glass */
   --tile-w: 136px; --tile-h: 92px; --tile-gap: 14px; --tile-pad: 12px;
-  --tab-w: 46px; --tab-h: 7px;     /* the folder tab on each tile */
   --icon: 22px; --icon-stroke: 1.4;
   --label-size: 15px; --track: .08em;
   --section-gap: 34px;
@@ -62,17 +61,16 @@
 /* a section: its label and a dotted rule, then its tiles in a grid */
 .t-sect { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 11px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); text-transform: uppercase; }
 .t-sect::after { content: ""; flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
-.t-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), var(--tile-w)); gap: calc(var(--tile-gap) + var(--tab-h)) var(--tile-gap); transform-style: preserve-3d; }
+.t-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), var(--tile-w)); gap: var(--tile-gap); transform-style: preserve-3d; }
 
 /* ---------- one tile, every configuration ---------- */
-/* a menu item is a folder-shaped tile: icon top left, what is on its right top right, the label at
+/* a menu item is a plain box, a tile: icon top left, what is on its right top right, the label at
    the foot, a note above the label, and a chevron at the foot's right when it opens a submenu */
 .tile { position: relative; display: block; width: var(--tile-w); height: var(--tile-h); margin: 0; padding: 0; border: 0; cursor: pointer; text-align: left; color: var(--ink);
   background: rgba(57, 213, 255, .13); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .4);
   font: 600 var(--label-size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase;
   transform: translateZ(0); transform-style: preserve-3d;
   transition: transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
-.tile::before { content: ""; position: absolute; left: 0; bottom: 100%; width: var(--tab-w); height: var(--tab-h); background: rgba(57, 213, 255, .26); clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%); transition: background-color var(--hover-time); }
 .tile:focus-visible { outline: none; }
 .t-ico { position: absolute; left: var(--tile-pad); top: var(--tile-pad); width: var(--icon); height: var(--icon); color: var(--ink-2); transition: color var(--hover-time); }
 .t-ico * { stroke-width: var(--icon-stroke); }
@@ -85,7 +83,6 @@
 /* hover: the tile lifts off the glass and fills with light */
 .tile:hover, .tile:focus-visible, .tile.is-hover { transform: translateZ(var(--lift)); background: rgba(57, 213, 255, .3); color: var(--cyan-hi);
   box-shadow: inset 0 0 0 1px var(--cyan), 0 0 26px rgba(57, 213, 255, .45); }
-.tile:hover::before, .tile:focus-visible::before, .tile.is-hover::before { background: rgba(57, 213, 255, .5); }
 .tile:hover .t-ico, .tile:focus-visible .t-ico, .tile.is-hover .t-ico, .tile:hover .t-end, .tile.is-hover .t-end, .tile:hover .t-more, .tile.is-hover .t-more { color: var(--cyan-hi); }
 .tile:hover .t-key, .tile:focus-visible .t-key, .tile.is-hover .t-key { color: var(--cyan); border-color: var(--cyan); }
 .tile:hover .t-more, .tile.is-hover .t-more { translate: 3px 0; }
@@ -93,14 +90,12 @@
 .tile:active, .tile.is-press, .tile[aria-expanded="true"] { background: linear-gradient(#bff6ff, #39d5ff); color: #04232b; box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
 .tile:active, .tile.is-press { transform: translateZ(3px); }
 .tile[aria-expanded="true"] { transform: translateZ(var(--lift)); }
-.tile:active::before, .tile.is-press::before, .tile[aria-expanded="true"]::before { background: #8fe9ff; }
 .tile:active .t-ico, .tile.is-press .t-ico, .tile[aria-expanded="true"] .t-ico, .tile:active .t-key, .tile.is-press .t-key, .tile[aria-expanded="true"] .t-more, .tile:active .t-more, .tile.is-press .t-more, .tile:active .t-note, .tile.is-press .t-note, .tile[aria-expanded="true"] .t-note, .tile:active .t-end, .tile.is-press .t-end { color: #04232b; border-color: #04232b; }
 /* chosen, in a submenu */
 .tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .4); }
 .tile[aria-checked="true"] .t-note { color: var(--cyan-hi); }
 /* unavailable: kept in place, an outline of dashes, never lifts */
 .tile[aria-disabled="true"] { cursor: default; color: var(--ink-off); background: rgba(57, 213, 255, .03); box-shadow: none; outline: 1px dashed rgba(95, 179, 196, .35); outline-offset: -1px; transform: translateZ(0); }
-.tile[aria-disabled="true"]::before { background: rgba(57, 213, 255, .08); }
 .tile[aria-disabled="true"] .t-ico, .tile[aria-disabled="true"] .t-note, .tile[aria-disabled="true"] .t-key { color: var(--ink-off); border-color: rgba(95, 179, 196, .2); }
 .tile.is-no { animation: deny 360ms var(--ease-out); }
 @keyframes deny { 30% { outline-color: var(--alert); color: var(--alert); translate: -4px 0; } 60% { translate: 3px 0; } }
