@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 · Set 1 · Harvest · In use</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-harvest.css?v=1" />
+  <style>
+  /* In use: the in-day menu of "Willowbrook", a cosy pixel farming game, opened over the farm on
+     a spring morning. Parchment in a wooden frame, a pointing hand that bobs beside the lit row,
+     key caps for shortcuts, a red tag for the crates waiting in the shipping bin. Plant seeds opens
+     the seed box beside it. Everything moves in whole game pixels. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #7cc4e8; -webkit-font-smoothing: none; }
+  button { font: inherit; }
+  :root { --w: 720px; --h: 520px; --fit: 1; }
+  /* the sky and the grass carry on past the stage, meeting where the stage's horizon is */
+  .hero { position: relative; height: 100vh; overflow: hidden; background: linear-gradient(#8fd3f2 calc(50% - 128px * var(--fit)), #6fb94a calc(50% - 128px * var(--fit))); }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
+
+  /* the farm, in game pixels */
+  .farm { position: absolute; inset: 0; image-rendering: pixelated; }
+  /* the landscape runs on past the stage, out to the window's edges */
+  .sky, .hills, .grass, .fence { margin: 0 -1500px; }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: 132px; background: linear-gradient(#8fd3f2 0 33%, #a6ddf3 33% 66%, #bfe7f5 66%); }
+  .cloud { position: absolute; height: 18px; background: #fff; box-shadow: 9px -9px 0 0 #fff, 27px -9px 0 0 #fff, -9px 0 0 0 #fff; }
+  .hills { position: absolute; left: 0; right: 0; top: 108px; height: 36px; background: #5aa63b;
+    -webkit-mask: radial-gradient(60px 30px at 50% 100%, #000 98%, transparent) 0 0 / 120px 36px repeat-x; mask: radial-gradient(60px 30px at 50% 100%, #000 98%, transparent) 0 0 / 120px 36px repeat-x; }
+  .grass { position: absolute; left: 0; right: 0; top: 132px; bottom: 0; background-color: #6fb94a;
+    background-image: radial-gradient(#5ea83c 1.5px, transparent 1.6px), radial-gradient(#82c95a 1.5px, transparent 1.6px); background-size: 24px 24px, 36px 30px; background-position: 0 0, 12px 9px; }
+  .fence { position: absolute; left: 0; right: 0; top: 150px; height: 27px; background: repeating-linear-gradient(90deg, #c9823f 0 9px, transparent 9px 36px), linear-gradient(transparent 6px, #a8652f 6px 12px, transparent 12px 18px, #a8652f 18px 24px, transparent 24px); }
+  .field { position: absolute; left: 470px; top: 200px; width: 222px; height: 225px; background: repeating-linear-gradient(#8a5a33 0 27px, #9d6a3f 27px 30px, #6fb94a 30px 45px); }
+  .sprout { position: absolute; width: 9px; height: 9px; background: #3f8f2a; box-shadow: -6px -6px 0 -1.5px #5fb83a, 6px -6px 0 -1.5px #5fb83a; }
+  .house { position: absolute; left: 430px; top: 84px; width: 90px; height: 66px; }
+  .house .roof { position: absolute; inset: 0 0 33px; background: #b5462f; clip-path: polygon(10% 100%, 50% 0, 90% 100%); }
+  .house .wall { position: absolute; left: 12px; right: 12px; bottom: 0; height: 36px; background: #d9a066; box-shadow: inset 0 0 0 3px #8a5a33; }
+  .house .door { position: absolute; left: 50%; bottom: 0; width: 15px; height: 21px; translate: -50% 0; background: #6b3b1f; }
+
+  /* the clock, top right */
+  .clock { position: absolute; right: 18px; top: 18px; width: 186px; padding: 12px 14px; font: 600 16px/1.3 var(--font); color: var(--ink); text-align: right; }
+  .clock b { display: flex; justify-content: flex-end; align-items: center; gap: 6px; font-size: 16px; white-space: nowrap; }
+  .clock .gold { color: #9c6a00; }
+
+  /* the menu */
+  .menu-panel { position: absolute; left: 60px; top: 70px; }
+  .menu-panel .s-menu { margin-top: 4px; }
+  .has-sub { position: relative; }
+  .submenu.p-panel { position: absolute; left: calc(100% + 34px); bottom: -24px; width: 230px; padding-top: 22px; display: none; }
+  .has-sub.is-open > .submenu { display: block; animation: pop var(--sub-open) steps(2); }
+  @keyframes pop { from { scale: .9; opacity: .5; } }
+  .said { position: absolute; left: 60px; bottom: 18px; margin: 0; padding: 8px 16px; background: var(--paper); border: 3px solid var(--wood-dark); box-shadow: inset 0 0 0 3px var(--wood-hi);
+    font: 400 16px/1 var(--font); color: var(--ink); white-space: nowrap; }
+  .said:empty { display: none; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="stage">
+      <div class="farm" aria-hidden="true">
+        <div class="sky"></div>
+        <div class="cloud" style="left:90px;top:36px;width:54px"></div><div class="cloud" style="left:330px;top:24px;width:72px"></div>
+        <div class="hills"></div>
+        <div class="grass"></div>
+        <div class="fence"></div>
+        <div class="house"><div class="roof"></div><div class="wall"></div><div class="door"></div></div>
+        <div class="field"></div>
+      </div>
+
+      <div class="clock p-panel" aria-label="Spring 12, Monday, 9:40 in the morning, 1,250 gold">
+        <b><svg width="21" height="21" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v1H3zM3 6h1v1H3zM0 3h1v1H0zM6 3h1v1H6zM2 2h3v3H2z" fill="#f7a933"/></svg>Spring 12 · Mon</b>
+        9:40 am<br /><span class="gold">1,250 g</span>
+      </div>
+
+      <div class="menu-panel p-panel">
+        <span class="p-title" aria-hidden="true">Willowbrook Farm</span>
+        <div class="s-menu" role="menu" aria-label="Game menu">
+          <button class="s-item" role="menuitem" data-say="Your backpack: 24 slots, 17 full."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h4v1H2z" fill="#4a2614"/><path d="M1 2h6v6H1z" fill="#c9823f"/><path d="M1 2h6v1H1zM1 7h6v1H1z" fill="#8e4f2a"/><path d="M3 4h2v2H3z" fill="#f7c948"/></svg><span class="s-label">Inventory</span><kbd class="s-key">E</kbd></button>
+          <button class="s-item" role="menuitem" data-say="You know 12 recipes."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h5v2H1z" fill="#8a8f96"/><path d="M5 1h1v2H5z" fill="#5e636a"/><path d="M3 3h1v5H3z" fill="#a8652f"/></svg><span class="s-label">Crafting</span><kbd class="s-key">C</kbd></button>
+          <button class="s-item" role="menuitem" aria-disabled="true"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3h6v3H1zM1 6h1v1H1zM6 6h1v1H6z" fill="#b39b85"/><path d="M1 3h2v2H1z" fill="#efe3d3"/></svg><span class="s-label">Go to bed</span><span class="s-note">after 6pm</span></button>
+          <button class="s-item" role="menuitem" data-say="Options: sound, zoom, controls."><span class="s-ico"></span><span class="s-label">Options</span><kbd class="s-key">Esc</kbd></button>
+          <div class="s-sect" role="separator">Farm</div>
+          <button class="s-item" role="menuitem" data-say="12 crates ship tonight at 6pm."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 3h8v5H0z" fill="#a8652f"/><path d="M0 2h8v1H0z" fill="#6b3b1f"/><path d="M0 5h8v1H0z" fill="#8a5a33"/></svg><span class="s-label">Shipping bin</span><span class="s-badge" aria-label="12 crates">12</span></button>
+          <button class="s-item" role="menuitem" data-say="The almanac opens in your browser."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v7H1z" fill="#4f9a2c"/><path d="M2 1h1v7H2z" fill="#2f6418"/><path d="M4 3h2v1H4z" fill="#f7c948"/></svg><span class="s-label">Almanac</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M2 0h4v4H5V2H4V1H2zM3 2h1v1H3zM2 3h1v1H2zM1 4h1v1H1zM0 5h1v1H0z" fill="currentColor"/></svg></button>
+          <div class="has-sub">
+            <button class="s-item" role="menuitem"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v6H2z" fill="#e8c27a"/><path d="M2 2h4v1H2z" fill="#a8652f"/><path d="M3 4h2v2H3z" fill="#4f9a2c"/></svg><span class="s-label">Plant seeds</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M1 0h1v1h1v1h1v2H3v1H2v1H1z" fill="currentColor"/></svg></button>
+            <div class="submenu p-panel" role="menu" aria-label="Seed box">
+              <span class="p-title" aria-hidden="true">Seed box</span>
+              <button class="s-seed" role="menuitemradio" aria-checked="false" data-say="Parsnip seeds in hand. Ready in 4 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button>
+              <button class="s-seed" role="menuitemradio" aria-checked="true" data-say="Cauliflower seeds in hand. Ready in 12 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 4h6v3H1z" fill="#4f9a2c"/><path d="M2 1h4v4H2z" fill="#f4efe0"/><path d="M3 2h1v1H3zM5 3h1v1H5z" fill="#d8cfb5"/></svg><span class="s-label">Cauliflower</span><span class="s-price">80g</span></button>
+              <button class="s-seed" role="menuitemradio" aria-checked="false" data-say="Potato seeds in hand. Ready in 6 days."><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v4H2zM1 3h6v2H1z" fill="#c69a5c"/><path d="M3 3h1v1H3zM5 4h1v1H5z" fill="#8a6a3c"/></svg><span class="s-label">Potato</span><span class="s-price">50g</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="said" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on. Every size and every move is a whole number of game pixels (3px), so the menu stays as crisp as the farm behind it.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // sprouts on the tilled rows
+    const field = document.querySelector('.field');
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) {
+      const s = document.createElement('i'); s.className = 'sprout';
+      s.style.left = 15 + c * 33 + 'px'; s.style.top = 12 + r * 45 + 'px'; field.append(s);
+    }
+  </script>
+  <script src="week-06-sketch.js?v=2"></script>
+  <script>
+    // #open in the address shows the seed box already open (used for the set's thumbnail)
+    if (location.hash === '#open') { const h = document.querySelector('.has-sub'); h.classList.add('is-open'); h.querySelector('.s-item').setAttribute('aria-expanded', 'true'); }
+  </script>
+  <script src="week-06-harvest-spec.js?v=1"></script>
+</body>
+</html>

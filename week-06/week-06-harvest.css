@@ -1,0 +1,104 @@
+/* Week 06, Set 1 · Harvest: the in-day menu of a cosy pixel farming game.
+   Shared by the two prototypes (the menu system, the menu in use). Every value the spec
+   reports is set here, once, as a token; the pages and the spec read the same numbers.
+   Everything sits on a 3px grid: one game pixel is three screen pixels. */
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap");
+
+:root {
+  /* colour */
+  --ink: #3b1f12;            /* item text, enabled */
+  --ink-soft: #7a4a2a;       /* key caps, right icon, section label */
+  --ink-dim: rgba(59, 31, 18, .35); /* unavailable */
+  --paper: #f6dca6;          /* the menu's parchment */
+  --paper-hi: #fff1cf;       /* item, hover */
+  --paper-press: #eec27a;    /* item, pressed */
+  --wood-dark: #4a2614; --wood: #8e4f2a; --wood-hi: #c9823f;
+  --leaf: #4f9a2c; --leaf-dark: #2f6418;
+  --berry: #d8463a;          /* badge */
+  --sun: #f7c948;
+
+  /* type */
+  --font: "Pixelify Sans", ui-monospace, monospace;
+  --size: 20px; --key-size: 14px; --note-size: 14px;
+
+  /* the pixel grid */
+  --px: 3px;
+
+  /* the item */
+  --menu-w: 300px;
+  --item-h: 40px; --item-px: 12px; --item-gap: 10px;
+  --icon: 24px;              /* an 8 x 8 game-pixel icon */
+  --key: 24px; --badge: 24px;
+
+  /* motion: pixel games move in steps, not curves */
+  --hover-lift: 3px;          /* one game pixel */
+  --hover-time: .12s;
+  --hand-bob: .6s;            /* the pointing hand bobs, two steps */
+  --press-squash: .92;
+  --sub-open: .18s;
+}
+
+/* ---------- panels: parchment in a wooden frame, drawn in game pixels ---------- */
+.p-panel { position: relative; padding: 18px 16px; background: var(--paper);
+  border: var(--px) solid var(--wood-dark);
+  box-shadow: inset 0 0 0 var(--px) var(--wood-hi), inset 0 0 0 calc(var(--px) * 2) var(--wood), inset 0 0 0 calc(var(--px) * 3) var(--wood-dark),
+    0 calc(var(--px) * 2) 0 rgba(40, 20, 10, .35); }
+.p-title { position: absolute; left: 50%; top: calc(var(--px) * -5); translate: -50% 0; padding: 4px 14px 5px; background: var(--wood); color: var(--paper-hi);
+  border: var(--px) solid var(--wood-dark); box-shadow: inset 0 var(--px) 0 var(--wood-hi); font: 600 15px/1 var(--font); letter-spacing: .04em; white-space: nowrap; }
+
+/* ---------- one item, every configuration ---------- */
+.s-menu { width: var(--menu-w); }
+.s-item { position: relative; display: flex; align-items: center; gap: var(--item-gap); width: 100%; height: var(--item-h); margin: 0; padding: 0 var(--item-px);
+  border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left;
+  font: 400 var(--size)/var(--item-h) var(--font); image-rendering: pixelated;
+  transition: translate var(--hover-time) steps(1), background-color var(--hover-time) steps(1); }
+.s-item + .s-item, .s-item + .has-sub, .has-sub + .s-item { margin-top: var(--px); }
+.s-item:focus-visible { outline: none; }
+/* hover: the row lights, lifts one game pixel, and the hand points at it */
+.s-item:hover, .s-item:focus-visible, .s-item.is-hover, .has-sub.is-open > .s-item {
+  background: var(--paper-hi); translate: 0 calc(-1 * var(--hover-lift)); box-shadow: 0 var(--hover-lift) 0 rgba(122, 74, 42, .35); }
+.s-item::before { content: ""; position: absolute; left: -34px; top: 50%; width: 24px; height: 18px; margin-top: -9px; opacity: 0; pointer-events: none;
+  background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 9' shape-rendering='crispEdges'%3E%3Cpath d='M1 2h6V1h2v1h2v1h1v3h-1v1h-1v1H2V7H1V6H0V3h1z' fill='%233b1f12'/%3E%3Cpath d='M2 3h6V2h1v1h2v3h-1v1H3V6H2V5H1V4h1z' fill='%23fff7e6'/%3E%3Cpath d='M3 5h5v1H3z' fill='%23e6c9a0'/%3E%3C/svg%3E"); }
+.s-item:hover::before, .s-item:focus-visible::before, .s-item.is-hover::before, .has-sub.is-open > .s-item::before { opacity: 1; animation: bob var(--hand-bob) steps(1) infinite; }
+@keyframes bob { 50% { translate: calc(-1 * var(--px)) 0; } }
+/* pressed: the row squashes into the parchment */
+.s-item:active, .s-item.is-press, .s-item.is-picked { background: var(--paper-press); translate: 0 0; box-shadow: none; scale: 1 var(--press-squash); }
+.s-item.is-press::before, .s-item:active::before { opacity: 1; animation: none; translate: var(--px) 0; }
+.s-item[aria-disabled="true"] { color: var(--ink-dim); background: transparent; translate: none; box-shadow: none; scale: none; cursor: default; }
+.s-item[aria-disabled="true"]::before { display: none; }
+.s-ico { width: var(--icon); height: var(--icon); flex: none; shape-rendering: crispEdges; }
+.s-label { flex: 1; white-space: nowrap; }
+.s-key { display: grid; place-items: center; min-width: var(--key); height: var(--key); padding: 0 5px; background: var(--paper-hi); color: var(--ink-soft);
+  border: var(--px) solid var(--ink-soft); box-shadow: 0 var(--px) 0 var(--ink-soft); font: 600 var(--key-size)/1 var(--font); translate: 0 -2px; }
+.s-end { width: 18px; height: 18px; flex: none; color: var(--ink-soft); shape-rendering: crispEdges; }
+.s-item[aria-disabled="true"] .s-key { color: var(--ink-dim); border-color: rgba(59, 31, 18, .2); box-shadow: 0 var(--px) 0 rgba(59, 31, 18, .2); }
+.s-note { font: 400 12px/1 var(--font); color: var(--ink-dim); }
+.s-badge { min-width: var(--badge); height: var(--badge); padding: 0 5px; background: var(--berry); color: #fff;
+  border: var(--px) solid #8f231b; font: 600 13px/18px var(--font); text-align: center; }
+.s-sect { display: flex; align-items: center; gap: 8px; padding: 10px var(--item-px) 6px; font: 600 var(--note-size)/1 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--leaf-dark); }
+.s-sect::before, .s-sect::after { content: ""; flex: 1; height: var(--px); background: repeating-linear-gradient(90deg, var(--leaf) 0 var(--px), transparent var(--px) calc(var(--px) * 2)); }
+.s-rule { height: var(--px); margin: 8px var(--item-px); background: repeating-linear-gradient(90deg, var(--wood) 0 calc(var(--px) * 2), transparent calc(var(--px) * 2) calc(var(--px) * 3)); }
+
+/* the submenu: a seed box, its own panel; the chosen seed wears a green frame */
+.s-seed { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; margin: 0; padding: 0 10px; border: 0; background: transparent; color: var(--ink); cursor: pointer;
+  font: 400 18px/40px var(--font); text-align: left; transition: translate var(--hover-time) steps(1); }
+.s-seed + .s-seed { margin-top: var(--px); }
+.s-seed:hover, .s-seed:focus-visible, .s-seed.is-hover { background: var(--paper-hi); translate: 0 calc(-1 * var(--hover-lift)); outline: none; }
+.s-seed:active, .s-seed.is-press, .s-seed.is-picked { background: var(--paper-press); translate: 0 0; }
+.s-seed[aria-checked="true"] { box-shadow: inset 0 0 0 var(--px) var(--leaf); }
+.s-seed .s-price { font-size: 14px; color: var(--ink-soft); }
+
+/* ---------- the spec, under each prototype ---------- */
+.spec { padding: 48px 32px 64px; background: #2c1a10; color: #f6e3bd; font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+.spec h2 { margin: 0 0 4px; font: 600 26px/1.2 var(--font); color: var(--sun); }
+.spec > p { margin: 0 0 24px; color: #cfa978; max-width: 60ch; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.spec-card { padding: 14px 16px 10px; border: 3px solid #5a331d; background: #3a2214; }
+.spec-card h3 { margin: 0 0 8px; font: 600 13px/1 var(--font); letter-spacing: .1em; text-transform: uppercase; color: var(--wood-hi); }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
+.spec-card dt { color: #cfa978; }
+.spec-card dd { margin: 0; color: #fff1cf; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.3); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
+
+@media (prefers-reduced-motion: reduce) { .s-item:hover::before, .s-item.is-hover::before { animation: none; } }

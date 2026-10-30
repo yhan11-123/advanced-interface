@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 06 · Set 1 · Harvest · Menu system</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-06-harvest.css?v=1" />
+  <style>
+  /* Menu system: one item build, every configuration the brief asks for, each in its three
+     states. The Enabled column is live: point at a row and the hand appears, press and it
+     squashes. The other two columns hold the states still, to compare. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #6fb94a; background-image: radial-gradient(#5ea83c 1.5px, transparent 1.6px), radial-gradient(#82c95a 1.5px, transparent 1.6px); background-size: 24px 24px, 36px 30px; background-position: 0 0, 12px 9px;
+    color: var(--ink); font: 14px/1.5 var(--font); -webkit-font-smoothing: none; }
+  button { font: inherit; }
+  .top { padding: 28px 32px 30px; }
+  .top h1 { display: inline-block; margin: 0; padding: 8px 18px 9px; background: var(--wood); color: var(--paper-hi); border: 3px solid var(--wood-dark); box-shadow: inset 0 3px 0 var(--wood-hi), 0 6px 0 rgba(40, 20, 10, .35); font: 600 24px/1 var(--font); }
+  .top p { margin: 14px 0 0; font-size: 16px; color: #1f4a10; }
+  .sheet { margin: 0 20px; overflow: hidden; }
+  .fitbox { position: relative; }
+  table { width: 1120px; border-collapse: collapse; transform-origin: 0 0; }
+  th { padding: 6px 12px 12px; text-align: left; font: 600 14px/1 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--leaf-dark); }
+  th:first-child { width: 200px; }
+  td { padding: 12px 12px 12px 44px; border-top: 3px dotted rgba(142, 79, 42, .35); vertical-align: middle; }
+  td:first-child { padding-left: 12px; font: 600 16px/1.3 var(--font); color: var(--ink); }
+  td:first-child small { display: block; font: 400 13px/1.3 var(--font); color: var(--ink-soft); }
+  .cell { width: var(--menu-w); }
+  .seedcell { width: 230px; }
+  .none { font: 400 13px/1 var(--font); color: var(--ink-dim); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <h1>Harvest · Menu system</h1>
+    <p>One item, every configuration, every state, all in 3px game pixels.</p>
+  </header>
+
+  <div class="sheet p-panel">
+    <div class="fitbox"><table>
+      <thead><tr><th>Configuration</th><th>Enabled · live</th><th>Hover</th><th>Pressed</th></tr></thead>
+      <tbody>
+        <tr data-row>
+          <td>Single line<small>label only, icon column kept</small></td>
+          <td><div class="cell"><button class="s-item"><span class="s-ico"></span><span class="s-label">Options</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Left icon</td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h4v1H2z" fill="#4a2614"/><path d="M1 2h6v6H1z" fill="#c9823f"/><path d="M1 2h6v1H1zM1 7h6v1H1z" fill="#8e4f2a"/><path d="M3 4h2v2H3z" fill="#f7c948"/></svg><span class="s-label">Inventory</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right shortcut<small>a key cap</small></td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h5v2H1z" fill="#8a8f96"/><path d="M5 1h1v2H5z" fill="#5e636a"/><path d="M3 3h1v5H3z" fill="#a8652f"/></svg><span class="s-label">Crafting</span><kbd class="s-key">C</kbd></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right badge</td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M0 3h8v5H0z" fill="#a8652f"/><path d="M0 2h8v1H0z" fill="#6b3b1f"/><path d="M0 5h8v1H0z" fill="#8a5a33"/></svg><span class="s-label">Shipping bin</span><span class="s-badge">12</span></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Right icon<small>opens elsewhere</small></td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v7H1z" fill="#4f9a2c"/><path d="M2 1h1v7H2z" fill="#2f6418"/><path d="M4 3h2v1H4z" fill="#f7c948"/></svg><span class="s-label">Almanac</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M2 0h4v4H5V2H4V1H2zM3 2h1v1H3zM2 3h1v1H2zM1 4h1v1H1zM0 5h1v1H0z" fill="currentColor"/></svg></button></div></td>
+        </tr>
+        <tr data-row>
+          <td>Submenu item<small>opens the seed box</small></td>
+          <td><div class="cell"><button class="s-item"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 2h4v6H2z" fill="#e8c27a"/><path d="M2 2h4v1H2z" fill="#a8652f"/><path d="M3 4h2v2H3z" fill="#4f9a2c"/></svg><span class="s-label">Plant seeds</span><svg class="s-end" viewBox="0 0 6 6" aria-hidden="true"><path d="M1 0h1v1h1v1h1v2H3v1H2v1H1z" fill="currentColor"/></svg></button></div></td>
+        </tr>
+        <tr>
+          <td>Submenu<small>a seed: at rest · pointed at · chosen</small></td>
+          <td><div class="seedcell"><button class="s-seed"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button></div></td>
+          <td><div class="seedcell"><button class="s-seed is-hover" tabindex="-1"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button></div></td>
+          <td><div class="seedcell"><button class="s-seed" aria-checked="true" tabindex="-1"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3 0h2v2H3z" fill="#4f9a2c"/><path d="M2 2h4v2H2zM3 4h2v2H3zM3 6h1v2H3z" fill="#f0dca0"/></svg><span class="s-label">Parsnip</span><span class="s-price">20g</span></button></div></td>
+        </tr>
+        <tr>
+          <td>Unavailable<small>stays in place, faded, says why</small></td>
+          <td><div class="cell"><button class="s-item" aria-disabled="true"><svg class="s-ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3h6v3H1zM1 6h1v1H1zM6 6h1v1H6z" fill="#b39b85"/><path d="M1 3h2v2H1z" fill="#efe3d3"/></svg><span class="s-label">Go to bed</span><span class="s-note">after 6pm</span></button></div></td>
+          <td><span class="none">no hover</span></td><td><span class="none">no press</span></td>
+        </tr>
+        <tr>
+          <td>Sections<small>a named leaf rule, or a plain divider</small></td>
+          <td colspan="3"><div class="cell"><div class="s-sect">Farm</div><div class="s-rule"></div></div></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on, the same ones the menu in use runs on.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
+  <script>
+    // each item row: the live item, then the same item held in hover, then held in pressed
+    document.querySelectorAll('[data-row]').forEach(row => {
+      const cell = row.children[1];
+      ['is-hover', 'is-press'].forEach(state => {
+        const td = cell.cloneNode(true), it = td.querySelector('.s-item');
+        it.classList.add(state); it.tabIndex = -1; it.setAttribute('aria-hidden', 'true');
+        row.append(td);
+      });
+    });
+    // shrink the table to the sheet's width when the window is narrower than it
+    const box = document.querySelector('.fitbox'), table = box.querySelector('table');
+    const fit = () => { const f = Math.min(1, box.clientWidth / table.offsetWidth); table.style.transform = `scale(${f})`; box.style.height = table.offsetHeight * f + 'px'; };
+    addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
+    if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
+  </script>
+  <script src="week-06-harvest-spec.js?v=1"></script>
+</body>
+</html>
