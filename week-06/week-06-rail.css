@@ -47,6 +47,7 @@
   --glow-r: 4px;
   --rim: 3px;                /* the deep green rim on its left */
   --sub-w: 150px;            /* Currency's own small sheet */
+  --switch-w: 32px; --switch-h: 18px;   /* a toggle's switch */
 
   /* motion: a thick liquid. Things swell out on a damped spring, a touch past their size, and settle slowly */
   --liquid: linear(0, 0.028, 0.089, 0.179, 0.283, 0.384, 0.491, 0.591, 0.681, 0.756, 0.824, 0.881, 0.924, 0.961, 0.988, 1.007, 1.022, 1.03, 1.035, 1.037, 1.036, 1.034, 1.031, 1.028, 1.024, 1.02, 1.016, 1.013, 1.01, 1.007, 1.005, 1.003, 1.002, 1.001, 1, 0.999, 1);   /* 0.72 damping */
@@ -84,10 +85,23 @@
   background: rgba(255, 255, 255, .2); color: var(--ink); font: 700 10px/1 var(--font); letter-spacing: .04em; }
 .r-key.is-count { background: var(--deep); }
 .r-end { width: 10px; height: 10px; }
+/* the submenu mark: › while Currency's sheet is shut, turning over to ‹ as it opens */
+.r-chev { width: 11px; height: 11px; transition: rotate var(--soft-time) var(--liquid-soft); }
+.has-sub.is-open > .r-row .r-chev { rotate: 180deg; }
 .r-row:hover .r-ico, .r-row:focus-visible .r-ico, .r-row.is-hover .r-ico, .has-sub.is-open > .r-row .r-ico { scale: 1.1; }
 .r-row:active .r-ico, .r-row.is-press .r-ico, .r-row.is-picked .r-ico { scale: .92; }
 .r-row[aria-disabled="true"] { color: var(--ink-off); cursor: default; }
 .r-row[aria-disabled="true"] .r-ico { scale: 1 !important; }
+
+/* a toggle: a switch at the right end of the row; on, its track goes deep green and the knob slides over */
+.r-switch { position: relative; flex: none; width: var(--switch-w); height: var(--switch-h); border-radius: calc(var(--switch-h) / 2); background: rgba(255, 255, 255, .28);
+  transition: background-color var(--hover-time); }
+.r-switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: calc(var(--switch-h) - 6px); height: calc(var(--switch-h) - 6px); border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(20, 50, 55, .3); transition: translate var(--soft-time) var(--liquid-soft); }
+.r-toggle[aria-checked="true"] .r-switch { background: var(--deep); }
+.r-toggle[aria-checked="true"] .r-switch::after { translate: calc(var(--switch-w) - var(--switch-h)) 0; }
+/* pressed, the row goes deep green too, so an on track lightens to stay visible */
+.r-toggle[aria-checked="true"]:active .r-switch, .r-toggle[aria-checked="true"].is-press .r-switch { background: rgba(255, 255, 255, .38); }
 
 /* the highlight: one bead of light that flows to whichever row is pointed at, a deep green rim on its left */
 .r-glow { position: absolute; left: 8px; right: 8px; top: 0; height: var(--row-h); border-radius: var(--glow-r); background: var(--glow); pointer-events: none;

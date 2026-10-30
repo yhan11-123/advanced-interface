@@ -60,6 +60,12 @@
       ['Arrow, submenu, shortcut', sw(cs('key').backgroundColor)],
       ['Badge', `${sw(cs('count').backgroundColor)} with white figures`],
     ]],
+    ['Toggle', [
+      ['Form', `a switch at the right end of its row, ${tok('--switch-w')} by ${tok('--switch-h')}`],
+      ['Off', 'a pale track, the white knob at the left'],
+      ['On', `the track goes ${hex(tok('--deep'))}, the knob slides over on the softer spring`],
+      ['Behaviour', 'it flips in place and the menu stays open'],
+    ]],
     ['Sections', [
       ['Name', `${px(cs('sect').fontSize)} bold, ${px(cs('sect').letterSpacing)} apart, ${hex(cs('sect').color)}`],
       ['Rule', 'runs out to the sheet\'s edge after it'],
@@ -68,12 +74,13 @@
       ['Hover', `one highlight, ${hex(tok('--glow'))}, ${tok('--glow-r')} corners, flows to the row; a ${tok('--rim')} deep green rim on its left`],
       ['Hover, icon', 'grows to 110%'],
       ['Pressed', `the highlight goes ${hex(tok('--deep'))}, the icon gives to 92%`],
-      ['Unavailable', 'faded; the highlight passes it by'],
+      ['Unavailable', 'faded; the highlight passes it by (shown on the states sheet)'],
     ]],
     ['Submenu', [
       ['Form', `its own small sheet, ${tok('--sub-w')} wide, dripping out to the right on a smaller neck, centred on its row`],
       ['Chosen', 'a dot before the code'],
       ['Opens on', 'hover, a click, or →'],
+      ['Its mark', '› while shut, turning over to ‹ as the sheet opens, on the softer spring'],
     ]],
     ['Motion', [
       ['Feel', 'a thick liquid: swells a touch past its size, settles slowly'],

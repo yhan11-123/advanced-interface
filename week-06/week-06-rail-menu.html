@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 2 · Rail · In use and every state</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-rail.css?v=53" />
+  <link rel="stylesheet" href="week-06-rail.css?v=56" />
   <style>
   /* In use: the web app of a wallet. Its navigation is a thin green-to-blue rail down the left edge of a
      pale page. Halfway down, a scoop is cut out of the rail's right side and the round menu button sits
@@ -190,13 +190,13 @@
           <div class="r-sect" aria-hidden="true">Wallet</div>
           <button class="r-row" role="menuitem" data-say="Transfer: choose who to pay"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l-3-3M16 13H4l3 3"/></svg><span class="r-label">Transfer</span></button>
           <button class="r-row" role="menuitem" data-say="Pay bills: 2 due this week"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5h10v15l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4zM8 7h4M8 10.5h4"/></svg><span class="r-label">Pay bills</span></button>
-          <button class="r-row" role="menuitem" aria-disabled="true" data-say="Freeze card is off while a transfer is pending"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span></button>
+          <button class="r-row r-toggle" role="menuitemcheckbox" aria-checked="false"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span><span class="r-switch" aria-hidden="true"></span></button>
           <button class="r-row" role="menuitem" data-say="Statements: October is ready"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5h7l3 3v12H5zM12 2.5v3h3M8 9.5h5M8 12.5h5"/></svg><span class="r-label">Statements</span></button>
           <div class="r-sect" aria-hidden="true">Account</div>
           <button class="r-row" role="menuitem" aria-label="Alerts, 3 new" data-say="3 new alerts"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 14h11l-1.6-2.2V8.2a3.9 3.9 0 0 0-7.8 0v3.6zM8.4 16.5a1.6 1.6 0 0 0 3.2 0"/></svg><span class="r-label">Alerts</span><span class="r-key is-count" aria-hidden="true">03</span></button>
           <button class="r-row" role="menuitem" aria-label="Help centre, opens in a new tab" data-say="Help centre opens in a new tab"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M7.9 8a2.1 2.1 0 1 1 2.8 2c-.5.2-.7.6-.7 1.2M10 13.6v.4"/></svg><span class="r-label">Help centre</span><span class="r-key" aria-hidden="true"><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
           <div class="has-sub">
-            <button class="r-row" role="menuitem" aria-haspopup="menu" aria-expanded="false"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key" aria-hidden="true">&gt;</span></button>
+            <button class="r-row" role="menuitem" aria-haspopup="menu" aria-expanded="false"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key" aria-hidden="true"><svg class="r-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
             <div class="r-sublist" role="menu" aria-label="Currency">
               <span class="r-glow" aria-hidden="true"></span>
               <button class="r-row r-choice" role="menuitemradio" aria-checked="true" data-cur="USD" style="--j:0"><span class="r-tick"></span><span class="r-label">USD</span></button>
@@ -231,12 +231,16 @@
           <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 14h11l-1.6-2.2V8.2a3.9 3.9 0 0 0-7.8 0v3.6zM8.4 16.5a1.6 1.6 0 0 0 3.2 0"/></svg><span class="r-label">Alerts</span><span class="r-key is-count">03</span></button></div></td></tr>
         <tr data-row><td>Right icon<small>opens elsewhere</small></td>
           <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M7.9 8a2.1 2.1 0 1 1 2.8 2c-.5.2-.7.6-.7 1.2M10 13.6v.4"/></svg><span class="r-label">Help centre</span><span class="r-key"><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span></button></div></td></tr>
+        <tr data-row><td>Toggle, off<small>a switch at the right; the menu stays open</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row r-toggle" aria-checked="false"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span><span class="r-switch"></span></button></div></td></tr>
+        <tr data-row><td>Toggle, on<small>the track goes deep green, the knob slides over</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row r-toggle" aria-checked="true"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span><span class="r-switch"></span></button></div></td></tr>
         <tr data-row><td>Submenu item<small>its own sheet drips out beside it</small></td>
-          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key">&gt;</span></button></div></td></tr>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key"><svg class="r-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button></div></td></tr>
         <tr data-row><td>Submenu choice<small>the chosen one is marked</small></td>
           <td><div class="strip" style="width: var(--sub-w)"><span class="r-glow" aria-hidden="true"></span><button class="r-row r-choice" aria-checked="true"><span class="r-tick"></span><span class="r-label">USD</span></button></div></td></tr>
         <tr><td>Unavailable<small>faded, the highlight passes it by</small></td>
-          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row" aria-disabled="true"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span></button></div></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row" aria-disabled="true"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15a7 7 0 1 1 14 0M10 15l3.5-4.5"/></svg><span class="r-label">Card limits</span></button></div></td>
           <td><span class="none">NO HOVER</span></td><td><span class="none">NO PRESS</span></td></tr>
         <tr><td>Sections<small>a name, a rule after it</small></td>
           <td colspan="3"><div class="strip"><div class="r-sect">Account</div></div></td></tr>
@@ -345,6 +349,11 @@
         const it = e.target.closest('.r-row'); if (!it) return;
         if (it === hsBtn) { sub(!hs.classList.contains('is-open')); if (hs.classList.contains('is-open')) setTimeout(() => subs.find(c => c.getAttribute('aria-checked') === 'true').focus({ preventScroll: true }), 120); return; }
         if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); say(it.dataset.say); return; }
+        if (it.classList.contains('r-toggle')) {   // a setting: it flips in place, and the menu stays open
+          const on = it.getAttribute('aria-checked') !== 'true'; it.setAttribute('aria-checked', on);
+          document.querySelector('.main .sub-h').textContent = on ? 'ACCOUNT ••42 · CARD FROZEN' : 'ACCOUNT ••42 · ALL CLEAR';
+          say(on ? 'Card frozen: no new payments until you turn it off' : 'Card on again'); return;
+        }
         it.classList.add('is-picked');
         if (it.dataset.cur) { subs.forEach(c => c.setAttribute('aria-checked', c === it)); setCur(it.dataset.cur); say(`Showing balances in ${it.dataset.cur}`); }
         else say(it.dataset.say);
@@ -384,6 +393,6 @@
     addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
     })();
   </script>
-  <script src="week-06-rail-spec.js?v=51"></script>
+  <script src="week-06-rail-spec.js?v=53"></script>
 </body>
 </html>
