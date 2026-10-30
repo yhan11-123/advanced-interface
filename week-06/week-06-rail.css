@@ -1,123 +1,130 @@
-/* Week 06, Set 2 · Rail: the Notch sketch, turned for the web, in the Signal style. On the phone,
-   the menu button sat in a scoop cut out of the bottom tab bar. On a web page the bar stands up: an
-   orange rail down the left edge of a dark, grainy page, the scoop cut into its right side, the
-   round button sitting in it. Pressed, the menu wipes out of the scoop to the right: an orange sheet,
-   numbered rows coming up one after another, a black bar with a slanted end sweeping under the row
-   you point at while its label scrambles and settles.
-   Shared by the two prototypes (the menu system, the menu in use). Every value the spec reports
-   is set here, once, as a token; the pages and the spec read the same numbers. */
+/* Week 06, Set 2 · Rail: the Notch sketch, turned for the web. On the phone, the menu button sat in a
+   scoop cut out of the bottom tab bar. On a web page the bar stands up: a thin green-to-blue rail down
+   the left edge of a pale page, the scoop cut into its right side, the round button sitting in it.
+   Pressed, the menu drips out of the scoop: a liquid neck runs out of the button and a sheet swells
+   from its end, and stays joined to the button by that neck while it is open. The rows are a plain
+   straight list; one highlight flows from row to row like a bead of liquid, a deep green rim on its
+   left. Currency drips its own small sheet out to the right.
+   Every value the spec reports is set here, once, as a token; the page and the spec read the same numbers. */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap");
 
 :root {
   /* colour */
-  --night: #0c0c0c;          /* the page */
-  --panel: #141414;          /* cards on the page */
-  --rule-dark: #232323;      /* the page's grid and card edges */
-  --orange: #ff6206;         /* the rail and the menu */
-  --ink: #0b0b0b;            /* text on orange */
-  --ink-soft: rgba(11, 11, 11, .55);  /* numbers, keys, section labels */
-  --ink-off: rgba(11, 11, 11, .32);   /* unavailable */
-  --rule: rgba(11, 11, 11, .2);       /* between rows */
-  --bar: #0b0b0b;            /* the hover bar */
-  --on-bar: #ff8a45;         /* text on the bar */
-  --paper: #f3efe8;          /* text on the page */
-  --dim: #8f8a83;
+  --g1: #86cba4;             /* the green end of the rail and the menu */
+  --g2: #7fa6c7;             /* the blue end */
+  --grad: linear-gradient(170deg, var(--g1), var(--g2));
+  --night: #e4e8e7;          /* the page */
+  --panel: #f4f6f5;          /* cards on the page */
+  --rule-dark: #d3dbd9;      /* the page's grid and card edges */
+  --ink: #ffffff;            /* text on the gradient */
+  --ink-soft: rgba(255, 255, 255, .72);  /* section names, chips */
+  --ink-off: rgba(255, 255, 255, .45);   /* unavailable */
+  --rule: rgba(255, 255, 255, .3);       /* the rule under a section name */
+  --deep: #3f7778;           /* the rim, the badge, the pressed highlight */
+  --paper: #233638;          /* text on the page */
+  --dim: #6b7f80;
 
   /* type */
   --font: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --size: 13px; --track: .08em;
-  --small: 11px;
+  --label-size: 13px; --track: .06em;
+  --sect-size: 9.5px;
 
   /* the rail and its scoop */
-  --rail-w: 88px;
-  --scoop: 54px;             /* radius of the cut the button sits in */
-  --fab: 76px;               /* the round button */
+  --rail-w: 56px;            /* a thin rail */
+  --scoop: 42px;             /* radius of the cut the button sits in */
+  --fab: 60px;               /* the round button */
 
-  /* the menu and its row */
-  --menu-w: 300px; --menu-pad: 0px;
+  /* the menu: a sheet that drips out of the scoop */
+  --sheet-w: 248px;
+  --sheet-r: 18px;           /* its corners */
+  --sheet-pad: 10px;
+  --sheet-gap: 18px;         /* from the scoop's edge to the sheet */
+  --neck: 26px;              /* the liquid neck joining the button to the sheet, at its thickest */
   --row-h: 44px; --row-px: 16px; --row-gap: 14px;
-  --num-w: 20px;             /* the number in the left column */
-  --icon: 15px; --icon-stroke: 1.3;
-  --cut: 12px;               /* the slant cut off the bar's right end */
-  --gap-out: 14px;           /* from the scoop's edge to the menu */
+  --sect-h: 30px;            /* a section name's row */
+  --icon: 18px; --icon-stroke: 1.5;
+  --glow: rgba(255, 255, 255, .26);   /* the highlight under the pointed-at row */
+  --glow-r: 4px;
+  --rim: 3px;                /* the deep green rim on its left */
+  --sub-w: 150px;            /* Currency's own small sheet */
 
-  /* motion */
-  --wipe-time: 260ms;        /* the menu wipes out of the scoop, left to right */
+  /* motion: a thick liquid. Things swell out on a damped spring, a touch past their size, and settle slowly */
+  --liquid: linear(0, 0.028, 0.089, 0.179, 0.283, 0.384, 0.491, 0.591, 0.681, 0.756, 0.824, 0.881, 0.924, 0.961, 0.988, 1.007, 1.022, 1.03, 1.035, 1.037, 1.036, 1.034, 1.031, 1.028, 1.024, 1.02, 1.016, 1.013, 1.01, 1.007, 1.005, 1.003, 1.002, 1.001, 1, 0.999, 1);   /* 0.72 damping */
+  --liquid-time: 529ms;      /* it has visibly arrived by about 280ms; the rest is the settle */
+  --liquid-soft: linear(0, 0.028, 0.103, 0.195, 0.297, 0.401, 0.51, 0.602, 0.685, 0.756, 0.822, 0.872, 0.912, 0.946, 0.969, 0.987, 1, 1.009, 1.014, 1.017, 1.018, 1.018, 1.017, 1.015, 1.013, 1.011, 1.01, 1.008, 1.006, 1.005, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1);   /* 0.78 damping, quicker */
+  --soft-time: 406ms;
+  --neck-time: 150ms;        /* the neck runs out of the button before the sheet swells */
+  --wipe-time: 200ms;        /* the scoop opens a little wider */
   --wipe-ease: cubic-bezier(.75, 0, .2, 1);
-  --row-step: 40ms;          /* rows come up one after another */
-  --row-time: 240ms;
-  --bar-time: 200ms;         /* the bar sweeps in from the left */
-  --bar-ease: cubic-bezier(.2, .8, .2, 1);
-  --scramble-time: 260ms;    /* the label scrambles, then settles into its word */
+  --goo: 8;                  /* blur of the goo filter: button, neck and sheet fuse like thick liquid */
+  --sway-time: 9s;           /* the gradient sways back and forth, slow and calm, while the menu is out */
+  --row-step: 18ms;          /* rows come in from the middle outward */
+  --scramble-time: 200ms;    /* the label scrambles, then settles into its word */
   --morph-time: 240ms;       /* the three lines turn to a cross */
+  --bar-ease: cubic-bezier(.2, .8, .2, 1);
   --hover-time: 140ms;
-  --close-time: 200ms;       /* the menu wipes back into the scoop */
+  --close-time: 180ms;       /* rows go, the sheet shrinks back down its neck into the button */
 }
 
-/* ---------- the menu: an orange sheet with corner marks ---------- */
-.r-menu { position: relative; width: var(--menu-w); padding: var(--menu-pad); background: var(--orange); color: var(--ink); font: 500 var(--size)/1 var(--font); }
-.r-menu::before, .r-menu::after { content: ""; position: absolute; width: 8px; height: 8px; border: 0 solid var(--ink); pointer-events: none; }
-.r-menu::before { left: 5px; top: 5px; border-width: 1px 0 0 1px; } .r-menu::after { right: 5px; bottom: 5px; border-width: 0 1px 1px 0; }
-.r-head { display: flex; justify-content: space-between; align-items: center; height: 40px; padding: 0 var(--row-px); border-bottom: 1px solid var(--rule); font: 500 var(--small)/1 var(--font); letter-spacing: .16em; }
+/* ---------- the menu: the sheet ----------
+   The sheet, its neck and the button's blob are drawn in one SVG under a goo filter, so they read as one
+   body of liquid; the rows sit over the sheet as plain HTML. week-06-rail-menu.html sizes them. */
+.r-goo { position: absolute; left: 0; top: 0; width: 1200px; height: 760px; overflow: visible; pointer-events: none; }   /* its own fixed space, however wide the app is */
 
 /* ---------- one row, every configuration ---------- */
-.r-item { position: relative; display: flex; align-items: center; gap: var(--row-gap); width: 100%; height: var(--row-h); margin: 0; padding: 0 var(--row-px);
-  border: 0; border-bottom: 1px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; text-align: left; isolation: isolate;
-  font: 500 var(--size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; transition: color var(--hover-time); }
-/* the bar: black, its right end cut on a slant; it sweeps in from the left */
-.r-item::before { content: ""; position: absolute; z-index: -1; left: 5px; right: 5px; top: 6px; bottom: 6px; background: var(--bar);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
-  transform-origin: 0 50%; scale: 0 1; transition: scale 160ms ease-in; }
-.r-item:focus-visible { outline: none; }
-.r-item:hover, .r-item:focus-visible, .r-item.is-hover, .has-sub.is-open > .r-item { color: var(--on-bar); }
-.r-item:hover::before, .r-item:focus-visible::before, .r-item.is-hover::before, .has-sub.is-open > .r-item::before { scale: 1 1; transition: scale var(--bar-time) var(--bar-ease); }
-/* pressed: the bar fills to the row's edges, the text goes light, the row sinks a pixel */
-.r-item:active, .r-item.is-press, .r-item.is-picked { color: var(--paper); }
-.r-item:active::before, .r-item.is-press::before, .r-item.is-picked::before { scale: 1 1; left: 0; right: 0; top: 3px; bottom: 3px; }
-.r-item:active > *, .r-item.is-press > * { translate: 0 1px; }
-.r-item[aria-disabled="true"] { color: var(--ink-off); cursor: default; }
-.r-item[aria-disabled="true"]::before { display: none; }
-
-.r-num { width: var(--num-w); flex: none; font-size: var(--small); color: var(--ink-soft); }
-.r-ico { width: var(--icon); height: var(--icon); flex: none; }
+.r-list { position: absolute; display: flex; flex-direction: column; padding: var(--sheet-pad) 0; }
+.r-row { position: relative; display: flex; align-items: center; gap: var(--row-gap); width: 100%; height: var(--row-h); margin: 0; padding: 0 var(--row-px); border: 0; background: transparent;
+  color: var(--ink); cursor: pointer; font: 700 var(--label-size)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; text-align: left; }
+.r-row:focus-visible { outline: none; }
+.r-ico { flex: none; width: var(--icon); height: var(--icon); transition: scale var(--soft-time) var(--liquid-soft); }
 .r-ico * { stroke-width: var(--icon-stroke); }
 .r-label { flex: 1; white-space: nowrap; }
-.r-key { font: 500 var(--small)/1 var(--font); color: var(--ink-soft); letter-spacing: .04em; }
-.r-end { width: var(--icon); height: var(--icon); flex: none; }
-.r-badge { min-width: 22px; height: 18px; padding: 0 6px; background: var(--ink); color: var(--orange); font: 700 var(--small)/18px var(--font); text-align: center; }
-.r-item:hover .r-num, .r-item:focus-visible .r-num, .r-item.is-hover .r-num, .has-sub.is-open > .r-item .r-num,
-.r-item:hover .r-key, .r-item:focus-visible .r-key, .r-item.is-hover .r-key,
-.r-item:active .r-num, .r-item.is-press .r-num, .r-item.is-picked .r-num, .r-item:active .r-key, .r-item.is-press .r-key { color: currentColor; }
-.r-item:hover .r-badge, .r-item:focus-visible .r-badge, .r-item.is-hover .r-badge, .r-item:active .r-badge, .r-item.is-press .r-badge { background: var(--orange); color: var(--ink); }
-.r-item[aria-disabled="true"] .r-num, .r-item[aria-disabled="true"] .r-key { color: var(--ink-off); }
-.r-sect { display: flex; align-items: center; gap: 10px; padding: 14px var(--row-px) 8px; font: 700 10px/1 var(--font); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); }
+/* the right side: a badge, an arrow, a shortcut or the submenu mark */
+.r-key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: rgba(255, 255, 255, .2); color: var(--ink); font: 700 10px/1 var(--font); letter-spacing: .04em; }
+.r-key.is-count { background: var(--deep); }
+.r-end { width: 10px; height: 10px; }
+.r-row:hover .r-ico, .r-row:focus-visible .r-ico, .r-row.is-hover .r-ico, .has-sub.is-open > .r-row .r-ico { scale: 1.1; }
+.r-row:active .r-ico, .r-row.is-press .r-ico, .r-row.is-picked .r-ico { scale: .92; }
+.r-row[aria-disabled="true"] { color: var(--ink-off); cursor: default; }
+.r-row[aria-disabled="true"] .r-ico { scale: 1 !important; }
+
+/* the highlight: one bead of light that flows to whichever row is pointed at, a deep green rim on its left */
+.r-glow { position: absolute; left: 8px; right: 8px; top: 0; height: var(--row-h); border-radius: var(--glow-r); background: var(--glow); pointer-events: none;
+  translate: 0 var(--gy, 0px); opacity: 0; transition: translate var(--soft-time) var(--liquid-soft), opacity 140ms linear, background-color var(--hover-time); }
+.r-glow::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: var(--rim); border-radius: 2px; background: var(--deep); }
+.r-glow.is-on { opacity: 1; }
+.r-glow.is-press { background: var(--deep); }
+
+/* a section: its name, small, a rule after it */
+.r-sect { display: flex; align-items: center; gap: 10px; height: var(--sect-h); padding: 0 var(--row-px); font: 700 var(--sect-size)/1 var(--font); letter-spacing: .24em;
+  text-transform: uppercase; color: var(--ink-soft); }
 .r-sect::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
-.r-rule { height: 0; }
-.r-tick { width: var(--num-w); flex: none; visibility: hidden; font-size: var(--small); }
-[aria-checked="true"] > .r-tick { visibility: visible; }
+
+/* Currency's choices, in its own small sheet */
+.r-choice .r-tick { flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0; }
+.r-choice[aria-checked="true"] .r-tick { opacity: 1; }
 
 /* ---------- the round button in the scoop ---------- */
-.fab { position: relative; width: var(--fab); height: var(--fab); padding: 0; border: 1px solid var(--orange); border-radius: 50%; cursor: pointer; display: grid; place-items: center;
-  background: var(--night); transition: background-color var(--hover-time), scale 100ms; }
-.fab i { position: absolute; width: 24px; height: 2px; background: var(--orange); transition: translate var(--morph-time) var(--bar-ease), rotate var(--morph-time) var(--bar-ease), opacity 160ms, background-color var(--hover-time); }
-.fab i:nth-child(1) { translate: 0 -7px; } .fab i:nth-child(3) { translate: 0 7px; }
-.fab:hover, .fab:focus-visible, .fab.is-hover { background: var(--orange); outline: none; }
-.fab:hover i, .fab:focus-visible i, .fab.is-hover i { background: var(--ink); }
+.fab { position: relative; width: var(--fab); height: var(--fab); padding: 0; border: 0; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--g1), var(--g2)); box-shadow: 0 8px 18px -8px rgba(40, 80, 90, .6); transition: box-shadow var(--hover-time), scale 100ms; }
+.fab i { position: absolute; width: 20px; height: 2px; background: #fff; transition: translate var(--morph-time) var(--bar-ease), rotate var(--morph-time) var(--bar-ease), opacity 160ms, background-color var(--hover-time); }
+.fab i:nth-child(1) { translate: 0 -6px; } .fab i:nth-child(3) { translate: 0 6px; }
+.fab:hover, .fab:focus-visible, .fab.is-hover { box-shadow: 0 12px 22px -8px rgba(40, 80, 90, .65), 0 0 0 6px rgba(134, 203, 164, .3); outline: none; }
 .fab:active, .fab.is-press { scale: .93; }
 .fab[aria-expanded="true"] i:nth-child(1) { translate: 0; rotate: 45deg; }
 .fab[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
 .fab[aria-expanded="true"] i:nth-child(3) { translate: 0; rotate: -45deg; }
 
 /* ---------- the spec, under each prototype ---------- */
-.spec { padding: 48px 32px 64px; background: var(--night); color: #cfc9c0; font: 14px/1.6 var(--font); }
-.spec h2 { margin: 0 0 4px; font: 700 22px/1.2 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+.spec { padding: 48px 32px 64px; background: #f2f4f3; color: #34494a; font: 14px/1.6 var(--font); }
+.spec h2 { margin: 0 0 4px; font: 700 22px/1.2 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--deep); }
 .spec > p { margin: 0 0 24px; color: var(--dim); max-width: 70ch; }
 .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.spec-card { padding: 14px 16px 12px; border: 1px solid #2a2a2a; background: #121212; }
-.spec-card h3 { margin: 0 0 10px; font: 700 11px/1 var(--font); letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+.spec-card { padding: 14px 16px 12px; border: 1px solid #dfe5e3; background: #fff; }
+.spec-card h3 { margin: 0 0 10px; font: 700 11px/1 var(--font); letter-spacing: .16em; text-transform: uppercase; color: #6e9a8c; }
 .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 12px; }
 .spec-card dt { color: var(--dim); }
-.spec-card dd { margin: 0; color: #f0ebe3; text-align: right; overflow-wrap: anywhere; }
-.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+.spec-card dd { margin: 0; color: #213436; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
 .spec-measure { position: absolute; left: -9999px; top: 0; }
-svg.r-num { width: var(--icon); height: var(--icon); margin-right: calc(var(--num-w) - var(--icon)); }

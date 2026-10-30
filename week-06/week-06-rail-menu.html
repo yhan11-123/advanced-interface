@@ -5,24 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 2 · Rail · In use and every state</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-rail.css?v=3" />
+  <link rel="stylesheet" href="week-06-rail.css?v=53" />
   <style>
-  /* In use: the web app of a wallet, in the Signal style. Its navigation is an orange rail down the
-     left edge of a dark, grainy page. Halfway down, a scoop is cut out of the rail's right side and
-     the round menu button sits in it. Pressed, the button's three lines turn to a cross, the scoop
-     opens a little wider, and the menu wipes out of the scoop to the right: an orange sheet, its
-     numbered rows coming up one after another. Pointing at a row sweeps a black bar under it, its
-     right end cut on a slant, while the label scrambles and settles. Currency opens its own sheet
-     beside its row. Esc, the button or a click on the page wipes it back into the scoop. */
+  /* In use: the web app of a wallet. Its navigation is a thin green-to-blue rail down the left edge of a
+     pale page. Halfway down, a scoop is cut out of the rail's right side and the round menu button sits
+     in it. Pressed, the button's lines turn to a cross, the scoop opens a little wider, and the menu drips
+     out of the scoop: a liquid neck runs out of the button and a sheet swells from its end, staying joined
+     to the button by that neck. Its rows are a straight list, coming in from the middle outward. One
+     highlight flows from row to row like a bead of liquid, a deep green rim on its left, while the row's
+     label scrambles and settles. Currency drips its own small sheet out to the right. Esc, the button or a
+     click on the page draws it all back into the button. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: #050505; font: 13px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  body { background: #d5dad9; font: 13px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
   :root { --w: 1200px; --h: 760px; --fit: 1; }
-  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #050505; }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); overflow: hidden; background: var(--night); }
+  .hero { position: relative; height: 100vh; min-height: 420px; overflow: hidden; background: #d5dad9; }
+  /* the app sits flush against the window's left edge and stretches to fill its width; it is scaled to fit and centred top to bottom */
+  .stage { position: absolute; left: 0; top: 50%; width: var(--w); height: var(--h); transform: translateY(-50%) scale(var(--fit)); transform-origin: 0 50%; overflow: hidden; background: var(--night); }
   .stage > * { position: absolute; }
-  .grain { inset: 0; opacity: .5; pointer-events: none;
+  .grain { inset: 0; opacity: .3; pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
   .lines { inset: 0; pointer-events: none;
     background: linear-gradient(var(--rule-dark), var(--rule-dark)) 0 70px / 100% 1px no-repeat, linear-gradient(var(--rule-dark), var(--rule-dark)) 0 calc(100% - 40px) / 100% 1px no-repeat,
@@ -30,19 +32,19 @@
 
   /* ---------- the rail ---------- */
   @property --cut-r { syntax: "<length>"; inherits: true; initial-value: 54px; }
-  .rail { left: 0; top: 0; bottom: 0; width: var(--rail-w); --cut-r: var(--scoop); background: var(--orange); color: var(--ink);
+  .rail { left: 0; top: 0; bottom: 0; width: var(--rail-w); --cut-r: var(--scoop); background: linear-gradient(180deg, var(--g1), var(--g2)); color: var(--ink);
     -webkit-mask: radial-gradient(circle var(--cut-r) at 100% 50%, transparent calc(var(--cut-r) - 1px), #000 var(--cut-r));
     mask: radial-gradient(circle var(--cut-r) at 100% 50%, transparent calc(var(--cut-r) - 1px), #000 var(--cut-r));
     transition: --cut-r var(--close-time) var(--wipe-ease) 80ms; }
   .stage.is-open .rail { --cut-r: calc(var(--scoop) + 6px); transition: --cut-r var(--wipe-time) var(--wipe-ease); }
-  .rail .logo { position: absolute; left: 0; right: 0; top: 26px; text-align: center; font: 700 11px/1 var(--font); letter-spacing: .14em; }
+  .rail .logo { position: absolute; left: 0; right: 0; top: 26px; text-align: center; font: 700 10px/1 var(--font); letter-spacing: .08em; }
   .tabs { position: absolute; left: 0; right: 0; display: grid; justify-items: center; gap: 10px; }
   .tabs.top { top: 96px; } .tabs.bot { bottom: 96px; }
-  .tab { position: relative; width: 52px; height: 46px; display: grid; place-items: center; color: var(--ink); transition: background-color var(--hover-time), color var(--hover-time); }
-  .tab svg { width: 20px; height: 20px; }
-  .tab:hover { background: rgba(11, 11, 11, .12); }
-  .tab.is-on { background: var(--ink); color: var(--orange); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-  .rail .me { position: absolute; left: 0; right: 0; bottom: 24px; text-align: center; font: 700 11px/1 var(--font); letter-spacing: .1em; }
+  .tab { position: relative; width: 40px; height: 38px; display: grid; place-items: center; color: var(--ink); transition: background-color var(--hover-time), color var(--hover-time); }
+  .tab svg { width: 18px; height: 18px; }
+  .tab:hover { background: rgba(255, 255, 255, .18); }
+  .tab.is-on { background: var(--ink); color: var(--deep); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+  .rail .me { position: absolute; left: 0; right: 0; bottom: 24px; text-align: center; font: 700 10px/1 var(--font); letter-spacing: .06em; }
 
   /* the button sits in the scoop, its centre on the rail's edge */
   .fab-at { left: calc(var(--rail-w) - var(--fab) / 2); top: calc(var(--h) / 2 - var(--fab) / 2); z-index: 6; }
@@ -57,57 +59,75 @@
   .card { padding: 18px 20px; border: 1px solid var(--rule-dark); background: var(--panel); }
   .card small { display: block; color: var(--dim); font-size: 11px; letter-spacing: .14em; }
   .card b { display: block; margin-top: 12px; font: 700 28px/1.1 var(--font); font-variant-numeric: tabular-nums; }
-  .card.hi { background: var(--paper); color: var(--ink); border-color: var(--paper); }
-  .card.hi small { color: rgba(11,11,11,.55); } .card.hi b { font-size: 34px; }
+  .card.hi { background: var(--grad); color: #fff; border-color: transparent; }
+  .card.hi small { color: rgba(255,255,255,.8); } .card.hi b { font-size: 34px; }
   .list { margin-top: 18px; border: 1px solid var(--rule-dark); background: var(--panel); padding: 6px 20px; }
   .list h2 { margin: 12px 0 8px; font: 700 11px/1 var(--font); letter-spacing: .16em; color: var(--dim); }
   .row { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--rule-dark); text-transform: uppercase; letter-spacing: .04em; }
   .row i { width: 34px; height: 34px; border: 1px solid var(--rule-dark); }
   .row span small { display: block; color: var(--dim); margin-top: 3px; font-size: 11px; }
   .row b { font-weight: 700; font-variant-numeric: tabular-nums; }
-  .toast { left: 50%; bottom: 60px; translate: -50% 8px; padding: 9px 14px; background: var(--orange); color: var(--ink); font: 500 11px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; opacity: 0; pointer-events: none; z-index: 7;
+  .toast { left: 50%; bottom: 60px; translate: -50% 8px; padding: 9px 14px; background: var(--deep); color: #fff; font: 500 11px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; opacity: 0; pointer-events: none; z-index: 7;
     transition: opacity 160ms, translate 220ms var(--bar-ease); }
   .toast.is-on { opacity: 1; translate: -50% 0; }
 
-  /* ---------- the menu: it wipes out of the scoop, left to right ---------- */
-  .menu-at { left: calc(var(--rail-w) + var(--scoop) + var(--gap-out)); top: 50%; translate: 0 -50%; z-index: 5; visibility: hidden;
-    transition: visibility 0s calc(var(--close-time) + 80ms); }
+  /* ---------- the menu: a sheet that drips out of the scoop ---------- */
+  .stage { --band-out: calc(4 * var(--row-step) + 90ms); }      /* the rows are gone by now */
+  .menu-at { inset: 0; z-index: 5; pointer-events: none; visibility: hidden; transition: visibility 0s calc(var(--band-out) + var(--close-time) + var(--neck-time)); }
   .stage.is-open .menu-at { visibility: visible; transition: visibility 0s; }
-  .menu-at > .r-menu { clip-path: inset(0 100% 0 0); transition: clip-path var(--close-time) var(--wipe-ease) 80ms; }
-  .stage.is-open .menu-at > .r-menu { clip-path: inset(-2px -400px -400px -2px); transition: clip-path var(--wipe-time) var(--wipe-ease); }
-  /* rows come up one after another once the sheet is across; they go first on the way out */
-  .r-menu > .r-head, .rows > * { opacity: 0; translate: 10px 0; transition: opacity 90ms, translate 90ms; }
-  .stage.is-open .r-menu > .r-head, .stage.is-open .rows > * { opacity: 1; translate: 0 0;
-    transition: opacity var(--row-time) ease, translate var(--row-time) var(--bar-ease); transition-delay: calc(var(--wipe-time) * .6 + var(--i, 0) * var(--row-step)); }
-  .has-sub { position: relative; }
-  /* the submenu is its own sheet beside its row, wiping out from the row's edge */
-  .r-menu.submenu { position: absolute; left: calc(100% + 6px); bottom: -1px; width: 150px; visibility: hidden; clip-path: inset(0 100% 0 0);
-    transition: clip-path 160ms var(--wipe-ease), visibility 0s 160ms; }
-  .has-sub.is-open > .submenu { visibility: visible; clip-path: inset(0 0 0 0); transition: clip-path 220ms var(--wipe-ease), visibility 0s; }
-  .submenu .r-item { opacity: 0; transition: opacity 100ms, color var(--hover-time); }
-  .has-sub.is-open > .submenu .r-item { opacity: 1; transition: opacity 180ms calc(100ms + var(--j) * 40ms), color var(--hover-time); }
-  .r-item.is-no { animation: no 320ms ease; }
+  .menu-at .r-row { pointer-events: auto; }
+  /* the page steps back under the menu (not the rail it comes out of): a light veil that blends away to the right */
+  .menu-at::before { content: ""; position: absolute; top: 0; bottom: 0; left: var(--rail-w); right: 0; opacity: 0;
+    background: radial-gradient(circle at 0 50%, rgba(228, 232, 231, .86) 200px, rgba(228, 232, 231, .58) 420px, rgba(228, 232, 231, 0) 720px);
+    transition: opacity 200ms linear var(--band-out); }
+  .stage.is-open .menu-at::before { opacity: 1; transition: opacity 180ms linear; }
+  /* the body of liquid: the neck runs out of the button, then the sheet swells from its end; closing, the
+     sheet shrinks back down the neck and the neck draws back into the button */
+  .r-goo { filter: drop-shadow(0 14px 22px rgba(40, 80, 90, .28)); }
+  .r-goo .neck, .r-goo .sheet, .r-goo .sub-neck, .r-goo .sub-sheet { transform-box: fill-box; transform-origin: 0 50%; }
+  .r-goo .neck { scale: 0 1; transition: scale 160ms ease-in calc(var(--band-out) + var(--close-time) - 60ms); }
+  .stage.is-open .r-goo .neck { scale: 1 1; transition: scale var(--neck-time) var(--bar-ease); }
+  .r-goo .sheet { scale: .1 .14; opacity: 0; transition: scale var(--close-time) cubic-bezier(.5, 0, .75, 0) var(--band-out), opacity 80ms linear calc(var(--band-out) + var(--close-time) - 60ms); }
+  .stage.is-open .r-goo .sheet { scale: 1 1; opacity: 1; transition: scale var(--liquid-time) var(--liquid) calc(var(--neck-time) * .55), opacity 60ms linear calc(var(--neck-time) * .55); }
+  .r-goo .sub-neck { scale: 0 1; transition: scale 120ms ease-in 120ms; }
+  .stage.sub-open .r-goo .sub-neck { scale: 1 1; transition: scale 110ms var(--bar-ease); }
+  .r-goo .sub-sheet { scale: .12 .2; opacity: 0; transition: scale 160ms cubic-bezier(.5, 0, .75, 0) 40ms, opacity 60ms linear 160ms; }
+  .stage.sub-open .r-goo .sub-sheet { scale: 1 1; opacity: 1; transition: scale var(--soft-time) var(--liquid-soft) 60ms, opacity 40ms linear 60ms; }
+  /* the rows come in from the middle outward once the sheet is there, and go first */
+  .r-list > .r-row, .r-list > .r-sect, .r-list > .has-sub > .r-row { opacity: 0; transform: translateX(-8px);
+    transition: opacity 90ms linear var(--out-d, 0ms), transform 120ms ease-in var(--out-d, 0ms), color var(--hover-time); }
+  .stage.is-open .r-list > .r-row, .stage.is-open .r-list > .r-sect, .stage.is-open .r-list > .has-sub > .r-row { opacity: 1; transform: none;
+    transition: opacity 200ms linear var(--in-d), transform var(--soft-time) var(--liquid-soft) var(--in-d), color var(--hover-time); }
+  .r-sublist { position: absolute; width: var(--sub-w); display: flex; flex-direction: column; padding: var(--sheet-pad) 0; visibility: hidden; transition: visibility 0s 200ms; }
+  .has-sub.is-open .r-sublist { visibility: visible; transition: visibility 0s; }
+  .r-sublist .r-row { pointer-events: auto; opacity: 0; transform: translateX(-6px); transition: opacity 80ms linear, transform 100ms ease-in; }
+  .has-sub.is-open .r-sublist .r-row { opacity: 1; transform: none; transition: opacity 140ms linear calc(110ms + var(--j) * 30ms), transform var(--soft-time) var(--liquid-soft) calc(110ms + var(--j) * 30ms); }
+  .r-row.is-no { animation: no 320ms ease; }
   @keyframes no { 25% { translate: -4px 0; } 50% { translate: 3px 0; } 75% { translate: -2px 0; } }
 
-  .stage.is-still *, .stage.is-still *::before { transition: none !important; }
+  .stage.is-still *, .stage.is-still *::before, .stage.is-still *::after { transition: none !important; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(40, 40, 40, .8); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
-  @media (prefers-reduced-motion: reduce) { .stage *, .stage *::before { transition-duration: 1ms !important; transition-delay: 0s !important; } }
-  
-  /* ---------- states: every configuration in every state, laid flat under the menu in use ---------- */
+  @media (prefers-reduced-motion: reduce) { .stage *, .stage *::before, .stage *::after { transition-duration: 1ms !important; transition-delay: 0s !important; } }
+
+  /* ---------- states: every configuration in every state, laid flat under the menu in use ----------
+     Each sample is a strip of the sheet with one row on it, as the menu shows it. */
   .states { padding-bottom: 8px; }
   .states .head { padding: 30px 32px 22px; }
-  .states .head h2 { margin: 0; font: 700 24px/1.1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+  .states .head h2 { margin: 0; font: 700 24px/1.1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--deep); }
   .states .head p { margin: 6px 0 0; color: var(--dim); }
-  .states .sheet { margin: 0 20px; padding: 10px 14px 18px; background: var(--orange); color: var(--ink); }
+  .states .sheet { margin: 0 20px; padding: 10px 14px 18px; background: var(--night); }
   .states .fitbox { overflow: hidden; }
   .states table { border-collapse: collapse; transform-origin: 0 0; }
-  .states th { padding: 10px 14px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .2em; color: var(--ink-soft); text-transform: uppercase; }
-  .states td { padding: 8px 14px; border-top: 1px solid var(--rule); vertical-align: middle; }
-  .states td:first-child { width: 170px; font: 700 11px/1.3 var(--font); letter-spacing: .12em; text-transform: uppercase; }
-  .states td:first-child small { display: block; margin-top: 3px; font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--ink-soft); }
-  .states .cell { width: var(--menu-w); }
-  .states .none { font-size: 11px; color: var(--ink-off); letter-spacing: .1em; }
-  .states .dark { display: inline-flex; padding: 12px; background: var(--night); }
+  .states th { padding: 10px 14px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .2em; color: var(--dim); text-transform: uppercase; }
+  .states td { padding: 8px 14px; border-top: 1px solid var(--rule-dark); vertical-align: middle; }
+  .states td:first-child { width: 170px; font: 700 11px/1.3 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--paper); }
+  .states td:first-child small { display: block; margin-top: 3px; font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--dim); }
+  .states .strip { position: relative; width: var(--sheet-w); background: var(--grad); padding: 4px 0; }
+  .states .strip .r-row { width: 100%; }
+  .states .strip.is-hover .r-glow, .states .strip.is-press .r-glow { opacity: 1; translate: 0 4px; }
+  .states .strip.is-press .r-glow { background: var(--deep); }
+  .states .none { font-size: 11px; color: var(--dim); letter-spacing: .1em; }
+  .states .dark { display: inline-flex; gap: 20px; padding: 12px; background: var(--night); }
   </style>
 </head>
 <body>
@@ -149,23 +169,39 @@
       <div class="toast" role="status" aria-live="polite"></div>
 
       <div class="menu-at">
-        <div class="r-menu" role="menu" aria-label="Wallet" id="wallet">
-          <div class="r-head" aria-hidden="true"><span>WALLET</span><span>ESC</span></div>
-          <div class="rows">
-            <button class="r-item" role="menuitem" style="--i:0" data-key="t" data-say="Transfer: choose who to pay"><span class="r-num">01</span><span class="r-label">Transfer</span><kbd class="r-key">⌘T</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:1" data-key="p" data-say="Pay bills: 2 due this week"><span class="r-num">02</span><span class="r-label">Pay bills</span><kbd class="r-key">⌘P</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:2" aria-disabled="true" data-say="Freeze card is off while a transfer is pending"><span class="r-num">03</span><span class="r-label">Freeze card</span><kbd class="r-key">⌘F</kbd></button>
-            <button class="r-item" role="menuitem" style="--i:3" data-key="s" data-say="Statements: October is ready"><span class="r-num">04</span><span class="r-label">Statements</span><kbd class="r-key">⌘S</kbd></button>
-            <div class="r-sect" aria-hidden="true" style="--i:5">Account</div>
-            <button class="r-item" role="menuitem" style="--i:6" data-say="3 new alerts"><span class="r-num">05</span><span class="r-label">Alerts</span><span class="r-badge" aria-label="3 new">03</span></button>
-            <button class="r-item" role="menuitem" style="--i:7" data-say="Help centre opens in a new tab"><svg class="r-ico r-num" viewBox="0 0 15 15" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" fill="none" stroke="currentColor"/><path d="M6 6a1.5 1.5 0 1 1 1.5 1.5V9M7.5 10.8v.4" fill="none" stroke="currentColor"/></svg><span class="r-label">Help centre</span><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
-            <div class="has-sub" style="--i:8">
-              <button class="r-item" role="menuitem" aria-haspopup="menu" aria-expanded="false"><span class="r-num">06</span><span class="r-label">Currency</span><span class="r-key" aria-hidden="true">&gt;</span></button>
-              <div class="r-menu submenu" role="menu" aria-label="Currency">
-                <button class="r-item" role="menuitemradio" aria-checked="true" data-cur="USD" style="--j:0"><span class="r-tick">●</span><span class="r-label">USD</span></button>
-                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="EUR" style="--j:1"><span class="r-tick">●</span><span class="r-label">EUR</span></button>
-                <button class="r-item" role="menuitemradio" aria-checked="false" data-cur="KRW" style="--j:2"><span class="r-tick">●</span><span class="r-label">KRW</span></button>
-              </div>
+        <svg class="r-goo" viewBox="0 0 1200 760" aria-hidden="true">
+          <defs>
+            <linearGradient id="menu-grad" gradientUnits="userSpaceOnUse" x1="0" y1="180" x2="0" y2="580"><stop offset="0" stop-color="var(--g1)"/><stop offset="1" stop-color="var(--g2)"/>
+              <!-- a slow, calm sway of the colours, round the button's centre -->
+              <animateTransform class="sway" attributeName="gradientTransform" type="rotate" values="-14 56 380; 14 56 380; -14 56 380" keyTimes="0; .5; 1" calcMode="spline" keySplines=".45 0 .55 1; .45 0 .55 1" dur="9s" repeatCount="indefinite"/></linearGradient>
+            <!-- goo: blur, then a hard alpha threshold, so button, neck and sheet fuse like thick liquid -->
+            <filter id="goo" filterUnits="userSpaceOnUse" x="0" y="40" width="760" height="680"><feGaussianBlur in="SourceGraphic" stdDeviation="8"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter>
+          </defs>
+          <g filter="url(#goo)" fill="url(#menu-grad)">
+            <circle cx="56" cy="380" r="28"/>
+            <rect class="neck"/>
+            <rect class="sheet"/>
+            <rect class="sub-neck"/>
+            <rect class="sub-sheet"/>
+          </g>
+        </svg>
+        <div class="r-list" role="menu" aria-label="Wallet" id="wallet">
+          <span class="r-glow" aria-hidden="true"></span>
+          <div class="r-sect" aria-hidden="true">Wallet</div>
+          <button class="r-row" role="menuitem" data-say="Transfer: choose who to pay"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l-3-3M16 13H4l3 3"/></svg><span class="r-label">Transfer</span></button>
+          <button class="r-row" role="menuitem" data-say="Pay bills: 2 due this week"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5h10v15l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4zM8 7h4M8 10.5h4"/></svg><span class="r-label">Pay bills</span></button>
+          <button class="r-row" role="menuitem" aria-disabled="true" data-say="Freeze card is off while a transfer is pending"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span></button>
+          <button class="r-row" role="menuitem" data-say="Statements: October is ready"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5h7l3 3v12H5zM12 2.5v3h3M8 9.5h5M8 12.5h5"/></svg><span class="r-label">Statements</span></button>
+          <div class="r-sect" aria-hidden="true">Account</div>
+          <button class="r-row" role="menuitem" aria-label="Alerts, 3 new" data-say="3 new alerts"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 14h11l-1.6-2.2V8.2a3.9 3.9 0 0 0-7.8 0v3.6zM8.4 16.5a1.6 1.6 0 0 0 3.2 0"/></svg><span class="r-label">Alerts</span><span class="r-key is-count" aria-hidden="true">03</span></button>
+          <button class="r-row" role="menuitem" aria-label="Help centre, opens in a new tab" data-say="Help centre opens in a new tab"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M7.9 8a2.1 2.1 0 1 1 2.8 2c-.5.2-.7.6-.7 1.2M10 13.6v.4"/></svg><span class="r-label">Help centre</span><span class="r-key" aria-hidden="true"><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span></button>
+          <div class="has-sub">
+            <button class="r-row" role="menuitem" aria-haspopup="menu" aria-expanded="false"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key" aria-hidden="true">&gt;</span></button>
+            <div class="r-sublist" role="menu" aria-label="Currency">
+              <span class="r-glow" aria-hidden="true"></span>
+              <button class="r-row r-choice" role="menuitemradio" aria-checked="true" data-cur="USD" style="--j:0"><span class="r-tick"></span><span class="r-label">USD</span></button>
+              <button class="r-row r-choice" role="menuitemradio" aria-checked="false" data-cur="EUR" style="--j:1"><span class="r-tick"></span><span class="r-label">EUR</span></button>
+              <button class="r-row r-choice" role="menuitemradio" aria-checked="false" data-cur="KRW" style="--j:2"><span class="r-tick"></span><span class="r-label">KRW</span></button>
             </div>
           </div>
         </div>
@@ -178,36 +214,36 @@
   <section class="states" aria-labelledby="states-title">
   <header class="head">
     <h2 id="states-title">Rail · Every state</h2>
-    <p>One row, every configuration, every state, on the menu's own orange. Then the round button that sits in the rail's scoop.</p>
+    <p>One row, every configuration, every state, on a strip of the sheet: the highlight under it when pointed at, deep green when pressed. Then the round button that sits in the rail's scoop.</p>
   </header>
 
   <div class="sheet">
     <div class="fitbox"><table>
       <thead><tr><th>Configuration</th><th>Enabled · live</th><th>Hover</th><th>Pressed</th></tr></thead>
       <tbody>
-        <tr data-row><td>Single line<small>number and label</small></td>
-          <td><div class="cell"><button class="r-item"><span class="r-num">04</span><span class="r-label">Statements</span></button></div></td></tr>
-        <tr data-row><td>Left icon<small>in the number's place</small></td>
-          <td><div class="cell"><button class="r-item"><svg class="r-ico r-num" viewBox="0 0 15 15" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" fill="none" stroke="currentColor"/><path d="M6 6a1.5 1.5 0 1 1 1.5 1.5V9M7.5 10.8v.4" fill="none" stroke="currentColor"/></svg><span class="r-label">Help centre</span></button></div></td></tr>
-        <tr data-row><td>Right shortcut</td>
-          <td><div class="cell"><button class="r-item"><span class="r-num">01</span><span class="r-label">Transfer</span><kbd class="r-key">⌘T</kbd></button></div></td></tr>
-        <tr data-row><td>Right badge</td>
-          <td><div class="cell"><button class="r-item"><span class="r-num">05</span><span class="r-label">Alerts</span><span class="r-badge">03</span></button></div></td></tr>
+        <tr data-row><td>Label only<small>no icon</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><span class="r-label">Statements</span></button></div></td></tr>
+        <tr data-row><td>Left icon</td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5h7l3 3v12H5zM12 2.5v3h3M8 9.5h5M8 12.5h5"/></svg><span class="r-label">Statements</span></button></div></td></tr>
+        <tr data-row><td>Right shortcut<small>a chip at the right</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l-3-3M16 13H4l3 3"/></svg><span class="r-label">Transfer</span><kbd class="r-key">⌘T</kbd></button></div></td></tr>
+        <tr data-row><td>Right badge<small>a count</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 14h11l-1.6-2.2V8.2a3.9 3.9 0 0 0-7.8 0v3.6zM8.4 16.5a1.6 1.6 0 0 0 3.2 0"/></svg><span class="r-label">Alerts</span><span class="r-key is-count">03</span></button></div></td></tr>
         <tr data-row><td>Right icon<small>opens elsewhere</small></td>
-          <td><div class="cell"><button class="r-item"><svg class="r-ico r-num" viewBox="0 0 15 15" aria-hidden="true"><rect x="1.5" y="1.5" width="12" height="12" fill="none" stroke="currentColor"/><path d="M6 6a1.5 1.5 0 1 1 1.5 1.5V9M7.5 10.8v.4" fill="none" stroke="currentColor"/></svg><span class="r-label">Help centre</span><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button></div></td></tr>
-        <tr data-row><td>Submenu item<small>its sheet wipes out beside it</small></td>
-          <td><div class="cell"><button class="r-item"><span class="r-num">06</span><span class="r-label">Currency</span><span class="r-key">&gt;</span></button></div></td></tr>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M7.9 8a2.1 2.1 0 1 1 2.8 2c-.5.2-.7.6-.7 1.2M10 13.6v.4"/></svg><span class="r-label">Help centre</span><span class="r-key"><svg class="r-end" viewBox="0 0 15 15" aria-hidden="true"><path d="M5 3h7v7M12 3 3 12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span></button></div></td></tr>
+        <tr data-row><td>Submenu item<small>its own sheet drips out beside it</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7.3"/><path d="M12.3 7.6c-.4-.7-1.2-1.1-2.3-1.1-1.3 0-2.2.7-2.2 1.7 0 2.3 4.6 1.2 4.6 3.6 0 1-.9 1.7-2.4 1.7-1.1 0-2-.4-2.4-1.1M10 5v1.5M10 13.5V15"/></svg><span class="r-label">Currency</span><span class="r-key">&gt;</span></button></div></td></tr>
         <tr data-row><td>Submenu choice<small>the chosen one is marked</small></td>
-          <td><div class="cell" style="width:150px"><button class="r-item" aria-checked="true"><span class="r-tick">●</span><span class="r-label">USD</span></button></div></td></tr>
-        <tr><td>Unavailable<small>faded, no bar, no scramble</small></td>
-          <td><div class="cell"><button class="r-item" aria-disabled="true"><span class="r-num">03</span><span class="r-label">Freeze card</span><kbd class="r-key">⌘F</kbd></button></div></td>
+          <td><div class="strip" style="width: var(--sub-w)"><span class="r-glow" aria-hidden="true"></span><button class="r-row r-choice" aria-checked="true"><span class="r-tick"></span><span class="r-label">USD</span></button></div></td></tr>
+        <tr><td>Unavailable<small>faded, the highlight passes it by</small></td>
+          <td><div class="strip"><span class="r-glow" aria-hidden="true"></span><button class="r-row" aria-disabled="true"><svg class="r-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v15M3.5 6.2l13 7.6M16.5 6.2l-13 7.6"/></svg><span class="r-label">Freeze card</span></button></div></td>
           <td><span class="none">NO HOVER</span></td><td><span class="none">NO PRESS</span></td></tr>
-        <tr><td>Sections<small>a label, a rule after it</small></td>
-          <td colspan="3"><div class="cell"><div class="r-sect">Account</div></div></td></tr>
+        <tr><td>Sections<small>a name, a rule after it</small></td>
+          <td colspan="3"><div class="strip"><div class="r-sect">Account</div></div></td></tr>
         <tr><td>Menu button<small>at rest · hover · pressed · open</small></td>
           <td><span class="dark"><button class="fab" type="button" aria-label="Menu, live" aria-expanded="false"><i></i><i></i><i></i></button></span></td>
           <td><span class="dark"><button class="fab is-hover" type="button" tabindex="-1" aria-hidden="true"><i></i><i></i><i></i></button></span></td>
-          <td><span class="dark" style="gap:20px"><button class="fab is-hover is-press" type="button" tabindex="-1" aria-hidden="true"><i></i><i></i><i></i></button><button class="fab" type="button" tabindex="-1" aria-hidden="true" aria-expanded="true"><i></i><i></i><i></i></button></span></td></tr>
+          <td><span class="dark"><button class="fab is-hover is-press" type="button" tabindex="-1" aria-hidden="true"><i></i><i></i><i></i></button><button class="fab" type="button" tabindex="-1" aria-hidden="true" aria-expanded="true"><i></i><i></i><i></i></button></span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -215,7 +251,7 @@
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The rail stands where the phone's tab bar lay; the menu wipes out of the scoop in its side, and every row is pointed at with a black bar.</p>
+    <p>Read from the values this page runs on. The rail stands where the phone's tab bar lay; the menu drips out of the scoop in its side as a sheet, joined to the button by a liquid neck, and one highlight flows from row to row.</p>
     <div class="spec-grid"></div>
   </section>
 
@@ -223,38 +259,78 @@
   <script>
     (() => {
       const root = document.documentElement, stage = document.querySelector('.stage'), fab = document.querySelector('.fab');
-      const menu = document.getElementById('wallet'), hs = menu.querySelector('.has-sub'), hsBtn = hs.querySelector('.r-item');
-      const own = [...menu.querySelectorAll('.rows > .r-item, .rows > .has-sub > .r-item')], subs = [...hs.querySelectorAll('.submenu .r-item')];
-      const toast = document.querySelector('.toast'), ms = n => parseFloat(getComputedStyle(root).getPropertyValue(n));
-      const fit = () => root.style.setProperty('--fit', Math.min(innerWidth / 1200, innerHeight / 760));
+      const css = k => getComputedStyle(root).getPropertyValue(k), n = k => parseFloat(css(k));
+      const menu = document.getElementById('wallet'), hs = menu.querySelector('.has-sub'), hsBtn = hs.querySelector(':scope > .r-row'), subList = hs.querySelector('.r-sublist');
+      const own = [...menu.querySelectorAll(':scope > .r-row, :scope > .has-sub > .r-row')], subs = [...subList.querySelectorAll('.r-row')];
+      const toast = document.querySelector('.toast');
+      const fit = () => { const f = Math.min(innerWidth / 1200, innerHeight / 760); root.style.setProperty('--fit', f); root.style.setProperty('--w', `${Math.max(1200, innerWidth / f)}px`); };
       addEventListener('resize', fit); fit();
+
+      // ---------- the sheet, its neck and Currency's sheet, sized from the rows they hold ----------
+      const cx = n('--rail-w'), cy = 380, set = (el, a) => Object.entries(a).forEach(([k, v]) => el.setAttribute(k, v));
+      const goo = document.querySelector('.r-goo');
+      const layout = () => {
+        const x = cx + n('--scoop') + n('--sheet-gap'), w = n('--sheet-w'), h = menu.offsetHeight, y = Math.max(24, Math.round(cy - h / 2)), r = n('--sheet-r'), k = n('--neck');
+        Object.assign(menu.style, { left: `${x}px`, top: `${y}px`, width: `${w}px` });
+        set(goo.querySelector('.sheet'), { x, y, width: w, height: h, rx: r });
+        set(goo.querySelector('.neck'), { x: cx, y: cy - k / 2, width: x - cx + r, height: k, rx: k / 2 });
+        // Currency's own sheet: beside the sheet, centred on Currency's row, joined by a smaller neck
+        const sw = n('--sub-w'), sh = subList.offsetHeight, rowMid = hsBtn.offsetTop + hsBtn.offsetHeight / 2, sy = Math.min(Math.round(rowMid - sh / 2), 760 - 24 - y - sh);
+        Object.assign(subList.style, { left: `${w + 16}px`, top: `${sy}px` });
+        set(goo.querySelector('.sub-sheet'), { x: x + w + 16, y: y + sy, width: sw, height: sh, rx: 14 });
+        set(goo.querySelector('.sub-neck'), { x: x + w - 12, y: y + rowMid - 9, width: 40, height: 18, rx: 9 });
+        // rows come in from the middle of the sheet outward, once it has swelled; they leave the other way round
+        const items = [...menu.querySelectorAll(':scope > .r-row, :scope > .r-sect, :scope > .has-sub > .r-row')], mid = h / 2;
+        const far = Math.max(...items.map(el => Math.abs(el.offsetTop + el.offsetHeight / 2 - mid)));
+        items.forEach(el => { const d = Math.abs(el.offsetTop + el.offsetHeight / 2 - mid) / far;
+          el.style.setProperty('--in-d', `${Math.round(n('--neck-time') * .55 + 90 + d * 4 * n('--row-step'))}ms`);
+          el.style.setProperty('--out-d', `${Math.round((1 - d) * 3 * n('--row-step'))}ms`); });
+      };
+      layout(); document.fonts?.ready.then(layout);
+      const sway = document.querySelector('.r-goo .sway'); sway.setAttribute('dur', css('--sway-time').trim());
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) sway.remove();
+
+      // ---------- the highlight: one bead of light that flows to the pointed-at row ----------
+      const glowTo = (list, row) => {
+        const g = list.querySelector(':scope > .r-glow');
+        if (!row || row.getAttribute('aria-disabled') === 'true') { g.classList.remove('is-on'); return; }
+        const y = `${row.offsetTop}px`;
+        if (!g.classList.contains('is-on')) { g.style.transition = 'none'; g.style.setProperty('--gy', y); getComputedStyle(g).translate; g.style.transition = ''; }   // it appears where it is wanted, then flows
+        g.style.setProperty('--gy', y); g.classList.add('is-on');
+      };
+      [[menu, own], [subList, subs]].forEach(([list, rows]) => {
+        rows.forEach(r => {
+          r.addEventListener('pointerenter', () => { if (r.getAttribute('aria-disabled') !== 'true') r.focus({ preventScroll: true }); });
+          r.addEventListener('focus', () => glowTo(list, r));
+          r.addEventListener('pointerdown', () => list.querySelector(':scope > .r-glow').classList.add('is-press'));
+        });
+        list.addEventListener('focusout', e => { if (!list.contains(e.relatedTarget)) glowTo(list, null); });
+      });
+      addEventListener('pointerup', () => document.querySelectorAll('.r-glow.is-press').forEach(g => g.classList.remove('is-press')));
 
       // the label scrambles, then settles into its word, left to right
       const glyphs = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/%';
-      const scramble = row => {
-        if (row.getAttribute('aria-disabled') === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const l = row.querySelector('.r-label'), word = l.dataset.word || (l.dataset.word = l.textContent), time = ms('--scramble-time'), t0 = performance.now();
+      const scramble = it => {
+        if (it.getAttribute('aria-disabled') === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const l = it.querySelector('.r-label'), word = l.dataset.word || (l.dataset.word = l.textContent), time = n('--scramble-time'), t0 = performance.now();
         clearInterval(l._iv); clearTimeout(l._to);
         l._iv = setInterval(() => { const k = Math.floor((performance.now() - t0) / time * word.length); l.textContent = [...word].map((c, i) => i < k || c === ' ' ? c : glyphs[Math.floor(Math.random() * glyphs.length)]).join(''); }, 30);
-        l._to = setTimeout(() => { clearInterval(l._iv); l.textContent = word; }, time + 20);   // it always lands on the word
+        l._to = setTimeout(() => { clearInterval(l._iv); l.textContent = word; }, time + 20);
       };
-      // focus follows the pointer, so there is only ever one bar; the bar's row scrambles as it arrives
-      menu.querySelectorAll('.r-item').forEach(r => {
-        r.addEventListener('pointerenter', () => { if (r.getAttribute('aria-disabled') !== 'true') r.focus({ preventScroll: true }); });
-        r.addEventListener('focus', () => scramble(r));
-      });
-      [...menu.querySelector('.rows').children].forEach((el, i) => el.style.setProperty('--i', i + 1));
+      // each row keeps its real name for screen readers: the scramble only changes what is drawn
+      [...own, ...subs].forEach(r => { if (!r.hasAttribute('aria-label')) r.setAttribute('aria-label', r.querySelector('.r-label').textContent.trim()); r.addEventListener('focus', () => scramble(r)); });
 
+      // ---------- opening and closing ----------
       const isOpen = () => stage.classList.contains('is-open');
-      const sub = on => { hs.classList.toggle('is-open', on); hsBtn.setAttribute('aria-expanded', on); };
-      const open = () => { stage.classList.add('is-open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(() => own[0].focus({ preventScroll: true }), ms('--wipe-time') + 60); };
-      const close = (back = true) => { if (!isOpen()) return; setTimeout(() => sub(false), ms('--close-time') + 80); stage.classList.remove('is-open'); fab.setAttribute('aria-expanded', 'false'); if (back) fab.focus({ preventScroll: true }); };
+      const sub = on => { hs.classList.toggle('is-open', on); stage.classList.toggle('sub-open', on); hsBtn.setAttribute('aria-expanded', on); };
+      const open = () => { stage.classList.add('is-open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(() => own[0].focus({ preventScroll: true }), n('--neck-time') + 300); };
+      const close = (back = true) => { if (!isOpen()) return; sub(false); stage.classList.remove('is-open'); fab.setAttribute('aria-expanded', 'false'); if (back) fab.focus({ preventScroll: true }); };
       fab.addEventListener('click', () => isOpen() ? close() : open());
-      stage.addEventListener('pointerdown', e => { if (isOpen() && !e.target.closest('.menu-at, .fab')) close(false); });
+      stage.addEventListener('pointerdown', e => { if (isOpen() && !e.target.closest('.r-row, .fab')) close(false); });
 
       let tt; const say = text => { toast.textContent = text; toast.classList.add('is-on'); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('is-on'), 1800); };
 
-      // the submenu: pointing at its row opens it, leaving closes it after a beat, a click toggles it
+      // Currency: pointing at it opens its sheet, leaving closes it after a beat, a click toggles it
       let st;
       hs.addEventListener('pointerenter', () => { clearTimeout(st); sub(true); });
       hs.addEventListener('pointerleave', () => { st = setTimeout(() => sub(false), 220); });
@@ -266,28 +342,27 @@
       const setCur = c => { document.getElementById('bal').textContent = money(12480.2, c); document.getElementById('in').textContent = money(4210, c).replace(/\.\d+$/, ''); document.getElementById('out').textContent = money(2936, c).replace(/\.\d+$/, ''); };
 
       menu.addEventListener('click', e => {
-        const it = e.target.closest('.r-item'); if (!it) return;
-        if (it === hsBtn) { sub(!hs.classList.contains('is-open')); if (hs.classList.contains('is-open')) setTimeout(() => hs.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 60); return; }
+        const it = e.target.closest('.r-row'); if (!it) return;
+        if (it === hsBtn) { sub(!hs.classList.contains('is-open')); if (hs.classList.contains('is-open')) setTimeout(() => subs.find(c => c.getAttribute('aria-checked') === 'true').focus({ preventScroll: true }), 120); return; }
         if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); say(it.dataset.say); return; }
         it.classList.add('is-picked');
-        if (it.dataset.cur) { subs.forEach(s => s.setAttribute('aria-checked', s === it)); setCur(it.dataset.cur); say(`Showing balances in ${it.dataset.cur}`); }
+        if (it.dataset.cur) { subs.forEach(c => c.setAttribute('aria-checked', c === it)); setCur(it.dataset.cur); say(`Showing balances in ${it.dataset.cur}`); }
         else say(it.dataset.say);
         setTimeout(() => { it.classList.remove('is-picked'); close(); }, 180);
       });
 
-      // keys: arrows move, right opens the submenu, left or Esc steps back; the letters on the keys pick
+      // keys: up and down move along the list; right opens Currency's sheet, left or Esc steps back; Esc again closes
       addEventListener('keydown', e => {
         if (!isOpen()) return;
-        const inSub = subs.includes(document.activeElement), set = inSub ? subs : own, i = set.indexOf(document.activeElement);
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = set.length, d = e.key === 'ArrowDown' ? 1 : -1; let j = i; do { j = (j + d + n) % n; } while (set[j].getAttribute('aria-disabled') === 'true'); set[j].focus({ preventScroll: true }); }
-        else if (e.key === 'ArrowRight' && document.activeElement === hsBtn) { e.preventDefault(); sub(true); subs.find(s => s.getAttribute('aria-checked') === 'true').focus({ preventScroll: true }); }
+        const inSub = subs.includes(document.activeElement), list = inSub ? subs : own;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const k = list.length, d = e.key === 'ArrowDown' ? 1 : -1; let j = list.indexOf(document.activeElement); do { j = (j + d + k) % k; } while (list[j].getAttribute('aria-disabled') === 'true'); list[j].focus({ preventScroll: true }); }
+        else if (e.key === 'ArrowRight' && document.activeElement === hsBtn) { e.preventDefault(); sub(true); subs.find(c => c.getAttribute('aria-checked') === 'true').focus({ preventScroll: true }); }
         else if ((e.key === 'ArrowLeft' || e.key === 'Escape') && inSub) { e.preventDefault(); sub(false); hsBtn.focus({ preventScroll: true }); }
         else if (e.key === 'Escape') { e.preventDefault(); close(); }
-        else if ((e.metaKey || e.ctrlKey || e.key.length === 1) && !e.altKey) { const k = own.find(b => b.dataset.key === e.key.toLowerCase()); if (k) { e.preventDefault(); k.click(); } }
       });
 
-      // #open shows the menu out with the currency submenu beside it, for the set's thumbnail
-      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); setTimeout(() => hsBtn.focus({ preventScroll: true }), ms('--wipe-time') + 120); }
+      // #open shows the menu out with Currency's sheet beside it, for the set's thumbnail
+      if (location.hash === '#open') { stage.classList.add('is-still'); open(); sub(true); setTimeout(() => hsBtn.focus({ preventScroll: true }), 700); }
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
@@ -297,28 +372,18 @@
     states.querySelectorAll('[data-row]').forEach(row => {
       const cell = row.children[1];
       ['is-hover', 'is-press'].forEach(state => {
-        const td = cell.cloneNode(true), it = td.querySelector('.r-item');
-        it.classList.add(state); it.tabIndex = -1; it.setAttribute('aria-hidden', 'true');
+        const td = cell.cloneNode(true), strip = td.querySelector('.strip'), it = td.querySelector('.r-row');
+        strip.classList.add(state); it.classList.add(state); it.tabIndex = -1; it.setAttribute('aria-hidden', 'true');
         row.append(td);
       });
-    });
-    // the live rows scramble their label when pointed at, as they do in use
-    const glyphs = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/%';
-    const time = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scramble-time'));
-    states.querySelectorAll('[data-row] td:nth-child(2) .r-item').forEach(r => {
-      const l = r.querySelector('.r-label'), word = l.textContent;
-      const go = () => { const t0 = performance.now(); clearInterval(l._iv); clearTimeout(l._to);
-        l._iv = setInterval(() => { const k = Math.floor((performance.now() - t0) / time * word.length); l.textContent = [...word].map((c, i) => i < k || c === ' ' ? c : glyphs[Math.floor(Math.random() * glyphs.length)]).join(''); }, 30);
-        l._to = setTimeout(() => { clearInterval(l._iv); l.textContent = word; }, time + 20); };
-      r.addEventListener('pointerenter', go); r.addEventListener('focus', go);
     });
     const live = states.querySelector('.fab[aria-label="Menu, live"]');
     live.addEventListener('click', () => live.setAttribute('aria-expanded', live.getAttribute('aria-expanded') !== 'true'));
     const box = states.querySelector('.fitbox'), table = box.querySelector('table');
     const fit = () => { const f = Math.min(1, box.clientWidth / table.offsetWidth); table.style.transform = `scale(${f})`; box.style.height = table.offsetHeight * f + 'px'; };
     addEventListener('resize', fit); fit(); document.fonts?.ready.then(fit);
-      })();
+    })();
   </script>
-  <script src="week-06-rail-spec.js?v=3"></script>
+  <script src="week-06-rail-spec.js?v=51"></script>
 </body>
 </html>

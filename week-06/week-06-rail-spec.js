@@ -1,5 +1,5 @@
 // Week 06, Set 2 · Rail: the spec, read from the values the prototype runs on.
-// It builds a hidden sample of every part in every state, asks the browser what it computed,
+// It builds a hidden sample of every part, asks the browser what it computed,
 // and writes the numbers into <section class="spec">. Nothing here is typed in by hand.
 (() => {
   const out = document.querySelector('.spec-grid');
@@ -9,20 +9,13 @@
 
   const sample = document.createElement('div');
   sample.className = 'spec-measure';
-  sample.style.width = '300px';
   sample.innerHTML = `
-    <div class="r-menu" data-k="menu">
-      <button class="r-item" data-k="item"><span class="r-num" data-k="num">01</span><span class="r-label">Transfer</span><kbd class="r-key" data-k="key">⌘T</kbd></button>
-      <button class="r-item is-hover" data-k="hover"><span class="r-num">02</span><span class="r-label">Pay bills</span></button>
-      <button class="r-item is-press" data-k="press"><span class="r-num">02</span><span class="r-label">Pay bills</span></button>
-      <button class="r-item" aria-disabled="true" data-k="off"><span class="r-num">03</span><span class="r-label">Freeze card</span></button>
-      <button class="r-item"><span class="r-badge" data-k="badge">03</span></button>
-      <div class="r-sect" data-k="sect">Account</div>
-    </div>
+    <button class="r-row" data-k="row"><svg class="r-ico" viewBox="0 0 20 20"></svg><span class="r-label" data-k="label">Transfer</span><span class="r-key" data-k="key">&gt;</span><span class="r-key is-count" data-k="count">03</span></button>
+    <div class="r-sect" data-k="sect">Account</div>
     <button class="fab" data-k="fab"><i></i><i></i><i></i></button>`;
   document.body.append(sample);
   const el = k => sample.querySelector(`[data-k="${k}"]`);
-  const cs = (k, p) => getComputedStyle(el(k), p);
+  const cs = k => getComputedStyle(el(k));
   const px = v => `${Math.round(parseFloat(v) * 10) / 10}px`;
   const hex = c => {
     if (c.startsWith('#')) return c;
@@ -32,73 +25,65 @@
   };
   const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
   const fam = f => f.split(',')[0].replace(/"/g, '');
-  const item = cs('item'), menu = cs('menu');
-  const cs2 = null;
+  const row = cs('row'), label = cs('label');
 
-  const bar = cs('hover', '::before');
   const cards = [
     ['Rail', [
       ['Width', tok('--rail-w')],
-      ['Colour', sw(tok('--orange'))],
+      ['Colour', `${sw(tok('--g1'))} to ${sw(tok('--g2'))}, top to foot`],
       ['Page', `${sw(tok('--night'))}, grain and a 1px grid`],
       ['Scoop', `${tok('--scoop')} radius, halfway down its right side`],
-      ['Scoop, open', '6px wider, as the menu wipes out'],
-      ['Current tab', 'black, its corner cut on a slant'],
     ]],
     ['Menu button', [
       ['Size', `${px(el('fab').offsetWidth)} round, centred on the rail's edge`],
-      ['At rest', 'black, an orange ring, three orange lines'],
-      ['Hover', 'fills orange, the lines go black'],
+      ['At rest', 'green to blue, three white lines'],
+      ['Hover', 'a soft green ring, a deeper shadow'],
       ['Pressed', 'shrinks to 93%'],
       ['Open', `the lines turn to a cross, ${tok('--morph-time')}`],
     ]],
     ['Menu', [
-      ['Width', px(menu.width)],
-      ['Colour', sw(menu.backgroundColor)],
-      ['Corners', 'square, 8px marks top left and foot right'],
-      ['Header', '40px, WALLET and ESC'],
-      ['Gap from the scoop', tok('--gap-out')],
+      ['Form', 'a sheet beside the rail, joined to the button by a liquid neck'],
+      ['Sheet', `${tok('--sheet-w')} wide, ${tok('--sheet-r')} corners, centred on the button, ${tok('--sheet-gap')} from the scoop`],
+      ['Neck', `${tok('--neck')} thick, from the button's centre into the sheet`],
+      ['Colour', `${sw(tok('--g1'))} to ${sw(tok('--g2'))}, swaying slowly, ${tok('--sway-time')} a sway`],
+      ['Behind it', 'the page steps back under a light veil that fades to the right'],
     ]],
     ['Row', [
-      ['Height', px(el('item').offsetHeight)],
-      ['Padding, sides', px(item.paddingLeft)],
-      ['Gap between parts', px(item.columnGap)],
-      ['Font', `${fam(item.fontFamily)} ${item.fontWeight}, ${px(item.fontSize)}, capitals`],
-      ['Letter spacing', px(item.letterSpacing)],
-      ['Rule below', `1px, ${hex(item.borderBottomColor)}`],
+      ['Height', px(el('row').offsetHeight)],
+      ['Padding, sides', px(row.paddingLeft)],
+      ['Gap between parts', px(row.columnGap)],
+      ['Label', `${fam(label.fontFamily)} ${label.fontWeight}, ${px(label.fontSize)}, capitals, ${hex(row.color)}`],
+      ['Left', `an icon, ${tok('--icon')}, or nothing`],
     ]],
-    ['Left and right', [
-      ['Number', `${px(cs('num').fontSize)}, ${hex(cs('num').color)}`],
-      ['Or an icon', `${tok('--icon')}, in the number's place`],
-      ['Shortcut', `${px(cs('key').fontSize)}, ${hex(cs('key').color)}`],
-      ['Badge', `${px(el('badge').offsetHeight)}, black with orange figures`],
-      ['Right icon', `${tok('--icon')} arrow`],
-      ['Submenu', 'a &gt;'],
+    ['Right side', [
+      ['Form', `a chip, ${px(el('key').offsetHeight)} tall, round ends`],
+      ['Arrow, submenu, shortcut', sw(cs('key').backgroundColor)],
+      ['Badge', `${sw(cs('count').backgroundColor)} with white figures`],
     ]],
     ['Sections', [
-      ['Label', `${px(cs('sect').fontSize)} bold, ${px(cs('sect').letterSpacing)} apart`],
-      ['Rule', 'runs out to the right'],
+      ['Name', `${px(cs('sect').fontSize)} bold, ${px(cs('sect').letterSpacing)} apart, ${hex(cs('sect').color)}`],
+      ['Rule', 'runs out to the sheet\'s edge after it'],
     ]],
     ['States', [
-      ['Enabled', sw(item.color)],
-      ['Hover bar', `${hex(bar.backgroundColor)}, right end cut ${tok('--cut')} on a slant`],
-      ['Hover text', sw(cs('hover').color)],
-      ['Pressed', `bar to the row's edges, text ${hex(cs('press').color)}, sinks 1px`],
-      ['Unavailable', `${sw(cs('off').color)}, no bar, no scramble`],
+      ['Hover', `one highlight, ${hex(tok('--glow'))}, ${tok('--glow-r')} corners, flows to the row; a ${tok('--rim')} deep green rim on its left`],
+      ['Hover, icon', 'grows to 110%'],
+      ['Pressed', `the highlight goes ${hex(tok('--deep'))}, the icon gives to 92%`],
+      ['Unavailable', 'faded; the highlight passes it by'],
     ]],
     ['Submenu', [
-      ['Form', 'its own orange sheet, beside its row'],
-      ['Width', '150px'],
-      ['Chosen', 'a dot in the number column'],
+      ['Form', `its own small sheet, ${tok('--sub-w')} wide, dripping out to the right on a smaller neck, centred on its row`],
+      ['Chosen', 'a dot before the code'],
       ['Opens on', 'hover, a click, or →'],
     ]],
     ['Motion', [
-      ['Menu opens', `wipes out of the scoop, left to right, ${tok('--wipe-time')}`],
-      ['Wipe curve', tok('--wipe-ease')],
-      ['Rows', `${tok('--row-step')} apart, 10px in, ${tok('--row-time')}`],
-      ['Bar', `${tok('--bar-time')} in from the left, 160ms back`],
+      ['Feel', 'a thick liquid: swells a touch past its size, settles slowly'],
+      ['Neck', `runs out of the button, ${tok('--neck-time')}`],
+      ['Sheet', `swells from the neck's end on a spring (0.72 damping, settled by ${tok('--liquid-time')})`],
+      ['Goo', `a ${tok('--goo')}px blur and a hard edge: button, neck and sheet read as one body`],
+      ['Rows', `come in from the middle outward, ${tok('--row-step')} apart`],
+      ['Highlight', `flows between rows on a softer spring (0.78, ${tok('--soft-time')})`],
       ['Label', `scrambles, settles left to right in ${tok('--scramble-time')}`],
-      ['Menu closes', `rows out 90ms, then wipes back into the scoop, ${tok('--close-time')}`],
+      ['Closes', `rows go, then the sheet shrinks back down its neck into the button, ${tok('--close-time')}`],
     ]],
   ];
   out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
