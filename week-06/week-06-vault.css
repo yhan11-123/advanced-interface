@@ -1,7 +1,7 @@
 /* Week 06, Set 1 · Vault: the file menu of a holographic file database.
    Shared by the two prototypes (the menu system, the menu in use). Every value the spec
    reports is set here, once, as a token; the pages and the spec read the same numbers.
-   The tone: light projected on dark glass. Things glow, lift off the plane, and materialise. */
+   The tone: light projected on dark glass. The menu is built in tiers, like a stepped pyramid, and taken apart the same way. */
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
 
 :root {
@@ -37,12 +37,18 @@
   /* motion */
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --hover-time: 220ms;
-  --lift: 14px;              /* a folder rises off the plane */
-  --tier-gap: 22px;          /* each tier stands this far above the one below */
+  --lift: 6px;               /* the core rises off its pad when pointed at */
+  /* opening: the stack is built from the floor up */
+  --tier-gap: 38px;          /* each tier stands this far above the one below */
   --tier-time: 360ms;        /* how long one tier takes to rise */
-  --tier-step: 90ms;         /* tiers rise one after another, lowest first */
-  --open-time: 560ms;        /* the whole stack, from the floor to the menu on top */
-  --close-time: 220ms;       /* the stack sinks back to the floor at once */
+  --tier-step: 80ms;         /* tiers rise one after another, widest first */
+  --line-time: 200ms;        /* the leader line draws from the core to the menu */
+  --unfold-time: 260ms;      /* the menu unfolds down out of the line */
+  /* dismissing: the same build, taken apart in reverse, never all at once */
+  --ease-sink: cubic-bezier(.6, 0, .3, 1);
+  --fold-time: 240ms;        /* the menu folds back up into its line */
+  --sink-time: 360ms;        /* how long one tier takes to come down */
+  --sink-step: 110ms;        /* tiers come down one after another, the top first */
   --stagger: 26ms;
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
@@ -97,22 +103,26 @@
 .s-node .sig i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
 .s-node small { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
 
-/* ---------- a folder on the plane ---------- */
-.folder { position: relative; width: 82px; height: 58px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-style: preserve-3d;
-  transition: transform var(--hover-time) var(--ease-out); }
-.folder::before { content: ""; position: absolute; left: 0; top: 0; width: 34px; height: 10px; background: rgba(57, 213, 255, .18); clip-path: polygon(0 0, 78% 0, 100% 100%, 0 100%); transition: background-color var(--hover-time); }
-.folder::after { content: ""; position: absolute; inset: 9px 0 0; background: rgba(57, 213, 255, .16); box-shadow: inset 0 0 0 1px rgba(57, 213, 255, .45); transition: background-color var(--hover-time), box-shadow var(--hover-time); }
-.folder:hover, .folder:focus-visible, .folder.is-hover { transform: translateZ(var(--lift)); outline: none; }
-.folder:hover::after, .folder:focus-visible::after, .folder.is-hover::after { background: rgba(57, 213, 255, .34); box-shadow: inset 0 0 0 1px var(--cyan), 0 0 24px rgba(57, 213, 255, .45); }
-.folder:hover::before, .folder.is-hover::before { background: rgba(57, 213, 255, .4); }
-/* lifted or open, a folder shows its corner nodes, like the frames of the stack */
-.folder .node { position: absolute; width: 6px; height: 6px; background: var(--green); box-shadow: 0 0 8px var(--green); opacity: 0; transition: opacity var(--hover-time); }
-.folder .node.a { left: -4px; top: 6px; } .folder .node.b { right: -4px; bottom: -4px; }
-.folder:hover .node, .folder:focus-visible .node, .folder.is-hover .node, .folder[aria-expanded="true"] .node { opacity: 1; }
-.folder:active, .folder.is-press { transform: translateZ(4px); }
-.folder[aria-expanded="true"] { transform: translateZ(var(--lift)); }
-.folder[aria-expanded="true"]::after { background: linear-gradient(#bff6ff, #39d5ff); box-shadow: 0 0 34px 6px rgba(57, 213, 255, .6); }
-.folder[aria-expanded="true"]::before { background: #8fe9ff; }
+/* ---------- the core: what opens the menu ---------- */
+/* a hexagon of light floating over its pad; the stack is built under it */
+.core { position: relative; width: 72px; height: 80px; padding: 0; border: 0; background: transparent; cursor: pointer; color: var(--cyan);
+  transition: translate var(--hover-time) var(--ease-out), scale 120ms var(--ease-out), color var(--hover-time); }
+.core svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 0 6px rgba(61, 227, 255, .55)); transition: filter var(--hover-time); }
+.core .ring { stroke-dasharray: 5 4; transition: opacity var(--hover-time); opacity: .55; }
+.core .glyph { opacity: .55; transition: opacity var(--hover-time); }
+.core .cn { position: absolute; width: 6px; height: 6px; background: var(--green); box-shadow: 0 0 8px var(--green); opacity: 0; transition: opacity var(--hover-time); }
+.core .cn.a { left: -4px; top: 24px; } .core .cn.b { right: -4px; bottom: 6px; }
+.core:focus-visible { outline: none; }
+.core:hover, .core:focus-visible, .core.is-hover { translate: 0 calc(-1 * var(--lift)); color: var(--cyan-hi); }
+.core:hover svg, .core:focus-visible svg, .core.is-hover svg { filter: drop-shadow(0 0 12px rgba(61, 227, 255, .9)); }
+.core:hover .ring, .core:hover .glyph, .core:focus-visible .ring, .core:focus-visible .glyph, .core.is-hover .ring, .core.is-hover .glyph { opacity: 1; }
+.core:hover .cn, .core:focus-visible .cn, .core.is-hover .cn, .core[aria-expanded="true"] .cn { opacity: 1; }
+.core:active, .core.is-press { scale: .92; color: var(--green); }
+.core:active svg, .core.is-press svg { filter: drop-shadow(0 0 14px rgba(57, 255, 154, .9)); }
+.core[aria-expanded="true"] { color: var(--cyan-hi); }
+.core[aria-expanded="true"] .ring, .core[aria-expanded="true"] .glyph { opacity: 1; }
+.core[aria-expanded="true"] .ring { animation: orbit 1.6s linear infinite; }
+@keyframes orbit { to { stroke-dashoffset: -18; } }
 
 /* ---------- the spec, under each prototype ---------- */
 .spec { padding: 48px 32px 64px; background: #020414; color: #9fd8e4; font: 15px/1.5 var(--font); }

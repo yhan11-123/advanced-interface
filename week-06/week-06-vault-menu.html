@@ -5,98 +5,145 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=2" />
+  <link rel="stylesheet" href="week-06-vault.css?v=3" />
   <style>
-  /* In use: a holographic file database, projected on a tilted sheet of glass. Folders sit on the
-     plane; pointing at one lifts it off the glass. Clicking it opens its menu: a line of light
-     that opens into a panel, the rows arriving one by one. The submenu sends the folder to a node.
-     Every pick is answered in the log on the right, typed out a letter at a time. */
+  /* In use: the archive core of a holographic file database. A hexagon of light floats over a
+     dotted floor, its tiers lying flat beneath it. Point at it and the tiers stir; click it and they
+     are built up into a stepped pyramid, one tier at a time, the widest first. The core rides up
+     to the top, a leader line draws out to the side, and the menu unfolds down out of that line.
+     Dismissing takes the same build apart in reverse, one deliberate step after another: the rows
+     go out bottom first, the menu folds back up into its line, the line pulls back into the core,
+     and the tiers come down from the top. Every pick is answered in the log, typed out. */
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--void); color: var(--ink); font: 500 14px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; }
-  :root { --w: 1000px; --h: 640px; --fit: 1; }
-  .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(70% 70% at 50% 55%, #0a1650, var(--void) 70%); }
-  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1800px; }
+  :root { --w: 1120px; --h: 660px; --fit: 1; }
+  .hero { position: relative; height: 100vh; overflow: hidden; background: radial-gradient(60% 70% at 32% 60%, #0a1650, var(--void) 70%); }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); perspective: 1900px;
+    /* when each step happens, worked out from the tokens */
+    --line-at: calc(3 * var(--tier-step) + var(--tier-time) * .7);
+    --unfold-at: calc(var(--line-at) + var(--line-time));
+    --fold-at: 80ms;
+    --line-back-at: calc(var(--fold-at) + var(--fold-time));
+    --sink-at: calc(var(--line-back-at) + var(--line-time) * .6);
+    --rise: calc(var(--tier-gap) * -2.6); }
+  .stage > * { position: absolute; }
 
-  /* the tilted plane: everything sits on it, so it all shares one perspective */
-  .plane { position: absolute; left: 30px; top: 60px; width: 940px; height: 520px; transform-style: preserve-3d; transform: rotateX(46deg) rotateZ(-24deg) scale(.92); transform-origin: 50% 50%;
-    background: radial-gradient(rgba(61,227,255,.28) 1px, transparent 1.5px) 0 0 / 22px 22px, rgba(6, 13, 51, .55);
-    box-shadow: inset 0 0 0 1px rgba(61,227,255,.22), 0 0 90px rgba(61,227,255,.08); }
-  .plane > * { position: absolute; }
-  .title { left: 36px; top: 26px; font: 600 22px/1 var(--font); letter-spacing: .1em; color: var(--cyan); text-shadow: 0 0 10px rgba(57,213,255,.6); }
-  .ticks { left: 380px; top: 24px; font: 400 18px/1 var(--mono); color: var(--ink-3); }
-  .grid { left: 36px; top: 76px; display: grid; grid-template-columns: repeat(4, 82px); gap: 30px 24px; transform-style: preserve-3d; }
-  .cell { display: grid; justify-items: start; gap: 6px; transform-style: preserve-3d; }
-  .cell span { font: 400 10px/1 var(--mono); letter-spacing: .06em; color: var(--ink-3); transition: color var(--hover-time); }
-  .cell:hover span, .cell:focus-within span { color: var(--cyan-hi); }
-  .strip { left: 36px; top: 380px; width: 420px; height: 100px; background: rgba(61,227,255,.04); box-shadow: inset 0 0 0 1px rgba(61,227,255,.16); }
-  .strip svg { width: 100%; height: 100%; display: block; }
-  .log { left: 730px; top: 30px; width: 190px; height: 450px; padding: 14px; overflow: hidden; background: rgba(57,213,255,.05); box-shadow: inset 0 0 0 1px rgba(57,213,255,.16);
-    font: 400 10.5px/1.45 var(--mono); color: rgba(95,179,196,.55); letter-spacing: .03em; }
-  .log p { margin: 0 0 6px; }
-  .log p.is-new { color: var(--orange); text-shadow: 0 0 6px rgba(255,160,64,.6); }
+  .title { left: 40px; top: 34px; font: 600 22px/1 var(--font); letter-spacing: .12em; color: var(--cyan); text-shadow: 0 0 10px rgba(61, 227, 255, .6); }
+  .title small { display: block; margin-top: 8px; font: 400 11px/1 var(--mono); letter-spacing: .08em; color: var(--ink-3); text-shadow: none; }
+  .status { right: 40px; top: 34px; font: 400 11px/1.6 var(--mono); letter-spacing: .08em; color: var(--ink-3); text-align: right; }
+  .status b { font-weight: 400; color: var(--green); }
+
+  /* the floor and the stack on it */
+  .floor { left: 60px; top: 110px; width: 520px; height: 520px; transform-style: preserve-3d; transform: rotateX(60deg) rotateZ(45deg); }
+  .dots { position: absolute; inset: -120px; background: radial-gradient(rgba(61, 227, 255, .32) 1px, transparent 1.6px) 0 0 / 22px 22px;
+    -webkit-mask: radial-gradient(closest-side, #000 55%, transparent); mask: radial-gradient(closest-side, #000 55%, transparent); }
+  .tier { position: absolute; left: 50%; top: 50%; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); transform-style: preserve-3d;
+    border: 1px solid rgba(61, 227, 255, .7); background: rgba(61, 227, 255, .035); box-shadow: 0 0 22px rgba(61, 227, 255, .16), inset 0 0 26px rgba(61, 227, 255, .08);
+    opacity: .3; transform: translateZ(0);
+    /* coming down: the top tier first, each one after the one above */
+    transition: transform var(--sink-time) var(--ease-sink) calc(var(--sink-at) + (3 - var(--n)) * var(--sink-step)),
+                opacity var(--sink-time) var(--ease-sink) calc(var(--sink-at) + (3 - var(--n)) * var(--sink-step)); }
+  .tier.is-dotted { border: 2px dotted rgba(57, 255, 154, .6); background: transparent; box-shadow: none; opacity: .5; }
+  /* each tier has an edge below it, so a risen tier reads as a step with a thickness */
+  .tier::before { content: ""; position: absolute; inset: -1px; border: 1px solid rgba(61, 227, 255, .3); transform: translateZ(calc(var(--tier-gap) * -.4)); opacity: 0;
+    transition: opacity var(--sink-time) var(--ease-sink) calc(var(--sink-at) + (3 - var(--n)) * var(--sink-step)); }
+  .tier.is-dotted::before { display: none; }
+  .tier .pad { position: absolute; inset: 34px; border: 1px solid rgba(61, 227, 255, .5); box-shadow: inset 0 0 18px rgba(61, 227, 255, .25); }
+  .cn { position: absolute; width: 9px; height: 9px; margin: -5px 0 0 -5px; background: var(--green); box-shadow: 0 0 10px var(--green); opacity: .35;
+    transition: opacity 200ms ease calc(var(--sink-at) + (3 - var(--n)) * var(--sink-step)); }
+  /* pointing at the core: the tiers stir, each lifting a little, the way they will rise */
+  .stage.is-near .tier { opacity: .6; transform: translateZ(calc(var(--n) * 5px)); transition: transform var(--hover-time) var(--ease-out) calc(var(--n) * 30ms), opacity var(--hover-time) var(--ease-out); }
+  .stage.is-near .tier.is-dotted { opacity: .8; }
+  /* open: built from the floor up, the widest tier first */
+  .stage.is-open .tier { opacity: 1; transform: translateZ(calc(var(--n) * var(--tier-gap)));
+    transition: transform var(--tier-time) var(--ease-out) calc(var(--n) * var(--tier-step)), opacity 200ms ease calc(var(--n) * var(--tier-step)); }
+  .stage.is-open .tier::before { opacity: 1; transition: opacity 200ms ease calc(var(--n) * var(--tier-step) + var(--tier-time) * .4); }
+  .stage.is-open .cn { opacity: 1; transition: opacity 160ms ease calc(var(--n) * var(--tier-step) + var(--tier-time) * .7); }
+
+  /* the core floats over the pad, and rides up with the top tier */
+  .core-at { left: 276px; top: 300px; transition: translate var(--sink-time) var(--ease-sink) var(--sink-at); }
+  .stage.is-open .core-at { translate: 0 var(--rise); transition: translate var(--tier-time) var(--ease-out) calc(3 * var(--tier-step)); }
+  .hint { left: 212px; top: 410px; width: 200px; text-align: center; font: 400 11px/1 var(--mono); letter-spacing: .14em; color: var(--ink-3);
+    transition: opacity var(--hover-time) var(--sink-at); }
+  .stage.is-near .hint { color: var(--cyan); }
+  .stage.is-open .hint { opacity: 0; transition: opacity 120ms; }
+
+  /* the leader line: drawn out from the core to where the menu will hang, pulled back in on the way out */
+  .lead { inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .lead path { fill: none; stroke: var(--cyan); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px rgba(61, 227, 255, .8));
+    transition: stroke-dashoffset var(--line-time) var(--ease-sink) var(--line-back-at); }
+  .stage.is-open .lead path { stroke-dashoffset: 0; transition: stroke-dashoffset var(--line-time) var(--ease-out) var(--line-at); }
+  .lead rect { fill: var(--green); filter: drop-shadow(0 0 5px var(--green)); opacity: 0; transition: opacity 120ms var(--line-back-at); }
+  .stage.is-open .lead rect { opacity: 1; transition: opacity 120ms calc(var(--line-at) + var(--line-time) * var(--k)); }
+
+  /* the menu unfolds down out of the line, and folds back up into it */
+  .v-pop { left: 560px; top: 168px; z-index: 5; visibility: hidden; pointer-events: none; transition: visibility 0s var(--line-back-at); }
+  .stage.is-open .v-pop { visibility: visible; pointer-events: auto; transition: visibility 0s var(--unfold-at); }
+  .v-pop > .v-menu { transform-origin: 50% 0; scale: 1 0; opacity: 0;
+    transition: scale var(--fold-time) var(--ease-sink) var(--fold-at), opacity 100ms linear calc(var(--line-back-at) - 100ms); }
+  .stage.is-open .v-pop > .v-menu { scale: 1 1; opacity: 1; transition: scale var(--unfold-time) var(--ease-out) var(--unfold-at), opacity 60ms linear var(--unfold-at); }
+  /* rows: in from the top as it unfolds, out from the bottom before it folds */
+  .v-pop .rows > * { opacity: 0; translate: -6px 0; transition: opacity 120ms ease calc((8 - var(--i)) * 12ms), translate 120ms ease calc((8 - var(--i)) * 12ms); }
+  .stage.is-open .v-pop .rows > * { opacity: 1; translate: 0 0; transition: opacity 240ms var(--ease-out), translate 320ms var(--ease-out);
+    transition-delay: calc(var(--unfold-at) + var(--unfold-time) * .35 + var(--i) * var(--stagger)); }
+  .v-pop .v-head { opacity: 0; transition: opacity 100ms var(--fold-at); }
+  .stage.is-open .v-pop .v-head { opacity: 1; transition: opacity 200ms calc(var(--unfold-at) + 60ms); }
+
+  .has-sub { position: relative; }
+  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; translate: -10px 0;
+    transition: translate 200ms var(--ease-sink), opacity 160ms, visibility 0s 200ms; }
+  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; translate: 0 0; transition: translate var(--unfold-time) var(--ease-out), opacity 160ms, visibility 0s; }
+
+  .log { left: 40px; bottom: 30px; width: 380px; font: 400 10.5px/1.5 var(--mono); color: rgba(95, 179, 196, .55); letter-spacing: .03em; }
+  .log p { margin: 0; }
+  .log p.is-new { color: var(--orange); text-shadow: 0 0 6px rgba(255, 160, 64, .6); }
   .log p.is-new::after { content: "▌"; animation: caret .6s steps(1) infinite; }
   .log p.is-done::after { display: none; }
   @keyframes caret { 50% { opacity: 0; } }
-
-  /* the menu: shut, it lies flat on the floor. Opening, it is built up in tiers, like a stepped
-     pyramid: three frames rise off the floor one after another, the widest and lowest first, and the
-     menu settles on top. Closing, the whole stack sinks back to the floor at once. */
-  .v-pop { left: 456px; top: 30px; z-index: 5; visibility: hidden; transform-style: preserve-3d; transform: translateZ(calc(var(--tier-gap) * 3));
-    transition: visibility 0s var(--close-time); }
-  .v-pop.is-open { visibility: visible; transition: visibility 0s; }
-  .tier { position: absolute; inset: calc(var(--n) * -14px); pointer-events: none; border: 1px solid rgba(61, 227, 255, .4); background: rgba(61, 227, 255, .025);
-    box-shadow: 0 0 18px rgba(61, 227, 255, .12); opacity: 0; transform: translateZ(calc(var(--tier-gap) * -3));
-    transition: transform var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out); }
-  .tier.is-dotted { border: 2px dotted rgba(57, 255, 154, .55); background: transparent; }
-  .tier::before, .tier::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--green); box-shadow: 0 0 10px var(--green); }
-  .tier::before { left: -5px; top: -5px; } .tier::after { right: -5px; bottom: -5px; }
-  .tier.is-dotted::before, .tier.is-dotted::after { display: none; }
-  .v-pop.is-open .tier { opacity: 1; transform: translateZ(calc(var(--tier-gap) * -1 * var(--n)));
-    transition: transform var(--tier-time) var(--ease-out) calc((3 - var(--n)) * var(--tier-step)), opacity 180ms ease calc((3 - var(--n)) * var(--tier-step)); }
-  .v-pop > .v-menu { opacity: 0; transform: translateZ(calc(var(--tier-gap) * -3)); transition: transform var(--close-time) var(--ease-out), opacity var(--close-time) var(--ease-out); }
-  .v-pop.is-open > .v-menu { opacity: 1; transform: translateZ(0); transition: transform var(--tier-time) var(--ease-out) calc(3 * var(--tier-step)), opacity 220ms ease calc(3 * var(--tier-step)); }
-  .v-pop .rows, .v-pop .has-sub { transform-style: preserve-3d; }
-  .v-pop .rows > * { opacity: 0; translate: -8px 0; transition: opacity 120ms, translate 120ms; }
-  .v-pop.is-open .rows > * { opacity: 1; translate: 0 0; transition: opacity 260ms var(--ease-out), translate 360ms var(--ease-out); transition-delay: calc(var(--i) * var(--stagger) + 3 * var(--tier-step) + 120ms); }
-
-  .has-sub { position: relative; }
-  /* the submenu is one more tier on the stack: it rises off the menu as it slides out */
-  .submenu.v-menu { position: absolute; left: calc(100% + 14px); top: -10px; width: 220px; visibility: hidden; opacity: 0; transform: translateZ(0) translateX(-12px);
-    transition: transform var(--close-time) var(--ease-out), opacity var(--close-time), visibility 0s var(--close-time); }
-  .has-sub.is-open > .submenu { visibility: visible; opacity: 1; transform: translateZ(var(--tier-gap)) translateX(0); transition: transform var(--tier-time) var(--ease-out), opacity 160ms, visibility 0s; }
-
   .s-item.is-no { animation: deny 360ms var(--ease-out); }
   @keyframes deny { 0%, 100% { color: var(--ink-off); } 30% { color: var(--alert); text-shadow: 0 0 8px var(--alert); translate: -3px 0; } 60% { translate: 2px 0; } }
+  .stage.is-still *, .stage.is-still *::before { transition: none !important; }
   .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
-  @media (prefers-reduced-motion: reduce) { .v-pop, .v-pop.is-open, .v-pop .rows > *, .submenu { transition-duration: 1ms !important; animation: none !important; } .folder { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .stage *, .stage *::before { transition-duration: 1ms !important; transition-delay: 0s !important; animation: none !important; } }
   </style>
 </head>
 <body>
   <section class="hero">
     <div class="stage">
-      <div class="plane">
-        <div class="title" aria-hidden="true">FILE DATABASE #4SKTD</div>
-        <div class="ticks" aria-hidden="true">//</div>
-        <div class="grid" role="group" aria-label="Folders"></div>
-        <div class="strip" aria-hidden="true"><svg viewBox="0 0 420 100" preserveAspectRatio="none">
-          <g fill="rgba(61,227,255,.35)"><rect x="40" y="58" width="8" height="42"/><rect x="52" y="44" width="8" height="56"/><rect x="64" y="66" width="8" height="34"/><rect x="200" y="30" width="8" height="70"/><rect x="212" y="48" width="8" height="52"/><rect x="330" y="52" width="8" height="48"/><rect x="342" y="38" width="8" height="62"/></g>
-          <g fill="rgba(255,160,64,.55)"><rect x="120" y="40" width="6" height="60"/><rect x="130" y="62" width="6" height="38"/><rect x="270" y="24" width="6" height="76"/><rect x="280" y="50" width="6" height="50"/></g>
-          <path d="M0 80 C 40 70, 70 30, 110 40 S 170 90, 220 60 S 300 10, 340 30 S 400 70, 420 50" fill="none" stroke="#ffa040" stroke-width="2"/>
-          <circle cx="220" cy="60" r="5" fill="none" stroke="#ffa040" stroke-width="2"/><circle cx="340" cy="30" r="4" fill="#3de3ff"/></svg></div>
-        <div class="log" aria-live="polite" aria-label="Log">
-          <p>SERVER ELECTION OK. BREAK EATEN BY A GRUE IF NULL. CTL-C FLUSH DATA COPIED ACK.</p>
-          <p>SECTOR MAP LOADED. 12 FOLDERS. 3 ENCRYPTED.</p>
-          <p>NODES ONLINE: 03 07 12</p>
-        </div>
+      <div class="title" aria-hidden="true">ARCHIVE CORE // 4SKTD<small>FILE DATABASE · SECTOR 07</small></div>
+      <div class="status" aria-hidden="true">LINK <b>STABLE</b><br />NODES 03 07 12<br />14 FILES · 3 ENCRYPTED</div>
 
-        <div class="v-pop" id="file-menu">
-          <span class="tier" style="--n:3" aria-hidden="true"></span>
-          <span class="tier is-dotted" style="--n:2" aria-hidden="true"></span>
-          <span class="tier" style="--n:1" aria-hidden="true"></span>
+      <div class="floor" aria-hidden="true">
+        <div class="dots"></div>
+        <div class="tier is-dotted" style="--n:0;--s:400px"></div>
+        <div class="tier" style="--n:1;--s:320px"><i class="cn" style="left:0;top:0"></i><i class="cn" style="left:100%;top:0"></i><i class="cn" style="left:100%;top:100%"></i><i class="cn" style="left:0;top:100%"></i></div>
+        <div class="tier" style="--n:2;--s:240px"></div>
+        <div class="tier" style="--n:3;--s:160px"><span class="pad"></span><i class="cn" style="left:0;top:100%"></i><i class="cn" style="left:100%;top:0"></i></div>
+      </div>
+
+      <div class="hint" aria-hidden="true">SELECT CORE</div>
+      <div class="core-at">
+        <button class="core" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu" aria-label="Archive core 07, 14 files">
+          <svg viewBox="0 0 72 80" aria-hidden="true">
+            <ellipse class="ring" cx="36" cy="12" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M36 20 58.5 33v26L36 72 13.5 59V33z" fill="rgba(61,227,255,.08)" stroke="currentColor" stroke-width="2"/>
+            <path d="M36 28 51.5 37v18L36 64 20.5 55V37z" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
+            <g class="glyph" fill="currentColor"><path d="M33 40h6l-3 5z"/><rect x="28" y="49" width="3" height="3"/><rect x="41" y="47" width="2" height="2"/><rect x="35" y="53" width="2.5" height="2.5"/><rect x="31" y="44" width="2" height="2"/></g>
+          </svg>
+          <i class="cn a"></i><i class="cn b"></i>
+        </button>
+      </div>
+
+      <svg class="lead" viewBox="0 0 1120 660" aria-hidden="true">
+        <path d="M342 228 L426 168 L560 168" pathLength="1"/>
+        <rect x="422" y="164" width="8" height="8" style="--k:.45"/><rect x="556" y="164" width="8" height="8" style="--k:1"/>
+      </svg>
+
+      <div class="v-pop" id="file-menu">
           <div class="v-menu">
-            <div class="v-head" aria-hidden="true"><b id="menu-folder">SECTOR_07</b><span id="menu-count">14 FILES</span></div>
+            <div class="v-head" aria-hidden="true"><b id="menu-folder">CORE_07</b><span>14 FILES</span></div>
             <div class="rows" role="menu" aria-labelledby="menu-folder">
               <button class="s-item" role="menuitem" style="--i:0" data-log="OPEN {F} ... {N} FILES LISTED"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h4l1.5 1.5h7.5v8h-13zM1.5 7h13" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Open</span><kbd class="s-key">ENTER</kbd></button>
               <button class="s-item" role="menuitem" style="--i:1" data-log="DECRYPT {F} ... KEY ACCEPTED"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="8" r="3" fill="none" stroke="currentColor"/><path d="M8 8h7M12 8v2.5M14 8v2" fill="none" stroke="currentColor" stroke-linecap="round"/></svg><span class="s-label">Decrypt</span><kbd class="s-key">D</kbd></button>
@@ -117,80 +164,86 @@
               <button class="s-item" role="menuitem" aria-disabled="true" style="--i:8" data-log="PURGE {F} ... DENIED. SECTOR LOCKED BY ADMIN"><svg class="s-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.8 9.5h5.4l.8-9.5" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg><span class="s-label">Purge</span><span class="s-note">LOCKED</span></button>
             </div>
           </div>
-        </div>
+      </div>
+
+      <div class="log" aria-live="polite" aria-label="Log">
+        <p>SERVER ELECTION OK. CTL-C FLUSH DATA COPIED ACK.</p>
+        <p>NODES ONLINE: 03 07 12</p>
       </div>
     </div>
   </section>
 
   <section class="spec" aria-labelledby="spec-title">
     <h2 id="spec-title">Spec</h2>
-    <p>Read from the values this page runs on. The menu is built, not shown: three tiers rise off the floor one after another and the menu settles on top; the submenu is one tier more.</p>
+    <p>Read from the values this page runs on. The menu is built, not shown: four tiers rise off the floor one after another, the core rides to the top, a line draws out, and the menu unfolds out of it. Dismissing takes the build apart in the reverse order, one step at a time.</p>
     <div class="spec-grid"></div>
   </section>
 
   <a class="back-pill" href="week-06.html" hidden>&larr; Week 06</a>
-  <script>
-    // the folders on the plane
-    const names = ['ARCHIVE_01', 'LEDGER_02', 'SIGNAL_03', 'ROSTER_04', 'NIGHT_05', 'ORBIT_06', 'SECTOR_07', 'VAULT_08', 'MIRROR_09', 'ECHO_10', 'RELAY_11', 'GHOST_12'];
-    document.querySelector('.grid').innerHTML = names.map((n, i) => `<div class="cell"><button class="folder" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu" aria-label="${n}" data-files="${[14, 9, 31, 6, 22, 3, 14, 40, 11, 8, 17, 2][i]}"><i class="node a"></i><i class="node b"></i></button><span aria-hidden="true">${n}</span></div>`).join('');
-  </script>
   <script src="week-06-sketch.js?v=2"></script>
   <script>
     (() => {
-      const pop = document.getElementById('file-menu'), rows = pop.querySelector('.rows'), log = document.querySelector('.log');
+      const stage = document.querySelector('.stage'), pop = document.getElementById('file-menu'), rows = pop.querySelector('.rows'), log = document.querySelector('.log');
+      const core = document.querySelector('.core');
       const own = [...rows.querySelectorAll('.s-item')].filter(i => i.closest('[role="menu"]') === rows);
-      const isOpen = () => pop.classList.contains('is-open');
-      let folder = null;
+      const root = getComputedStyle(document.documentElement), ms = n => parseFloat(root.getPropertyValue(n));
+      const isOpen = () => stage.classList.contains('is-open');
+      // the rows are in reach once the menu has unfolded
+      const ready = () => 3 * ms('--tier-step') + ms('--tier-time') * .7 + ms('--line-time') + ms('--unfold-time') * .5;
+      let t;
 
-      const open = f => {
-        if (folder && folder !== f) folder.setAttribute('aria-expanded', 'false');
-        folder = f; f.setAttribute('aria-expanded', 'true');
-        document.getElementById('menu-folder').textContent = f.getAttribute('aria-label');
-        document.getElementById('menu-count').textContent = f.dataset.files + ' FILES';
-        if (isOpen()) { pop.classList.remove('is-open'); void pop.offsetWidth; }   // replay the opening for a new folder
-        pop.classList.remove('is-settled'); pop.classList.add('is-open');
-        clearTimeout(pop._settle); pop._settle = setTimeout(() => pop.classList.add('is-settled'), parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--open-time')) + 120);
-        setTimeout(() => own[0].focus({ preventScroll: true }), 120);
+      // the whole dismiss, from the first row leaving to the last tier landing
+      const downTime = () => 80 + ms('--fold-time') + ms('--line-time') * .6 + 3 * ms('--sink-step') + ms('--sink-time');
+      let closing = 0, settle;
+      // pointing at the core stirs the tiers; not while the stack is still coming down
+      const near = on => stage.classList.toggle('is-near', on && !isOpen() && Date.now() > closing);
+      core.addEventListener('pointerenter', () => near(true)); core.addEventListener('pointerleave', () => near(false));
+      core.addEventListener('focus', () => near(true)); core.addEventListener('blur', () => near(false));
+
+      const open = () => {
+        clearTimeout(settle); closing = 0; stage.classList.remove('is-near'); stage.classList.add('is-open'); core.setAttribute('aria-expanded', 'true');
+        clearTimeout(t); t = setTimeout(() => own[0].focus({ preventScroll: true }), ready());
       };
       const close = (back = true) => {
         if (!isOpen()) return;
+        clearTimeout(t);
         pop.querySelectorAll('.has-sub.is-open').forEach(h => { h.classList.remove('is-open'); h.querySelector('.s-item').setAttribute('aria-expanded', 'false'); });
-        clearTimeout(pop._settle); pop.classList.remove('is-open', 'is-settled');
-        if (folder) { folder.setAttribute('aria-expanded', 'false'); if (back) folder.focus({ preventScroll: true }); }
+        stage.classList.remove('is-open', 'is-near'); core.setAttribute('aria-expanded', 'false');
+        closing = Date.now() + downTime();
+        if (back) core.focus({ preventScroll: true });
+        clearTimeout(settle); settle = setTimeout(() => near(core.matches(':hover, :focus-visible')), downTime() + 20);
       };
-      document.querySelectorAll('.folder').forEach(f => f.addEventListener('click', () => (isOpen() && folder === f) ? close() : open(f)));
-      document.querySelector('.stage').addEventListener('pointerdown', e => { if (isOpen() && !pop.contains(e.target) && !e.target.closest('.folder')) close(false); });
+      core.addEventListener('click', () => isOpen() ? close() : open());
+      stage.addEventListener('pointerdown', e => { if (isOpen() && !pop.contains(e.target) && !core.contains(e.target)) close(false); });
       addEventListener('keydown', e => {
         if (e.metaKey || e.ctrlKey || e.altKey || !isOpen()) return;
         if (e.key === 'Escape' && !pop.querySelector('.has-sub.is-open')) { e.preventDefault(); close(); }
-        else if (e.key === 'Enter' && document.activeElement === own[0]) return;
         else if (e.key.length === 1) { const k = [...rows.querySelectorAll('.s-key')].find(x => x.textContent.toLowerCase() === e.key.toLowerCase()); if (k) { e.preventDefault(); k.closest('.s-item').click(); } }
       });
 
       // the log types each answer out a letter at a time
-      const speed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--type-speed'));
+      const speed = ms('--type-speed');
       const write = text => {
         log.querySelectorAll('.is-new').forEach(p => { p.classList.remove('is-new'); p.classList.add('is-done'); });
         const p = document.createElement('p'); p.className = 'is-new'; log.append(p);
-        let i = 0; const t = setInterval(() => { p.textContent = '> ' + text.slice(0, ++i); if (i >= text.length) clearInterval(t); }, speed);
-        setTimeout(() => { clearInterval(t); p.textContent = '> ' + text; }, text.length * speed + 60);   // the whole line always lands on time
-        while (log.children.length > 9) log.firstElementChild.remove();
+        let i = 0; const iv = setInterval(() => { p.textContent = '> ' + text.slice(0, ++i); if (i >= text.length) clearInterval(iv); }, speed);
+        setTimeout(() => { clearInterval(iv); p.textContent = '> ' + text; }, text.length * speed + 60);   // the whole line always lands on time
+        while (log.children.length > 5) log.firstElementChild.remove();
       };
 
       pop.addEventListener('click', e => {
         const it = e.target.closest('.s-item, .s-node');
         if (!it || (it.parentElement.classList.contains('has-sub') && it === it.parentElement.querySelector('.s-item'))) return;
-        const f = folder ? folder.getAttribute('aria-label') : '';
-        if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); write(it.dataset.log.replace('{F}', f)); return; }
-        if (it.dataset.node) write(`TRANSMIT ${f} -> NODE ${it.dataset.node} ... 100%`);
-        else write(it.dataset.log.replace('{F}', f).replace('{N}', folder.dataset.files));
-        setTimeout(() => close(), 160);
+        if (it.getAttribute('aria-disabled') === 'true') { it.classList.remove('is-no'); void it.offsetWidth; it.classList.add('is-no'); write(it.dataset.log.replace('{F}', 'CORE_07')); return; }
+        if (it.dataset.node) write(`TRANSMIT CORE_07 -> NODE ${it.dataset.node} ... 100%`);
+        else write(it.dataset.log.replace('{F}', 'CORE_07').replace('{N}', '14'));
+        setTimeout(() => close(), 220);   // the pick flares first, then the build comes down
       });
 
-      // #open shows SECTOR_07's menu (and the node submenu) already open, for the set's thumbnail
-      if (location.hash === '#open') { const f = document.querySelectorAll('.folder')[6]; pop.style.transition = 'none'; open(f); pop.classList.add('is-settled'); const h = pop.querySelector('.has-sub'); h.classList.add('is-open'); }
+      // #open shows the stack built and the node submenu out, for the set's thumbnail
+      if (location.hash === '#open') { stage.classList.add('is-still'); open(); pop.querySelector('.has-sub').classList.add('is-open'); }
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=2"></script>
+  <script src="week-06-vault-spec.js?v=3"></script>
 </body>
 </html>

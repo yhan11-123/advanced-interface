@@ -19,7 +19,7 @@
       <div class="s-sect" data-k="sect">TRANSMIT</div>
       <div class="s-rule" data-k="rule"></div>
       <button class="s-node" data-k="node"><span class="s-label">Node 7</span></button>
-      <button class="folder" data-k="folder"></button>
+      <button class="core" data-k="core"><svg viewBox="0 0 72 80"></svg></button>
     </div>`;
   document.body.append(sample);
   const el = k => sample.querySelector(`[data-k="${k}"]`);
@@ -33,6 +33,7 @@
   const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
   const fam = f => f.split(',')[0].replace(/"/g, '');
 
+  const ms = n => parseFloat(tok(n));
   const item = cs('item'), menu = cs('menu'), ico = el('item').querySelector('.s-ico');
   const cards = [
     ['Menu', [
@@ -79,27 +80,36 @@
       ['Pressed', `${sw(cs('press').color)}, fill 45%`],
       ['Unavailable', sw(cs('off').color)],
     ]],
-    ['Folder (the trigger)', [
-      ['Size', `${px(el('folder').offsetWidth)} × ${px(el('folder').offsetHeight)}`],
-      ['Hover', `lifts ${tok('--lift')} off the plane`],
-      ['Pressed', 'sinks to 4px'],
-      ['Lifted or open', 'two green corner nodes'],
-      ['Open', 'filled with light, 34px glow'],
+    ['Core (the trigger)', [
+      ['Size', `${px(el('core').offsetWidth)} × ${px(el('core').offsetHeight)}, a hexagon`],
+      ['At rest', 'dim glyph, tiers lie flat at 30%'],
+      ['Hover', `rises ${tok('--lift')}, glows; tiers stir 5px each`],
+      ['Pressed', 'shrinks to 92%, green'],
+      ['Open', 'two green corner nodes, ring turning'],
     ]],
     ['Submenu (nodes)', [
       ['Row', `${px(el('node').offsetHeight)}, signal bars beside the name`],
       ['Chosen', '1px light frame'],
-      ['Opens', 'beside its row, same materialise'],
+      ['Opens', 'beside its row, sliding out 10px'],
     ]],
-    ['Motion', [
+    ['Motion · open', [
       ['Hover', `${tok('--hover-time')}, ${tok('--ease-out')}`],
-      ['Menu opens', `${tok('--open-time')}, built in tiers`],
-      ['Tiers', `3, ${tok('--tier-gap')} apart, each 14px wider than the one above`],
+      ['Tiers', `4, ${tok('--tier-gap')} apart, 80px narrower each`],
       ['Each tier rises', `${tok('--tier-time')}, ${tok('--tier-step')} after the one below`],
-      ['Menu settles', 'on top, after the third tier'],
-      ['Submenu', `one tier more, ${tok('--tier-gap')} above the menu`],
-      ['Rows arrive', `${tok('--stagger')} apart`],
-      ['Menu closes', `${tok('--close-time')}, the stack sinks at once`],
+      ['Core rides up', 'with the top tier'],
+      ['Line draws', `${tok('--line-time')}, as the top tier lands`],
+      ['Menu unfolds', `${tok('--unfold-time')}, down out of the line`],
+      ['Rows arrive', `${tok('--stagger')} apart, top first`],
+      ['Rows in reach', `${Math.round(3 * ms('--tier-step') + ms('--tier-time') * .7 + ms('--line-time') + ms('--unfold-time') * .5)}ms`],
+    ]],
+    ['Motion · dismiss', [
+      ['Order', 'the build, in reverse'],
+      ['Rows leave', '120ms, bottom first, 12ms apart'],
+      ['Menu folds', `${tok('--fold-time')}, up into its line`],
+      ['Line pulls back', `${tok('--line-time')}, into the core`],
+      ['Each tier comes down', `${tok('--sink-time')}, ${tok('--sink-step')} after the one above`],
+      ['Easing', tok('--ease-sink')],
+      ['All down', `${Math.round(80 + ms('--fold-time') + ms('--line-time') * .6 + 3 * ms('--sink-step') + ms('--sink-time'))}ms`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];
