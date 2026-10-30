@@ -1,0 +1,113 @@
+/* Week 06, Set 2 · Signal: the menu of a studio's site, built for a tall web page. Shut, it is a
+   bracketed MENU tag in the corner of a dark, grainy page. Opened, an orange sheet wipes in from the
+   right and covers the page; numbered rows come up one after another; a network of points is drawn
+   at the foot. Pointing at a row sweeps a black bar under it, its right end cut on a slant, while
+   the label scrambles and settles back into its word.
+   Shared by the two prototypes (the menu system, the menu in use). Every value the spec reports
+   is set here, once, as a token; the pages and the spec read the same numbers. */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap");
+
+:root {
+  /* colour */
+  --night: #0c0c0c;          /* the page */
+  --rule-dark: #1f1f1f;      /* the page's grid */
+  --orange: #ff6206;         /* the menu sheet */
+  --ink: #0b0b0b;            /* text on orange */
+  --ink-soft: rgba(11, 11, 11, .55);  /* numbers, keys, section labels */
+  --ink-off: rgba(11, 11, 11, .32);   /* unavailable */
+  --rule: rgba(11, 11, 11, .2);       /* between rows */
+  --bar: #0b0b0b;            /* the hover bar */
+  --on-bar: #ff8a45;         /* text on the bar */
+  --paper: #f3efe8;          /* text on the page */
+
+  /* type */
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --size: 14px; --track: .08em;
+  --small: 11px;
+
+  /* the row */
+  --row-h: 46px; --row-px: 18px; --row-gap: 18px;
+  --num-w: 22px;             /* the number, or an icon, in the left column */
+  --icon: 15px;
+  --cut: 14px;               /* the slant cut off the bar's right end */
+  --sub-indent: 40px; --sub-h: 38px;
+
+  /* motion */
+  --wipe-time: 260ms;        /* the sheet wipes in from the right */
+  --wipe-ease: cubic-bezier(.75, 0, .2, 1);
+  --row-step: 45ms;          /* rows come up one after another */
+  --row-time: 260ms;
+  --bar-time: 200ms;         /* the bar sweeps in from the left */
+  --bar-ease: cubic-bezier(.2, .8, .2, 1);
+  --scramble-time: 260ms;    /* the label scrambles, then settles into its word */
+  --hover-time: 140ms;
+  --close-time: 200ms;       /* the sheet wipes back out to the right */
+}
+
+/* ---------- one row, every configuration ---------- */
+.s-row { position: relative; display: flex; align-items: center; gap: var(--row-gap); width: 100%; height: var(--row-h); margin: 0; padding: 0 var(--row-px);
+  border: 0; border-bottom: 1px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; text-align: left; isolation: isolate;
+  font: 500 var(--size)/1 var(--mono); letter-spacing: var(--track); text-transform: uppercase; transition: color var(--hover-time); }
+/* the bar: black, its right end cut on a slant; it sweeps in from the left */
+.s-row::before { content: ""; position: absolute; z-index: -1; left: 6px; right: 6px; top: 7px; bottom: 7px; background: var(--bar);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+  transform-origin: 0 50%; scale: 0 1; transition: scale 160ms ease-in; }
+.s-row:focus-visible { outline: none; }
+.s-row:hover, .s-row:focus-visible, .s-row.is-hover, .has-sub.is-open > .s-row { color: var(--on-bar); }
+.s-row:hover::before, .s-row:focus-visible::before, .s-row.is-hover::before, .has-sub.is-open > .s-row::before { scale: 1 1; transition: scale var(--bar-time) var(--bar-ease); }
+/* pressed: the bar fills to the row's edges and the row sinks a pixel */
+.s-row:active, .s-row.is-press, .s-row.is-picked { color: var(--paper); }
+.s-row:active::before, .s-row.is-press::before, .s-row.is-picked::before { scale: 1 1; left: 0; right: 0; top: 4px; bottom: 4px; }
+.s-row:active > *, .s-row.is-press > * { translate: 0 1px; }
+.s-row[aria-disabled="true"] { color: var(--ink-off); cursor: default; }
+.s-row[aria-disabled="true"]::before { display: none; }
+
+.s-num { width: var(--num-w); flex: none; font-size: var(--small); color: var(--ink-soft); transition: color var(--hover-time); }
+.s-row:hover .s-num, .s-row:focus-visible .s-num, .s-row.is-hover .s-num, .has-sub.is-open > .s-row .s-num { color: currentColor; }
+.s-row:active .s-num, .s-row.is-press .s-num, .s-row.is-picked .s-num, .s-row:active .s-key, .s-row.is-press .s-key { color: currentColor; }
+.s-row:active .s-badge, .s-row.is-press .s-badge { background: var(--orange); color: var(--ink); }
+.s-row[aria-disabled="true"] .s-num { color: var(--ink-off); }
+svg.s-num { height: var(--icon); width: var(--icon); margin-right: calc(var(--num-w) - var(--icon)); }
+.s-label { flex: 1; white-space: nowrap; }
+.s-key { font-size: var(--small); color: var(--ink-soft); letter-spacing: .04em; }
+.s-key::before { content: "["; } .s-key::after { content: "]"; }
+.s-row:hover .s-key, .s-row.is-hover .s-key, .s-row:focus-visible .s-key { color: currentColor; }
+.s-badge { min-width: 24px; height: 18px; padding: 0 6px; background: var(--ink); color: var(--orange); font: 700 var(--small)/18px var(--mono); text-align: center; letter-spacing: .02em; }
+.s-row:hover .s-badge, .s-row.is-hover .s-badge, .s-row:focus-visible .s-badge { background: var(--orange); color: var(--ink); }
+.s-end { width: var(--icon); height: var(--icon); flex: none; }
+.s-plus { position: relative; width: 12px; height: 12px; flex: none; }
+.s-plus::before, .s-plus::after { content: ""; position: absolute; left: 0; top: 5px; width: 12px; height: 2px; background: currentColor; transition: rotate 220ms var(--bar-ease); }
+.s-plus::after { rotate: 90deg; }
+.has-sub.is-open > .s-row .s-plus::after { rotate: 0deg; }
+.s-note { font-size: var(--small); letter-spacing: .06em; }
+.s-sect { display: flex; align-items: center; gap: 10px; padding: 18px var(--row-px) 8px; font: 700 10px/1 var(--mono); letter-spacing: .2em; color: var(--ink-soft); text-transform: uppercase; }
+.s-sect::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+/* the submenu: rows that open under their row, set in */
+.s-sub .s-row { height: var(--sub-h); padding-left: calc(var(--row-px) + var(--sub-indent)); font-size: 13px; border-bottom-style: dashed; }
+.s-sub .s-row::before { left: calc(var(--sub-indent) + 6px); top: 6px; bottom: 6px; }
+
+/* ---------- the MENU tag that opens it, and the × that shuts it ---------- */
+.tag { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 104px; height: 34px; padding: 0; border: 0; cursor: pointer; background: transparent;
+  color: var(--paper); font: 500 12px/1 var(--mono); letter-spacing: .14em; transition: background-color var(--hover-time), color var(--hover-time), scale 100ms; }
+.tag::before, .tag::after, .tag span::before, .tag span::after { content: ""; position: absolute; width: 7px; height: 7px; border-color: currentColor; border-style: solid; }
+.tag::before { left: 0; top: 0; border-width: 1px 0 0 1px; } .tag::after { right: 0; top: 0; border-width: 1px 1px 0 0; }
+.tag span::before { left: 0; bottom: 0; border-width: 0 0 1px 1px; } .tag span::after { right: 0; bottom: 0; border-width: 0 1px 1px 0; }
+.tag:hover, .tag:focus-visible, .tag.is-hover { background: var(--orange); color: var(--ink); outline: none; }
+.tag:active, .tag.is-press { scale: .95; background: #ff7a2e; color: var(--ink); }
+.shut { width: 32px; height: 32px; padding: 0; border: 1px solid var(--ink); border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; font: 500 12px/1 var(--mono);
+  transition: background-color var(--hover-time), color var(--hover-time), scale 100ms; }
+.shut:hover, .shut:focus-visible, .shut.is-hover { background: var(--ink); color: var(--orange); outline: none; }
+.shut:active, .shut.is-press { scale: .9; }
+
+/* ---------- the spec, under each prototype ---------- */
+.spec { padding: 48px 32px 64px; background: var(--night); color: #cfc9c0; font: 14px/1.6 var(--mono); }
+.spec h2 { margin: 0 0 4px; font: 700 22px/1.2 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+.spec > p { margin: 0 0 24px; color: #8f8a83; max-width: 70ch; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.spec-card { padding: 14px 16px 12px; border: 1px solid #2a2a2a; background: #121212; }
+.spec-card h3 { margin: 0 0 10px; font: 700 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 12px; }
+.spec-card dt { color: #8f8a83; }
+.spec-card dd { margin: 0; color: #f0ebe3; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
