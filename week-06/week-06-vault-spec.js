@@ -75,7 +75,8 @@
     ['Submenu', [
       ['Form', 'a smaller board, stacked above the first'],
       ['Sits', 'above the board, over its row'],
-      ['Its boxes', 'built the same way, in five steps'],
+      ['Its boxes', `built the same five steps, quicker: ${tok('--sub-phase')} apart, rise ${tok('--sub-time')}, ${tok('--sub-step')} between boxes`],
+      ['Put away', `the same five steps backwards, ${tok('--out-phase')} apart`],
       ['Tiles', 'three, one chosen at a time'],
     ]],
     ['Motion · the board', [
@@ -94,10 +95,12 @@
       ['5 · its writing', `+${4.5 * ms('--phase')}ms, comes up 3px`],
     ]],
     ['Motion · one box taken down', [
-      ['Writing, box', 'out together, 140–160ms'],
-      ['Dotted layer', '+60ms, sinks'],
-      ['Footprint', '+100ms, lines pulled back into the nodes'],
-      ['Nodes', '+180ms, go last'],
+      ['Order', `the five steps backwards, ${tok('--out-phase')} apart`],
+      ['1 · writing', 'goes, 90ms'],
+      ['2 · the box', `+${tok('--out-phase')}, steps back down and fades, 170ms`],
+      ['3 · dotted layer', `+${2 * ms('--out-phase')}ms, steps down and fades`],
+      ['4 · footprint', `+${3 * ms('--out-phase')}ms, lines pulled back into the nodes`],
+      ['5 · nodes', `+${4 * ms('--out-phase')}ms, go out`],
       ['Log types', `${tok('--type-speed')} a letter`],
     ]],
   ];

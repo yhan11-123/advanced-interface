@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 06 · Set 1 · Vault · In use</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="week-06-vault.css?v=8" />
+  <link rel="stylesheet" href="week-06-vault.css?v=9" />
   <style>
   /* In use: the field menu of VAULT, a sci-fi salvage game, on its own. Shut, it is a MENU prompt.
      Opened (the prompt, or Tab), a board of glass rises out of a line of light, seen straight on. Its items are wide, low boxes in sections, each built in steps like
@@ -58,41 +58,46 @@
      3 a dotted layer rises off the footprint
      4 the box rises onto the top of the stack, its light filling in, an edge flash as it arrives
      5 what is written on it comes up last
-     Taking it down runs the same steps backwards, faster. Boxes are built left to right, and taken
-     down right to left. */
+     Taking it down runs the same five steps backwards, each one --out-phase after the last, so every
+     step can be seen: the writing goes, the box steps back down and fades, the dotted layer steps down
+     and fades, the footprint lines are pulled back into the nodes, the nodes go out. Boxes are built
+     left to right, and taken down right to left. The Gear rack does the same, quicker. */
   @property --draw { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
   .slot { display: block; position: relative; }
-  .sections .slot { --d: calc(var(--open-time) + var(--k) * var(--stack-step)); --dl: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
-  .sub .slot { --d: calc(80ms + var(--k) * var(--stack-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
+  .sections .slot { --ph: var(--phase); --st: var(--stack-time); --dt: var(--draw-time);
+    --d: calc(var(--open-time) + var(--k) * var(--stack-step)); --dl: calc((var(--n) - 1 - var(--k)) * var(--leave-step)); }
+  .sub .slot { --ph: var(--sub-phase); --st: var(--sub-time); --dt: calc(var(--draw-time) * .6);
+    --d: calc(20ms + var(--k) * var(--sub-step)); --dl: calc((2 - var(--k)) * var(--leave-step)); }
   .b-dot, .b-foot, .b-mid, .b-flash { position: absolute; pointer-events: none; }
-  .b-dot { width: 6px; height: 6px; background: var(--node); box-shadow: 0 0 8px var(--node); opacity: 0; scale: 0;
-    transition: opacity 80ms linear calc(var(--dl) + 180ms), scale 80ms linear calc(var(--dl) + 180ms); }
-  .b-dot.a { left: -3px; top: -3px; } .b-dot.b { right: -3px; bottom: -3px; }
+
+  /* taken down (and at rest when shut): step 5 to step 1 */
+  .slot > .tile > * { opacity: 0; translate: 0 3px; transition: opacity 90ms linear var(--dl), translate 90ms linear var(--dl); }
+  .slot > .tile { opacity: 0; translate: 0 0;
+    transition: translate 170ms cubic-bezier(.5, 0, .7, .4) calc(var(--dl) + var(--out-phase)), opacity 170ms cubic-bezier(.7, 0, 1, 1) calc(var(--dl) + var(--out-phase)),
+      transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
+  .b-mid { inset: 0; border: 1px dotted rgba(57, 213, 255, .6); opacity: 0; translate: 0 0;
+    transition: translate 150ms cubic-bezier(.5, 0, .7, .4) calc(var(--dl) + 2 * var(--out-phase)), opacity 150ms cubic-bezier(.7, 0, 1, 1) calc(var(--dl) + 2 * var(--out-phase)); }
   .b-foot { inset: 0; --c: rgba(57, 213, 255, .5);
     background: linear-gradient(var(--c), var(--c)) 0 0 / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 0 0 / 1px var(--draw) no-repeat,
                 linear-gradient(var(--c), var(--c)) 100% 100% / var(--draw) 1px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 1px var(--draw) no-repeat;
-    transition: --draw 120ms cubic-bezier(.6, 0, .9, .4) calc(var(--dl) + 100ms); }
-  .b-mid { inset: 0; border: 1px dotted rgba(57, 213, 255, .6); opacity: 0; translate: 0 0;
-    transition: translate 140ms ease-in calc(var(--dl) + 60ms), opacity 120ms linear calc(var(--dl) + 60ms); }
+    transition: --draw 150ms cubic-bezier(.6, 0, .8, .4) calc(var(--dl) + 3 * var(--out-phase)); }
+  .b-dot { width: 6px; height: 6px; background: var(--node); box-shadow: 0 0 8px var(--node); opacity: 0; scale: 0;
+    transition: opacity 100ms linear calc(var(--dl) + 4 * var(--out-phase)), scale 100ms cubic-bezier(.6, 0, .8, .4) calc(var(--dl) + 4 * var(--out-phase)); }
+  .b-dot.a { left: -3px; top: -3px; } .b-dot.b { right: -3px; bottom: -3px; }
   .b-flash { inset: 0; translate: calc(var(--rest) * -1) calc(var(--rest) * -1); box-shadow: inset 0 0 0 1px var(--cyan-hi), 0 0 18px rgba(57, 213, 255, .8); opacity: 0; }
-  .slot > .tile { opacity: 0; translate: 0 0;
-    transition: translate 160ms cubic-bezier(.5, 0, .9, .5) var(--dl), opacity 140ms linear var(--dl),
-      transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
-  .slot > .tile > * { opacity: 0; translate: 0 3px; transition: opacity 80ms linear var(--dl), translate 80ms linear var(--dl); }
 
-  /* built: the main board while it is open, the submenu while it is out */
-  .stage.is-menu:not(.is-leaving) .sections .slot, .sub.is-open .slot { --on: 1; }
+  /* built: the main board while it is open, the Gear rack while it is out. Step 1 to step 5 */
   .stage.is-menu:not(.is-leaving) .sections .b-dot, .sub.is-open .b-dot { opacity: .85; scale: 1; transition: opacity 90ms linear var(--d), scale 160ms var(--stack-ease) var(--d); }
-  .stage.is-menu:not(.is-leaving) .sections .b-foot, .sub.is-open .b-foot { --draw: 100%; transition: --draw var(--draw-time) var(--ease-out) calc(var(--d) + var(--phase)); }
+  .stage.is-menu:not(.is-leaving) .sections .b-foot, .sub.is-open .b-foot { --draw: 100%; transition: --draw var(--dt) var(--ease-out) calc(var(--d) + var(--ph)); }
   .stage.is-menu:not(.is-leaving) .sections .b-mid, .sub.is-open .b-mid { opacity: 1; translate: calc(var(--mid-z) * -1) calc(var(--mid-z) * -1);
-    transition: translate 240ms var(--ease-out) calc(var(--d) + 2 * var(--phase)), opacity 120ms linear calc(var(--d) + 2 * var(--phase)); }
+    transition: translate calc(var(--st) * .7) var(--ease-out) calc(var(--d) + 2 * var(--ph)), opacity 120ms linear calc(var(--d) + 2 * var(--ph)); }
   .stage.is-menu:not(.is-leaving) .sections .slot > .tile, .sub.is-open .slot > .tile { opacity: 1; translate: calc(var(--rest) * -1) calc(var(--rest) * -1);
-    transition: translate var(--stack-time) var(--stack-ease) calc(var(--d) + 3 * var(--phase)), opacity 160ms linear calc(var(--d) + 3 * var(--phase)),
+    transition: translate var(--st) var(--stack-ease) calc(var(--d) + 3 * var(--ph)), opacity 140ms linear calc(var(--d) + 3 * var(--ph)),
       transform var(--hover-time) var(--ease-out), background-color var(--hover-time) var(--ease-out), box-shadow var(--hover-time) var(--ease-out), color var(--hover-time) var(--ease-out); }
-  .stage.is-menu:not(.is-leaving) .sections .b-flash, .sub.is-open .b-flash { animation: arrive var(--stack-time) linear both; animation-delay: calc(var(--d) + 3 * var(--phase)); }
+  .stage.is-menu:not(.is-leaving) .sections .b-flash, .sub.is-open .b-flash { animation: arrive var(--st) linear both; animation-delay: calc(var(--d) + 3 * var(--ph)); }
   @keyframes arrive { 0%, 45% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 0; } }
   .stage.is-menu:not(.is-leaving) .sections .slot > .tile > *, .sub.is-open .slot > .tile > * { opacity: 1; translate: 0 0;
-    transition: opacity 180ms linear calc(var(--d) + 4.5 * var(--phase)), translate 220ms var(--ease-out) calc(var(--d) + 4.5 * var(--phase)); }
+    transition: opacity 160ms linear calc(var(--d) + 4.5 * var(--ph)), translate 200ms var(--ease-out) calc(var(--d) + 4.5 * var(--ph)); }
 
   /* the panel on the right: what the tile you point at does, and the log */
   .detail { position: absolute; left: 874px; top: 52px; width: 238px; height: 162px; padding: 14px; border-left: 1px solid var(--line); font: 400 11px/1.5 var(--mono); color: var(--ink-3); letter-spacing: .04em; }
@@ -108,10 +113,10 @@
 
   /* ---------- the submenu: a smaller board, stacked above the first ---------- */
   .sub { position: absolute; left: 330px; top: -132px; width: 616px; padding: 14px 16px 16px; visibility: hidden;
-    transition: visibility 0s 340ms; }
+    transition: visibility 0s calc(2 * var(--leave-step) + 4 * var(--out-phase) + 160ms); }
   .sub.is-open { visibility: visible; transition: visibility 0s; }
-  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear 220ms; }
-  .sub.is-open .board-glass { opacity: 1; transition: opacity 120ms linear; }
+  .sub .board-glass { scale: 1 1; opacity: 0; transition: opacity 140ms linear calc(2 * var(--leave-step) + 4 * var(--out-phase)); }
+  .sub.is-open .board-glass { opacity: 1; transition: opacity 80ms linear; }
   .sub .t-sect { margin-bottom: 18px; opacity: 0; transition: opacity 120ms; }
   .sub.is-open .t-sect { opacity: 1; transition: opacity 200ms 80ms; }
   .sub .t-grid { --cols: 3; }
@@ -218,7 +223,7 @@
         clearTimeout(t1); clearTimeout(t2); closeSub(false);
         // the tiles lift off right to left; then the glass folds back into its line
         stage.classList.add('is-leaving'); prompt.setAttribute('aria-expanded', 'false');
-        t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 260);
+        t1 = setTimeout(() => { stage.classList.remove('is-menu', 'is-leaving', 'is-settled'); prompt.focus({ preventScroll: true }); }, (slots.length - 1) * ms('--leave-step') + 4 * ms('--out-phase') + 120);
       };
       prompt.addEventListener('click', open);
       stage.addEventListener('pointerdown', e => { if (isOpen() && e.target.closest('.play')) close(); });
@@ -243,7 +248,7 @@
         if (t.dataset.act === 'gear') {
           const on = !sub.classList.contains('is-open');
           sub.classList.toggle('is-open', on); gear.setAttribute('aria-expanded', on);
-          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 80 + 3 * ms('--phase') + ms('--stack-time') * .5);
+          if (on) setTimeout(() => sub.querySelector('[aria-checked="true"]').focus({ preventScroll: true }), 20 + 3 * ms('--sub-phase') + ms('--sub-time') * .5);
           return;
         }
         closeSub(false); flash(t);
@@ -297,6 +302,6 @@
       if (window.self === window.top) document.querySelector('.back-pill').removeAttribute('hidden');
     })();
   </script>
-  <script src="week-06-vault-spec.js?v=6"></script>
+  <script src="week-06-vault-spec.js?v=7"></script>
 </body>
 </html>

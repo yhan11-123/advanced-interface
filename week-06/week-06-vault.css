@@ -43,7 +43,7 @@
   --stack-time: 340ms;       /* the box takes this long to rise onto its stack */
   --stack-step: 45ms;        /* the next box starts this much later, left to right */
   --stack-ease: cubic-bezier(.2, .9, .3, 1.12);  /* arrives with the slightest settle */
-  --leave-step: 22ms;        /* closing: the tiles are taken down right to left, this far apart */
+  --leave-step: 30ms;        /* closing: the boxes are taken down right to left, this far apart */
   /* each box is built in steps, like the reference's stacked frames: corner nodes land, a footprint
      is drawn out of them, a dotted layer rises, then the box itself rises onto the stack */
   --node: #5cffc0;           /* the corner nodes */
@@ -51,6 +51,9 @@
   --draw-time: 200ms;        /* the footprint lines run out of the nodes */
   --mid-z: 3px;              /* the dotted layer sits this far up and left of the footprint */
   --rest: 6px;               /* the box rests this far up and left: the stack shows below it */
+  --out-phase: 70ms;         /* taking a box down: one step after the next, so each can be seen */
+  /* the Gear rack is built the same way, quicker: it answers a click inside the menu */
+  --sub-phase: 35ms; --sub-step: 30ms; --sub-time: 220ms;
   --type-speed: 14ms;        /* the log types a letter at a time */
 }
 
