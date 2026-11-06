@@ -35,6 +35,389 @@
 
     <article class="prose">
 
+      <h2>Deliverables</h2>
+
+      <p>Twelve components, four sets of one switch, one checkbox and one radio button. Open a set to try its prototypes, each a labelled list with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-03-TONE-{switch,checkbox,radio}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the list first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the three <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-luxurious">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-luxurious">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/luxurious-switch-5.png" alt="" loading="lazy" /><img src="images/process/luxurious-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/luxurious-radio-3.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Luxurious</span><span class="set-line">Calm glass: a dusk-brown room with one low lamp, every surface frosted glass, lamplight for on.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-luxurious" aria-labelledby="dlg-luxurious-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-luxurious-title">Luxurious</span></span>
+              <button type="button" class="set-close" aria-label="Close the Luxurious set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-luxurious-switch.html?v=13" title="Luxurious switch prototype: a frosted glass track whose thumb glides across as it fills with warm lamplight" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Sleep environment, on frosted glass in a dusk-lit room. Turned on, the glass thumb glides across on a spring with no bounce and turns solid cream, and the track fills with warm lamplight. Off undoes it quickly.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-switch.html?v=13">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-luxurious-checkbox.html?v=7" title="Luxurious checkbox prototype: a frosted glass box that fills with warm lamplight and a fine check" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Wind-down. Each box is frosted glass; ticked, warm lamplight fills it from the centre and a fine umber check is drawn across it.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-checkbox.html?v=7">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-luxurious-radio.html?v=7" title="Luxurious radio button prototype: frosted glass rings, the chosen one holding a small cream dot of lamplight" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Wake me with. Frosted glass rings; the chosen one takes a small cream dot of lamplight and its ring warms, the one before lets go quickly.</span>
+                <button type="button" class="viewer-open" data-src="week-03-luxurious-radio.html?v=7">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/luxurious-switch-1.png" alt="Luxurious switch, step 1" loading="lazy" />
+                <figcaption>First pass, after Cleo: an espresso gradient on warm paper lit by a peach glow, a pearl handle, fine lines, a slow spring with no bounce.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-switch-2.png" alt="Luxurious switch, step 2" loading="lazy" />
+                <figcaption>Maison: ivory stationery, a Didone serif, a pearl on a gold hairline rail. Then depth from one light, and the glints taken out as cheap.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-switch-3.png" alt="Luxurious switch, step 3" loading="lazy" />
+                <figcaption>Calm glass, after a warm sleep-room reference: a dusk-brown room, frosted glass, lamplight for on. The glass made clearer, the thumb smaller when off.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-switch-4.png" alt="Luxurious switch, step 4" loading="lazy" />
+                <figcaption>On a shallow arc: a glass band for the thumb to ride along (rebuilt). The thumb sat off the band, so the band went.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-switch-5.png" alt="Luxurious switch, step 5" loading="lazy" />
+                <figcaption>The route alone: one 3px line shows the way; a glass bead travels it and grows into a solid cream thumb, lamplight drawn behind.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/luxurious-checkbox-1.png" alt="Luxurious checkbox, step 1" loading="lazy" />
+                <figcaption>First pass: a soft square in one fine line; ticked, a peach bloom and an espresso fill with a fine check.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-checkbox-2.png" alt="Luxurious checkbox, step 2" loading="lazy" />
+                <figcaption>Maison: a stone setting stood on its point, champagne satin set into it, an engraved check.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-checkbox-3.png" alt="Luxurious checkbox, step 3" loading="lazy" />
+                <figcaption>Calm glass: a frosted square that fills with warm lamplight, a fine umber check drawn over it.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/luxurious-radio-1.png" alt="Luxurious radio buttons, step 1" loading="lazy" />
+                <figcaption>First pass: a fine ring; chosen, a gradient pearl swells from the centre and a soft light stays around it.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-radio-2.png" alt="Luxurious radio buttons, step 2" loading="lazy" />
+                <figcaption>Maison: a gold ring that takes a pearl, a second fine ring around it like a setting; the pearl later larger and matte.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/luxurious-radio-3.png" alt="Luxurious radio buttons, step 3" loading="lazy" />
+                <figcaption>Calm glass: frosted rings, the chosen one holding a small cream dot of lamplight.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-quirky">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-quirky">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/quirky-switch-3.png" alt="" loading="lazy" /><img src="images/process/quirky-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/quirky-radio-3.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Quirky</span><span class="set-line">Never still: ink tangled round and round on grey paper, cut into neon shards on black once chosen.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-quirky" aria-labelledby="dlg-quirky-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-quirky-title">Quirky</span></span>
+              <button type="button" class="set-close" aria-label="Close the Quirky set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-quirky-switch.html?v=3" title="Quirky switch prototype: a boiling ink scribble that jumps into neon shards on black when switched on" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Playback settings. Off, the track and handle are pen scribbles that go round and round and never stop boiling. On, the handle hops across in six drawn frames, winding up, smearing long, overshooting squashed and landing with a colour-split flash, and both cut into neon shards on black, with halftone, a colour-split edge and spray; the shards keep changing colour while it stays on. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-switch.html?v=3">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-quirky-checkbox.html?v=3" title="Quirky checkbox prototype: a scribbled box that jumps into neon shards with a fat yellow check" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Toppings. Off, a box scribbled round three times with a stray loop at its corner, boiling. Ticked, it swells past its size with a pink and cyan split, springs back, and is neon shards on black with a fat yellow check on top, re-coloured four times a second. Unticking drops it back to ink in three. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-checkbox.html?v=3">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-quirky-radio.html?v=3" title="Quirky radio button prototype: tangled ink circles, the chosen one cut into neon shards with a yellow dot" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Ringtone. Each option is a tangle of circles with a spiral inside and loops flung around it, after the ink reference. The chosen one swells past its size and springs back as neon shards with a yellow dot, spray where the loops were; the one before drops back to ink. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
+                <button type="button" class="viewer-open" data-src="week-03-quirky-radio.html?v=3">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/quirky-switch-1.png" alt="Quirky switch, step 1" loading="lazy" />
+                <figcaption>First pass: ink scribbled round and round on grey paper, never still; on, the handle jumps across and both cut to neon shards (rebuilt without the row change that came next).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-switch-2.png" alt="Quirky switch, step 2" loading="lazy" />
+                <figcaption>The row turns too: a rough black band slams in and the label goes neon. The hop drawn in six held frames, slowed so each can be seen.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-switch-3.png" alt="Quirky switch, step 3" loading="lazy" />
+                <figcaption>Off outlines as dry-brush strands that bunch into one band in places and float apart in others, the clumps drifting round.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/quirky-checkbox-1.png" alt="Quirky checkbox, step 1" loading="lazy" />
+                <figcaption>First pass: a scribbled box with a stray loop; ticked, neon shards and a fat yellow check (rebuilt without the row change).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-checkbox-2.png" alt="Quirky checkbox, step 2" loading="lazy" />
+                <figcaption>The row turns with it, and ticking swells the box past its size with a colour split before it springs back.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-checkbox-3.png" alt="Quirky checkbox, step 3" loading="lazy" />
+                <figcaption>The empty box drawn in brush strands that bunch and float apart.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/quirky-radio-1.png" alt="Quirky radio buttons, step 1" loading="lazy" />
+                <figcaption>First pass: tangled ink circles with loops flung around; the chosen one in neon shards with a yellow dot (rebuilt without the row change).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-radio-2.png" alt="Quirky radio buttons, step 2" loading="lazy" />
+                <figcaption>The row turns too, and the chosen one swells and springs back.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/quirky-radio-3.png" alt="Quirky radio buttons, step 3" loading="lazy" />
+                <figcaption>Each ring drawn in brush strands that bunch and float apart.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-mysterious">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-mysterious">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/mysterious-switch-1.png" alt="" loading="lazy" /><img src="images/process/mysterious-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/mysterious-radio-1.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Mysterious</span><span class="set-line">Mysterious, edging into conspiracy: black and white, words in mist, and what you set may quietly not stay set.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-mysterious" aria-labelledby="dlg-mysterious-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-mysterious-title">Mysterious</span></span>
+              <button type="button" class="set-close" aria-label="Close the Mysterious set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-mysterious-switch.html?v=2" title="Mysterious switch prototype: a dark new-moon handle that crosses and, after a hush, comes out of eclipse as full" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Privacy settings in the dark. The handle is a moon: off, a new moon with only its rim showing. Switched on, it crosses at once; after a short hush its shadow slides off the other way, the track takes a thin light and the row surfaces in light. Off, the dark takes it back quickly. The pointer carries a small light. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-switch.html?v=2">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-mysterious-checkbox.html?v=6" title="Mysterious checkbox prototype: a dim square lit from its centre by light with the check already inside" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Who can find me. Each box is the dim outline of a light bulb hanging in the dark. Ticked, a hush, then it comes on like a failing bulb, the check inside the glass, stuttering before it holds, as if a light had found something that was always there; the row and its label surface with it. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-checkbox.html?v=6">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-mysterious-radio.html?v=2" title="Mysterious radio button prototype: each dot a moon in eclipse; the chosen one slides out of shadow into full" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Messages vanish after. Each dot is a moon in eclipse, so only the dim ring shows. Choose one: a hush, then the shadow slides off, a crescent widening to full, the ring lights and the row surfaces. The one before goes back into eclipse at once. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
+                <button type="button" class="viewer-open" data-src="week-03-mysterious-radio.html?v=2">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/mysterious-switch-1.png" alt="Mysterious switch, step 1" loading="lazy" />
+                <figcaption>Black and white, words and controls in mist; the handle a moon that comes out of eclipse. Now and then a setting is quietly undone in a burst of grey static. The earlier moonlit-blue and red-static steps were not kept as frames.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/mysterious-checkbox-1.png" alt="Mysterious checkbox, step 1" loading="lazy" />
+                <figcaption>Light opens from the centre of the box, the check already in it.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/mysterious-checkbox-2.png" alt="Mysterious checkbox, step 2" loading="lazy" />
+                <figcaption>Too smooth: it now comes on like a failing bulb. Tried as a glowing filament check in a dark box.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/mysterious-checkbox-3.png" alt="Mysterious checkbox, step 3" loading="lazy" />
+                <figcaption>Back to the filled light, the box now a bulb hanging base-up.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/mysterious-radio-1.png" alt="Mysterious radio buttons, step 1" loading="lazy" />
+                <figcaption>Each dot a moon in eclipse; chosen, its shadow slides off and the ring lights.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-playful">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-playful">
+            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/playful-switch-4.png" alt="" loading="lazy" /><img src="images/process/playful-checkbox-2.png" alt="" loading="lazy" /><img src="images/process/playful-radio-2.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 4</span><span class="set-name">Playful</span><span class="set-line">Cotton candy pastels: a pinwheel that rolls and spins, a checkbox that pops like a balloon, a bubble that blows up.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-playful" aria-labelledby="dlg-playful-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 4</span><span class="set-name" id="dlg-playful-title">Playful</span></span>
+              <button type="button" class="set-close" aria-label="Close the Playful set"></button>
+            </div>
+            <div class="set-body">
+          <h4>Prototypes</h4>
+
+          <div class="proto-grid is-three">
+            <figure class="proto">
+              <iframe src="week-03-playful-switch.html?v=3" title="Playful switch prototype: a pastel pinwheel that rolls across a cotton-candy track, spinning as it goes" loading="lazy"></iframe>
+              <figcaption>
+                <b>Switch</b>
+                <span>Party mode. The handle is a pinwheel of four pastel blades. Switched, it rolls across on a bouncy spring, a little too far and back, spinning a turn and a quarter like a pinwheel catching the wind; the track fills pink to peach. Pressed, it squashes.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-switch.html?v=3">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-playful-checkbox.html?v=6" title="Playful checkbox prototype: the box swells like a balloon and pops, coloured lines bursting out past its edge" loading="lazy"></iframe>
+              <figcaption>
+                <b>Checkbox</b>
+                <span>Pick your sweets. Ticked, the box swells like a balloon, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it lets its air out: it sputters side to side, the fill shrinks away and the check is flicked off.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-checkbox.html?v=6">View larger</button>
+              </figcaption>
+            </figure>
+            <figure class="proto">
+              <iframe src="week-03-playful-radio.html?v=3" title="Playful radio button prototype: a soap-bubble dot that blows up with a bounce and leaves a ripple" loading="lazy"></iframe>
+              <figcaption>
+                <b>Radio buttons</b>
+                <span>Balloon colour. Each dot is a soap bubble; choose another and the bubble travels over from the one chosen before, sliding home on a bouncy spring, stretching on the way and squashing as it lands, with a ripple spreading from the ring.</span>
+                <button type="button" class="viewer-open" data-src="week-03-playful-radio.html?v=3">View larger</button>
+              </figcaption>
+            </figure>
+          </div>
+
+          <h4>Process</h4>
+
+          <p>How the set got here, one tried version at a time, the last one now.</p>
+
+          <p class="process-label">Switch</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/playful-switch-1.png" alt="Playful switch, step 1" loading="lazy" />
+                <figcaption>First pass: a beach ball that rolls across, its panels spinning while its shine stays put (rebuilt).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/playful-switch-2.png" alt="Playful switch, step 2" loading="lazy" />
+                <figcaption>The roll without the beach ball: a soft knob with one swoosh and a sprinkle (rebuilt).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/playful-switch-3.png" alt="Playful switch, step 3" loading="lazy" />
+                <figcaption>A pinwheel: it rolls across on a bouncy spring and spins a turn and a quarter.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/playful-switch-4.png" alt="Playful switch, step 4" loading="lazy" />
+                <figcaption>Jelly: bigger and gummy, with a light top edge and a lip below. Pressed it squashes, let go it wobbles; the pinwheel rolls as before.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Checkbox</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/playful-checkbox-1.png" alt="Playful checkbox, step 1" loading="lazy" />
+                <figcaption>Swells like a balloon and pops, eight coloured lines bursting out past its edge.</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/playful-checkbox-2.png" alt="Playful checkbox, step 2" loading="lazy" />
+                <figcaption>Jelly: a bigger gummy box. The pop now squashes flat and wobbles back; unticking lets the air out, sputtering, the fill shrinking away and the check flicked off.</figcaption>
+              </figure>
+          </div>
+
+          <p class="process-label">Radio buttons</p>
+          <div class="process-grid">
+              <figure>
+                <img src="images/process/playful-radio-1.png" alt="Playful radio buttons, step 1" loading="lazy" />
+                <figcaption>A soap-bubble dot. Later it travels over from the one chosen before, stretching on the way and squashing as it lands (a change in motion; the end state looks the same).</figcaption>
+              </figure>
+              <figure>
+                <img src="images/process/playful-radio-2.png" alt="Playful radio buttons, step 2" loading="lazy" />
+                <figcaption>Jelly: a bigger gummy ring and bubble that squash when pressed and wobble when chosen.</figcaption>
+              </figure>
+          </div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
       <h2>Brief</h2>
 
       <p>Twelve components: four sets, each one switch, one checkbox and one radio button, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a working prototype, with the versions tried along the way shown as its process.</p>
@@ -1002,389 +1385,6 @@
         </figure>
       -->
       <div class="idea-grid">
-      </div>
-
-      <h2>Deliverables</h2>
-
-      <p>Twelve components, four sets of one switch, one checkbox and one radio button. Open a set to try its prototypes, each a labelled list with its spec, then see how they got there.</p>
-
-      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
-           file names (week-03-TONE-{switch,checkbox,radio}.html, images/process/TONE-KIND-N.png).
-           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
-           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
-           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
-           Each prototype page holds the list first, then a Spec section read from its own CSS values.
-           Card thumbnails: swap the three <span class="thumb-empty"></span> for the newest frames. -->
-
-      <div class="set-grid">
-        <div class="set-box" id="set-luxurious">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-luxurious">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/luxurious-switch-5.png" alt="" loading="lazy" /><img src="images/process/luxurious-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/luxurious-radio-3.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Luxurious</span><span class="set-line">Calm glass: a dusk-brown room with one low lamp, every surface frosted glass, lamplight for on.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-luxurious" aria-labelledby="dlg-luxurious-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-luxurious-title">Luxurious</span></span>
-              <button type="button" class="set-close" aria-label="Close the Luxurious set"></button>
-            </div>
-            <div class="set-body">
-          <h4>Prototypes</h4>
-
-          <div class="proto-grid is-three">
-            <figure class="proto">
-              <iframe src="week-03-luxurious-switch.html?v=13" title="Luxurious switch prototype: a frosted glass track whose thumb glides across as it fills with warm lamplight" loading="lazy"></iframe>
-              <figcaption>
-                <b>Switch</b>
-                <span>Sleep environment, on frosted glass in a dusk-lit room. Turned on, the glass thumb glides across on a spring with no bounce and turns solid cream, and the track fills with warm lamplight. Off undoes it quickly.</span>
-                <button type="button" class="viewer-open" data-src="week-03-luxurious-switch.html?v=13">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-luxurious-checkbox.html?v=7" title="Luxurious checkbox prototype: a frosted glass box that fills with warm lamplight and a fine check" loading="lazy"></iframe>
-              <figcaption>
-                <b>Checkbox</b>
-                <span>Wind-down. Each box is frosted glass; ticked, warm lamplight fills it from the centre and a fine umber check is drawn across it.</span>
-                <button type="button" class="viewer-open" data-src="week-03-luxurious-checkbox.html?v=7">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-luxurious-radio.html?v=7" title="Luxurious radio button prototype: frosted glass rings, the chosen one holding a small cream dot of lamplight" loading="lazy"></iframe>
-              <figcaption>
-                <b>Radio buttons</b>
-                <span>Wake me with. Frosted glass rings; the chosen one takes a small cream dot of lamplight and its ring warms, the one before lets go quickly.</span>
-                <button type="button" class="viewer-open" data-src="week-03-luxurious-radio.html?v=7">View larger</button>
-              </figcaption>
-            </figure>
-          </div>
-
-          <h4>Process</h4>
-
-          <p>How the set got here, one tried version at a time, the last one now.</p>
-
-          <p class="process-label">Switch</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/luxurious-switch-1.png" alt="Luxurious switch, step 1" loading="lazy" />
-                <figcaption>First pass, after Cleo: an espresso gradient on warm paper lit by a peach glow, a pearl handle, fine lines, a slow spring with no bounce.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-switch-2.png" alt="Luxurious switch, step 2" loading="lazy" />
-                <figcaption>Maison: ivory stationery, a Didone serif, a pearl on a gold hairline rail. Then depth from one light, and the glints taken out as cheap.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-switch-3.png" alt="Luxurious switch, step 3" loading="lazy" />
-                <figcaption>Calm glass, after a warm sleep-room reference: a dusk-brown room, frosted glass, lamplight for on. The glass made clearer, the thumb smaller when off.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-switch-4.png" alt="Luxurious switch, step 4" loading="lazy" />
-                <figcaption>On a shallow arc: a glass band for the thumb to ride along (rebuilt). The thumb sat off the band, so the band went.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-switch-5.png" alt="Luxurious switch, step 5" loading="lazy" />
-                <figcaption>The route alone: one 3px line shows the way; a glass bead travels it and grows into a solid cream thumb, lamplight drawn behind.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Checkbox</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/luxurious-checkbox-1.png" alt="Luxurious checkbox, step 1" loading="lazy" />
-                <figcaption>First pass: a soft square in one fine line; ticked, a peach bloom and an espresso fill with a fine check.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-checkbox-2.png" alt="Luxurious checkbox, step 2" loading="lazy" />
-                <figcaption>Maison: a stone setting stood on its point, champagne satin set into it, an engraved check.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-checkbox-3.png" alt="Luxurious checkbox, step 3" loading="lazy" />
-                <figcaption>Calm glass: a frosted square that fills with warm lamplight, a fine umber check drawn over it.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Radio buttons</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/luxurious-radio-1.png" alt="Luxurious radio buttons, step 1" loading="lazy" />
-                <figcaption>First pass: a fine ring; chosen, a gradient pearl swells from the centre and a soft light stays around it.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-radio-2.png" alt="Luxurious radio buttons, step 2" loading="lazy" />
-                <figcaption>Maison: a gold ring that takes a pearl, a second fine ring around it like a setting; the pearl later larger and matte.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/luxurious-radio-3.png" alt="Luxurious radio buttons, step 3" loading="lazy" />
-                <figcaption>Calm glass: frosted rings, the chosen one holding a small cream dot of lamplight.</figcaption>
-              </figure>
-          </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-quirky">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-quirky">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/quirky-switch-3.png" alt="" loading="lazy" /><img src="images/process/quirky-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/quirky-radio-3.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Quirky</span><span class="set-line">Never still: ink tangled round and round on grey paper, cut into neon shards on black once chosen.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-quirky" aria-labelledby="dlg-quirky-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-quirky-title">Quirky</span></span>
-              <button type="button" class="set-close" aria-label="Close the Quirky set"></button>
-            </div>
-            <div class="set-body">
-          <h4>Prototypes</h4>
-
-          <div class="proto-grid is-three">
-            <figure class="proto">
-              <iframe src="week-03-quirky-switch.html?v=3" title="Quirky switch prototype: a boiling ink scribble that jumps into neon shards on black when switched on" loading="lazy"></iframe>
-              <figcaption>
-                <b>Switch</b>
-                <span>Playback settings. Off, the track and handle are pen scribbles that go round and round and never stop boiling. On, the handle hops across in six drawn frames, winding up, smearing long, overshooting squashed and landing with a colour-split flash, and both cut into neon shards on black, with halftone, a colour-split edge and spray; the shards keep changing colour while it stays on. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
-                <button type="button" class="viewer-open" data-src="week-03-quirky-switch.html?v=3">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-quirky-checkbox.html?v=3" title="Quirky checkbox prototype: a scribbled box that jumps into neon shards with a fat yellow check" loading="lazy"></iframe>
-              <figcaption>
-                <b>Checkbox</b>
-                <span>Toppings. Off, a box scribbled round three times with a stray loop at its corner, boiling. Ticked, it swells past its size with a pink and cyan split, springs back, and is neon shards on black with a fat yellow check on top, re-coloured four times a second. Unticking drops it back to ink in three. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
-                <button type="button" class="viewer-open" data-src="week-03-quirky-checkbox.html?v=3">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-quirky-radio.html?v=3" title="Quirky radio button prototype: tangled ink circles, the chosen one cut into neon shards with a yellow dot" loading="lazy"></iframe>
-              <figcaption>
-                <b>Radio buttons</b>
-                <span>Ringtone. Each option is a tangle of circles with a spiral inside and loops flung around it, after the ink reference. The chosen one swells past its size and springs back as neon shards with a yellow dot, spray where the loops were; the one before drops back to ink. The row turns with it: a rough black band slams in behind, and the label goes neon with a colour-split edge.</span>
-                <button type="button" class="viewer-open" data-src="week-03-quirky-radio.html?v=3">View larger</button>
-              </figcaption>
-            </figure>
-          </div>
-
-          <h4>Process</h4>
-
-          <p>How the set got here, one tried version at a time, the last one now.</p>
-
-          <p class="process-label">Switch</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/quirky-switch-1.png" alt="Quirky switch, step 1" loading="lazy" />
-                <figcaption>First pass: ink scribbled round and round on grey paper, never still; on, the handle jumps across and both cut to neon shards (rebuilt without the row change that came next).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-switch-2.png" alt="Quirky switch, step 2" loading="lazy" />
-                <figcaption>The row turns too: a rough black band slams in and the label goes neon. The hop drawn in six held frames, slowed so each can be seen.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-switch-3.png" alt="Quirky switch, step 3" loading="lazy" />
-                <figcaption>Off outlines as dry-brush strands that bunch into one band in places and float apart in others, the clumps drifting round.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Checkbox</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/quirky-checkbox-1.png" alt="Quirky checkbox, step 1" loading="lazy" />
-                <figcaption>First pass: a scribbled box with a stray loop; ticked, neon shards and a fat yellow check (rebuilt without the row change).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-checkbox-2.png" alt="Quirky checkbox, step 2" loading="lazy" />
-                <figcaption>The row turns with it, and ticking swells the box past its size with a colour split before it springs back.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-checkbox-3.png" alt="Quirky checkbox, step 3" loading="lazy" />
-                <figcaption>The empty box drawn in brush strands that bunch and float apart.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Radio buttons</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/quirky-radio-1.png" alt="Quirky radio buttons, step 1" loading="lazy" />
-                <figcaption>First pass: tangled ink circles with loops flung around; the chosen one in neon shards with a yellow dot (rebuilt without the row change).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-radio-2.png" alt="Quirky radio buttons, step 2" loading="lazy" />
-                <figcaption>The row turns too, and the chosen one swells and springs back.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/quirky-radio-3.png" alt="Quirky radio buttons, step 3" loading="lazy" />
-                <figcaption>Each ring drawn in brush strands that bunch and float apart.</figcaption>
-              </figure>
-          </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-mysterious">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-mysterious">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/mysterious-switch-1.png" alt="" loading="lazy" /><img src="images/process/mysterious-checkbox-3.png" alt="" loading="lazy" /><img src="images/process/mysterious-radio-1.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Mysterious</span><span class="set-line">Mysterious, edging into conspiracy: black and white, words in mist, and what you set may quietly not stay set.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-mysterious" aria-labelledby="dlg-mysterious-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-mysterious-title">Mysterious</span></span>
-              <button type="button" class="set-close" aria-label="Close the Mysterious set"></button>
-            </div>
-            <div class="set-body">
-          <h4>Prototypes</h4>
-
-          <div class="proto-grid is-three">
-            <figure class="proto">
-              <iframe src="week-03-mysterious-switch.html?v=2" title="Mysterious switch prototype: a dark new-moon handle that crosses and, after a hush, comes out of eclipse as full" loading="lazy"></iframe>
-              <figcaption>
-                <b>Switch</b>
-                <span>Privacy settings in the dark. The handle is a moon: off, a new moon with only its rim showing. Switched on, it crosses at once; after a short hush its shadow slides off the other way, the track takes a thin light and the row surfaces in light. Off, the dark takes it back quickly. The pointer carries a small light. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
-                <button type="button" class="viewer-open" data-src="week-03-mysterious-switch.html?v=2">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-mysterious-checkbox.html?v=6" title="Mysterious checkbox prototype: a dim square lit from its centre by light with the check already inside" loading="lazy"></iframe>
-              <figcaption>
-                <b>Checkbox</b>
-                <span>Who can find me. Each box is the dim outline of a light bulb hanging in the dark. Ticked, a hush, then it comes on like a failing bulb, the check inside the glass, stuttering before it holds, as if a light had found something that was always there; the row and its label surface with it. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
-                <button type="button" class="viewer-open" data-src="week-03-mysterious-checkbox.html?v=6">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-mysterious-radio.html?v=2" title="Mysterious radio button prototype: each dot a moon in eclipse; the chosen one slides out of shadow into full" loading="lazy"></iframe>
-              <figcaption>
-                <b>Radio buttons</b>
-                <span>Messages vanish after. Each dot is a moon in eclipse, so only the dim ring shows. Choose one: a hush, then the shadow slides off, a crescent widening to full, the ring lights and the row surfaces. The one before goes back into eclipse at once. In black and white; and anything you switch on may, a few seconds later, be quietly undone in a burst of red static, as if it never took.</span>
-                <button type="button" class="viewer-open" data-src="week-03-mysterious-radio.html?v=2">View larger</button>
-              </figcaption>
-            </figure>
-          </div>
-
-          <h4>Process</h4>
-
-          <p>How the set got here, one tried version at a time, the last one now.</p>
-
-          <p class="process-label">Switch</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/mysterious-switch-1.png" alt="Mysterious switch, step 1" loading="lazy" />
-                <figcaption>Black and white, words and controls in mist; the handle a moon that comes out of eclipse. Now and then a setting is quietly undone in a burst of grey static. The earlier moonlit-blue and red-static steps were not kept as frames.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Checkbox</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/mysterious-checkbox-1.png" alt="Mysterious checkbox, step 1" loading="lazy" />
-                <figcaption>Light opens from the centre of the box, the check already in it.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/mysterious-checkbox-2.png" alt="Mysterious checkbox, step 2" loading="lazy" />
-                <figcaption>Too smooth: it now comes on like a failing bulb. Tried as a glowing filament check in a dark box.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/mysterious-checkbox-3.png" alt="Mysterious checkbox, step 3" loading="lazy" />
-                <figcaption>Back to the filled light, the box now a bulb hanging base-up.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Radio buttons</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/mysterious-radio-1.png" alt="Mysterious radio buttons, step 1" loading="lazy" />
-                <figcaption>Each dot a moon in eclipse; chosen, its shadow slides off and the ring lights.</figcaption>
-              </figure>
-          </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-playful">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-playful">
-            <span class="set-thumbs is-three" aria-hidden="true"><img src="images/process/playful-switch-4.png" alt="" loading="lazy" /><img src="images/process/playful-checkbox-2.png" alt="" loading="lazy" /><img src="images/process/playful-radio-2.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 4</span><span class="set-name">Playful</span><span class="set-line">Cotton candy pastels: a pinwheel that rolls and spins, a checkbox that pops like a balloon, a bubble that blows up.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-playful" aria-labelledby="dlg-playful-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 4</span><span class="set-name" id="dlg-playful-title">Playful</span></span>
-              <button type="button" class="set-close" aria-label="Close the Playful set"></button>
-            </div>
-            <div class="set-body">
-          <h4>Prototypes</h4>
-
-          <div class="proto-grid is-three">
-            <figure class="proto">
-              <iframe src="week-03-playful-switch.html?v=3" title="Playful switch prototype: a pastel pinwheel that rolls across a cotton-candy track, spinning as it goes" loading="lazy"></iframe>
-              <figcaption>
-                <b>Switch</b>
-                <span>Party mode. The handle is a pinwheel of four pastel blades. Switched, it rolls across on a bouncy spring, a little too far and back, spinning a turn and a quarter like a pinwheel catching the wind; the track fills pink to peach. Pressed, it squashes.</span>
-                <button type="button" class="viewer-open" data-src="week-03-playful-switch.html?v=3">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-playful-checkbox.html?v=6" title="Playful checkbox prototype: the box swells like a balloon and pops, coloured lines bursting out past its edge" loading="lazy"></iframe>
-              <figcaption>
-                <b>Checkbox</b>
-                <span>Pick your sweets. Ticked, the box swells like a balloon, faster and faster, blushing pink, then pops: it snaps small, eight coloured lines burst out past its edge, the fill and a white check are there, and it wobbles back to size. Unticked, it lets its air out: it sputters side to side, the fill shrinks away and the check is flicked off.</span>
-                <button type="button" class="viewer-open" data-src="week-03-playful-checkbox.html?v=6">View larger</button>
-              </figcaption>
-            </figure>
-            <figure class="proto">
-              <iframe src="week-03-playful-radio.html?v=3" title="Playful radio button prototype: a soap-bubble dot that blows up with a bounce and leaves a ripple" loading="lazy"></iframe>
-              <figcaption>
-                <b>Radio buttons</b>
-                <span>Balloon colour. Each dot is a soap bubble; choose another and the bubble travels over from the one chosen before, sliding home on a bouncy spring, stretching on the way and squashing as it lands, with a ripple spreading from the ring.</span>
-                <button type="button" class="viewer-open" data-src="week-03-playful-radio.html?v=3">View larger</button>
-              </figcaption>
-            </figure>
-          </div>
-
-          <h4>Process</h4>
-
-          <p>How the set got here, one tried version at a time, the last one now.</p>
-
-          <p class="process-label">Switch</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/playful-switch-1.png" alt="Playful switch, step 1" loading="lazy" />
-                <figcaption>First pass: a beach ball that rolls across, its panels spinning while its shine stays put (rebuilt).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/playful-switch-2.png" alt="Playful switch, step 2" loading="lazy" />
-                <figcaption>The roll without the beach ball: a soft knob with one swoosh and a sprinkle (rebuilt).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/playful-switch-3.png" alt="Playful switch, step 3" loading="lazy" />
-                <figcaption>A pinwheel: it rolls across on a bouncy spring and spins a turn and a quarter.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/playful-switch-4.png" alt="Playful switch, step 4" loading="lazy" />
-                <figcaption>Jelly: bigger and gummy, with a light top edge and a lip below. Pressed it squashes, let go it wobbles; the pinwheel rolls as before.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Checkbox</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/playful-checkbox-1.png" alt="Playful checkbox, step 1" loading="lazy" />
-                <figcaption>Swells like a balloon and pops, eight coloured lines bursting out past its edge.</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/playful-checkbox-2.png" alt="Playful checkbox, step 2" loading="lazy" />
-                <figcaption>Jelly: a bigger gummy box. The pop now squashes flat and wobbles back; unticking lets the air out, sputtering, the fill shrinking away and the check flicked off.</figcaption>
-              </figure>
-          </div>
-
-          <p class="process-label">Radio buttons</p>
-          <div class="process-grid">
-              <figure>
-                <img src="images/process/playful-radio-1.png" alt="Playful radio buttons, step 1" loading="lazy" />
-                <figcaption>A soap-bubble dot. Later it travels over from the one chosen before, stretching on the way and squashing as it lands (a change in motion; the end state looks the same).</figcaption>
-              </figure>
-              <figure>
-                <img src="images/process/playful-radio-2.png" alt="Playful radio buttons, step 2" loading="lazy" />
-                <figcaption>Jelly: a bigger gummy ring and bubble that squash when pressed and wobble when chosen.</figcaption>
-              </figure>
-          </div>
-            </div>
-          </dialog>
-        </div>
       </div>
 
       <footer class="sources">

@@ -37,454 +37,6 @@
 
     <article class="prose">
 
-      <h2>Brief</h2>
-
-      <p>Ten components: five sets, each one badge and one tooltip, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a working prototype, with the versions tried along the way shown as its process.</p>
-
-      <p>Both need an anchor, a placeholder element to attach to. The brief's badges sit on a bottom bar (Mail, Chat, Rooms, Meet). Its tooltips float free, but a prototype needs something to hover, so every tooltip here gets an anchor too.</p>
-
-      <h3>What each prototype has to show</h3>
-
-      <table>
-        <thead>
-          <tr><th></th><th>Anchor</th><th>Must show</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Badge</td><td>An icon, like Mail, where the badge appears and disappears</td><td>No badge &harr; dot badge, with no content<br />No badge &harr; badge with content: a number, text or icon</td></tr>
-          <tr><td>Tooltip</td><td>A hoverable anchor</td><td>A plain tooltip: text only, no action<br />A rich tooltip with a clickable action</td></tr>
-        </tbody>
-      </table>
-
-      <p>Five sets, one badge and one tooltip each, every set with a tone. Tones can repeat across sets.</p>
-
-      <h2>Research</h2>
-
-      <p>Both are small messages attached to something else. The difference is who starts the conversation.</p>
-
-      <h3>Badge or tooltip</h3>
-
-      <div class="rv-pair">
-        <figure class="rv-card">
-          <div class="rv-art">
-            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="A speech bubble with a small numbered badge on its upper right corner">
-              <g transform="translate(46 14) scale(3.4)">
-                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-              </g>
-              <circle cx="115" cy="28" r="12" class="rv-surface"/>
-              <circle cx="115" cy="28" r="10" class="rv-acc"/>
-              <text x="115" y="31.5" text-anchor="middle" class="rv-on-acc">3</text>
-              <path class="rv-mute" d="M128 22 L146 12"/>
-              <text x="148" y="10" class="rv-note">corner</text>
-              <circle cx="80" cy="60" r="2.5" fill="var(--fg-muted)"/>
-              <path class="rv-mute" d="M80 60 L80 108"/>
-              <text x="84" y="110" class="rv-note">centre stays clear</text>
-            </svg>
-          </div>
-          <figcaption>
-            <b>Badge</b>
-            <dl class="rv-facts">
-              <dt>Speaks</dt><dd>Unprompted, always visible</dd>
-              <dt>Says</dt><dd>Status or amount: new, how many, live</dd>
-              <dt>Sits</dt><dd>On the anchor's corner, never over its centre</dd>
-              <dt>Must</dt><dd>Hide at zero, cap big numbers</dd>
-              <dt>Screen reader</dt><dd>Folded into the anchor's name: &ldquo;Mail, 3 unread&rdquo;</dd>
-            </dl>
-          </figcaption>
-        </figure>
-        <figure class="rv-card">
-          <div class="rv-art">
-            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="A bell with a small tooltip box above it and a pointer on the bell">
-              <rect x="44" y="6" width="82" height="22" rx="5" class="rv-acc"/>
-              <text x="85" y="21" text-anchor="middle" class="rv-on-acc" style="font-size: 10.5px; font-weight: 600">Notifications</text>
-              <path class="rv-mute" d="M85 32 L85 40"/>
-              <g transform="translate(53 40) scale(2.7)">
-                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
-                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M10 20a2 2 0 0 0 4 0"/>
-              </g>
-              <path d="M104 78 l0 16 l4 -4 l3 6 l3 -1.5 l-3 -6 l5.5 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-              <text x="128" y="20" class="rv-note">beside,</text>
-              <text x="128" y="32" class="rv-note">never over</text>
-              <text x="124" y="104" class="rv-note">hover or</text>
-              <text x="124" y="116" class="rv-note">focus</text>
-            </svg>
-          </div>
-          <figcaption>
-            <b>Tooltip</b>
-            <dl class="rv-facts">
-              <dt>Speaks</dt><dd>Only when the anchor is hovered or focused</dd>
-              <dt>Says</dt><dd>What the anchor is, or what it will do</dd>
-              <dt>Sits</dt><dd>Beside the anchor, never covering it</dd>
-              <dt>Must</dt><dd>Show on keyboard focus too, dismiss with Esc</dd>
-              <dt>Screen reader</dt><dd><code>role="tooltip"</code>, linked with <code>aria-describedby</code></dd>
-            </dl>
-          </figcaption>
-        </figure>
-      </div>
-
-      <h3>Rules the tone has to survive</h3>
-
-      <div class="rv-rules">
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <circle cx="14" cy="16" r="5" class="rv-acc"/>
-            <text x="14" y="38" text-anchor="middle" class="rv-note">new</text>
-            <circle cx="56" cy="16" r="9" class="rv-acc"/>
-            <text x="56" y="19" text-anchor="middle" class="rv-on-acc">3</text>
-            <text x="56" y="38" text-anchor="middle" class="rv-note">how many</text>
-          </svg>
-          <b>Claim only what is known</b>
-          <p>A dot says &ldquo;new&rdquo;, a count says &ldquo;how many&rdquo;. Pick the one the system can back up.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <g transform="translate(4 4) scale(1.5)"><path class="rv-ink" vector-effect="non-scaling-stroke" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></g>
-            <rect x="26" y="1" width="26" height="15" rx="7.5" class="rv-surface"/>
-            <rect x="27.5" y="2.5" width="23" height="12" rx="6" class="rv-acc"/>
-            <text x="39" y="11.5" text-anchor="middle" class="rv-on-acc" style="font-size: 8.5px">99+</text>
-          </svg>
-          <b>Stay smaller than the anchor</b>
-          <p>Overflow caps at 99+, so the badge never swallows the icon.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <circle cx="14" cy="18" r="8" class="rv-acc" opacity=".45"/>
-            <path class="rv-mute" d="M6 34 L22 34"/>
-            <text x="14" y="42" text-anchor="middle" class="rv-note">red only</text>
-            <circle cx="56" cy="18" r="9" class="rv-acc"/>
-            <text x="56" y="21" text-anchor="middle" class="rv-on-acc">2</text>
-            <text x="56" y="42" text-anchor="middle" class="rv-note">+ number</text>
-          </svg>
-          <b>Never colour alone</b>
-          <p>A badge needs a number, a word or a shape, not only red.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <rect x="2" y="8" width="28" height="22" rx="5" class="rv-ink"/>
-            <text x="16" y="23" text-anchor="middle" class="rv-label" style="font-size: 10px">Esc</text>
-            <rect x="38" y="4" width="32" height="14" rx="4" class="rv-acc"/>
-            <path d="M48 20 l0 14 l3.5 -3.5 l2.6 5 l2.6 -1.3 l-2.6 -5 l4.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-          </svg>
-          <b>Dismissible, hoverable, persistent</b>
-          <p>WCAG 1.4.13: Esc closes it, the pointer can move onto it, it stays until you leave.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <path class="rv-ink" d="M2 8 H44 M2 18 H38 M2 28 H44 M2 38 H30"/>
-            <rect x="50" y="12" width="20" height="12" rx="3" class="rv-acc" opacity=".45"/>
-            <text x="60" y="36" text-anchor="middle" class="rv-note">extra</text>
-          </svg>
-          <b>Supplementary, not essential</b>
-          <p>If the task fails without the tooltip, the text belongs on the page.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 108 44" style="width: 168px" aria-hidden="true">
-            <!-- passing: the pointer runs across three anchors and none of them answers -->
-            <rect x="3" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
-            <rect x="19" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
-            <rect x="35" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
-            <path class="rv-mute" d="M1 29 H40 M37 26.5 L40 29 L37 31.5"/>
-            <path d="M42 22 l0 11 l2.8 -2.8 l2 4 l2 -1 l-2 -4 l3.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
-            <text x="24" y="43" text-anchor="middle" class="rv-note">passes: none</text>
-            <path class="rv-hair" d="M60 4 V44"/>
-            <!-- resting: the pointer stops on one, and after a beat its tooltip appears -->
-            <rect x="72" y="2" width="28" height="10" rx="3" class="rv-acc"/>
-            <rect x="81" y="16" width="9" height="9" rx="2.5" class="rv-ink"/>
-            <path d="M86 21 l0 11 l2.8 -2.8 l2 4 l2 -1 l-2 -4 l3.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
-            <text x="86" y="43" text-anchor="middle" class="rv-note">rests: shows</text>
-          </svg>
-          <b>Wait a beat</b>
-          <p>A short hover delay stops tooltips flashing as the pointer passes. Only a pointer that rests gets one.</p>
-        </div>
-      </div>
-
-      <h3>Pattern survey</h3>
-
-      <p>The brief's bottom bar with live badges, four badge forms, and four tooltips. Change the count and the delay, then hover or tab through the anchors.</p>
-
-      <figure class="demo-frame">
-        <!-- height is measured from the demo itself; adjust it when the demo grows -->
-        <iframe src="week-02-demo.html" title="Badge and tooltip pattern survey" loading="lazy" style="height: 910px"></iframe>
-        <figcaption>
-          <span>Live demo. Interact with it here or view it larger.</span>
-          <button type="button" class="viewer-open" data-src="week-02-demo.html">View larger</button>
-        </figcaption>
-      </figure>
-
-      <h3>Micro motion</h3>
-
-      <p>A badge is about 16 pixels and a tooltip is a few words, so neither has much room to carry a tone. How it moves is one of the few places left. Dan Saffer's four parts of a microinteraction map neatly onto both.</p>
-
-      <div class="rv-flow">
-        <div class="rv-corner"></div>
-        <div class="rv-stage">Trigger<span>what starts it</span></div>
-        <div class="rv-stage">Rules<span>what it may do</span></div>
-        <div class="rv-stage">Feedback<span>what you see</span></div>
-        <div class="rv-stage">Loops and modes<span>what happens next</span></div>
-        <div class="rv-lane">Badge</div>
-        <div data-stage="Trigger">The system: a message arrives</div>
-        <div data-stage="Rules">Hide at 0, cap at 99+, clear when opened</div>
-        <div data-stage="Feedback">Arriving, and changing count</div>
-        <div data-stage="Loops and modes">Does it move again, or rest once it has spoken?</div>
-        <div class="rv-lane">Tooltip</div>
-        <div data-stage="Trigger">The person: hover or keyboard focus</div>
-        <div data-stage="Rules">Wait before showing, stay while hovered, Esc closes</div>
-        <div data-stage="Feedback">Entering, and leaving</div>
-        <div data-stage="Loops and modes">Warm mode: once one is open, neighbours open faster</div>
-      </div>
-
-      <h3>Timing</h3>
-
-      <p>Every duration on one scale. The shaded end is where motion starts to drag.</p>
-
-      <div class="rv-time" role="img" aria-label="Durations from 0 to 600 milliseconds. Motion: small feedback about 100 ms, a small component entering 200 ms, leaving shorter than the entrance, anything past 500 ms starts to drag. Tooltip wait: 500 ms on first hover, 100 ms for the next anchor over.">
-        <div class="rv-time-row is-group"><span class="rv-time-what">Motion</span><span class="rv-time-track"><span class="rv-time-zone">past 500 ms<br/>it drags</span></span></div>
-        <div class="rv-time-row">
-          <span class="rv-time-what"><b>Small feedback, a state change</b><small>NN/g</small></span>
-          <span class="rv-time-track"><i style="--ms: 100"></i><em style="--ms: 100">about 100 ms</em></span>
-        </div>
-        <div class="rv-time-row">
-          <span class="rv-time-what"><b>A small component entering</b><small>Material 3, <code>short4</code></small></span>
-          <span class="rv-time-track"><i style="--ms: 200"></i><em style="--ms: 200">200 ms</em></span>
-        </div>
-        <div class="rv-time-row">
-          <span class="rv-time-what"><b>Leaving</b><small>NN/g</small></span>
-          <span class="rv-time-track"><i class="soft" style="--ms: 140"></i><em style="--ms: 140">shorter than entering</em></span>
-        </div>
-        <div class="rv-time-row is-group"><span class="rv-time-what">Tooltip wait</span><span class="rv-time-track"></span></div>
-        <div class="rv-time-row">
-          <span class="rv-time-what"><b>First hover</b><small>Windows default</small></span>
-          <span class="rv-time-track"><i style="--ms: 500"></i><em style="--ms: 500">500 ms</em></span>
-        </div>
-        <div class="rv-time-row">
-          <span class="rv-time-what"><b>Next anchor over</b><small>Windows default</small></span>
-          <span class="rv-time-track"><i style="--ms: 100"></i><em style="--ms: 100">100 ms</em></span>
-        </div>
-        <div class="rv-time-axis"><span></span><span class="rv-time-ticks"><span style="--ms: 0">0 ms</span><span style="--ms: 100">100</span><span style="--ms: 200">200</span><span style="--ms: 300">300</span><span style="--ms: 400">400</span><span style="--ms: 500">500</span><span style="--ms: 600">600</span></span></div>
-      </div>
-
-      <details class="rv-table">
-        <summary>Table view</summary>
-        <table>
-          <thead>
-            <tr><th>Moment</th><th>Duration</th><th>Source</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Small feedback, a state change</td><td>About 100 ms</td><td>NN/g</td></tr>
-            <tr><td>A small component entering</td><td>200 ms</td><td>Material 3, <code>short4</code></td></tr>
-            <tr><td>Leaving</td><td>Shorter than the entrance</td><td>NN/g</td></tr>
-            <tr><td>Anything UI</td><td>Past 500 ms it starts to drag</td><td>NN/g</td></tr>
-            <tr><td>Tooltip, first hover</td><td>500 ms wait</td><td>Windows default</td></tr>
-            <tr><td>Tooltip, next anchor over</td><td>100 ms wait</td><td>Windows default</td></tr>
-          </tbody>
-        </table>
-      </details>
-
-      <p>Windows also hides a tooltip after 5 seconds by default. WCAG 1.4.13 says the opposite: it should stay until the pointer leaves or Esc is pressed. Here WCAG wins.</p>
-
-      <h3>Easing</h3>
-
-      <p>Each curve plots progress against time, and the dot under it runs on that curve.</p>
-
-      <div class="rv-curves">
-        <figure class="rv-curve">
-          <svg viewBox="0 -14 120 136" aria-hidden="true">
-            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
-            <path class="rv-acc-line" d="M10 110 C15 40, 20 10, 110 10"/>
-          </svg>
-          <div class="rv-run"><i style="animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1)"></i></div>
-          <figcaption><b>Ease-out</b><code>cubic-bezier(0.05, 0.7, 0.1, 1)</code><br/>Entering. Arrives fast, settles gently.</figcaption>
-        </figure>
-        <figure class="rv-curve">
-          <svg viewBox="0 -14 120 136" aria-hidden="true">
-            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
-            <path class="rv-acc-line" d="M10 110 C40 110, 90 95, 110 10"/>
-          </svg>
-          <div class="rv-run"><i style="animation-timing-function: cubic-bezier(0.3, 0, 0.8, 0.15)"></i></div>
-          <figcaption><b>Ease-in</b><code>cubic-bezier(0.3, 0, 0.8, 0.15)</code><br/>Leaving. Gathers speed and goes.</figcaption>
-        </figure>
-        <figure class="rv-curve">
-          <svg viewBox="0 -14 120 136" aria-hidden="true">
-            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
-            <path class="rv-acc-line" d="M10 110 L18 85 L28 35 L40 2 L48 -2 L60 6 L72 12 L85 10 L110 10"/>
-          </svg>
-          <div class="rv-run"><i style="animation-timing-function: linear(0, 0.25 8%, 0.75 18%, 1.08 30%, 1.12 38%, 1.04 50%, 0.98 62%, 1 75%, 1)"></i></div>
-          <figcaption><b>Overshoot, a spring</b><br/>Entering, with character. Playful, physical, a little loud.</figcaption>
-        </figure>
-        <figure class="rv-curve">
-          <svg viewBox="0 -14 120 136" aria-hidden="true">
-            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
-            <path class="rv-acc-line" d="M10 110 L110 10"/>
-          </svg>
-          <div class="rv-run"><i style="animation-timing-function: linear"></i></div>
-          <figcaption><b>Linear</b><br/>Almost never. Mechanical. Useful only when mechanical is the tone.</figcaption>
-        </figure>
-      </div>
-
-      <h3>Motion costs attention</h3>
-
-      <p>Motion is the strongest signal a badge has. In Bartram, Ware and Calvert's study, icons with simple motion were often detected better than colour or shape codes, especially at the edge of vision. The same study measured how much each kind of motion distracts. A badge that moves is louder than one that is red, so motion should be spent at the moment of change, then stop.</p>
-
-      <div class="rv-rules">
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <path class="rv-hair" d="M2 36 H70"/>
-            <path class="rv-acc-line" d="M2 36 H10 Q14 6, 18 36 H70"/>
-            <text x="44" y="30" text-anchor="middle" class="rv-note">then rest</text>
-          </svg>
-          <b>Move once, then rest</b>
-          <p>A badge that keeps pulsing turns into noise. Past 5 seconds, looping motion needs a way to stop it (WCAG 2.2.2).</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <circle cx="12" cy="22" r="6" fill="var(--fg-muted)" opacity=".5"/>
-            <circle cx="36" cy="22" r="7" class="rv-acc"/>
-            <path class="rv-mute" d="M28 12 a12 12 0 0 1 16 0 M28 32 a12 12 0 0 0 16 0"/>
-            <circle cx="60" cy="22" r="6" fill="var(--fg-muted)" opacity=".5"/>
-          </svg>
-          <b>One thing at a time</b>
-          <p>Several things moving at once cancel each other out.</p>
-        </div>
-        <div class="rv-rule">
-          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
-            <circle cx="8" cy="22" r="5" class="rv-acc"/>
-            <path class="rv-mute" d="M16 22 H26 M23 19 L26 22 L23 25"/>
-            <circle cx="36" cy="22" r="5" class="rv-acc" opacity=".25"/>
-            <circle cx="50" cy="22" r="5" class="rv-acc" opacity=".6"/>
-            <circle cx="64" cy="22" r="5" class="rv-acc"/>
-            <text x="50" y="40" text-anchor="middle" class="rv-note">a fade instead</text>
-          </svg>
-          <b>Reduced motion</b>
-          <p>With <code>prefers-reduced-motion</code>, swap movement for a fade or a cut (WCAG 2.3.3). The meaning has to survive without the motion.</p>
-        </div>
-      </div>
-
-      <h3>Where tone lives in the motion</h3>
-
-      <div class="rv-levers">
-        <div class="rv-levers-head"><span>Quiet</span><span>Lever</span><span>Loud</span></div>
-        <div class="rv-lever"><span class="q">Short, 100 to 200 ms</span><b>Duration</b><span class="l">Long enough to watch, up to 500 ms</span></div>
-        <div class="rv-lever"><span class="q">Ease-out, no overshoot</span><b>Curve</b><span class="l">Spring, bounce, shake</span></div>
-        <div class="rv-lever"><span class="q">In place: fade, a few pixels</span><b>Distance</b><span class="l">Travels: drops in, flies out</span></div>
-        <div class="rv-lever"><span class="q">Swap in place</span><b>Count change</b><span class="l">Roll, pulse, shake</span></div>
-        <div class="rv-lever"><span class="q">Once</span><b>Repetition</b><span class="l">Again on every new item</span></div>
-        <div class="rv-lever"><span class="q">From nowhere, a fade</span><b>Origin</b><span class="l">From the anchor, grows out of the thing it describes</span></div>
-      </div>
-
-      <h3>Motion study</h3>
-
-      <p>One badge and one tooltip, changed only in how they move. Each badge card replays on its own, tooltips open on hover, a slow-mo slider stretches everything up to ten times so the curves can be read, and each card notes what it falls back to under reduced motion.</p>
-
-      <figure class="demo-frame">
-        <!-- height is measured from the demo itself; adjust it when the demo grows -->
-        <iframe src="week-02-motion.html" title="Micro motion study for badges and tooltips" loading="lazy" style="height: 1610px"></iframe>
-        <figcaption>
-          <span>Live demo. Press &#9654; on a badge, hover the tooltips, drag slow-mo up.</span>
-          <button type="button" class="viewer-open" data-src="week-02-motion.html">View larger</button>
-        </figcaption>
-      </figure>
-
-      <h3>Into the designs</h3>
-
-      <ul>
-        <li>The anchor is part of the design. A badge has no tone without the thing it sits on.</li>
-        <li>A badge is about 16 pixels. Tone has to live in its shape, its colour and how it arrives, not in detail.</li>
-        <li>A tooltip's tone lives in timing, entrance and the voice of its words.</li>
-        <li>Each set picks its motion on the levers above: duration, curve, distance, count change, repetition and origin. A quiet tone and a loud tone should differ on at least two.</li>
-        <li>Every prototype also has to work under reduced motion, so the tone cannot live in motion alone.</li>
-        <li>A set shares a tone, not a shape. The badge and tooltip can share an anchor, or each have their own.</li>
-      </ul>
-
-      <h2>Process</h2>
-
-      <h3>Ideation</h3>
-
-      <p>Loose sketches, each running live in its box.</p>
-
-      <!-- Add a sketch: build it as week-02-NAME.html, then copy this inside the grid:
-        <figure class="idea">
-          <iframe src="week-02-NAME.html" title="NAME sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Name</b>
-            <span>One line on the idea.</span>
-            <button type="button" class="viewer-open" data-src="week-02-NAME.html">View larger</button>
-          </figcaption>
-        </figure>
-      -->
-      <div class="idea-grid">
-        <figure class="idea">
-          <iframe src="week-02-trace.html" title="Trace badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Trace</b>
-            <span>A line runs clockwise round the bubble's outline from its upper right corner; where it closes, a dot appears.</span>
-            <button type="button" class="viewer-open" data-src="week-02-trace.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-frame-trace.html" title="Frame trace badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Frame trace</b>
-            <span>The bubble stays still while a rounded frame draws itself clockwise round it from its upper right corner; where the frame closes, a dot appears.</span>
-            <button type="button" class="viewer-open" data-src="week-02-frame-trace.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-spin.html" title="Spin badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Spin</b>
-            <span>The dot spins onto the upper right corner, circling its spot on a tightening ring as it grows.</span>
-            <button type="button" class="viewer-open" data-src="week-02-spin.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-coin.html" title="Coin spin badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Coin spin</b>
-            <span>The dot is a thin flat chip: it appears on the upper right corner and turns once in place, narrowing to its rim and opening back to a whole dot.</span>
-            <button type="button" class="viewer-open" data-src="week-02-coin.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-refresh.html" title="Refresh badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Refresh</b>
-            <span>The whole icon is written in again, left to right, and the dot at its far right comes in last.</span>
-            <button type="button" class="viewer-open" data-src="week-02-refresh.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-thirds.html" title="Thirds badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Thirds</b>
-            <span>Refresh in three steps: the icon comes back a third at a time, left, middle, right, and the dot lands with the last.</span>
-            <button type="button" class="viewer-open" data-src="week-02-thirds.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-sweep.html" title="Sweep badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Sweep</b>
-            <span>The dot is revealed clockwise from twelve o'clock, a wedge widening like a clock hand going once round.</span>
-            <button type="button" class="viewer-open" data-src="week-02-sweep.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-book.html" title="Book badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Book</b>
-            <span>The dot opens from its centre like a book: two halves folded shut on the centre line swing open to lie flat.</span>
-            <button type="button" class="viewer-open" data-src="week-02-book.html">View larger</button>
-          </figcaption>
-        </figure>
-        <figure class="idea">
-          <iframe src="week-02-swell.html" title="Swell badge sketch" loading="lazy"></iframe>
-          <figcaption>
-            <b>Swell</b>
-            <span>The dot swells from the bubble's middle until it hides the whole icon, then shrinks on its way to the upper right corner.</span>
-            <button type="button" class="viewer-open" data-src="week-02-swell.html">View larger</button>
-          </figcaption>
-        </figure>
-      </div>
-
       <h2>Deliverables</h2>
 
       <p>Ten components, five sets of one badge and one tooltip. Open a set to try its moving prototypes, then see how they got there.</p>
@@ -951,6 +503,454 @@
             </div>
           </dialog>
         </div>
+      </div>
+
+      <h2>Brief</h2>
+
+      <p>Ten components: five sets, each one badge and one tooltip, each set expressing a tone. Tones can repeat across sets. Every design has to do its job. Each one gets a working prototype, with the versions tried along the way shown as its process.</p>
+
+      <p>Both need an anchor, a placeholder element to attach to. The brief's badges sit on a bottom bar (Mail, Chat, Rooms, Meet). Its tooltips float free, but a prototype needs something to hover, so every tooltip here gets an anchor too.</p>
+
+      <h3>What each prototype has to show</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Anchor</th><th>Must show</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Badge</td><td>An icon, like Mail, where the badge appears and disappears</td><td>No badge &harr; dot badge, with no content<br />No badge &harr; badge with content: a number, text or icon</td></tr>
+          <tr><td>Tooltip</td><td>A hoverable anchor</td><td>A plain tooltip: text only, no action<br />A rich tooltip with a clickable action</td></tr>
+        </tbody>
+      </table>
+
+      <p>Five sets, one badge and one tooltip each, every set with a tone. Tones can repeat across sets.</p>
+
+      <h2>Research</h2>
+
+      <p>Both are small messages attached to something else. The difference is who starts the conversation.</p>
+
+      <h3>Badge or tooltip</h3>
+
+      <div class="rv-pair">
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="A speech bubble with a small numbered badge on its upper right corner">
+              <g transform="translate(46 14) scale(3.4)">
+                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+              </g>
+              <circle cx="115" cy="28" r="12" class="rv-surface"/>
+              <circle cx="115" cy="28" r="10" class="rv-acc"/>
+              <text x="115" y="31.5" text-anchor="middle" class="rv-on-acc">3</text>
+              <path class="rv-mute" d="M128 22 L146 12"/>
+              <text x="148" y="10" class="rv-note">corner</text>
+              <circle cx="80" cy="60" r="2.5" fill="var(--fg-muted)"/>
+              <path class="rv-mute" d="M80 60 L80 108"/>
+              <text x="84" y="110" class="rv-note">centre stays clear</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Badge</b>
+            <dl class="rv-facts">
+              <dt>Speaks</dt><dd>Unprompted, always visible</dd>
+              <dt>Says</dt><dd>Status or amount: new, how many, live</dd>
+              <dt>Sits</dt><dd>On the anchor's corner, never over its centre</dd>
+              <dt>Must</dt><dd>Hide at zero, cap big numbers</dd>
+              <dt>Screen reader</dt><dd>Folded into the anchor's name: &ldquo;Mail, 3 unread&rdquo;</dd>
+            </dl>
+          </figcaption>
+        </figure>
+        <figure class="rv-card">
+          <div class="rv-art">
+            <svg viewBox="0 0 170 120" width="170" height="120" role="img" aria-label="A bell with a small tooltip box above it and a pointer on the bell">
+              <rect x="44" y="6" width="82" height="22" rx="5" class="rv-acc"/>
+              <text x="85" y="21" text-anchor="middle" class="rv-on-acc" style="font-size: 10.5px; font-weight: 600">Notifications</text>
+              <path class="rv-mute" d="M85 32 L85 40"/>
+              <g transform="translate(53 40) scale(2.7)">
+                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"/>
+                <path class="rv-ink" vector-effect="non-scaling-stroke" d="M10 20a2 2 0 0 0 4 0"/>
+              </g>
+              <path d="M104 78 l0 16 l4 -4 l3 6 l3 -1.5 l-3 -6 l5.5 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+              <text x="128" y="20" class="rv-note">beside,</text>
+              <text x="128" y="32" class="rv-note">never over</text>
+              <text x="124" y="104" class="rv-note">hover or</text>
+              <text x="124" y="116" class="rv-note">focus</text>
+            </svg>
+          </div>
+          <figcaption>
+            <b>Tooltip</b>
+            <dl class="rv-facts">
+              <dt>Speaks</dt><dd>Only when the anchor is hovered or focused</dd>
+              <dt>Says</dt><dd>What the anchor is, or what it will do</dd>
+              <dt>Sits</dt><dd>Beside the anchor, never covering it</dd>
+              <dt>Must</dt><dd>Show on keyboard focus too, dismiss with Esc</dd>
+              <dt>Screen reader</dt><dd><code>role="tooltip"</code>, linked with <code>aria-describedby</code></dd>
+            </dl>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Rules the tone has to survive</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="14" cy="16" r="5" class="rv-acc"/>
+            <text x="14" y="38" text-anchor="middle" class="rv-note">new</text>
+            <circle cx="56" cy="16" r="9" class="rv-acc"/>
+            <text x="56" y="19" text-anchor="middle" class="rv-on-acc">3</text>
+            <text x="56" y="38" text-anchor="middle" class="rv-note">how many</text>
+          </svg>
+          <b>Claim only what is known</b>
+          <p>A dot says &ldquo;new&rdquo;, a count says &ldquo;how many&rdquo;. Pick the one the system can back up.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <g transform="translate(4 4) scale(1.5)"><path class="rv-ink" vector-effect="non-scaling-stroke" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></g>
+            <rect x="26" y="1" width="26" height="15" rx="7.5" class="rv-surface"/>
+            <rect x="27.5" y="2.5" width="23" height="12" rx="6" class="rv-acc"/>
+            <text x="39" y="11.5" text-anchor="middle" class="rv-on-acc" style="font-size: 8.5px">99+</text>
+          </svg>
+          <b>Stay smaller than the anchor</b>
+          <p>Overflow caps at 99+, so the badge never swallows the icon.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="14" cy="18" r="8" class="rv-acc" opacity=".45"/>
+            <path class="rv-mute" d="M6 34 L22 34"/>
+            <text x="14" y="42" text-anchor="middle" class="rv-note">red only</text>
+            <circle cx="56" cy="18" r="9" class="rv-acc"/>
+            <text x="56" y="21" text-anchor="middle" class="rv-on-acc">2</text>
+            <text x="56" y="42" text-anchor="middle" class="rv-note">+ number</text>
+          </svg>
+          <b>Never colour alone</b>
+          <p>A badge needs a number, a word or a shape, not only red.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <rect x="2" y="8" width="28" height="22" rx="5" class="rv-ink"/>
+            <text x="16" y="23" text-anchor="middle" class="rv-label" style="font-size: 10px">Esc</text>
+            <rect x="38" y="4" width="32" height="14" rx="4" class="rv-acc"/>
+            <path d="M48 20 l0 14 l3.5 -3.5 l2.6 5 l2.6 -1.3 l-2.6 -5 l4.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+          <b>Dismissible, hoverable, persistent</b>
+          <p>WCAG 1.4.13: Esc closes it, the pointer can move onto it, it stays until you leave.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <path class="rv-ink" d="M2 8 H44 M2 18 H38 M2 28 H44 M2 38 H30"/>
+            <rect x="50" y="12" width="20" height="12" rx="3" class="rv-acc" opacity=".45"/>
+            <text x="60" y="36" text-anchor="middle" class="rv-note">extra</text>
+          </svg>
+          <b>Supplementary, not essential</b>
+          <p>If the task fails without the tooltip, the text belongs on the page.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 108 44" style="width: 168px" aria-hidden="true">
+            <!-- passing: the pointer runs across three anchors and none of them answers -->
+            <rect x="3" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
+            <rect x="19" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
+            <rect x="35" y="14" width="9" height="9" rx="2.5" class="rv-ink"/>
+            <path class="rv-mute" d="M1 29 H40 M37 26.5 L40 29 L37 31.5"/>
+            <path d="M42 22 l0 11 l2.8 -2.8 l2 4 l2 -1 l-2 -4 l3.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+            <text x="24" y="43" text-anchor="middle" class="rv-note">passes: none</text>
+            <path class="rv-hair" d="M60 4 V44"/>
+            <!-- resting: the pointer stops on one, and after a beat its tooltip appears -->
+            <rect x="72" y="2" width="28" height="10" rx="3" class="rv-acc"/>
+            <rect x="81" y="16" width="9" height="9" rx="2.5" class="rv-ink"/>
+            <path d="M86 21 l0 11 l2.8 -2.8 l2 4 l2 -1 l-2 -4 l3.8 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+            <text x="86" y="43" text-anchor="middle" class="rv-note">rests: shows</text>
+          </svg>
+          <b>Wait a beat</b>
+          <p>A short hover delay stops tooltips flashing as the pointer passes. Only a pointer that rests gets one.</p>
+        </div>
+      </div>
+
+      <h3>Pattern survey</h3>
+
+      <p>The brief's bottom bar with live badges, four badge forms, and four tooltips. Change the count and the delay, then hover or tab through the anchors.</p>
+
+      <figure class="demo-frame">
+        <!-- height is measured from the demo itself; adjust it when the demo grows -->
+        <iframe src="week-02-demo.html" title="Badge and tooltip pattern survey" loading="lazy" style="height: 910px"></iframe>
+        <figcaption>
+          <span>Live demo. Interact with it here or view it larger.</span>
+          <button type="button" class="viewer-open" data-src="week-02-demo.html">View larger</button>
+        </figcaption>
+      </figure>
+
+      <h3>Micro motion</h3>
+
+      <p>A badge is about 16 pixels and a tooltip is a few words, so neither has much room to carry a tone. How it moves is one of the few places left. Dan Saffer's four parts of a microinteraction map neatly onto both.</p>
+
+      <div class="rv-flow">
+        <div class="rv-corner"></div>
+        <div class="rv-stage">Trigger<span>what starts it</span></div>
+        <div class="rv-stage">Rules<span>what it may do</span></div>
+        <div class="rv-stage">Feedback<span>what you see</span></div>
+        <div class="rv-stage">Loops and modes<span>what happens next</span></div>
+        <div class="rv-lane">Badge</div>
+        <div data-stage="Trigger">The system: a message arrives</div>
+        <div data-stage="Rules">Hide at 0, cap at 99+, clear when opened</div>
+        <div data-stage="Feedback">Arriving, and changing count</div>
+        <div data-stage="Loops and modes">Does it move again, or rest once it has spoken?</div>
+        <div class="rv-lane">Tooltip</div>
+        <div data-stage="Trigger">The person: hover or keyboard focus</div>
+        <div data-stage="Rules">Wait before showing, stay while hovered, Esc closes</div>
+        <div data-stage="Feedback">Entering, and leaving</div>
+        <div data-stage="Loops and modes">Warm mode: once one is open, neighbours open faster</div>
+      </div>
+
+      <h3>Timing</h3>
+
+      <p>Every duration on one scale. The shaded end is where motion starts to drag.</p>
+
+      <div class="rv-time" role="img" aria-label="Durations from 0 to 600 milliseconds. Motion: small feedback about 100 ms, a small component entering 200 ms, leaving shorter than the entrance, anything past 500 ms starts to drag. Tooltip wait: 500 ms on first hover, 100 ms for the next anchor over.">
+        <div class="rv-time-row is-group"><span class="rv-time-what">Motion</span><span class="rv-time-track"><span class="rv-time-zone">past 500 ms<br/>it drags</span></span></div>
+        <div class="rv-time-row">
+          <span class="rv-time-what"><b>Small feedback, a state change</b><small>NN/g</small></span>
+          <span class="rv-time-track"><i style="--ms: 100"></i><em style="--ms: 100">about 100 ms</em></span>
+        </div>
+        <div class="rv-time-row">
+          <span class="rv-time-what"><b>A small component entering</b><small>Material 3, <code>short4</code></small></span>
+          <span class="rv-time-track"><i style="--ms: 200"></i><em style="--ms: 200">200 ms</em></span>
+        </div>
+        <div class="rv-time-row">
+          <span class="rv-time-what"><b>Leaving</b><small>NN/g</small></span>
+          <span class="rv-time-track"><i class="soft" style="--ms: 140"></i><em style="--ms: 140">shorter than entering</em></span>
+        </div>
+        <div class="rv-time-row is-group"><span class="rv-time-what">Tooltip wait</span><span class="rv-time-track"></span></div>
+        <div class="rv-time-row">
+          <span class="rv-time-what"><b>First hover</b><small>Windows default</small></span>
+          <span class="rv-time-track"><i style="--ms: 500"></i><em style="--ms: 500">500 ms</em></span>
+        </div>
+        <div class="rv-time-row">
+          <span class="rv-time-what"><b>Next anchor over</b><small>Windows default</small></span>
+          <span class="rv-time-track"><i style="--ms: 100"></i><em style="--ms: 100">100 ms</em></span>
+        </div>
+        <div class="rv-time-axis"><span></span><span class="rv-time-ticks"><span style="--ms: 0">0 ms</span><span style="--ms: 100">100</span><span style="--ms: 200">200</span><span style="--ms: 300">300</span><span style="--ms: 400">400</span><span style="--ms: 500">500</span><span style="--ms: 600">600</span></span></div>
+      </div>
+
+      <details class="rv-table">
+        <summary>Table view</summary>
+        <table>
+          <thead>
+            <tr><th>Moment</th><th>Duration</th><th>Source</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Small feedback, a state change</td><td>About 100 ms</td><td>NN/g</td></tr>
+            <tr><td>A small component entering</td><td>200 ms</td><td>Material 3, <code>short4</code></td></tr>
+            <tr><td>Leaving</td><td>Shorter than the entrance</td><td>NN/g</td></tr>
+            <tr><td>Anything UI</td><td>Past 500 ms it starts to drag</td><td>NN/g</td></tr>
+            <tr><td>Tooltip, first hover</td><td>500 ms wait</td><td>Windows default</td></tr>
+            <tr><td>Tooltip, next anchor over</td><td>100 ms wait</td><td>Windows default</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <p>Windows also hides a tooltip after 5 seconds by default. WCAG 1.4.13 says the opposite: it should stay until the pointer leaves or Esc is pressed. Here WCAG wins.</p>
+
+      <h3>Easing</h3>
+
+      <p>Each curve plots progress against time, and the dot under it runs on that curve.</p>
+
+      <div class="rv-curves">
+        <figure class="rv-curve">
+          <svg viewBox="0 -14 120 136" aria-hidden="true">
+            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
+            <path class="rv-acc-line" d="M10 110 C15 40, 20 10, 110 10"/>
+          </svg>
+          <div class="rv-run"><i style="animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1)"></i></div>
+          <figcaption><b>Ease-out</b><code>cubic-bezier(0.05, 0.7, 0.1, 1)</code><br/>Entering. Arrives fast, settles gently.</figcaption>
+        </figure>
+        <figure class="rv-curve">
+          <svg viewBox="0 -14 120 136" aria-hidden="true">
+            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
+            <path class="rv-acc-line" d="M10 110 C40 110, 90 95, 110 10"/>
+          </svg>
+          <div class="rv-run"><i style="animation-timing-function: cubic-bezier(0.3, 0, 0.8, 0.15)"></i></div>
+          <figcaption><b>Ease-in</b><code>cubic-bezier(0.3, 0, 0.8, 0.15)</code><br/>Leaving. Gathers speed and goes.</figcaption>
+        </figure>
+        <figure class="rv-curve">
+          <svg viewBox="0 -14 120 136" aria-hidden="true">
+            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
+            <path class="rv-acc-line" d="M10 110 L18 85 L28 35 L40 2 L48 -2 L60 6 L72 12 L85 10 L110 10"/>
+          </svg>
+          <div class="rv-run"><i style="animation-timing-function: linear(0, 0.25 8%, 0.75 18%, 1.08 30%, 1.12 38%, 1.04 50%, 0.98 62%, 1 75%, 1)"></i></div>
+          <figcaption><b>Overshoot, a spring</b><br/>Entering, with character. Playful, physical, a little loud.</figcaption>
+        </figure>
+        <figure class="rv-curve">
+          <svg viewBox="0 -14 120 136" aria-hidden="true">
+            <rect x="10" y="10" width="100" height="100" class="rv-hair"/>
+            <path class="rv-acc-line" d="M10 110 L110 10"/>
+          </svg>
+          <div class="rv-run"><i style="animation-timing-function: linear"></i></div>
+          <figcaption><b>Linear</b><br/>Almost never. Mechanical. Useful only when mechanical is the tone.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Motion costs attention</h3>
+
+      <p>Motion is the strongest signal a badge has. In Bartram, Ware and Calvert's study, icons with simple motion were often detected better than colour or shape codes, especially at the edge of vision. The same study measured how much each kind of motion distracts. A badge that moves is louder than one that is red, so motion should be spent at the moment of change, then stop.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <path class="rv-hair" d="M2 36 H70"/>
+            <path class="rv-acc-line" d="M2 36 H10 Q14 6, 18 36 H70"/>
+            <text x="44" y="30" text-anchor="middle" class="rv-note">then rest</text>
+          </svg>
+          <b>Move once, then rest</b>
+          <p>A badge that keeps pulsing turns into noise. Past 5 seconds, looping motion needs a way to stop it (WCAG 2.2.2).</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="12" cy="22" r="6" fill="var(--fg-muted)" opacity=".5"/>
+            <circle cx="36" cy="22" r="7" class="rv-acc"/>
+            <path class="rv-mute" d="M28 12 a12 12 0 0 1 16 0 M28 32 a12 12 0 0 0 16 0"/>
+            <circle cx="60" cy="22" r="6" fill="var(--fg-muted)" opacity=".5"/>
+          </svg>
+          <b>One thing at a time</b>
+          <p>Several things moving at once cancel each other out.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 72 44" aria-hidden="true">
+            <circle cx="8" cy="22" r="5" class="rv-acc"/>
+            <path class="rv-mute" d="M16 22 H26 M23 19 L26 22 L23 25"/>
+            <circle cx="36" cy="22" r="5" class="rv-acc" opacity=".25"/>
+            <circle cx="50" cy="22" r="5" class="rv-acc" opacity=".6"/>
+            <circle cx="64" cy="22" r="5" class="rv-acc"/>
+            <text x="50" y="40" text-anchor="middle" class="rv-note">a fade instead</text>
+          </svg>
+          <b>Reduced motion</b>
+          <p>With <code>prefers-reduced-motion</code>, swap movement for a fade or a cut (WCAG 2.3.3). The meaning has to survive without the motion.</p>
+        </div>
+      </div>
+
+      <h3>Where tone lives in the motion</h3>
+
+      <div class="rv-levers">
+        <div class="rv-levers-head"><span>Quiet</span><span>Lever</span><span>Loud</span></div>
+        <div class="rv-lever"><span class="q">Short, 100 to 200 ms</span><b>Duration</b><span class="l">Long enough to watch, up to 500 ms</span></div>
+        <div class="rv-lever"><span class="q">Ease-out, no overshoot</span><b>Curve</b><span class="l">Spring, bounce, shake</span></div>
+        <div class="rv-lever"><span class="q">In place: fade, a few pixels</span><b>Distance</b><span class="l">Travels: drops in, flies out</span></div>
+        <div class="rv-lever"><span class="q">Swap in place</span><b>Count change</b><span class="l">Roll, pulse, shake</span></div>
+        <div class="rv-lever"><span class="q">Once</span><b>Repetition</b><span class="l">Again on every new item</span></div>
+        <div class="rv-lever"><span class="q">From nowhere, a fade</span><b>Origin</b><span class="l">From the anchor, grows out of the thing it describes</span></div>
+      </div>
+
+      <h3>Motion study</h3>
+
+      <p>One badge and one tooltip, changed only in how they move. Each badge card replays on its own, tooltips open on hover, a slow-mo slider stretches everything up to ten times so the curves can be read, and each card notes what it falls back to under reduced motion.</p>
+
+      <figure class="demo-frame">
+        <!-- height is measured from the demo itself; adjust it when the demo grows -->
+        <iframe src="week-02-motion.html" title="Micro motion study for badges and tooltips" loading="lazy" style="height: 1610px"></iframe>
+        <figcaption>
+          <span>Live demo. Press &#9654; on a badge, hover the tooltips, drag slow-mo up.</span>
+          <button type="button" class="viewer-open" data-src="week-02-motion.html">View larger</button>
+        </figcaption>
+      </figure>
+
+      <h3>Into the designs</h3>
+
+      <ul>
+        <li>The anchor is part of the design. A badge has no tone without the thing it sits on.</li>
+        <li>A badge is about 16 pixels. Tone has to live in its shape, its colour and how it arrives, not in detail.</li>
+        <li>A tooltip's tone lives in timing, entrance and the voice of its words.</li>
+        <li>Each set picks its motion on the levers above: duration, curve, distance, count change, repetition and origin. A quiet tone and a loud tone should differ on at least two.</li>
+        <li>Every prototype also has to work under reduced motion, so the tone cannot live in motion alone.</li>
+        <li>A set shares a tone, not a shape. The badge and tooltip can share an anchor, or each have their own.</li>
+      </ul>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-02-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-02-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-02-NAME.html">View larger</button>
+          </figcaption>
+        </figure>
+      -->
+      <div class="idea-grid">
+        <figure class="idea">
+          <iframe src="week-02-trace.html" title="Trace badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Trace</b>
+            <span>A line runs clockwise round the bubble's outline from its upper right corner; where it closes, a dot appears.</span>
+            <button type="button" class="viewer-open" data-src="week-02-trace.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-frame-trace.html" title="Frame trace badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Frame trace</b>
+            <span>The bubble stays still while a rounded frame draws itself clockwise round it from its upper right corner; where the frame closes, a dot appears.</span>
+            <button type="button" class="viewer-open" data-src="week-02-frame-trace.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-spin.html" title="Spin badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Spin</b>
+            <span>The dot spins onto the upper right corner, circling its spot on a tightening ring as it grows.</span>
+            <button type="button" class="viewer-open" data-src="week-02-spin.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-coin.html" title="Coin spin badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Coin spin</b>
+            <span>The dot is a thin flat chip: it appears on the upper right corner and turns once in place, narrowing to its rim and opening back to a whole dot.</span>
+            <button type="button" class="viewer-open" data-src="week-02-coin.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-refresh.html" title="Refresh badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Refresh</b>
+            <span>The whole icon is written in again, left to right, and the dot at its far right comes in last.</span>
+            <button type="button" class="viewer-open" data-src="week-02-refresh.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-thirds.html" title="Thirds badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Thirds</b>
+            <span>Refresh in three steps: the icon comes back a third at a time, left, middle, right, and the dot lands with the last.</span>
+            <button type="button" class="viewer-open" data-src="week-02-thirds.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-sweep.html" title="Sweep badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Sweep</b>
+            <span>The dot is revealed clockwise from twelve o'clock, a wedge widening like a clock hand going once round.</span>
+            <button type="button" class="viewer-open" data-src="week-02-sweep.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-book.html" title="Book badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Book</b>
+            <span>The dot opens from its centre like a book: two halves folded shut on the centre line swing open to lie flat.</span>
+            <button type="button" class="viewer-open" data-src="week-02-book.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-02-swell.html" title="Swell badge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Swell</b>
+            <span>The dot swells from the bubble's middle until it hides the whole icon, then shrinks on its way to the upper right corner.</span>
+            <button type="button" class="viewer-open" data-src="week-02-swell.html">View larger</button>
+          </figcaption>
+        </figure>
       </div>
 
       <footer class="sources">

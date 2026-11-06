@@ -106,6 +106,169 @@
 
     <article class="prose">
 
+      <h2>Deliverables</h2>
+
+      <p>Two sets of list items, each a tone. Each set has the list system, every slot configuration from one build, and the list in use: a row that goes one level deeper and a row that opens in place. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-05-TONE-{system,actions}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the list first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/movements-deeper-2.png" alt="" loading="lazy" /><img src="images/process/movements-timeline-4.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Archival</span><span class="set-line">A digital collection of modern art: every movement a numbered record, in its own colour, place by place.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Archival</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto">
+                  <iframe src="week-05-movements-deeper.html?v=15" title="Modern art movements: clicking a block goes one level deeper, to a page for that movement in that place" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>One level deeper</b>
+                    <span>The same timeline. A block does not open under its row: clicking it slides the timeline away and brings in a page for that movement in that place, with where it came from and where else it went (each a way across), where it sits in the place's row, its artists as list rows and its works. “All places” or Esc comes back to the same spot.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements-deeper.html?v=15">View larger</button>
+                  </figcaption>
+                </figure>
+                <figure class="proto">
+                  <iframe src="week-05-movements.html?v=22" title="Modern art movements, 1850 to 2000: one row per place, blocks in each movement's colour following on and stacking" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Opens in place</b>
+                    <span>Each place is a row; each movement a block as long as it lived there, stacking where two lived side by side. A movement keeps its colour wherever it went, so hovering one lights its other cities, with threads from where it began and, dashed, from what it grew out of. Every block is a button: it opens that one movement in place under its row, with its artists and representative works; an era above takes you one level down.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements.html?v=22">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">One level deeper</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/movements-system-1.png" alt="Movements list system, a separate sheet, dropped" loading="lazy" />
+                    <figcaption>First, a separate sheet of the row in every configuration. Dropped: it showed the parts but no list doing either action.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-deeper-1.png" alt="Movements, one level deeper, step 2" loading="lazy" />
+                    <figcaption>Instead, the timeline itself goes one level deeper: a block opens a page for its movement in its place, with a way back and ways across.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-deeper-2.png" alt="Movements, one level deeper, archival tone" loading="lazy" />
+                    <figcaption>The tone named: Archival, as a museum’s online collection. White, black ink, each colour at the strength the art has, a mono record number on every movement (VIE-01), the place codes as index tabs.</figcaption>
+                  </figure>
+              </div>
+              <p class="process-label">Opens in place</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-1.png" alt="Mesozoic timeline, step 1" loading="lazy" />
+                    <figcaption>First pass: each box split into three bands stacked top to bottom, one per dinosaur group.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-2.png" alt="Mesozoic timeline, step 2" loading="lazy" />
+                    <figcaption>The groups laid end to end inside each box instead, like a row of book spines: a thinner bar that reads as one strip per region.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/mesozoic-timeline-3.png" alt="Mesozoic timeline, step 3" loading="lazy" />
+                    <figcaption>More to read: Cretaceous cut in four, each box named for its rock and finds, turning points along the top, and an opened row letting down a lane per group with its families.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-1.png" alt="Movements timeline, step 4" loading="lazy" />
+                    <figcaption>A new subject. Dinosaur periods change everywhere at once, so nothing overlapped or split. Modern art does both: movements reach each city late, live side by side and stack, split off and travel. Places as rows, a colour per movement taken from its art.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-2.png" alt="Movements timeline, step 5" loading="lazy" />
+                    <figcaption>More room: 1200 wide, lanes 20px instead of 11, rows set further apart, larger type, and every block that is long enough carries its name.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-3.png" alt="Movements timeline, step 6" loading="lazy" />
+                    <figcaption>Time made legible: lines run through every row, faint each 5 years, firmer each 25, firmest each 50, with the years again at the foot. And bigger still: 1440 wide, 28px lanes, the place names at 21.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/movements-timeline-4.png" alt="Movements timeline, archival tone" loading="lazy" />
+                    <figcaption>Archival, as a digital collection: off the warm paper onto white, colours back to full strength, record numbers in mono on every block, index tabs for places, no disclaimers.</figcaption>
+                  </figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/breezy-trip-4.png" alt="" loading="lazy" /><img src="images/process/breezy-phone-thumb.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Breezy</span><span class="set-line">A trip planner like the first morning of a holiday: sky, sea and sand, soft round cards, motion with a little give.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Breezy</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid">
+                <figure class="proto">
+                  <iframe src="week-05-breezy.html?v=17" title="Breezy trip planner: a day's plan as one list; a flight with a stop opens in place, the hotel goes one level deeper" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Trip planner, on the web</b>
+                    <span>A trip planner on the web: six days down the side with their weather, the plan in the middle, built from one row: an airline or train mark, a friend, a photo of the hotel or a meal, or words alone; a time, a price, a chevron, an arrow or a tick at the end. The flight with a stop and the rental car open in place; each hotel goes one level deeper, to its booking, and back.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy.html?v=17">View larger</button>
+                  </figcaption>
+                </figure>
+                <figure class="proto">
+                  <iframe src="week-05-breezy-mobile.html?v=2" title="Breezy trip planner on the phone: the days as chips, a pastel folder per day; rides and the flight open in place, a hotel slides in from the right" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Trip planner, on the phone</b>
+                    <span>The same trip and row build at 390 wide, for one thumb: the days as a strip of chips that stays at the top, a pastel folder per day, the status under each title and the value at the end of its line. No hover, only touch: a press shows at once and lets go slowly. The flight, the rides and the rental car open in place; a hotel slides in from the right edge with its photos, and slides back.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy-mobile.html?v=2">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <p class="process-label">Trip planner</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/breezy-trip-1.png" alt="Breezy trip planner, step 1" loading="lazy" />
+                    <figcaption>First pass: one phone, one list. Sky fading to white, white cards with a 22px corner, DM Sans; every leading and trailing slot used once, both actions on the first day.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-2.png" alt="Breezy trip planner, step 2, on the web" loading="lazy" />
+                    <figcaption>Rebuilt for the web, 1280 wide: the sky behind the header, days in a column on the left, the plan in the middle; the flight's legs now lie along a route the plane flies across, and the hotel opens in the main column with an illustrated banner of Alfama.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-3.png" alt="Breezy trip planner, step 3, a full week" loading="lazy" />
+                    <figcaption>Filled like a real trip: six days, thirty-one plans, each with a time and a place; each day carries its weather, and the side panel follows the day being read; the rental car opens in place to its booking; both hotels go a level deeper.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-trip-4.png" alt="Breezy trip planner, step 4, one pastel folder per day on a night-sea board" loading="lazy" />
+                    <figcaption>Laid out like the Tabs sketch: a night-sea board, one pastel folder per day with the day on its tab and the day's plans as the list inside, each row led by its time. On the folder's shoulder, everyone going that day as faces and every way they get about as transport marks, then the weather.</figcaption>
+                  </figure>
+                  </div>
+              <p class="process-label">Trip planner, on the phone</p>
+              <div class="process-grid">
+                  <figure>
+                    <img src="images/process/breezy-phone-1.png" alt="Breezy on the phone, the trip" loading="lazy" />
+                    <figcaption>The web page's trip at 390 wide: the days as chips under the title, a folder per day with its day line and weather on top; each row puts its value at the end of the title's line and its status ahead of the details, so the title keeps its room.</figcaption>
+                  </figure>
+                  <figure>
+                    <img src="images/process/breezy-phone-2.png" alt="Breezy on the phone, a hotel" loading="lazy" />
+                    <figcaption>A hotel, pushed in from the right: its photos to swipe through, the stay and booking under them, the total and Directions kept at the thumb above the tab bar.</figcaption>
+                  </figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
       <h2>Brief</h2>
 
       <p>Two sets of list items, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
@@ -520,169 +683,6 @@
             <button type="button" class="viewer-open" data-src="week-05-helix.html">View larger</button>
           </figcaption>
         </figure>
-      </div>
-
-      <h2>Deliverables</h2>
-
-      <p>Two sets of list items, each a tone. Each set has the list system, every slot configuration from one build, and the list in use: a row that goes one level deeper and a row that opens in place. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
-
-      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
-           file names (week-05-TONE-{system,actions}.html, images/process/TONE-KIND-N.png).
-           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
-           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
-           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
-           Each prototype page holds the list first, then a Spec section read from its own CSS values.
-           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
-
-      <div class="set-grid">
-        <div class="set-box" id="set-1">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/movements-deeper-2.png" alt="" loading="lazy" /><img src="images/process/movements-timeline-4.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Archival</span><span class="set-line">A digital collection of modern art: every movement a numbered record, in its own colour, place by place.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Archival</span></span>
-              <button type="button" class="set-close" aria-label="Close set 1"></button>
-            </div>
-            <div class="set-body">
-              <h4>Prototypes</h4>
-              <div class="proto-grid">
-                <figure class="proto">
-                  <iframe src="week-05-movements-deeper.html?v=15" title="Modern art movements: clicking a block goes one level deeper, to a page for that movement in that place" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>One level deeper</b>
-                    <span>The same timeline. A block does not open under its row: clicking it slides the timeline away and brings in a page for that movement in that place, with where it came from and where else it went (each a way across), where it sits in the place's row, its artists as list rows and its works. “All places” or Esc comes back to the same spot.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements-deeper.html?v=15">View larger</button>
-                  </figcaption>
-                </figure>
-                <figure class="proto">
-                  <iframe src="week-05-movements.html?v=22" title="Modern art movements, 1850 to 2000: one row per place, blocks in each movement's colour following on and stacking" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>Opens in place</b>
-                    <span>Each place is a row; each movement a block as long as it lived there, stacking where two lived side by side. A movement keeps its colour wherever it went, so hovering one lights its other cities, with threads from where it began and, dashed, from what it grew out of. Every block is a button: it opens that one movement in place under its row, with its artists and representative works; an era above takes you one level down.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-movements.html?v=22">View larger</button>
-                  </figcaption>
-                </figure>
-              </div>
-              <h4>Process</h4>
-              <p>How the set got here, one tried version at a time, the last one now.</p>
-              <p class="process-label">One level deeper</p>
-              <div class="process-grid">
-                  <figure>
-                    <img src="images/process/movements-system-1.png" alt="Movements list system, a separate sheet, dropped" loading="lazy" />
-                    <figcaption>First, a separate sheet of the row in every configuration. Dropped: it showed the parts but no list doing either action.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-deeper-1.png" alt="Movements, one level deeper, step 2" loading="lazy" />
-                    <figcaption>Instead, the timeline itself goes one level deeper: a block opens a page for its movement in its place, with a way back and ways across.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-deeper-2.png" alt="Movements, one level deeper, archival tone" loading="lazy" />
-                    <figcaption>The tone named: Archival, as a museum’s online collection. White, black ink, each colour at the strength the art has, a mono record number on every movement (VIE-01), the place codes as index tabs.</figcaption>
-                  </figure>
-              </div>
-              <p class="process-label">Opens in place</p>
-              <div class="process-grid">
-                  <figure>
-                    <img src="images/process/mesozoic-timeline-1.png" alt="Mesozoic timeline, step 1" loading="lazy" />
-                    <figcaption>First pass: each box split into three bands stacked top to bottom, one per dinosaur group.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/mesozoic-timeline-2.png" alt="Mesozoic timeline, step 2" loading="lazy" />
-                    <figcaption>The groups laid end to end inside each box instead, like a row of book spines: a thinner bar that reads as one strip per region.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/mesozoic-timeline-3.png" alt="Mesozoic timeline, step 3" loading="lazy" />
-                    <figcaption>More to read: Cretaceous cut in four, each box named for its rock and finds, turning points along the top, and an opened row letting down a lane per group with its families.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-timeline-1.png" alt="Movements timeline, step 4" loading="lazy" />
-                    <figcaption>A new subject. Dinosaur periods change everywhere at once, so nothing overlapped or split. Modern art does both: movements reach each city late, live side by side and stack, split off and travel. Places as rows, a colour per movement taken from its art.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-timeline-2.png" alt="Movements timeline, step 5" loading="lazy" />
-                    <figcaption>More room: 1200 wide, lanes 20px instead of 11, rows set further apart, larger type, and every block that is long enough carries its name.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-timeline-3.png" alt="Movements timeline, step 6" loading="lazy" />
-                    <figcaption>Time made legible: lines run through every row, faint each 5 years, firmer each 25, firmest each 50, with the years again at the foot. And bigger still: 1440 wide, 28px lanes, the place names at 21.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/movements-timeline-4.png" alt="Movements timeline, archival tone" loading="lazy" />
-                    <figcaption>Archival, as a digital collection: off the warm paper onto white, colours back to full strength, record numbers in mono on every block, index tabs for places, no disclaimers.</figcaption>
-                  </figure>
-              </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-2">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/breezy-trip-4.png" alt="" loading="lazy" /><img src="images/process/breezy-phone-thumb.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Breezy</span><span class="set-line">A trip planner like the first morning of a holiday: sky, sea and sand, soft round cards, motion with a little give.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Breezy</span></span>
-              <button type="button" class="set-close" aria-label="Close set 2"></button>
-            </div>
-            <div class="set-body">
-              <h4>Prototypes</h4>
-              <div class="proto-grid">
-                <figure class="proto">
-                  <iframe src="week-05-breezy.html?v=17" title="Breezy trip planner: a day's plan as one list; a flight with a stop opens in place, the hotel goes one level deeper" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>Trip planner, on the web</b>
-                    <span>A trip planner on the web: six days down the side with their weather, the plan in the middle, built from one row: an airline or train mark, a friend, a photo of the hotel or a meal, or words alone; a time, a price, a chevron, an arrow or a tick at the end. The flight with a stop and the rental car open in place; each hotel goes one level deeper, to its booking, and back.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy.html?v=17">View larger</button>
-                  </figcaption>
-                </figure>
-                <figure class="proto">
-                  <iframe src="week-05-breezy-mobile.html?v=2" title="Breezy trip planner on the phone: the days as chips, a pastel folder per day; rides and the flight open in place, a hotel slides in from the right" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>Trip planner, on the phone</b>
-                    <span>The same trip and row build at 390 wide, for one thumb: the days as a strip of chips that stays at the top, a pastel folder per day, the status under each title and the value at the end of its line. No hover, only touch: a press shows at once and lets go slowly. The flight, the rides and the rental car open in place; a hotel slides in from the right edge with its photos, and slides back.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-05-breezy-mobile.html?v=2">View larger</button>
-                  </figcaption>
-                </figure>
-              </div>
-              <h4>Process</h4>
-              <p>How the set got here, one tried version at a time, the last one now.</p>
-              <p class="process-label">Trip planner</p>
-              <div class="process-grid">
-                  <figure>
-                    <img src="images/process/breezy-trip-1.png" alt="Breezy trip planner, step 1" loading="lazy" />
-                    <figcaption>First pass: one phone, one list. Sky fading to white, white cards with a 22px corner, DM Sans; every leading and trailing slot used once, both actions on the first day.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/breezy-trip-2.png" alt="Breezy trip planner, step 2, on the web" loading="lazy" />
-                    <figcaption>Rebuilt for the web, 1280 wide: the sky behind the header, days in a column on the left, the plan in the middle; the flight's legs now lie along a route the plane flies across, and the hotel opens in the main column with an illustrated banner of Alfama.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/breezy-trip-3.png" alt="Breezy trip planner, step 3, a full week" loading="lazy" />
-                    <figcaption>Filled like a real trip: six days, thirty-one plans, each with a time and a place; each day carries its weather, and the side panel follows the day being read; the rental car opens in place to its booking; both hotels go a level deeper.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/breezy-trip-4.png" alt="Breezy trip planner, step 4, one pastel folder per day on a night-sea board" loading="lazy" />
-                    <figcaption>Laid out like the Tabs sketch: a night-sea board, one pastel folder per day with the day on its tab and the day's plans as the list inside, each row led by its time. On the folder's shoulder, everyone going that day as faces and every way they get about as transport marks, then the weather.</figcaption>
-                  </figure>
-                  </div>
-              <p class="process-label">Trip planner, on the phone</p>
-              <div class="process-grid">
-                  <figure>
-                    <img src="images/process/breezy-phone-1.png" alt="Breezy on the phone, the trip" loading="lazy" />
-                    <figcaption>The web page's trip at 390 wide: the days as chips under the title, a folder per day with its day line and weather on top; each row puts its value at the end of the title's line and its status ahead of the details, so the title keeps its room.</figcaption>
-                  </figure>
-                  <figure>
-                    <img src="images/process/breezy-phone-2.png" alt="Breezy on the phone, a hotel" loading="lazy" />
-                    <figcaption>A hotel, pushed in from the right: its photos to swipe through, the stay and booking under them, the total and Directions kept at the thumb above the tab bar.</figcaption>
-                  </figure>
-              </div>
-            </div>
-          </dialog>
-        </div>
       </div>
 
       <footer class="sources">

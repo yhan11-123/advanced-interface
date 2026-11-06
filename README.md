@@ -12,7 +12,7 @@ Double-click `index.html`. That is the whole workflow. Edit a file, save, refres
 
 1. Duplicate the `_template` folder and rename it `week-02`, `week-03`, and so on.
 2. Rename the two files inside it the same way: `week-00.html` becomes `week-02.html`, and `week-00-demo.html` becomes `week-02-demo.html`. Every file carries its week number, so nothing is ever called `index.html` twice.
-3. Open `week-02/week-02.html` and fill in the title, date, tags, and the Process, Result and Critique sections.
+3. Open `week-02/week-02.html` and fill in the title, date, tags, and the Result, Process and Critique sections (the finished work always comes first, then how it was reached).
 4. Build the experiment in `week-02/week-02-demo.html`. It shows up inside the page automatically and also opens on its own.
 5. Put sketches and screenshots in `week-02/images/` and point at them with `<img src="images/sketch.png" />`.
 6. Open `index.html` and replace the `Week 02 Upcoming` row with a filled-in row. Copy the Week 01 row as the model.

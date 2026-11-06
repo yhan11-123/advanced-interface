@@ -95,6 +95,104 @@
 
     <article class="prose">
 
+      <h2>Deliverables</h2>
+
+      <p>Two sets of menus, each a tone. Each set has the menu system, every item configuration from one build, and the menu in use: sections, a submenu, and every item answering hover and press. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file names (week-06-TONE-{system,menu}.html, images/process/TONE-KIND-N.png).
+           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
+           Each prototype page holds the menu first, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/vault-menu-1.png?v=14" alt="" loading="lazy" /><img src="images/process/vault-system-1.png?v=12" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Vault</span><span class="set-line">Futuristic. The field menu of a sci-fi salvage game, after a holographic file database: a board of glass grows out of the MENU prompt, and each of its items, plain boxes in sections, is built in steps like stacked frames: corner nodes, a footprint drawn out of them, a dotted layer, then the box on top.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Vault</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1200/540" src="week-06-vault-menu.html?v=15" title="Vault in use and every state: a holographic file database, then every tile configuration in enabled, hover, pressed and open" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>Shut, the menu is a MENU prompt. Click it or press Tab: the glass grows out of the prompt itself, its two corners leaving the prompt&rsquo;s corners for the board&rsquo;s, then the boxes are built left to right, each in steps: two corner nodes land, a footprint is drawn out of them, a dotted layer rises, the box rises on top with an edge flash, and its writing comes up last. Point at a box and it steps up; press it and it lights through. Gear&rsquo;s rack grows out of Gear the same way and rises above the board, centred over it, a row of three boxes. Picked or put away, the boxes come down and the glass draws back onto what opened it. Arrows move between tiles; Esc, Resume or a click outside takes the boxes down right to left, the same five steps backwards and each one visible, and draws the glass back onto the prompt. Under it, every state: one tile build in every configuration (label only, left icon, key, badge, right icon, a note line, a submenu tile and a tile in the submenu, unavailable, a section) in enabled, hover, pressed, and open or chosen. The spec follows.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-06-vault-menu.html?v=15">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>Three game menus; the last one stayed. (Ledger, a finance app, moved to Rail, the wallet.)</p>
+              <p class="process-label">In use</p>
+              <div class="process-grid">
+                <figure><img src="images/process/seance-menu-1.png" alt="S&eacute;ance, a horror game&rsquo;s menu on a spirit board" loading="lazy" /><figcaption>S&eacute;ance: a horror game on a spirit board.</figcaption></figure>
+                <figure><img src="images/process/harvest-menu-1.png" alt="Harvest, a pixel farming game&rsquo;s menu" loading="lazy" /><figcaption>Harvest: a pixel farm, moving in steps.</figcaption></figure>
+                <figure><img src="images/process/vault-menu-0.png?v=12" alt="Vault, the menu shut" loading="lazy" /><figcaption>Vault, shut: only the MENU prompt.</figcaption></figure>
+                <figure><img src="images/process/vault-menu-1.png?v=14" alt="Vault, the menu and its submenu open" loading="lazy" /><figcaption>Vault, open: Gear&rsquo;s rack risen out of Gear, above the board.</figcaption></figure>
+              </div>
+              <p class="process-label">Menu system</p>
+              <div class="process-grid">
+                <figure><img src="images/process/vault-system-1.png?v=12" alt="Vault menu system" loading="lazy" /><figcaption>Every configuration in three states.</figcaption></figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/rail-menu-1.png?v=40" alt="" loading="lazy" /><img src="images/process/rail-system-1.png?v=42" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Rail</span><span class="set-line">Sharp and quick, and a little liquid. The Notch sketch turned for the web: a thin green-to-blue rail down the side of a pale page, a scoop cut into it, and the wallet menu dripping out of the scoop as a sheet, joined to the button by a liquid neck. One highlight flows from row to row like a bead of liquid, a deep green rim on its left.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Rail</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1200/760" src="week-06-rail-menu.html?v=41" title="Rail in use and every state: a wallet web app whose menu drips out of the rail's scoop as a sheet on a liquid neck, then every row configuration and the menu button in their states" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>A wallet web app. The menu starts shut: a round button sitting in a scoop cut into the rail. Press it and its lines turn to a cross, the scoop opens wider, a liquid neck runs out of the button and a sheet swells from its end, staying joined to the button by that neck. Its rows come in from the middle outward. Point at a row and one highlight flows to it like a bead of liquid, a deep green rim on its left, while the label scrambles; Freeze card is a toggle that flips in place and leaves the menu open; Currency drips its own small sheet out to the right and changes the balances. Arrows move along the list, &rarr; opens Currency, &larr; or Esc steps back. Under it, every state: one row in every configuration (no icon, an icon, a shortcut, a badge, an arrow, a toggle off and on, a submenu row and a choice in it, unavailable, a section) in enabled, hover and pressed, then the round button at rest, hover, pressed and open. The spec follows.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-06-rail-menu.html?v=41">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>A wallet&rsquo;s menu. It began as Ledger, a finance app&rsquo;s Move money menu, then took the Notch sketch&rsquo;s frame: a button in a scoop of the rail. The style went through Signal, a half ring and a dial; long labels never sat well on a curve, so it came back to a straight sheet, dripping out of the scoop on a liquid neck.</p>
+              <p class="process-label">In use</p>
+              <div class="process-grid">
+                <figure><img src="images/process/ledger-menu-1.png" alt="Ledger, a finance app&rsquo;s Move money menu" loading="lazy" /><figcaption>First: Ledger, a finance app&rsquo;s Move money menu, smooth springs.</figcaption></figure>
+                <figure><img src="images/process/rail-soft-menu-1.png?v=1" alt="Rail, first: soft green to blue, a springy bloom" loading="lazy" /><figcaption>Rail: the Notch frame, soft green to blue, a springy bloom.</figcaption></figure>
+                <figure><img src="images/process/signal-menu-1.png?v=1" alt="Signal, a studio's full-page orange menu" loading="lazy" /><figcaption>A style tried on its own: Signal.</figcaption></figure>
+                <figure><img src="images/process/rail-signal-menu-1.png?v=1" alt="Rail in the Signal style: orange on a dark page" loading="lazy" /><figcaption>Rail in the Signal style: orange rows, a slanted bar.</figcaption></figure>
+                <figure><img src="images/process/rail-menu-0.png?v=40" alt="Rail, the menu shut" loading="lazy" /><figcaption>Now, shut: the button in the scoop.</figcaption></figure>
+                <figure><img src="images/process/rail-menu-1.png?v=40" alt="Rail, the menu and Currency&rsquo;s sheet open" loading="lazy" /><figcaption>Now, open: the sheet on its neck, Currency&rsquo;s own sheet beside it.</figcaption></figure>
+              </div>
+              <p class="process-label">Menu system</p>
+              <div class="process-grid">
+                <figure><img src="images/process/rail-system-1.png?v=42" alt="Rail menu system" loading="lazy" /><figcaption>Every row configuration in three states, and the button.</figcaption></figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+      </div>
+      </div>
+      </div>
+
       <h2>Brief</h2>
 
       <p>Two sets of menus, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
@@ -590,104 +688,6 @@
             <button type="button" class="viewer-open" data-src="week-06-saveroom.html">View larger</button>
           </figcaption>
         </figure>
-      </div>
-
-      <h2>Deliverables</h2>
-
-      <p>Two sets of menus, each a tone. Each set has the menu system, every item configuration from one build, and the menu in use: sections, a submenu, and every item answering hover and press. Open a set to try its prototypes, each with its spec, then see how they got there.</p>
-
-      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
-           file names (week-06-TONE-{system,menu}.html, images/process/TONE-KIND-N.png).
-           Filling a prototype: build it as its own page, swap <div class="proto-art">…</div> for
-           <iframe src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
-           <span class="soon"> into <button type="button" class="viewer-open" data-src="…">View larger</button>.
-           Each prototype page holds the menu first, then a Spec section read from its own CSS values.
-           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
-
-      <div class="set-grid">
-        <div class="set-box" id="set-1">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/vault-menu-1.png?v=14" alt="" loading="lazy" /><img src="images/process/vault-system-1.png?v=12" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Vault</span><span class="set-line">Futuristic. The field menu of a sci-fi salvage game, after a holographic file database: a board of glass grows out of the MENU prompt, and each of its items, plain boxes in sections, is built in steps like stacked frames: corner nodes, a footprint drawn out of them, a dotted layer, then the box on top.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Vault</span></span>
-              <button type="button" class="set-close" aria-label="Close set 1"></button>
-            </div>
-            <div class="set-body">
-              <h4>Prototypes</h4>
-              <div class="proto-grid" style="grid-template-columns:1fr">
-                <figure class="proto">
-                  <iframe style="height:auto;aspect-ratio:1200/540" src="week-06-vault-menu.html?v=15" title="Vault in use and every state: a holographic file database, then every tile configuration in enabled, hover, pressed and open" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>In use and every state</b>
-                    <span>Shut, the menu is a MENU prompt. Click it or press Tab: the glass grows out of the prompt itself, its two corners leaving the prompt&rsquo;s corners for the board&rsquo;s, then the boxes are built left to right, each in steps: two corner nodes land, a footprint is drawn out of them, a dotted layer rises, the box rises on top with an edge flash, and its writing comes up last. Point at a box and it steps up; press it and it lights through. Gear&rsquo;s rack grows out of Gear the same way and rises above the board, centred over it, a row of three boxes. Picked or put away, the boxes come down and the glass draws back onto what opened it. Arrows move between tiles; Esc, Resume or a click outside takes the boxes down right to left, the same five steps backwards and each one visible, and draws the glass back onto the prompt. Under it, every state: one tile build in every configuration (label only, left icon, key, badge, right icon, a note line, a submenu tile and a tile in the submenu, unavailable, a section) in enabled, hover, pressed, and open or chosen. The spec follows.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-06-vault-menu.html?v=15">View larger</button>
-                  </figcaption>
-                </figure>
-              </div>
-              <h4>Process</h4>
-              <p>Three game menus; the last one stayed. (Ledger, a finance app, moved to Rail, the wallet.)</p>
-              <p class="process-label">In use</p>
-              <div class="process-grid">
-                <figure><img src="images/process/seance-menu-1.png" alt="S&eacute;ance, a horror game&rsquo;s menu on a spirit board" loading="lazy" /><figcaption>S&eacute;ance: a horror game on a spirit board.</figcaption></figure>
-                <figure><img src="images/process/harvest-menu-1.png" alt="Harvest, a pixel farming game&rsquo;s menu" loading="lazy" /><figcaption>Harvest: a pixel farm, moving in steps.</figcaption></figure>
-                <figure><img src="images/process/vault-menu-0.png?v=12" alt="Vault, the menu shut" loading="lazy" /><figcaption>Vault, shut: only the MENU prompt.</figcaption></figure>
-                <figure><img src="images/process/vault-menu-1.png?v=14" alt="Vault, the menu and its submenu open" loading="lazy" /><figcaption>Vault, open: Gear&rsquo;s rack risen out of Gear, above the board.</figcaption></figure>
-              </div>
-              <p class="process-label">Menu system</p>
-              <div class="process-grid">
-                <figure><img src="images/process/vault-system-1.png?v=12" alt="Vault menu system" loading="lazy" /><figcaption>Every configuration in three states.</figcaption></figure>
-              </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-2">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/rail-menu-1.png?v=40" alt="" loading="lazy" /><img src="images/process/rail-system-1.png?v=42" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Rail</span><span class="set-line">Sharp and quick, and a little liquid. The Notch sketch turned for the web: a thin green-to-blue rail down the side of a pale page, a scoop cut into it, and the wallet menu dripping out of the scoop as a sheet, joined to the button by a liquid neck. One highlight flows from row to row like a bead of liquid, a deep green rim on its left.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Rail</span></span>
-              <button type="button" class="set-close" aria-label="Close set 2"></button>
-            </div>
-            <div class="set-body">
-              <h4>Prototypes</h4>
-              <div class="proto-grid" style="grid-template-columns:1fr">
-                <figure class="proto">
-                  <iframe style="height:auto;aspect-ratio:1200/760" src="week-06-rail-menu.html?v=41" title="Rail in use and every state: a wallet web app whose menu drips out of the rail's scoop as a sheet on a liquid neck, then every row configuration and the menu button in their states" loading="lazy"></iframe>
-                  <figcaption>
-                    <b>In use and every state</b>
-                    <span>A wallet web app. The menu starts shut: a round button sitting in a scoop cut into the rail. Press it and its lines turn to a cross, the scoop opens wider, a liquid neck runs out of the button and a sheet swells from its end, staying joined to the button by that neck. Its rows come in from the middle outward. Point at a row and one highlight flows to it like a bead of liquid, a deep green rim on its left, while the label scrambles; Freeze card is a toggle that flips in place and leaves the menu open; Currency drips its own small sheet out to the right and changes the balances. Arrows move along the list, &rarr; opens Currency, &larr; or Esc steps back. Under it, every state: one row in every configuration (no icon, an icon, a shortcut, a badge, an arrow, a toggle off and on, a submenu row and a choice in it, unavailable, a section) in enabled, hover and pressed, then the round button at rest, hover, pressed and open. The spec follows.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-06-rail-menu.html?v=41">View larger</button>
-                  </figcaption>
-                </figure>
-              </div>
-              <h4>Process</h4>
-              <p>A wallet&rsquo;s menu. It began as Ledger, a finance app&rsquo;s Move money menu, then took the Notch sketch&rsquo;s frame: a button in a scoop of the rail. The style went through Signal, a half ring and a dial; long labels never sat well on a curve, so it came back to a straight sheet, dripping out of the scoop on a liquid neck.</p>
-              <p class="process-label">In use</p>
-              <div class="process-grid">
-                <figure><img src="images/process/ledger-menu-1.png" alt="Ledger, a finance app&rsquo;s Move money menu" loading="lazy" /><figcaption>First: Ledger, a finance app&rsquo;s Move money menu, smooth springs.</figcaption></figure>
-                <figure><img src="images/process/rail-soft-menu-1.png?v=1" alt="Rail, first: soft green to blue, a springy bloom" loading="lazy" /><figcaption>Rail: the Notch frame, soft green to blue, a springy bloom.</figcaption></figure>
-                <figure><img src="images/process/signal-menu-1.png?v=1" alt="Signal, a studio's full-page orange menu" loading="lazy" /><figcaption>A style tried on its own: Signal.</figcaption></figure>
-                <figure><img src="images/process/rail-signal-menu-1.png?v=1" alt="Rail in the Signal style: orange on a dark page" loading="lazy" /><figcaption>Rail in the Signal style: orange rows, a slanted bar.</figcaption></figure>
-                <figure><img src="images/process/rail-menu-0.png?v=40" alt="Rail, the menu shut" loading="lazy" /><figcaption>Now, shut: the button in the scoop.</figcaption></figure>
-                <figure><img src="images/process/rail-menu-1.png?v=40" alt="Rail, the menu and Currency&rsquo;s sheet open" loading="lazy" /><figcaption>Now, open: the sheet on its neck, Currency&rsquo;s own sheet beside it.</figcaption></figure>
-              </div>
-              <p class="process-label">Menu system</p>
-              <div class="process-grid">
-                <figure><img src="images/process/rail-system-1.png?v=42" alt="Rail menu system" loading="lazy" /><figcaption>Every row configuration in three states, and the button.</figcaption></figure>
-              </div>
-            </div>
-          </dialog>
-        </div>
-      </div>
-      </div>
-      </div>
       </div>
 
       <footer class="sources">

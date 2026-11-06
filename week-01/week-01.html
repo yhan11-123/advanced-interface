@@ -35,6 +35,294 @@
 
     <article class="prose">
 
+      <h2>Deliverables</h2>
+
+      <p>Six indicators, a pair for each tone: one indeterminate, one determinate. Open a set to try its moving prototypes, then see how they got there.</p>
+
+      <!-- Each set is a .set-box: a card (the newest indeterminate and determinate frames, the name, a line
+           on the tone) that opens a <dialog class="set-dialog"> holding the prototypes first, then the process.
+           Filling a prototype: build it as its own page under the name shown,
+           swap <div class="proto-art">…</div> for
+           <iframe src="week-01-TONE-KIND.html" title="…" loading="lazy"></iframe>,
+           drop the is-empty class, and turn <span class="soon"> into a
+           <button type="button" class="viewer-open" data-src="…">View larger</button>. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-nostalgic">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-nostalgic">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/nostalgic-indeterminate-5.png" alt="" loading="lazy" /><img src="images/process/nostalgic-determinate-4.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Nostalgic</span><span class="set-line">An old train at dusk: evening fields past its window, a steam engine across the rice field.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-nostalgic" aria-labelledby="dlg-nostalgic-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-nostalgic-title">Nostalgic</span></span>
+              <button type="button" class="set-close" aria-label="Close Nostalgic"></button>
+            </div>
+            <div class="set-body">
+            <h4>Prototypes</h4>
+
+            <div class="proto-grid">
+              <figure class="proto">
+                <iframe src="week-01-nostalgic-indeterminate.html" title="Nostalgic indeterminate prototype: the view from inside the train" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Indeterminate</b>
+                  <span>Evening fields passing the window of an old train, jolting now and then.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-nostalgic-indeterminate.html">View larger</button>
+                </figcaption>
+              </figure>
+              <figure class="proto">
+                <iframe src="week-01-nostalgic-determinate.html" title="Nostalgic determinate prototype: a train across a field" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Determinate</b>
+                  <span>A steam train pulls out along a rice field; how much of it shows is the progress.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-nostalgic-determinate.html">View larger</button>
+                </figcaption>
+              </figure>
+            </div>
+
+            <h4>Process</h4>
+
+            <p>How the pair got here, one saved version at a time.</p>
+
+            <p class="process-label">Determinate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/nostalgic-determinate-1.png" alt="Nostalgic determinate, step 1" loading="lazy" />
+                  <figcaption>A local train crossing the whole landscape: sky, tree line, poles and wires, a signal at the end of the line.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-determinate-2.png" alt="Nostalgic determinate, step 2" loading="lazy" />
+                  <figcaption>Everything cut but the train and the field, with evening light and wind moving through the grass.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-determinate-3.png" alt="Nostalgic determinate, step 3" loading="lazy" />
+                  <figcaption>An old steam engine and coaches, a post and a buffer stop to mark start and end, the percentage in the grass.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-determinate-4.png" alt="Nostalgic determinate, step 4" loading="lazy" />
+                  <figcaption>Now: amber page, ragged field edges, shorter wheels, sooty smoke, a smaller figure.</figcaption>
+                </figure>
+            </div>
+
+            <p class="process-label">Indeterminate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/nostalgic-indeterminate-1.png" alt="Nostalgic indeterminate, step 1" loading="lazy" />
+                  <figcaption>First view from inside: a wood-panelled wall, rack, handles and two boxy seats.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-indeterminate-2.png" alt="Nostalgic indeterminate, step 2" loading="lazy" />
+                  <figcaption>Wall colour dropped for outline; the seats simplified to one line each.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-indeterminate-3.png" alt="Nostalgic indeterminate, step 3" loading="lazy" />
+                  <figcaption>Seats drawn in full after a reference, a striped bench and a seat back. They floated, and read as props.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-indeterminate-4.png" alt="Nostalgic indeterminate, step 4" loading="lazy" />
+                  <figcaption>Seats gone. Only lines that say train: window, sill, rack, a hanging strap.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/nostalgic-indeterminate-5.png" alt="Nostalgic indeterminate, step 5" loading="lazy" />
+                  <figcaption>Now: no strap, and the window, sill and rack drawn in more careful line.</figcaption>
+                </figure>
+            </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-serene">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-serene">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/serene-indeterminate-4.png" alt="" loading="lazy" /><img src="images/process/serene-determinate-5.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Serene</span><span class="set-line">After the Reeds sketch: a field of stems that ripple, and rise to fill the frame.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-serene" aria-labelledby="dlg-serene-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-serene-title">Serene</span></span>
+              <button type="button" class="set-close" aria-label="Close Serene"></button>
+            </div>
+            <div class="set-body">
+            <h4>Prototypes</h4>
+
+            <div class="proto-grid">
+              <figure class="proto">
+                <iframe src="week-01-serene-indeterminate.html?v=3" title="Serene indeterminate prototype: a rippling field of stems" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Indeterminate</b>
+                  <span>The Reeds field in cool blues, softly blurred, rippling low and endlessly.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-serene-indeterminate.html?v=3">View larger</button>
+                </figcaption>
+              </figure>
+              <figure class="proto">
+                <iframe src="week-01-serene-determinate.html?v=3" title="Serene determinate prototype: a field of stems rising to fill its frame" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Determinate</b>
+                  <span>The same soft reeds grow up the frame; at 100% every stem reaches the top.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-serene-determinate.html?v=3">View larger</button>
+                </figcaption>
+              </figure>
+            </div>
+
+            <h4>Process</h4>
+
+            <p>How the pair got here from the Reeds sketch, one saved version at a time.</p>
+
+            <p class="process-label">Determinate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/serene-determinate-1.png" alt="Serene determinate, step 1" loading="lazy" />
+                  <figcaption>First pass as pure graphic: thin bars on a bare page, growing one by one from the left into a soft wave.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-determinate-2.png" alt="Serene determinate, step 2" loading="lazy" />
+                  <figcaption>Back to the reeds field as it was, layered rows and wave, now in sage and mist inside a thin rounded frame, rising from the bottom.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-determinate-3.png" alt="Serene determinate, step 3" loading="lazy" />
+                  <figcaption>Rows lean closer as they rise, so at 100% every reed reaches the top of the frame.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-determinate-4.png" alt="Serene determinate, step 4" loading="lazy" />
+                  <figcaption>Frame outline and the white tips gone; the colours turned cool, teal over deep blue.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-determinate-5.png" alt="Serene determinate, step 5" loading="lazy" />
+                  <figcaption>Now: a slower fill, 11 to 18 seconds, and the back rows stand further above the front.</figcaption>
+                </figure>
+            </div>
+
+            <p class="process-label">Indeterminate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/serene-indeterminate-1.png" alt="Serene indeterminate, step 1" loading="lazy" />
+                  <figcaption>First pass as pure graphic: two interlocking rows of bars under one long, slow wave.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-indeterminate-2.png" alt="Serene indeterminate, step 2" loading="lazy" />
+                  <figcaption>The reeds field kept whole, layers and wave, with rounded tips and a sage and mist palette in a thin frame.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-indeterminate-3.png" alt="Serene indeterminate, step 3" loading="lazy" />
+                  <figcaption>The whole field lowered so the tips sway around the middle of the frame, the top half left empty.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/serene-indeterminate-4.png" alt="Serene indeterminate, step 4" loading="lazy" />
+                  <figcaption>Now: no outline, no white tips, cool teal and blue.</figcaption>
+                </figure>
+            </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-edgy">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-edgy">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/edgy-indeterminate-4.png" alt="" loading="lazy" /><img src="images/process/edgy-determinate-11.png" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Edgy</span><span class="set-line">After the Crack sketch: brushed steel panels parted by cracks, yellow tears to the edges.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-edgy" aria-labelledby="dlg-edgy-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-edgy-title">Edgy</span></span>
+              <button type="button" class="set-close" aria-label="Close Edgy"></button>
+            </div>
+            <div class="set-body">
+            <h4>Prototypes</h4>
+
+            <div class="proto-grid">
+              <figure class="proto">
+                <iframe src="week-01-edgy-indeterminate.html" title="Edgy indeterminate prototype: four panels parted by two wandering cracks" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Indeterminate</b>
+                  <span>The Crack sketch in brushed stainless steel: four panels parted by bold, wandering cracks.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-edgy-indeterminate.html">View larger</button>
+                </figcaption>
+              </figure>
+              <figure class="proto">
+                <iframe src="week-01-edgy-determinate.html" title="Edgy determinate prototype: yellow cracks tearing open from the middle out to the edges" loading="lazy"></iframe>
+                <figcaption>
+                  <b>Determinate</b>
+                  <span>Rough yellow cracks tear open from the middle; reaching every edge is 100%.</span>
+                  <button type="button" class="viewer-open" data-src="week-01-edgy-determinate.html">View larger</button>
+                </figcaption>
+              </figure>
+            </div>
+
+            <h4>Process</h4>
+
+            <p>How the pair got here from the Crack sketch, one saved version at a time.</p>
+
+            <p class="process-label">Determinate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/edgy-determinate-1.png" alt="Edgy determinate, step 1" loading="lazy" />
+                  <figcaption>First try: the crossing driven from corner to corner.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-2.png" alt="Edgy determinate, step 2" loading="lazy" />
+                  <figcaption>Four jagged arms, cracking one at a time in a jumbled order.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-3.png" alt="Edgy determinate, step 3" loading="lazy" />
+                  <figcaption>The same arms, made sleek.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-4.png" alt="Edgy determinate, step 4" loading="lazy" />
+                  <figcaption>After a reference: pieces breaking off in rings.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-5.png" alt="Edgy determinate, step 5" loading="lazy" />
+                  <figcaption>A crack that spreads from the middle like mercury, the percentage in one face.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-6.png" alt="Edgy determinate, step 6" loading="lazy" />
+                  <figcaption>The panel in brushed metal.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-7.png" alt="Edgy determinate, step 7" loading="lazy" />
+                  <figcaption>Plates, each brushed its own way.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-8.png" alt="Edgy determinate, step 8" loading="lazy" />
+                  <figcaption>Inverted: a black panel, metal in the cracks.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-9.png" alt="Edgy determinate, step 9" loading="lazy" />
+                  <figcaption>Liquid chrome after a reference.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-10.png" alt="Edgy determinate, step 10" loading="lazy" />
+                  <figcaption>Metal only in the cracks, made raw.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-determinate-11.png" alt="Edgy determinate, step 11" loading="lazy" />
+                  <figcaption>Now: rough yellow streaks along each crack, light figures.</figcaption>
+                </figure>
+            </div>
+
+            <p class="process-label">Indeterminate</p>
+            <div class="process-grid">
+                <figure>
+                  <img src="images/process/edgy-indeterminate-1.png" alt="Edgy indeterminate, step 1" loading="lazy" />
+                  <figcaption>The Crack sketch as it was: pale panels.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-indeterminate-2.png" alt="Edgy indeterminate, step 2" loading="lazy" />
+                  <figcaption>Brushed stainless steel.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-indeterminate-3.png" alt="Edgy indeterminate, step 3" loading="lazy" />
+                  <figcaption>Bolder gaps between the panels.</figcaption>
+                </figure>
+                <figure>
+                  <img src="images/process/edgy-indeterminate-4.png" alt="Edgy indeterminate, step 4" loading="lazy" />
+                  <figcaption>Now: each crack its own width and lean, so the gap turns tall, wide or rhombic.</figcaption>
+                </figure>
+            </div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
       <h2>Research</h2>
 
       <p>Started with loading as a topic rather than with sketches, because determinate and indeterminate is not a style choice. It is a claim about what the system knows.</p>
@@ -485,294 +773,6 @@
             <button type="button" class="viewer-open" data-src="week-01-pingpong.html">View larger</button>
           </figcaption>
         </figure>
-      </div>
-
-      <h2>Deliverables</h2>
-
-      <p>Six indicators, a pair for each tone: one indeterminate, one determinate. Open a set to try its moving prototypes, then see how they got there.</p>
-
-      <!-- Each set is a .set-box: a card (the newest indeterminate and determinate frames, the name, a line
-           on the tone) that opens a <dialog class="set-dialog"> holding the prototypes first, then the process.
-           Filling a prototype: build it as its own page under the name shown,
-           swap <div class="proto-art">…</div> for
-           <iframe src="week-01-TONE-KIND.html" title="…" loading="lazy"></iframe>,
-           drop the is-empty class, and turn <span class="soon"> into a
-           <button type="button" class="viewer-open" data-src="…">View larger</button>. -->
-
-      <div class="set-grid">
-        <div class="set-box" id="set-nostalgic">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-nostalgic">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/nostalgic-indeterminate-5.png" alt="" loading="lazy" /><img src="images/process/nostalgic-determinate-4.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Nostalgic</span><span class="set-line">An old train at dusk: evening fields past its window, a steam engine across the rice field.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-nostalgic" aria-labelledby="dlg-nostalgic-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-nostalgic-title">Nostalgic</span></span>
-              <button type="button" class="set-close" aria-label="Close Nostalgic"></button>
-            </div>
-            <div class="set-body">
-            <h4>Prototypes</h4>
-
-            <div class="proto-grid">
-              <figure class="proto">
-                <iframe src="week-01-nostalgic-indeterminate.html" title="Nostalgic indeterminate prototype: the view from inside the train" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Indeterminate</b>
-                  <span>Evening fields passing the window of an old train, jolting now and then.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-nostalgic-indeterminate.html">View larger</button>
-                </figcaption>
-              </figure>
-              <figure class="proto">
-                <iframe src="week-01-nostalgic-determinate.html" title="Nostalgic determinate prototype: a train across a field" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Determinate</b>
-                  <span>A steam train pulls out along a rice field; how much of it shows is the progress.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-nostalgic-determinate.html">View larger</button>
-                </figcaption>
-              </figure>
-            </div>
-
-            <h4>Process</h4>
-
-            <p>How the pair got here, one saved version at a time.</p>
-
-            <p class="process-label">Determinate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/nostalgic-determinate-1.png" alt="Nostalgic determinate, step 1" loading="lazy" />
-                  <figcaption>A local train crossing the whole landscape: sky, tree line, poles and wires, a signal at the end of the line.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-determinate-2.png" alt="Nostalgic determinate, step 2" loading="lazy" />
-                  <figcaption>Everything cut but the train and the field, with evening light and wind moving through the grass.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-determinate-3.png" alt="Nostalgic determinate, step 3" loading="lazy" />
-                  <figcaption>An old steam engine and coaches, a post and a buffer stop to mark start and end, the percentage in the grass.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-determinate-4.png" alt="Nostalgic determinate, step 4" loading="lazy" />
-                  <figcaption>Now: amber page, ragged field edges, shorter wheels, sooty smoke, a smaller figure.</figcaption>
-                </figure>
-            </div>
-
-            <p class="process-label">Indeterminate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/nostalgic-indeterminate-1.png" alt="Nostalgic indeterminate, step 1" loading="lazy" />
-                  <figcaption>First view from inside: a wood-panelled wall, rack, handles and two boxy seats.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-indeterminate-2.png" alt="Nostalgic indeterminate, step 2" loading="lazy" />
-                  <figcaption>Wall colour dropped for outline; the seats simplified to one line each.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-indeterminate-3.png" alt="Nostalgic indeterminate, step 3" loading="lazy" />
-                  <figcaption>Seats drawn in full after a reference, a striped bench and a seat back. They floated, and read as props.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-indeterminate-4.png" alt="Nostalgic indeterminate, step 4" loading="lazy" />
-                  <figcaption>Seats gone. Only lines that say train: window, sill, rack, a hanging strap.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/nostalgic-indeterminate-5.png" alt="Nostalgic indeterminate, step 5" loading="lazy" />
-                  <figcaption>Now: no strap, and the window, sill and rack drawn in more careful line.</figcaption>
-                </figure>
-            </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-serene">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-serene">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/serene-indeterminate-4.png" alt="" loading="lazy" /><img src="images/process/serene-determinate-5.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Serene</span><span class="set-line">After the Reeds sketch: a field of stems that ripple, and rise to fill the frame.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-serene" aria-labelledby="dlg-serene-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-serene-title">Serene</span></span>
-              <button type="button" class="set-close" aria-label="Close Serene"></button>
-            </div>
-            <div class="set-body">
-            <h4>Prototypes</h4>
-
-            <div class="proto-grid">
-              <figure class="proto">
-                <iframe src="week-01-serene-indeterminate.html?v=3" title="Serene indeterminate prototype: a rippling field of stems" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Indeterminate</b>
-                  <span>The Reeds field in cool blues, softly blurred, rippling low and endlessly.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-serene-indeterminate.html?v=3">View larger</button>
-                </figcaption>
-              </figure>
-              <figure class="proto">
-                <iframe src="week-01-serene-determinate.html?v=3" title="Serene determinate prototype: a field of stems rising to fill its frame" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Determinate</b>
-                  <span>The same soft reeds grow up the frame; at 100% every stem reaches the top.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-serene-determinate.html?v=3">View larger</button>
-                </figcaption>
-              </figure>
-            </div>
-
-            <h4>Process</h4>
-
-            <p>How the pair got here from the Reeds sketch, one saved version at a time.</p>
-
-            <p class="process-label">Determinate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/serene-determinate-1.png" alt="Serene determinate, step 1" loading="lazy" />
-                  <figcaption>First pass as pure graphic: thin bars on a bare page, growing one by one from the left into a soft wave.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-determinate-2.png" alt="Serene determinate, step 2" loading="lazy" />
-                  <figcaption>Back to the reeds field as it was, layered rows and wave, now in sage and mist inside a thin rounded frame, rising from the bottom.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-determinate-3.png" alt="Serene determinate, step 3" loading="lazy" />
-                  <figcaption>Rows lean closer as they rise, so at 100% every reed reaches the top of the frame.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-determinate-4.png" alt="Serene determinate, step 4" loading="lazy" />
-                  <figcaption>Frame outline and the white tips gone; the colours turned cool, teal over deep blue.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-determinate-5.png" alt="Serene determinate, step 5" loading="lazy" />
-                  <figcaption>Now: a slower fill, 11 to 18 seconds, and the back rows stand further above the front.</figcaption>
-                </figure>
-            </div>
-
-            <p class="process-label">Indeterminate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/serene-indeterminate-1.png" alt="Serene indeterminate, step 1" loading="lazy" />
-                  <figcaption>First pass as pure graphic: two interlocking rows of bars under one long, slow wave.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-indeterminate-2.png" alt="Serene indeterminate, step 2" loading="lazy" />
-                  <figcaption>The reeds field kept whole, layers and wave, with rounded tips and a sage and mist palette in a thin frame.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-indeterminate-3.png" alt="Serene indeterminate, step 3" loading="lazy" />
-                  <figcaption>The whole field lowered so the tips sway around the middle of the frame, the top half left empty.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/serene-indeterminate-4.png" alt="Serene indeterminate, step 4" loading="lazy" />
-                  <figcaption>Now: no outline, no white tips, cool teal and blue.</figcaption>
-                </figure>
-            </div>
-            </div>
-          </dialog>
-        </div>
-        <div class="set-box" id="set-edgy">
-          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-edgy">
-            <span class="set-thumbs" aria-hidden="true"><img src="images/process/edgy-indeterminate-4.png" alt="" loading="lazy" /><img src="images/process/edgy-determinate-11.png" alt="" loading="lazy" /></span>
-            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Edgy</span><span class="set-line">After the Crack sketch: brushed steel panels parted by cracks, yellow tears to the edges.</span></span>
-            <span class="set-open" aria-hidden="true"></span>
-          </button>
-          <dialog class="set-dialog" id="dlg-edgy" aria-labelledby="dlg-edgy-title">
-            <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-edgy-title">Edgy</span></span>
-              <button type="button" class="set-close" aria-label="Close Edgy"></button>
-            </div>
-            <div class="set-body">
-            <h4>Prototypes</h4>
-
-            <div class="proto-grid">
-              <figure class="proto">
-                <iframe src="week-01-edgy-indeterminate.html" title="Edgy indeterminate prototype: four panels parted by two wandering cracks" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Indeterminate</b>
-                  <span>The Crack sketch in brushed stainless steel: four panels parted by bold, wandering cracks.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-edgy-indeterminate.html">View larger</button>
-                </figcaption>
-              </figure>
-              <figure class="proto">
-                <iframe src="week-01-edgy-determinate.html" title="Edgy determinate prototype: yellow cracks tearing open from the middle out to the edges" loading="lazy"></iframe>
-                <figcaption>
-                  <b>Determinate</b>
-                  <span>Rough yellow cracks tear open from the middle; reaching every edge is 100%.</span>
-                  <button type="button" class="viewer-open" data-src="week-01-edgy-determinate.html">View larger</button>
-                </figcaption>
-              </figure>
-            </div>
-
-            <h4>Process</h4>
-
-            <p>How the pair got here from the Crack sketch, one saved version at a time.</p>
-
-            <p class="process-label">Determinate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/edgy-determinate-1.png" alt="Edgy determinate, step 1" loading="lazy" />
-                  <figcaption>First try: the crossing driven from corner to corner.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-2.png" alt="Edgy determinate, step 2" loading="lazy" />
-                  <figcaption>Four jagged arms, cracking one at a time in a jumbled order.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-3.png" alt="Edgy determinate, step 3" loading="lazy" />
-                  <figcaption>The same arms, made sleek.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-4.png" alt="Edgy determinate, step 4" loading="lazy" />
-                  <figcaption>After a reference: pieces breaking off in rings.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-5.png" alt="Edgy determinate, step 5" loading="lazy" />
-                  <figcaption>A crack that spreads from the middle like mercury, the percentage in one face.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-6.png" alt="Edgy determinate, step 6" loading="lazy" />
-                  <figcaption>The panel in brushed metal.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-7.png" alt="Edgy determinate, step 7" loading="lazy" />
-                  <figcaption>Plates, each brushed its own way.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-8.png" alt="Edgy determinate, step 8" loading="lazy" />
-                  <figcaption>Inverted: a black panel, metal in the cracks.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-9.png" alt="Edgy determinate, step 9" loading="lazy" />
-                  <figcaption>Liquid chrome after a reference.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-10.png" alt="Edgy determinate, step 10" loading="lazy" />
-                  <figcaption>Metal only in the cracks, made raw.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-determinate-11.png" alt="Edgy determinate, step 11" loading="lazy" />
-                  <figcaption>Now: rough yellow streaks along each crack, light figures.</figcaption>
-                </figure>
-            </div>
-
-            <p class="process-label">Indeterminate</p>
-            <div class="process-grid">
-                <figure>
-                  <img src="images/process/edgy-indeterminate-1.png" alt="Edgy indeterminate, step 1" loading="lazy" />
-                  <figcaption>The Crack sketch as it was: pale panels.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-indeterminate-2.png" alt="Edgy indeterminate, step 2" loading="lazy" />
-                  <figcaption>Brushed stainless steel.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-indeterminate-3.png" alt="Edgy indeterminate, step 3" loading="lazy" />
-                  <figcaption>Bolder gaps between the panels.</figcaption>
-                </figure>
-                <figure>
-                  <img src="images/process/edgy-indeterminate-4.png" alt="Edgy indeterminate, step 4" loading="lazy" />
-                  <figcaption>Now: each crack its own width and lean, so the gap turns tall, wide or rhombic.</figcaption>
-                </figure>
-            </div>
-            </div>
-          </dialog>
-        </div>
       </div>
 
       <footer class="sources">
