@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Filters</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Filters: a floating filter bar over a photo of a flat for rent, after a white pill that reads
+     "Rooms Any | Price Any" with Clear beside it. Rooms and Price are text buttons that show their
+     value; a count of homes is an icon-and-text button; Save is an icon button; Clear is text.
+     Motion: a soft grey spot follows your pointer from one part of the pill to the next instead of
+     each part lighting on its own. Rooms or Price grows the white pill downward into a panel on a
+     spring, its corners easing from round to soft; picking folds it back up, and the value rolls
+     from "Any" to the new one while the count of homes counts to its new number. Clear only
+     exists when there is something to clear: it swells out of the pill's end, and pressing it rolls
+     every value back to "Any", one after another, before it shrinks away. Save bursts. */
+  :root { --w: 640px; --h: 640px; }
+  body { background: #e9e4dc; font: 500 15px/1 "Inter", -apple-system, system-ui, sans-serif; color: #1b1b1b; }
+  .room { position: absolute; inset: 0; overflow: hidden; }
+  .room svg { width: 100%; height: 100%; }
+  .said { position: absolute; left: 0; right: 0; bottom: 12px; margin: 0; text-align: center; font-size: 12px; color: #4f4a42; min-height: 1em; z-index: 3; text-shadow: 0 0 6px #fff; }
+  .wrap { position: absolute; left: 0; right: 0; top: 270px; padding: 0 24px; z-index: 2; }
+  .row { display: flex; align-items: flex-start; gap: 8px; }
+  .shape { position: relative; background: #fff; border-radius: 28px; box-shadow: 0 10px 30px -14px rgba(0,0,0,.35); overflow: hidden; transition: border-radius .35s var(--open); }
+  .shape.is-open { border-radius: 22px; }
+  .bar { position: relative; display: flex; align-items: center; height: 56px; padding: 0 6px; }
+  .spot { position: absolute; top: 6px; height: 44px; border-radius: 22px; background: #f0eeeb; opacity: 0; pointer-events: none; transition: transform var(--flow-t) var(--flow), width var(--flow-t) var(--flow), opacity .2s; }
+  .seg { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; height: 44px; padding: 0 16px; border-radius: 22px; line-height: 20px; }
+  /* the value box is one line tall, so label, value and the count all sit on the same line */
+  .seg .v { position: relative; display: inline-block; height: 20px; overflow: hidden; color: #9b9790; min-width: 28px; }
+  .seg .v span { display: block; }
+  .seg.set .v { color: #1b1b1b; }
+  .seg[aria-expanded="true"] { background: #1b1b1b; color: #fff; } .seg[aria-expanded="true"] .v { color: #cfcac2; }
+  .sep { width: 1px; height: 18px; background: #d8d4ce; margin: 0 2px; }
+  .count { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 22px; color: #6b665e; font-size: 15px; line-height: 20px; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+  .count svg { width: 16px; height: 16px; }
+  .panel { padding: 4px 14px 16px; }
+  .panel[hidden] { display: none; }
+  .chips { display: flex; gap: 8px; }
+  .chip { height: 40px; min-width: 52px; padding: 0 14px; border-radius: 20px; box-shadow: inset 0 0 0 1px #d8d4ce; font-size: 14px; transition: background-color .15s, color .15s, box-shadow .15s; }
+  .chip:hover { box-shadow: inset 0 0 0 1px #1b1b1b; }
+  .chip[aria-pressed="true"] { background: #1b1b1b; color: #fff; box-shadow: none; }
+  .price { display: grid; gap: 10px; width: 300px; }
+  .price output { font-size: 13px; color: #6b665e; }
+  .price input { width: 100%; accent-color: #1b1b1b; }
+  .clear { height: 56px; padding: 0 22px; border-radius: 28px; background: #fff; box-shadow: 0 10px 30px -14px rgba(0,0,0,.35); font-weight: 600; transform-origin: 0 50%; }
+  .clear:hover { background: #f6f4f1; }
+  .clear[hidden] { display: none; }
+  .save { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: 0 10px 30px -14px rgba(0,0,0,.35); position: relative; }
+  .save svg { width: 22px; height: 22px; transition: transform var(--snap-t) var(--snap); }
+  .save:hover svg { transform: scale(1.1); }
+  .save[aria-pressed="true"] svg path { fill: #e8475b; stroke: #e8475b; }
+  .spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #e8475b; pointer-events: none; }
+  button:focus-visible { outline: 2px solid #1b1b1b; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="center">
+    <div class="room" aria-hidden="true">
+      <svg viewBox="0 0 640 640" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe8ee"/><stop offset="1" stop-color="#f4f1ea"/></linearGradient>
+          <pattern id="sheer" width="18" height="10" patternUnits="userSpaceOnUse"><rect width="18" height="10" fill="#fbfaf6"/><rect width="5" height="10" fill="#ecebe5"/></pattern>
+        </defs>
+        <rect width="640" height="70" fill="#cfccc6"/><path d="M0 70H640" stroke="#b8b4ad" stroke-width="3"/>
+        <rect y="70" width="640" height="420" fill="#efece6"/>
+        <g fill="url(#sky)"><rect x="70" y="90" width="150" height="330"/><rect x="250" y="90" width="150" height="330"/><rect x="430" y="90" width="150" height="330"/></g>
+        <g fill="#e2ddd2" opacity=".9"><rect x="280" y="150" width="90" height="270"/><rect x="470" y="130" width="80" height="290"/><rect x="90" y="240" width="60" height="180"/></g>
+        <g fill="#cfc8bb"><rect x="292" y="170" width="10" height="14"/><rect x="312" y="170" width="10" height="14"/><rect x="332" y="170" width="10" height="14"/><rect x="352" y="170" width="10" height="14"/><rect x="292" y="200" width="10" height="14"/><rect x="312" y="200" width="10" height="14"/><rect x="332" y="200" width="10" height="14"/><rect x="352" y="200" width="10" height="14"/><rect x="482" y="150" width="10" height="14"/><rect x="502" y="150" width="10" height="14"/><rect x="522" y="150" width="10" height="14"/></g>
+        <g opacity=".72"><rect x="40" y="80" width="64" height="410" fill="url(#sheer)"/><rect x="200" y="80" width="70" height="410" fill="url(#sheer)"/><rect x="390" y="80" width="64" height="410" fill="url(#sheer)"/><rect x="560" y="80" width="80" height="410" fill="url(#sheer)"/></g>
+        <rect y="490" width="640" height="150" fill="#d9d2c6"/>
+        <g transform="translate(410 380)"><path d="M30 120c-6-60-40-80-80-90 40 0 70 20 82 60M34 120c4-70 30-110 70-130-24 30-42 70-58 130M40 120c20-50 60-70 100-60-40 6-70 30-90 60" fill="#3f7a3a"/><path d="M10 110h50l-6 60H16z" fill="#2c2c2a"/></g>
+        <path d="M150 470c0-30 30-40 90-40s110 10 110 40v60c0 14-12 22-26 22H176c-14 0-26-8-26-22z" fill="#f8f6f1"/>
+        <rect x="190" y="440" width="58" height="46" rx="10" fill="#f0ebe2" stroke="#d8cdbb"/><rect x="250" y="446" width="56" height="44" rx="10" fill="#c46a35"/>
+        <ellipse cx="90" cy="600" rx="90" ry="26" fill="#a98a68"/>
+      </svg>
+    </div>
+    <div class="wrap dock">
+      <div class="row" data-glide>
+        <div class="shape" id="shape">
+          <div class="bar" role="toolbar" aria-label="Filters" id="bar">
+            <span class="spot" id="spot" aria-hidden="true"></span>
+            <button class="seg" type="button" id="s-rooms" aria-expanded="false" data-manual>Rooms <span class="v"><span>Any</span></span></button>
+            <span class="sep" aria-hidden="true"></span>
+            <button class="seg" type="button" id="s-price" aria-expanded="false" data-manual>Price <span class="v"><span>Any</span></span></button>
+            <button class="count" type="button" id="count" data-manual><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7l6-5 6 5v7H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span id="n">214</span> homes</button>
+          </div>
+          <div class="panel" id="p-rooms" hidden><div class="chips" data-radio role="group" aria-label="Rooms">
+            <button class="chip" type="button" aria-pressed="false" data-v="1">1</button><button class="chip" type="button" aria-pressed="false" data-v="2+">2+</button><button class="chip" type="button" aria-pressed="false" data-v="3+">3+</button><button class="chip" type="button" aria-pressed="false" data-v="4+">4+</button>
+          </div></div>
+          <div class="panel" id="p-price" hidden><div class="price"><output id="po">Up to $3,200 a month</output><input type="range" min="1200" max="8000" step="100" value="3200" id="pr" aria-label="Most you would pay a month" /></div></div>
+        </div>
+        <button class="clear" type="button" id="clear" hidden data-manual>Clear</button>
+        <button class="save" type="button" aria-pressed="false" aria-label="Save this search" id="save"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 19s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 18 9c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id), said = document.querySelector('.said'), calm = () => M.calm.matches;
+      const shape = $('shape'), bar = $('bar'), spot = $('spot');
+      let rooms = null, price = null, homes = 214, shownHomes = 214, stopN = () => {};
+
+      // one soft spot follows the pointer across the pill
+      bar.addEventListener('pointerover', e => {
+        const t = e.target.closest('.seg, .count'); if (!t) return;
+        if (spot.style.opacity !== '1') { spot.style.transition = 'opacity .2s'; }
+        spot.style.width = t.offsetWidth + 'px'; spot.style.transform = `translateX(${t.offsetLeft}px)`; spot.style.opacity = 1;
+        requestAnimationFrame(() => spot.style.transition = '');
+      });
+      bar.addEventListener('pointerleave', () => spot.style.opacity = 0);
+
+      // values roll from the old word to the new one
+      const roll = (seg, word, delay = 0) => {
+        const box = seg.querySelector('.v'), old = box.firstElementChild;
+        if (old.textContent === word) return;
+        const nu = document.createElement('span'); nu.textContent = word; box.append(nu);
+        seg.classList.toggle('set', word !== 'Any');
+        if (calm()) { old.remove(); return; }
+        const o = { duration: 320, delay, easing: 'cubic-bezier(.3, .7, .2, 1)', fill: 'backwards' };
+        old.animate([{ transform: 'none' }, { transform: 'translateY(-100%)' }], { ...o, fill: 'forwards' }).finished.then(() => old.remove());
+        nu.animate([{ transform: 'none' }, { transform: 'translateY(-100%)' }], o).finished.then(() => nu.style.transform = '');
+      };
+      const recount = () => {
+        homes = Math.round(214 * (rooms ? { '1': .9, '2+': .62, '3+': .31, '4+': .12 }[rooms] : 1) * (price ? Math.min(1, (price - 1000) / 5000) : 1));
+        stopN(); stopN = M.spring(shownHomes, homes, 0, v => { shownHomes = v; $('n').textContent = Math.round(v); }, { visual: .5, bounce: 0 });
+        // Clear is only there when there is something to clear
+        const clear = $('clear'), want = !!(rooms || price);
+        if (want && clear.hidden) { clear.hidden = false; if (!calm()) clear.animate([{ transform: 'scaleX(0)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.pop, easing: M.ease.pop }); }
+        if (!want && !clear.hidden) { if (calm()) clear.hidden = true; else clear.animate([{ transform: 'none', opacity: 1 }, { transform: 'scaleX(0)', opacity: 0 }], { duration: 220, easing: 'cubic-bezier(.5, 0, .7, .4)' }).finished.then(() => clear.hidden = true); }
+      };
+
+      // a segment grows the white pill downward into its panel; the height springs
+      let openId = null;
+      const setOpen = async id => {
+        const h0 = shape.offsetHeight;
+        ['rooms', 'price'].forEach(k => { $('p-' + k).hidden = k !== id; $('s-' + k).setAttribute('aria-expanded', String(k === id)); });
+        shape.classList.toggle('is-open', !!id);
+        const h1 = shape.offsetHeight; openId = id;
+        if (calm() || h0 === h1) return;
+        shape.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: id ? M.dur.open : 380, easing: id ? M.ease.open : 'cubic-bezier(.3, .7, .2, 1)' });
+        if (id) [...$('p-' + id).querySelectorAll('.chip, output, input')].forEach((c, i) => c.animate([{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: 60 + i * 30, easing: 'cubic-bezier(.2, .8, .3, 1)', fill: 'backwards' }));
+      };
+      $('s-rooms').addEventListener('click', () => setOpen(openId === 'rooms' ? null : 'rooms'));
+      $('s-price').addEventListener('click', () => setOpen(openId === 'price' ? null : 'price'));
+      $('p-rooms').addEventListener('click', e => {
+        const c = e.target.closest('.chip'); if (!c) return;
+        rooms = c.dataset.v; setTimeout(() => setOpen(null), 160);
+        roll($('s-rooms'), rooms, 200); recount(); said.textContent = 'Rooms ' + rooms;
+      });
+      $('pr').addEventListener('input', e => { price = +e.target.value; $('po').textContent = 'Up to $' + price.toLocaleString('en-US') + ' a month'; });
+      $('pr').addEventListener('change', () => { roll($('s-price'), '$' + (price / 1000).toFixed(1).replace('.0', '') + 'k'); recount(); said.textContent = 'Price up to $' + price.toLocaleString('en-US'); });
+      $('count').addEventListener('click', () => { setOpen(null); said.textContent = homes + ' homes'; });
+      document.querySelector('.stage').addEventListener('pointerdown', e => { if (openId && !e.target.closest('.shape')) setOpen(null); });
+      addEventListener('keydown', e => { if (e.key === 'Escape' && openId) { const s = $('s-' + openId); setOpen(null); s.focus(); } });
+
+      // Clear: every value rolls back to Any, one after another
+      $('clear').addEventListener('click', () => {
+        rooms = null; price = null; setOpen(null);
+        document.querySelectorAll('#p-rooms .chip').forEach(c => c.setAttribute('aria-pressed', 'false')); $('pr').value = 3200; $('po').textContent = 'Up to $3,200 a month';
+        roll($('s-rooms'), 'Any', 0); roll($('s-price'), 'Any', 90); recount(); said.textContent = 'Cleared';
+      });
+
+      // Save: a small burst
+      $('save').addEventListener('click', () => setTimeout(() => {
+        const on = $('save').getAttribute('aria-pressed') === 'true'; said.textContent = on ? 'Search saved' : 'Search removed';
+        if (!on || calm()) return;
+        $('save').querySelector('svg').animate([{ transform: 'scale(.6)' }, { transform: 'scale(1)' }], { duration: M.dur.pop, easing: M.ease.pop });
+        for (let i = 0; i < 8; i++) { const s = document.createElement('span'); s.className = 'spark'; $('save').append(s); const a = i / 8 * Math.PI * 2; s.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${Math.cos(a) * 30}px, ${Math.sin(a) * 30}px) scale(.3)`, opacity: 0 }], { duration: 520, easing: 'cubic-bezier(.2, .7, .3, 1)' }).finished.then(() => s.remove()); }
+      }));
+    })();
+  </script>
+</body>
+</html>

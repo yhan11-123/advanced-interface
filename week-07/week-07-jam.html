@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Jam</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Jam: a whiteboard's toolbar where the tools are objects, after a collaborative board whose bar
+     holds a real pencil, a pad of sticky notes and a tray of shapes. Select and Hand stack on the
+     left (icon buttons, one purple highlight); then the pencil, the sticky pad, a shapes tray under a
+     "New shapes!" tab (a text button); Text, Section, Table and Stamp in rounded squares (icon
+     buttons); stickers; and "More" (an icon-and-text button) that opens a row of extras.
+     Motion: objects behave like objects. The pencil rises out of the bar when you point at it and
+     stays up while you draw with it. The top sticky lifts its corner; drag it out and it swings with
+     your speed, then lands on the board with a squash; a click just tosses one onto the board. The
+     shapes jiggle when pointed at and pop onto the board. The "New shapes!" tab bobs until you open
+     it, then folds away. The stamp leaves a print that thumps down. The purple highlight slides
+     between Select and Hand. More's plus turns into a cross as its row unfolds. */
+  :root { --w: 1100px; --h: 520px; --purple: #8a3ffc; }
+  body { background: #fff; font: 500 14px/1 "Inter", -apple-system, system-ui, sans-serif; color: #1e1e1e; }
+  .said { position: absolute; left: 0; right: 0; top: 14px; margin: 0; text-align: center; font-size: 12px; color: #8a8a8a; min-height: 1em; }
+  .board { position: absolute; inset: 0; background: radial-gradient(circle, #d6d6d6 1px, transparent 1.5px) 0 0 / 18px 18px; overflow: hidden; }
+  .board.is-pencil { cursor: crosshair; } .board.is-stamp { cursor: copy; } .board.is-hand { cursor: grab; }
+  #ink { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #ink path { fill: none; stroke: #1e1e1e; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .obj { position: absolute; pointer-events: none; }
+  .note { width: 110px; height: 110px; padding: 12px; background: #ffd66b; box-shadow: 0 10px 18px -12px rgba(0,0,0,.45); font-size: 13px; color: #6b5310; }
+  .print { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; background: #ffe2e2; color: #e5484d; font-size: 22px; }
+  .shape-o { width: 90px; height: 90px; background: #cdb6ff; }
+
+  .wrap { position: absolute; left: 0; right: 0; bottom: 18px; padding: 0 30px; pointer-events: none; }
+  .bar { position: relative; display: flex; align-items: stretch; height: 112px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px #d9d9d9, 0 6px 20px -10px rgba(0,0,0,.25); pointer-events: auto; overflow: visible; }
+  .sec { position: relative; display: flex; align-items: center; gap: 14px; padding: 0 18px; border-left: 1px solid #e6e6e6; }
+  .sec:first-child { border-left: 0; padding: 0; }
+  .clip { position: relative; display: flex; align-items: flex-end; gap: 20px; clip-path: inset(-300px 0 0 0); height: 100%; padding: 0 20px; border-left: 1px solid #e6e6e6; }
+  /* objects are cut off at the bar's bottom edge but free to rise above it */
+  /* select / hand */
+  .sh { position: relative; display: flex; flex-direction: column; width: 72px; height: 100%; border-radius: 18px 0 0 18px; overflow: hidden; border-right: 1px solid #e6e6e6; }
+  .sh button { position: relative; z-index: 1; flex: 1; display: grid; place-items: center; color: #1e1e1e; transition: color .2s; }
+  .sh button[aria-pressed="true"] { color: #fff; }
+  .sh button svg { width: 22px; height: 22px; }
+  .sh .hl { position: absolute; left: 0; right: 0; top: 0; height: 50%; background: var(--purple); transition: transform var(--flow-t) var(--flow); }
+  .sh button:hover:not([aria-pressed="true"]) { background: #f3f0ff; }
+  /* the pencil */
+  .pencil { position: relative; width: 56px; height: 100%; }
+  .pencil svg { position: absolute; left: 6px; bottom: -64px; width: 44px; height: 160px; transition: transform var(--snap-t) var(--snap); transform-origin: 50% 100%; }
+  .pencil:hover svg, .pencil[aria-pressed="true"] svg { transform: translateY(-26px) rotate(-4deg); }
+  .pencil[aria-pressed="true"] svg { transform: translateY(-34px); }
+  /* sticky pad */
+  .pad { position: relative; width: 110px; height: 100%; cursor: grab; touch-action: none; }
+  .pad .sheet { position: absolute; left: 8px; bottom: -40px; width: 96px; height: 100px; background: #f7c94f; box-shadow: 0 1px 0 rgba(0,0,0,.08); transform-origin: 20% 100%; }
+  .pad .sheet:nth-child(1) { transform: rotate(-4deg); background: #f0c045; }
+  .pad .sheet:nth-child(2) { transform: rotate(3deg); background: #f5c74c; }
+  .pad .top { background: #ffd66b; transition: transform var(--snap-t) var(--snap); }
+  .pad .top::after { content: ""; position: absolute; right: 0; top: 0; width: 22px; height: 22px; background: linear-gradient(225deg, #fff 0 50%, #f0c045 50%); transition: width .3s var(--snap), height .3s var(--snap); }
+  .pad:hover .top { transform: translateY(-14px) rotate(-2deg); }
+  .pad:hover .top::after { width: 34px; height: 34px; }
+  /* shapes tray */
+  .shapes { position: relative; width: 150px; height: 100%; background: #efe7ff; }
+  .shapes .tab { position: absolute; left: 0; right: 0; top: -46px; height: 52px; padding-top: 12px; border-radius: 18px 18px 0 0; background: #efe7ff; color: var(--purple); font-weight: 600; text-align: center; animation: bob 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+  .shapes .tab.gone { display: none; }
+  @keyframes bob { 50% { transform: translateY(-5px); } }
+  .shapes .tray { position: absolute; inset: 14px 14px -24px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shapes .tray button { position: relative; }
+  .shapes .tray svg { width: 100%; height: 100%; }
+  .shapes .tray button:hover svg { animation: jig .5s var(--snap); }
+  @keyframes jig { 30% { transform: rotate(-8deg) scale(1.08); } 60% { transform: rotate(5deg); } }
+  .shapes:hover .tray button:nth-child(2) svg { animation-delay: 40ms; }
+  /* square tools */
+  .sq { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 14px; box-shadow: inset 0 0 0 1.5px #c9c9c9; background: #fff; transition: transform var(--snap-t) var(--snap), box-shadow .15s, background-color .15s; }
+  .sq:hover { transform: translateY(-3px); box-shadow: inset 0 0 0 1.5px #9a9a9a; }
+  .sq[aria-pressed="true"] { background: #f3f0ff; box-shadow: inset 0 0 0 2px var(--purple); }
+  .sq svg { width: 34px; height: 34px; }
+  /* stickers + more */
+  .stickers { position: relative; width: 120px; height: 100%; }
+  .stickers span { position: absolute; display: grid; place-items: center; transition: transform var(--snap-t) var(--snap); }
+  .stickers:hover span:nth-child(1) { transform: rotate(-8deg) translateY(-6px); }
+  .stickers:hover span:nth-child(2) { transform: rotate(10deg) translateY(-10px); }
+  .stickers:hover span:nth-child(3) { transform: rotate(-4deg) translateY(-4px); }
+  .more { display: inline-flex; align-items: center; gap: 8px; height: 64px; padding: 0 16px; border-radius: 14px; box-shadow: inset 0 0 0 1.5px #c9c9c9; }
+  .more:hover { box-shadow: inset 0 0 0 1.5px #9a9a9a; }
+  .more svg { width: 22px; height: 22px; transition: transform var(--snap-t) var(--snap); }
+  .more[aria-expanded="true"] svg { transform: rotate(45deg); }
+  .extras { position: absolute; right: 18px; bottom: calc(100% + 10px); gap: 6px; padding: 6px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px #d9d9d9, 0 8px 20px -10px rgba(0,0,0,.25); }
+  .extras button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; }
+  .extras button:hover { background: #f3f0ff; }
+  .extras svg { width: 18px; height: 18px; }
+  button:focus-visible, .pad:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="center">
+    <div class="board" id="board"><svg id="ink" aria-hidden="true"></svg></div>
+    <p class="said" aria-live="polite"></p>
+    <div class="wrap dock">
+      <div class="bar" data-glide role="toolbar" aria-label="Board tools" id="bar">
+        <div class="sh" data-radio id="sh">
+          <span class="hl" aria-hidden="true"></span>
+          <button type="button" aria-pressed="true" aria-label="Select" data-mode="select" data-manual><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M5 3l13 7-6 1.5L9 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+          <button type="button" aria-pressed="false" aria-label="Hand" data-mode="hand" data-manual><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M7 11V5a1.3 1.3 0 0 1 2.6 0v5M9.6 10V3.8a1.3 1.3 0 0 1 2.6 0V10M12.2 10V5a1.3 1.3 0 0 1 2.6 0v6M14.8 11V8a1.3 1.3 0 0 1 2.6 0v5c0 4-2.5 6-6 6-3 0-4.5-1.6-5.6-3.8l-1.6-3.2a1.2 1.2 0 0 1 2-1.3L7 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="clip">
+          <button class="pencil" type="button" aria-pressed="false" aria-label="Pencil" id="pencil" data-mode="pencil" data-manual>
+            <svg viewBox="0 0 44 160" aria-hidden="true"><defs><linearGradient id="wood" x1="0" x2="1"><stop offset="0" stop-color="#d8d8d8"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#cfcfcf"/></linearGradient></defs><path d="M8 50L22 6l14 44z" fill="#f2e6d0"/><path d="M17 22L22 6l5 16z" fill="#1e1e1e"/><rect x="8" y="50" width="28" height="110" fill="url(#wood)"/></svg>
+          </button>
+          <div class="pad" tabindex="0" role="button" aria-label="Sticky note, drag onto the board" id="pad"><span class="sheet"></span><span class="sheet"></span><span class="sheet top"></span></div>
+          <div class="shapes">
+            <button class="tab" type="button" id="newtab">New shapes!</button>
+            <div class="tray">
+              <button type="button" aria-label="Circle" data-shape="circle"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#cdb6ff" stroke="#b398f5"/></svg></button>
+              <button type="button" aria-label="Square" data-shape="square"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="4" y="4" width="52" height="52" fill="#cdb6ff" stroke="#b398f5"/></svg></button>
+              <button type="button" aria-label="Triangle" data-shape="triangle"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M30 4l27 52H3z" fill="#cdb6ff" stroke="#b398f5"/></svg></button>
+              <button type="button" aria-label="Arrow" data-shape="arrow"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M14 56V26a10 10 0 0 1 10-10h24M38 6l10 10-10 10" fill="none" stroke="#9a9a9a" stroke-width="4"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="sec" data-radio>
+          <button class="sq" type="button" aria-pressed="false" aria-label="Text" data-mode="text" data-manual><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M10 8h14M17 8v18M3 17h3M28 17h3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
+          <button class="sq" type="button" aria-pressed="false" aria-label="Section" data-mode="section" data-manual><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M6 10a3 3 0 0 1 3-3h7v5H6zM6 12v13a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V12" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          <button class="sq" type="button" aria-pressed="false" aria-label="Table" data-mode="table" data-manual><svg viewBox="0 0 34 34" aria-hidden="true"><rect x="5" y="6" width="24" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 13h24M5 20h24M13 6v22" stroke="currentColor" stroke-width="2"/></svg></button>
+          <button class="sq" type="button" aria-pressed="false" aria-label="Stamp" data-mode="stamp" data-manual><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M13 16V9a4 4 0 0 1 8 0v7M7 22v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3zM8 27h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        </div>
+        <div class="sec">
+          <div class="stickers" aria-hidden="true">
+            <span style="left:6px;top:46px;width:62px;height:62px;background:#18a54a;border-radius:6px;color:#fff;font-size:44px">&check;</span>
+            <span style="left:52px;top:18px;font-size:32px">&#9996;</span>
+            <span style="left:66px;top:56px;width:46px;height:56px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);border-radius:4px;font-size:10px;color:#888">&#9776;</span>
+          </div>
+          <button class="more" type="button" data-opens="extras" aria-label="More tools"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3v16M3 11h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>More</button>
+          <div class="extras tier-row" data-tier id="extras" role="toolbar" aria-label="More tools">
+            <button type="button"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 7h14M7 7v9" stroke="currentColor" stroke-width="1.5"/></svg>Template</button>
+            <button type="button"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 15V9M8 15V4M13 15v-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Chart</button>
+            <button type="button"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M6 5L2 9l4 4M12 5l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const said = document.querySelector('.said'), board = document.getElementById('board'), ink = document.getElementById('ink');
+      const local = (x, y) => { const r = board.getBoundingClientRect(), f = M.fit(); return [(x - r.left) / f, (y - r.top) / f]; };
+      let mode = 'select';
+      const setMode = m => {
+        mode = m; board.className = 'board is-' + m;
+        document.getElementById('pencil').setAttribute('aria-pressed', String(m === 'pencil'));
+        document.querySelectorAll('.sq').forEach(s => s.setAttribute('aria-pressed', String(s.dataset.mode === m)));
+        // the purple highlight slides between Select and Hand (and leaves when another tool is picked)
+        const sh = document.getElementById('sh'), hl = sh.querySelector('.hl');
+        sh.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+        hl.style.transform = m === 'hand' ? 'translateY(100%)' : m === 'select' ? 'none' : 'translateY(-100%)';
+      };
+      document.getElementById('bar').addEventListener('click', e => {
+        const b = e.target.closest('[data-mode]'); if (!b) return;
+        setTimeout(() => setMode(mode === b.dataset.mode && b.dataset.mode !== 'select' && b.dataset.mode !== 'hand' ? 'select' : b.dataset.mode));
+        said.textContent = b.getAttribute('aria-label');
+      });
+
+      // drop something onto the board: it lands with a squash
+      const land = (el, x, y, from) => {
+        el.style.left = x + 'px'; el.style.top = y + 'px'; board.append(el);
+        if (M.calm.matches) return;
+        if (from) el.animate([{ transform: `translate(${from[0] - x}px, ${from[1] - y}px) rotate(-10deg) scale(.8)` }, { transform: `translate(${(from[0] - x) / 2}px, ${(from[1] - y) / 2 - 80}px) rotate(4deg) scale(1.05)`, offset: .5 }, { transform: 'none' }], { duration: 560, easing: 'cubic-bezier(.4, 0, .3, 1)' })
+          .finished.then(() => el.animate([{ transform: 'scale(1.08, .9)' }, { transform: 'none' }], { duration: M.dur.snap, easing: M.ease.snap }));
+        else el.animate([{ transform: 'scale(1.1, .86)' }, { transform: 'none' }], { duration: M.dur.snap, easing: M.ease.snap });
+      };
+      const note = () => { const n = document.createElement('div'); n.className = 'obj note'; n.textContent = 'Idea'; return n; };
+
+      // sticky pad: drag a note out (it swings with your speed) or click to toss one onto the board
+      const pad = document.getElementById('pad');
+      pad.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        const start = [e.clientX, e.clientY]; let n = null, lastX = e.clientX, tilt = 0, stopT = () => {};
+        const move = ev => {
+          if (!n && Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 6) return;
+          const [x, y] = local(ev.clientX, ev.clientY);
+          if (!n) { n = note(); n.style.transition = 'none'; board.append(n); said.textContent = 'Dragging a note'; }
+          tilt = Math.max(-18, Math.min(18, (ev.clientX - lastX) * 1.2)); lastX = ev.clientX;
+          n.style.left = x - 55 + 'px'; n.style.top = y - 20 + 'px'; n.style.transform = `rotate(${tilt}deg) scale(1.05)`; n.style.boxShadow = '0 24px 30px -16px rgba(0,0,0,.45)';
+        };
+        const up = ev => {
+          removeEventListener('pointermove', move); removeEventListener('pointerup', up);
+          if (n) { n.style.transform = ''; n.style.boxShadow = ''; land(n, parseFloat(n.style.left), parseFloat(n.style.top)); said.textContent = 'Note placed'; return; }
+          const pr = pad.getBoundingClientRect(), [px, py] = local(pr.left, pr.top);
+          land(note(), 200 + Math.random() * 600, 80 + Math.random() * 160, [px, py - 60]); said.textContent = 'Note tossed onto the board';
+        };
+        addEventListener('pointermove', move); addEventListener('pointerup', up);
+      });
+      pad.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); land(note(), 420, 140); said.textContent = 'Note placed'; } });
+
+      // shapes pop onto the board; the "New shapes!" tab folds away once opened
+      document.querySelector('.tray').addEventListener('click', e => {
+        const b = e.target.closest('[data-shape]'); if (!b) return;
+        const s = document.createElement('div'); s.className = 'obj'; s.innerHTML = b.innerHTML; s.style.width = s.style.height = '90px';
+        const r = b.getBoundingClientRect(), [x, y] = local(r.left, r.top);
+        land(s, 300 + Math.random() * 400, 90 + Math.random() * 150, [x, y]);
+        foldTab();
+      });
+      const tab = document.getElementById('newtab');
+      const foldTab = () => { if (tab.classList.contains('gone')) return; if (M.calm.matches) { tab.classList.add('gone'); return; } tab.style.animation = 'none'; tab.animate([{ transform: 'none', opacity: 1 }, { transform: 'scaleY(0)', opacity: 0 }], { duration: 260, easing: 'cubic-bezier(.5, 0, .7, .4)' }).finished.then(() => tab.classList.add('gone')); };
+      tab.addEventListener('click', () => { foldTab(); said.textContent = 'New shapes: circle, square, triangle, arrow'; document.querySelectorAll('.tray svg').forEach((s, i) => s.animate([{ transform: 'none' }, { transform: 'translateY(-10px) scale(1.1)' }, { transform: 'none' }], { duration: 500, delay: i * 60, easing: 'cubic-bezier(.3, 1.4, .5, 1)' })); });
+
+      // pencil draws; stamp thumps; text places a word
+      let path = null;
+      board.addEventListener('pointerdown', e => {
+        if (e.target.closest('.bar')) return;
+        const [x, y] = local(e.clientX, e.clientY);
+        if (mode === 'pencil') {
+          path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', `M${x} ${y}`); ink.append(path);
+          const mv = ev => { const [a, b] = local(ev.clientX, ev.clientY); path.setAttribute('d', path.getAttribute('d') + ` L${a} ${b}`); };
+          addEventListener('pointermove', mv); addEventListener('pointerup', () => removeEventListener('pointermove', mv), { once: true });
+        }
+        if (mode === 'stamp') {
+          const p = document.createElement('div'); p.className = 'obj print'; p.textContent = '♥'; p.style.left = x - 23 + 'px'; p.style.top = y - 23 + 'px'; board.append(p);
+          if (!M.calm.matches) p.animate([{ transform: 'scale(1.8) rotate(-20deg)', opacity: 0 }, { transform: 'scale(.9) rotate(4deg)', opacity: 1, offset: .5 }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.5, 0, .3, 1)' });
+          said.textContent = 'Stamped';
+        }
+        if (mode === 'text') {
+          const t = document.createElement('div'); t.className = 'obj'; t.style.cssText = `left:${x}px;top:${y - 12}px;font-size:22px`; t.textContent = 'Text'; board.append(t);
+          if (!M.calm.matches) t.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 300, easing: 'steps(4)' });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

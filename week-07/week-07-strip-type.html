@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Strip: Type</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <link rel="stylesheet" href="week-07-strip.css?v=3" />
+  <style>
+  /* Strip: Type. The text row of a Touch Bar. The T tool stays on (white, magenta mark); the font and
+     weight are text keys whose chevron opens a row of choices; alignment is an icon key whose row has
+     icon and text keys; the size is a scrubber that slides its numbers under a fixed middle.
+     Motion: the size is thrown like a picker wheel, it keeps going after you let go, slows, and springs
+     onto a size, the numbers swelling as they pass the middle. A new font or weight writes itself onto
+     its key: the key stretches or shrinks to the new name on a spring while the name rises into place.
+     The alignment key's four lines slide to the alignment you chose. */
+  .swatch { width: 22px; height: 22px; border-radius: 50%; background: conic-gradient(#ff2d55, #ff9f0a, #ffd60a, #30d158, #64d2ff, #5e5ce6, #bf5af2, #ff2d55); box-shadow: inset 0 0 0 2px rgba(0,0,0,.25); }
+  .size { display: flex; align-items: center; gap: 6px; }
+  .scrub { position: relative; width: 128px; height: 40px; border-radius: 8px; background: var(--k); overflow: hidden; cursor: ew-resize; touch-action: none; }
+  .scrub:hover { background: var(--k-hover); }
+  .scrub:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+  .scrub-row { position: absolute; top: 0; left: 50%; height: 100%; display: flex; align-items: center; will-change: transform; }
+  .scrub-row span { width: 40px; text-align: center; color: var(--dim); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; transform-origin: 50% 55%; }
+  .scrub::before, .scrub::after { content: ""; position: absolute; top: 0; bottom: 0; width: 28px; z-index: 1; pointer-events: none; }
+  .scrub::before { left: 0; background: linear-gradient(90deg, var(--k), transparent); }
+  .scrub::after { right: 0; background: linear-gradient(-90deg, var(--k), transparent); }
+  .k-label { display: inline-block; transition: font-weight .25s ease; }
+  .key.morph { overflow: hidden; }
+  #k-align rect { transition: transform var(--glide-t) var(--glide); }
+  .tier-in .key { border-radius: 2px; }
+  .tier-in .key:first-child { border-radius: 8px 2px 2px 8px; }
+  .tier-in .key:last-child { border-radius: 2px 8px 8px 2px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <p class="said" aria-live="polite"></p>
+    <div class="deck">
+      <div class="tbar">
+        <button class="key esc" type="button">esc</button>
+        <div class="app dock" role="toolbar" aria-label="Text">
+          <div class="cluster" data-glide>
+            <button class="key icon" type="button" aria-pressed="true" aria-label="Text tool"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12M10 4v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+            <button class="key" type="button" data-opens="t-font" id="k-font"><span class="k-label">San Francisco UI Text</span><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key" type="button" data-opens="t-weight" id="k-weight"><span class="k-label">Medium</span></button>
+            <button class="key" type="button" data-opens="t-align" aria-label="Alignment" style="padding:0 16px"><svg viewBox="0 0 20 20" aria-hidden="true" id="k-align" fill="#3a8cff"><rect x="3" y="4.1" width="14" height="1.8" rx=".9"/><rect x="3" y="8.1" width="10" height="1.8" rx=".9"/><rect x="3" y="12.1" width="14" height="1.8" rx=".9"/><rect x="3" y="16.1" width="8" height="1.8" rx=".9"/></svg><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key icon" type="button" aria-label="Colour"><span class="swatch"></span></button>
+            <div class="size">
+              <span class="lbl">Size:</span>
+              <div class="scrub" tabindex="0" role="slider" aria-label="Size" aria-valuemin="8" aria-valuemax="72" aria-valuenow="20"><div class="scrub-row"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="ctrl" data-ctrl></div>
+      </div>
+    </div>
+
+    <div class="tiers">
+      <div class="tier dock" data-tier id="t-font">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Font" data-radio data-target="k-font">
+          <span class="lbl" style="margin-right:8px">Font:</span>
+          <button class="key" type="button" aria-pressed="true">San Francisco UI Text</button>
+          <button class="key" type="button" aria-pressed="false" style="font-family:Georgia,serif">New York</button>
+          <button class="key" type="button" aria-pressed="false" style="font-family:'Helvetica Neue',Helvetica,sans-serif">Helvetica Neue</button>
+          <button class="key" type="button" aria-pressed="false" style="font-family:Menlo,monospace;font-size:13px">Menlo</button>
+        </div>
+      </div>
+      <div class="tier dock" data-tier id="t-weight">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Weight" data-radio data-target="k-weight">
+          <span class="lbl" style="margin-right:8px">Weight:</span>
+          <button class="key" type="button" aria-pressed="false" style="font-weight:300">Light</button>
+          <button class="key" type="button" aria-pressed="false" style="font-weight:400">Regular</button>
+          <button class="key" type="button" aria-pressed="true" style="font-weight:500">Medium</button>
+          <button class="key" type="button" aria-pressed="false" style="font-weight:700">Bold</button>
+        </div>
+      </div>
+      <div class="tier dock is-open" data-tier id="t-align">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Alignment" data-radio>
+          <span class="lbl" style="margin-right:8px">Align:</span>
+          <button class="key" type="button" aria-pressed="true" data-al="left"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 9h10M3 13h14M3 17h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Left</button>
+          <button class="key" type="button" aria-pressed="false" data-al="center"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M5 9h10M3 13h14M6 17h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Center</button>
+          <button class="key" type="button" aria-pressed="false" data-al="right"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M7 9h10M3 13h14M9 17h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Right</button>
+          <button class="key" type="button" aria-pressed="false" data-al="justify"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 9h14M3 13h14M3 17h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Justify</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-strip.js?v=2"></script>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    
+    // a choice in a row writes itself onto the key that opened it: the key's width springs from the old
+    // name to the new one while the new name rises in from below
+    document.querySelectorAll('[data-target]').forEach(row => row.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      const key = document.getElementById(row.dataset.target), label = key.querySelector('.k-label');
+      if (label.textContent === b.textContent.trim()) return;
+      const w0 = key.offsetWidth;
+      label.textContent = b.textContent.trim();
+      label.style.fontFamily = b.style.fontFamily; label.style.fontWeight = b.style.fontWeight;
+      const w1 = key.offsetWidth;
+      if (M.calm.matches) return;
+      key.classList.add('morph');
+      key.animate([{ width: w0 + 'px' }, { width: w1 + 'px' }], { duration: M.dur.flow, easing: M.ease.flow })
+        .finished.then(() => key.classList.remove('morph'));
+      label.animate([{ transform: 'translateY(110%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.open, easing: M.ease.open });
+    }));
+    // the alignment key's four lines slide to the chosen alignment
+    const LINES = [14, 10, 14, 8];
+    const alignTo = m => document.querySelectorAll('#k-align rect').forEach((r, i) => {
+      const w = LINES[i], room = 14 - w;
+      const sx = m === 'justify' ? 14 / w : 1;
+      const dx = m === 'center' ? room / 2 : m === 'right' ? room : 0;
+      r.style.transformOrigin = '3px 0'; r.style.transformBox = 'view-box';
+      r.style.transform = `translateX(${dx}px) scaleX(${sx})`;
+      r.style.transitionDelay = (i * 30) + 'ms';
+    });
+    document.getElementById('t-align').addEventListener('click', e => { const b = e.target.closest('[data-al]'); if (b) alignTo(b.dataset.al); });
+
+    // size: a picker wheel. Drag it, throw it; it keeps going, slows, and springs onto a size.
+    (() => {
+      const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 64, 72];
+      const scrub = document.querySelector('.scrub'), row = scrub.querySelector('.scrub-row');
+      row.innerHTML = SIZES.map(s => `<span>${s}</span>`).join('');
+      const spans = [...row.children], said = document.querySelector('.said');
+      let p = SIZES.indexOf(20), stop = () => {};
+      const clamp = v => Math.max(0, Math.min(SIZES.length - 1, v));
+      const paint = v => {
+        p = v;
+        row.style.transform = `translateX(${-(v * 40 + 20)}px)`;
+        for (let k = 0; k < spans.length; k++) {
+          const d = Math.min(1, Math.abs(k - v));
+          spans[k].style.transform = `scale(${1 - d * .24})`;
+          spans[k].style.color = d < .5 ? 'var(--ink)' : 'var(--dim)';
+          spans[k].style.opacity = 1 - Math.min(.6, Math.abs(k - v) * .25);
+        }
+      };
+      const settle = (target, v = 0) => {
+        stop();
+        target = clamp(Math.round(target));
+        scrub.setAttribute('aria-valuenow', SIZES[target]);
+        said.textContent = 'Size ' + SIZES[target];
+        stop = M.spring(p, target, v, paint, { visual: .3, bounce: .25 });
+      };
+      let x0 = null, p0 = 0, moved = false, samples = [];
+      scrub.addEventListener('pointerdown', e => { stop(); x0 = e.clientX; p0 = p; moved = false; samples = [[e.timeStamp, p]]; scrub.setPointerCapture(e.pointerId); });
+      scrub.addEventListener('pointermove', e => {
+        if (x0 === null) return;
+        const d = (e.clientX - x0) / M.fit();
+        if (Math.abs(d) > 3) moved = true;
+        // past either end it pulls back, like rubber
+        let v = p0 - d / 40;
+        if (v < 0) v = v / 3; if (v > SIZES.length - 1) v = SIZES.length - 1 + (v - SIZES.length + 1) / 3;
+        paint(v); samples.push([e.timeStamp, v]); if (samples.length > 5) samples.shift();
+      });
+      scrub.addEventListener('pointerup', e => {
+        if (x0 === null) return; x0 = null;
+        if (!moved) { const r = scrub.getBoundingClientRect(), rel = (e.clientX - r.left) / r.width; settle(p + (rel < .35 ? -1 : rel > .65 ? 1 : 0)); return; }
+        const [t0, a] = samples[0], [t1, b] = samples[samples.length - 1];
+        const vel = t1 > t0 ? (b - a) / (t1 - t0) : 0;   // sizes per ms
+        settle(p + vel * 260, vel);                          // where the throw would coast to
+      });
+      scrub.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp') { e.preventDefault(); settle(Math.round(p) + 1); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); settle(Math.round(p) - 1); }
+      });
+      paint(p);
+    })();
+  </script>
+</body>
+</html>

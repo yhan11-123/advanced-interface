@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Graph</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Graph: a visual-scripting editor, after a node graph tool with toolbars everywhere. A transport
+     on top (play, pause, step, push, pull, build: icon buttons), a class panel whose type chips are
+     icon-and-text buttons with a plus, text tabs, a breadcrumb of icon-and-text crumbs with a zoom
+     and a "1x" text button, and a column of icon buttons over the graph.
+     Motion: Play runs the graph: a bead of light leaves each node down its white flow wire to the
+     next, the node it reaches lights up, and the data wires feeding it stream toward it. Pause
+     freezes everything where it is; Step runs one node. A type chip drops a new variable into the
+     list, the rows below making room; a row's cross folds it away. The layout button moves the
+     nodes to a tidy column and back on springs, the wires stretching along. The cube tips the graph
+     back into perspective. Zoom eases the graph in and out; 1x springs it home. The eye fades the
+     data wires. Build sends a flash along every wire in turn. */
+  :root { --w: 1000px; --h: 650px; --bg: #1b1b1b; --panel: #232323; --line: #343434; --ink: #e6e6e6; --dim: #9a9a9a;
+    --blue: #3b8cff; --teal: #2fd3a8; --orange: #ff9a3c; --violet: #c75cff; --green: #8bd93c; }
+  body { background: var(--bg); color: var(--ink); font: 500 13px/1.2 "Inter", -apple-system, system-ui, sans-serif; }
+  .said { position: absolute; right: 18px; bottom: 10px; margin: 0; font-size: 11.5px; color: var(--dim); min-height: 1em; }
+  .top { position: absolute; left: 0; right: 0; top: 10px; padding: 0 18px; }
+  .transport { display: flex; gap: 14px; }
+  .grp { display: flex; gap: 4px; }
+  .tb { width: 40px; height: 34px; display: grid; place-items: center; border-radius: 5px; background: #262626; box-shadow: inset 0 0 0 1px #3c3c3c; color: #ddd; transition: background-color .12s, box-shadow .2s, color .12s; }
+  .tb svg { width: 18px; height: 18px; }
+  .tb:hover { background: #303030; color: #fff; }
+  .tb:active { background: #3a3a3a; }
+  .tb[aria-pressed="true"] { background: #17345e; box-shadow: inset 0 0 0 1.5px var(--blue); color: #fff; }
+  .tb.is-live { animation: live 1.4s ease-in-out infinite; }
+  @keyframes live { 50% { box-shadow: inset 0 0 0 1.5px var(--blue), 0 0 14px 2px rgba(59,140,255,.45); } }
+  button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .side { position: absolute; left: 14px; top: 60px; bottom: 30px; width: 286px; }
+  .tabhead { display: inline-block; padding: 7px 14px 6px; border-radius: 6px 6px 0 0; background: var(--panel); color: #ddd; font-size: 12.5px; }
+  .card { background: var(--panel); border-radius: 0 6px 6px 6px; height: calc(100% - 28px); overflow: hidden; }
+  .cls { display: flex; gap: 10px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
+  .cls i { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 6px; background: #1b1b1b; }
+  .cls b { display: block; font-weight: 500; } .cls span { color: var(--dim); font-size: 12px; }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .chip { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; border-radius: 5px; box-shadow: inset 0 0 0 1px #3a3a3a; background: #262626; font-size: 12.5px; transition: background-color .12s; }
+  .chip:hover { background: #303030; }
+  .chip .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--c); flex: none; }
+  .chip .plus { margin-left: auto; color: var(--dim); font-size: 15px; line-height: 1; transition: transform var(--snap-t) var(--snap); }
+  .chip:hover .plus { transform: rotate(90deg); color: #fff; }
+  .vars { padding: 6px 0; }
+  .var { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px 0 12px; overflow: hidden; }
+  .var .grip { width: 8px; height: 14px; background: radial-gradient(circle, #555 1px, transparent 1.5px) 0 0 / 4px 4px; }
+  .var .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
+  .var .name { flex: 1; height: 28px; padding: 0 8px; border-radius: 4px; background: #1c1c1c; line-height: 28px; font-size: 13px; }
+  .var .x { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 4px; color: #6a6a6a; font-size: 14px; }
+  .var .x:hover { color: #fff; background: #333; }
+
+  .main { position: absolute; left: 312px; right: 14px; top: 60px; bottom: 30px; }
+  .gcard { position: absolute; inset: 28px 0 0; background: #202020; border-radius: 0 6px 6px 6px; overflow: hidden;
+    background-image: linear-gradient(#262626 1px, transparent 1px), linear-gradient(90deg, #262626 1px, transparent 1px); background-size: 24px 24px; }
+  .crumbs { position: absolute; left: 10px; top: 8px; z-index: 3; display: flex; align-items: center; gap: 2px; }
+  .crumb { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 10px; background: #2b2b2b; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%); font-size: 12.5px; transition: background-color .12s; }
+  .crumb:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); border-radius: 4px 0 0 4px; }
+  .crumb:hover { background: #363636; }
+  .crumb svg { width: 14px; height: 14px; }
+  .zoomer { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px 0 16px; background: #2b2b2b; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%); font-size: 12px; color: var(--dim); }
+  .zoomer input { width: 110px; accent-color: #999; }
+  .one { height: 22px; padding: 0 8px; border-radius: 4px; color: #ddd; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .one:hover { background: #3a3a3a; }
+  .icons { position: absolute; right: 10px; top: 8px; z-index: 3; display: flex; gap: 4px; }
+  .icons .tb { width: 32px; height: 28px; }
+  .icons .tb svg { width: 15px; height: 15px; transition: transform var(--snap-t) var(--snap); }
+  .icons .tb:hover svg { transform: scale(1.12); }
+
+  .view { position: absolute; inset: 44px 0 0; perspective: 900px; }
+  .plane { position: absolute; left: 0; top: 0; width: 660px; height: 460px; transform-origin: 50% 40%; transition: transform var(--glide-t) var(--glide); }
+  .wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .wires .flow { fill: none; stroke: #d8d8d8; stroke-width: 2; }
+  .wires .data { fill: none; stroke-width: 2; transition: opacity .3s; }
+  .wires .stream { fill: none; stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; animation: stream .5s linear infinite; opacity: 0; transition: opacity .25s; }
+  .wires .stream.on { opacity: 1; }
+  @keyframes stream { to { stroke-dashoffset: -12; } }
+  .is-paused .wires .stream, .is-paused .tb.is-live { animation-play-state: paused; }
+  .hide-data .wires .data, .hide-data .wires .stream { opacity: 0 !important; }
+  .bead { fill: #fff; filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px var(--blue)); }
+  .node { position: absolute; z-index: 1; min-width: 150px; border-radius: 6px; background: #2b2b2b; box-shadow: 0 0 0 1px #3c3c3c, 0 8px 18px -10px #000; font-size: 13px; transition: box-shadow .3s; }
+  .node header { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-bottom: 1px solid #383838; }
+  .node header svg { width: 16px; height: 16px; }
+  .pin { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 30px; padding: 0 12px; color: #cfcfcf; }
+  .pin .p { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .node.ev { box-shadow: 0 0 0 1.5px var(--green), 0 8px 18px -10px #000; }
+  .node.run { box-shadow: 0 0 0 2px #fff, 0 0 22px 4px rgba(59,140,255,.55); }
+  .ports-row { display: flex; }
+  .ports-row span { flex: 1; text-align: center; height: 28px; line-height: 28px; color: #cfcfcf; }
+  .ports-row span + span { border-left: 1px solid #383838; }
+  .op { width: 64px; min-width: 0; height: 64px; display: grid; place-items: center; border-radius: 50%; font-size: 26px; color: var(--violet); box-shadow: 0 0 0 2px var(--violet), 0 8px 18px -10px #000; }
+  .op.minus { color: var(--blue); box-shadow: 0 0 0 2px var(--blue), 0 8px 18px -10px #000; }
+  .zoomed-out .plane { opacity: .35; }
+  .overview { position: absolute; left: 50%; top: 50%; z-index: 4; translate: -50% -50%; padding: 16px 22px; border-radius: 8px; background: #2b2b2b; box-shadow: 0 0 0 1px #4a4a4a; display: none; }
+  .zoomed-out .overview { display: block; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="center">
+    <div class="top dock">
+      <div class="transport" data-glide role="toolbar" aria-label="Run">
+        <div class="grp">
+          <button class="tb" type="button" aria-label="Play" id="play" data-manual><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 3l10 6-10 6z" fill="currentColor"/></svg></button>
+          <button class="tb" type="button" aria-label="Pause" id="pause" data-manual><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 3h3v12H5zM10 3h3v12h-3z" fill="currentColor"/></svg></button>
+          <button class="tb" type="button" aria-label="Step" id="step"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l9 6-9 6zM13 3h2v12h-2z" fill="currentColor"/></svg></button>
+        </div>
+        <div class="grp">
+          <button class="tb" type="button" aria-label="Push" id="push"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 13V3M5 7l4-4 4 4M3 15h12" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="tb" type="button" aria-label="Pull" id="pull"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v10M5 8l4 4 4-4M3 15h12" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="tb" type="button" aria-label="Build" id="build"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M10 1L4 10h4l-1 7 7-10h-4z" fill="currentColor"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <span class="tabhead">Class</span>
+      <div class="card">
+        <div class="cls"><i><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="5" r="2.6" fill="#fff"/><path d="M5 10h16M13 10v6l-5 8M13 16l5 8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></i><div><b>Player</b><span>Handles movement and health</span></div></div>
+        <div class="chips" role="toolbar" aria-label="Add a variable">
+          <button class="chip" type="button" style="--c: var(--blue)" data-type="Float"><span class="dot"></span>Float<span class="plus">+</span></button>
+          <button class="chip" type="button" style="--c: var(--orange)" data-type="String"><span class="dot"></span>String<span class="plus">+</span></button>
+          <button class="chip" type="button" style="--c: var(--violet)" data-type="Boolean"><span class="dot"></span>Bool<span class="plus">+</span></button>
+          <button class="chip" type="button" style="--c: #4cc9ff" data-type="Integer"><span class="dot"></span>Integer<span class="plus">+</span></button>
+          <button class="chip" type="button" style="--c: #e5c84a" data-type="Event"><span class="dot"></span>Event<span class="plus">+</span></button>
+          <button class="chip" type="button" style="--c: var(--green)" data-type="Other"><span class="dot"></span>Other<span class="plus">+</span></button>
+        </div>
+        <div class="vars" id="vars"></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <span class="tabhead">Graph</span>
+      <div class="gcard" id="gcard">
+        <div class="crumbs" role="toolbar" aria-label="Where you are">
+          <button class="crumb" type="button" id="cr-player"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="2.6" r="1.6" fill="currentColor"/><path d="M2 5.5h10M7 5.5v3l-3 4.5M7 8.5l3 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Player</button>
+          <button class="crumb" type="button" id="cr-damage"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v12M1 7h12M7 1l-2 2M7 1l2 2M7 13l-2-2M7 13l2-2" fill="none" stroke="#e5c84a" stroke-width="1.4"/></svg>Damage</button>
+          <span class="zoomer">Zoom <input type="range" min="60" max="130" value="100" id="zoom" aria-label="Zoom" /><button class="one" type="button" id="one">1x</button></span>
+        </div>
+        <div class="icons" role="toolbar" aria-label="View">
+          <button class="tb" type="button" aria-label="Fit" id="fit"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="tb" type="button" aria-label="Tidy layout" aria-pressed="false" id="tidy"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5v12H2zM9 2h5v5H9zM9 9h5v5H9z" fill="currentColor"/></svg></button>
+          <button class="tb" type="button" aria-label="Perspective" aria-pressed="false" id="tilt"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l6 3.5v7L8 15l-6-3.5v-7zM2 4.5L8 8l6-3.5M8 8v7" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          <button class="tb" type="button" aria-label="Show data wires" aria-pressed="true" id="eye"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8c3-5 11-5 14 0-3 5-11 5-14 0z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg></button>
+        </div>
+        <div class="view" id="view">
+          <div class="plane" id="plane">
+            <svg class="wires" id="wires" aria-hidden="true"></svg>
+            <div class="node ev" id="n-ev" style="left:430px;top:10px"><header><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1h4v5h5v4h-5v5H6v-5H1V6h5z" fill="var(--green)"/></svg>On Collision Enter</header><div class="pin" id="p-collider">Collider<span class="p" style="--c: var(--green)"></span></div><div class="pin" id="p-force">Force<span class="p" style="--c: var(--orange)"></span></div><div class="pin" id="p-contact">Contact<span class="p" style="--c: var(--orange)"></span></div></div>
+            <div class="node" id="n-tag" style="left:20px;top:150px"><header>Get Tag = &ldquo;Enemy&rdquo;</header><div class="pin" id="p-tagin"><span class="p" style="--c: var(--green)"></span>Collider<span></span></div><div class="pin" id="p-tagout">Is enemy<span class="p" style="--c: var(--violet)"></span></div></div>
+            <div class="node" id="n-br" style="left:300px;top:175px;min-width:160px"><header><span class="p" style="--c: var(--violet);width:12px;height:12px;border-radius:50%;background:var(--violet)" id="p-cond"></span>Branch</header><div class="ports-row"><span id="p-true">True</span><span>False</span></div></div>
+            <div class="node" id="n-in" style="left:270px;top:280px;min-width:210px"><header><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l6 3.5v7L8 15l-6-3.5v-7z" fill="#ff5c5c"/><path d="M2 4.5L8 8l6-3.5M8 8v7" fill="none" stroke="#000" stroke-opacity=".3"/></svg>Instantiate</header><div class="pin">Original<span style="color:#fff">Explosion</span></div><div class="pin" id="p-pos"><span class="p" style="--c: var(--orange)"></span>Position<span></span></div></div>
+            <div class="node" id="n-set" style="left:300px;top:395px"><header><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="2.6" r="1.6" fill="#fff"/><path d="M2 5.5h10M7 5.5v3l-3 4.5M7 8.5l3 4.5" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>Set Health</header><div class="pin" id="p-amount"><span class="p" style="--c: var(--blue)"></span>&minus; Force<span></span></div></div>
+          </div>
+          <button class="overview" type="button" id="overview">Damage graph &middot; 5 nodes</button>
+        </div>
+      </div>
+    </section>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const said = document.querySelector('.said'), plane = document.getElementById('plane'), svg = document.getElementById('wires');
+      const view = document.getElementById('view');
+
+      // ---- variables: a chip drops a new row in, the cross folds a row away
+      const VARS = [['Movement', '#e5c84a'], ['Health', 'var(--blue)'], ['Damage', 'var(--blue)'], ['Name', 'var(--orange)'], ['Speed', 'var(--blue)'], ['Alive', 'var(--violet)']];
+      const vars = document.getElementById('vars');
+      const row = (n, c) => `<div class="var"><span class="grip"></span><span class="dot" style="--c:${c}"></span><span class="name">${n}</span><button class="x" type="button" aria-label="Remove ${n}">&times;</button></div>`;
+      vars.innerHTML = VARS.map(v => row(...v)).join('');
+      let count = 0;
+      document.querySelector('.chips').addEventListener('click', e => {
+        const c = e.target.closest('.chip'); if (!c) return;
+        if (vars.children.length >= 9) { said.textContent = 'The list is full in this sketch; remove one first'; return; }
+        vars.insertAdjacentHTML('beforeend', row('New' + c.dataset.type + (++count > 1 ? count : ''), getComputedStyle(c).getPropertyValue('--c')));
+        const r = vars.lastElementChild;
+        if (!M.calm.matches) {
+          r.animate([{ height: '0px', opacity: 0 }, { height: '38px', opacity: 1 }], { duration: M.dur.open, easing: M.ease.open });
+          r.querySelector('.dot').animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: M.dur.pop, delay: 120, easing: M.ease.pop, fill: 'backwards' });
+          // the chip's dot leaves a little echo, as if it dropped down into the list
+          c.querySelector('.dot').animate([{ transform: 'translateY(0)' }, { transform: 'translateY(6px) scale(.6)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'ease-out' });
+        }
+        said.textContent = 'Added ' + r.querySelector('.name').textContent;
+      });
+      vars.addEventListener('click', e => {
+        const x = e.target.closest('.x'); if (!x) return;
+        const r = x.closest('.var'); said.textContent = 'Removed ' + r.querySelector('.name').textContent;
+        if (M.calm.matches) { r.remove(); return; }
+        r.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(-30px)', opacity: 0 }], { duration: 160, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).finished
+          .then(() => r.animate([{ height: '38px' }, { height: '0px' }], { duration: 220, easing: 'cubic-bezier(.3, 0, .2, 1)', fill: 'forwards' }).finished).then(() => r.remove());
+      });
+
+      // ---- wires: drawn from the ports' places, so they follow nodes that move
+      const at = (el, side) => {
+        let x = 0, y = 0, e = el;
+        while (e && e !== plane) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+        const w = el.offsetWidth, h = el.offsetHeight;
+        return side === 'bottom' ? [x + w / 2, y + h] : side === 'top' ? [x + w / 2, y] : side === 'left' ? [x, y + h / 2] : side === 'right' ? [x + w, y + h / 2] : [x + w / 2, y + h / 2];
+      };
+      const N = id => document.getElementById(id);
+      const WIRES = [
+        { k: 'flow', from: () => at(N('n-ev'), 'bottom'), to: () => at(N('n-br'), 'top'), step: 0 },
+        { k: 'flow', from: () => at(N('p-true'), 'bottom'), to: () => at(N('n-in'), 'top'), step: 1 },
+        { k: 'flow', from: () => at(N('n-in'), 'bottom'), to: () => at(N('n-set'), 'top'), step: 2 },
+        { k: 'data', c: 'var(--green)', from: () => at(N('p-collider').querySelector('.p')), to: () => at(N('p-tagin').querySelector('.p')), feeds: 'n-tag' },
+        { k: 'data', c: 'var(--violet)', from: () => at(N('p-tagout').querySelector('.p')), to: () => at(N('p-cond')), feeds: 'n-br' },
+        { k: 'data', c: 'var(--orange)', from: () => at(N('p-contact').querySelector('.p')), to: () => at(N('p-pos').querySelector('.p')), feeds: 'n-in' },
+        { k: 'data', c: 'var(--blue)', from: () => at(N('p-force').querySelector('.p')), to: () => at(N('p-amount').querySelector('.p')), feeds: 'n-set' }
+      ];
+      const dOf = w => {
+        const [a, b] = [w.from(), w.to()];
+        if (w.k === 'flow') { const m = Math.max(30, Math.abs(b[1] - a[1]) / 2); return `M${a[0]} ${a[1]} C${a[0]} ${a[1] + m} ${b[0]} ${b[1] - m} ${b[0]} ${b[1]}`; }
+        const m = Math.max(40, Math.abs(b[0] - a[0]) / 2), dir = b[0] >= a[0] ? 1 : -1;
+        return `M${a[0]} ${a[1]} C${a[0] + m * dir} ${a[1]} ${b[0] - m * dir} ${b[1]} ${b[0]} ${b[1]}`;
+      };
+      svg.innerHTML = WIRES.map((w, i) => w.k === 'flow' ? `<path class="flow" data-w="${i}"/>` : `<path class="data" data-w="${i}" stroke="${w.c}"/><path class="stream" data-s="${i}" stroke="${w.c}"/>`).join('') + '<circle class="bead" r="4" cx="-20" cy="-20"/>';
+      const paths = WIRES.map((w, i) => svg.querySelector(`[data-w="${i}"]`)), streams = WIRES.map((w, i) => svg.querySelector(`[data-s="${i}"]`));
+      const redraw = () => WIRES.forEach((w, i) => { const d = dOf(w); paths[i].setAttribute('d', d); streams[i]?.setAttribute('d', d); });
+      redraw();
+
+      // ---- running the graph
+      const ORDER = ['n-ev', 'n-br', 'n-in', 'n-set'];
+      const bead = svg.querySelector('.bead'), playB = N('play'), gcard = N('gcard');
+      let running = false, paused = false, at_ = 0, beadAnim = null;
+      const light = id => {
+        document.querySelectorAll('.node.run').forEach(n => n.classList.remove('run'));
+        if (id) N(id).classList.add('run');
+        WIRES.forEach((w, i) => streams[i]?.classList.toggle('on', w.feeds === id || (id === 'n-br' && w.feeds === 'n-tag')));
+      };
+      // a bead of light runs along a flow wire, eased like something thrown and caught
+      const runBead = i => new Promise(res => {
+        const p = paths[i], L = p.getTotalLength(), dur = M.calm.matches ? 1 : 520; let gone = 0, last = null;
+        const step = now => {
+          // time only counts while running, so Pause freezes the bead exactly where it is
+          if (last !== null && !paused) gone += now - last; last = now;
+          if (paused) { beadAnim = requestAnimationFrame(step); return; }
+          const u = Math.min(1, gone / dur), e = u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+          const q = p.getPointAtLength(L * e); bead.setAttribute('cx', q.x); bead.setAttribute('cy', q.y);
+          if (u < 1) beadAnim = requestAnimationFrame(step); else { bead.setAttribute('cx', -20); res(); }
+        };
+        beadAnim = requestAnimationFrame(step);
+      });
+      const wait = ms => new Promise(r => { const t0 = performance.now(); const tick = () => { if (!running) return r(); if (paused) { setTimeout(tick, 50); return; } performance.now() - t0 >= ms ? r() : setTimeout(tick, 30); }; tick(); });
+      const stepOnce = async () => {
+        light(ORDER[at_]); said.textContent = N(ORDER[at_]).querySelector('header').textContent.trim();
+        await wait(380);
+        if (at_ < ORDER.length - 1) await runBead(at_);
+        at_ = (at_ + 1) % ORDER.length;
+      };
+      const loop = async () => {
+        while (running) {
+          if (paused) { await new Promise(r => setTimeout(r, 60)); continue; }
+          await stepOnce();
+          if (at_ === 0) { light(null); await wait(700); }
+        }
+      };
+      playB.addEventListener('click', () => {
+        if (running && !paused) return;
+        if (paused) { paused = false; gcard.classList.remove('is-paused'); }
+        else { running = true; at_ = 0; loop(); }
+        playB.setAttribute('aria-pressed', 'true'); playB.classList.add('is-live'); N('pause').setAttribute('aria-pressed', 'false');
+        said.textContent = 'Running';
+      });
+      N('pause').addEventListener('click', () => {
+        if (!running) return;
+        paused = !paused; gcard.classList.toggle('is-paused', paused);
+        N('pause').setAttribute('aria-pressed', String(paused));
+        playB.classList.toggle('is-live', !paused); playB.setAttribute('aria-pressed', String(!paused));
+        said.textContent = paused ? 'Paused where it was' : 'Running';
+      });
+      N('step').addEventListener('click', async () => {
+        if (running && !paused) return;
+        if (running) { paused = false; await stepOnce(); paused = true; return; }
+        await stepOnce();
+      });
+      // push and pull: the arrow travels out of its button and comes back; build flashes every wire in turn
+      const nudge = (b, dy) => b.querySelector('svg').animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${dy}px)`, opacity: 0, offset: .45 }, { transform: `translateY(${-dy}px)`, opacity: 0, offset: .46 }, { transform: 'none', opacity: 1 }], { duration: 560, easing: 'ease-in-out' });
+      N('push').addEventListener('click', e => { if (!M.calm.matches) nudge(e.currentTarget, -10); said.textContent = 'Pushed'; });
+      N('pull').addEventListener('click', e => { if (!M.calm.matches) nudge(e.currentTarget, 10); said.textContent = 'Pulled'; });
+      N('build').addEventListener('click', () => {
+        said.textContent = 'Built';
+        if (M.calm.matches) return;
+        paths.forEach((p, i) => p.animate([{ stroke: p.getAttribute('stroke') || '#d8d8d8', strokeWidth: 2 }, { stroke: '#fff', strokeWidth: 4 }, { stroke: p.getAttribute('stroke') || '#d8d8d8', strokeWidth: 2 }], { duration: 380, delay: i * 70, easing: 'ease-out' }));
+        document.querySelectorAll('.node').forEach((n, i) => n.animate([{ filter: 'brightness(1)' }, { filter: 'brightness(1.5)' }, { filter: 'brightness(1)' }], { duration: 380, delay: 120 + i * 70 }));
+      });
+
+      // ---- view: zoom, 1x, fit, tidy layout, perspective, data wires
+      let z = 1, tilt = false;
+      const place = () => { plane.style.transform = `translate(${(view.offsetWidth - 660 * z) / 2}px, ${(view.offsetHeight - 460 * z) / 2 - 4}px) scale(${z})${tilt ? ' rotateX(28deg)' : ''}`; };
+      const zoom = N('zoom'), one = N('one');
+      zoom.addEventListener('input', () => { z = zoom.value / 100; plane.style.transition = 'transform .12s ease-out'; place(); one.textContent = z.toFixed(1).replace(/\.0$/, '') + 'x'; });
+      zoom.addEventListener('change', () => plane.style.transition = '');
+      const home = v => { z = v; zoom.value = v * 100; one.textContent = (Math.round(v * 10) / 10) + 'x'; plane.style.transition = ''; place(); };
+      one.addEventListener('click', () => { home(1); said.textContent = 'Back to 1x'; });
+      N('fit').addEventListener('click', () => { home(.85); said.textContent = 'Fitted'; });
+      N('tilt').addEventListener('click', () => setTimeout(() => { tilt = N('tilt').getAttribute('aria-pressed') === 'true'; plane.style.transition = ''; place(); }));
+      N('eye').addEventListener('click', () => setTimeout(() => gcard.classList.toggle('hide-data', N('eye').getAttribute('aria-pressed') !== 'true')));
+      place();
+
+      const LAYOUTS = {
+        loose: { 'n-ev': [430, 10], 'n-tag': [20, 150], 'n-br': [300, 175], 'n-in': [270, 280], 'n-set': [300, 395] },
+        tidy: { 'n-ev': [40, 10], 'n-tag': [400, 110], 'n-br': [40, 145], 'n-in': [40, 240], 'n-set': [40, 365] }
+      };
+      let stops = [];
+      N('tidy').addEventListener('click', () => setTimeout(() => {
+        const L = LAYOUTS[N('tidy').getAttribute('aria-pressed') === 'true' ? 'tidy' : 'loose'];
+        stops.forEach(s => s()); stops = [];
+        Object.entries(L).forEach(([id, [x, y]], i) => {
+          const n = N(id), x0 = n.offsetLeft, y0 = n.offsetTop;
+          // each node on its own spring, a little after the one before; the wires are redrawn every frame
+          setTimeout(() => stops.push(M.spring(0, 1, 0, u => { n.style.left = x0 + (x - x0) * u + 'px'; n.style.top = y0 + (y - y0) * u + 'px'; redraw(); }, { visual: .45, bounce: .2 })), i * 50);
+        });
+      }));
+
+      // breadcrumb: Player zooms out to the class, the Damage graph shrinks to a card; the card zooms back in
+      const crD = N('cr-damage');
+      N('cr-player').addEventListener('click', () => {
+        if (view.classList.contains('zoomed-out')) return;
+        view.classList.add('zoomed-out'); const z0 = z; home(.55);
+        if (!M.calm.matches) { crD.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-12px)' }], { duration: 180, fill: 'forwards' }); N('overview').animate([{ opacity: 0, transform: 'scale(1.6)' }, { opacity: 1, transform: 'none' }], { duration: M.dur.open, easing: M.ease.open }); }
+        said.textContent = 'Player'; crD.dataset.z = z0;
+      });
+      const back = () => {
+        if (!view.classList.contains('zoomed-out')) return;
+        view.classList.remove('zoomed-out'); home(+crD.dataset.z || 1);
+        crD.getAnimations().forEach(a => a.cancel());
+        if (!M.calm.matches) crD.animate([{ opacity: 0, transform: 'translateX(-12px)' }, { opacity: 1, transform: 'none' }], { duration: M.dur.open, easing: M.ease.open });
+        said.textContent = 'Damage';
+      };
+      N('overview').addEventListener('click', back); crD.addEventListener('click', back);
+    })();
+  </script>
+</body>
+</html>

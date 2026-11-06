@@ -1,0 +1,37 @@
+/* Week 07 sketches: the mechanics every toolbar sketch shares, so each file only carries its look.
+   .stage is the whole picture, --w by --h, centred in the window and shrunk as one picture when the
+   window is smaller, so the small preview shows the real layout.
+   .stage[data-align] = left | center | right; a sketch lines its toolbar up with it (.dock does it for free).
+   The align switch (bottom right) is added by week-07-sketch.js. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { overflow: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; text-align: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+button:disabled, [aria-disabled="true"] { cursor: default; }
+svg { display: block; }
+
+:root { --w: 860px; --h: 360px; --fit: 1; }
+.stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h);
+  transform: translate(-50%, -50%) scale(var(--fit)); transform-origin: 50% 50%; }
+
+.dock { display: flex; align-items: center; }
+.stage[data-align="left"] .dock { justify-content: flex-start; }
+.stage[data-align="center"] .dock { justify-content: center; }
+.stage[data-align="right"] .dock { justify-content: flex-end; }
+
+[data-tier] { display: none; }
+[data-tier].is-open, [data-tier].is-leaving { display: flex; }
+[data-tier].is-leaving { pointer-events: none; }
+
+/* align switch: neutral, so it never reads as part of a sketch */
+.align-pill { position: fixed; right: 10px; bottom: 10px; z-index: 9; display: flex; gap: 2px; padding: 3px; border-radius: 999px;
+  background: rgba(20, 20, 20, .72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.align-pill button { width: 30px; height: 24px; border-radius: 999px; display: grid; place-items: center; color: rgba(255,255,255,.6); }
+.align-pill button:hover { color: #fff; background: rgba(255,255,255,.12); }
+.align-pill button[aria-pressed="true"] { color: #111; background: #fff; }
+.align-pill button:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.align-pill svg { width: 16px; height: 12px; }
+
+.back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+/* in the small grid preview the switch would cover the sketch; it shows in View larger */
+@media (max-width: 520px) { .align-pill { display: none; } }

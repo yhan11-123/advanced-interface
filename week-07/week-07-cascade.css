@@ -1,0 +1,102 @@
+/* Week 07, Set 2 · Cascade (tone: Fluid). A main toolbar whose tools hold more tools, after the
+   user's own sketch: press a tool and the bar folds. The pressed tool stays at the end of its row;
+   its tools open in a secondary toolbar on the row below, not joined to it but sharing its colour, and the
+   rest of the main toolbar travels down to join that secondary bar on its right by a thin ink bridge. Press a tool on a lower row
+   and it folds again, one more row down. Every number the spec shows is one of these tokens. */
+:root {
+  --font: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --page: #efe9e3;          /* the sketch's paper */
+  --ink: #1c1c1e;           /* the bars, the pipes, the page's type */
+  --dim: #8c8279;
+  --on-bar: #f4f0ea;        /* icons on the bars */
+  --open: #f4f0ea;          /* fallback for an open tool */
+  /* pair colours, after a set of retro-tech cards: an open tool and its secondary bar share one, and are not joined */
+  --pair-1: #e07a63;        /* coral */
+  --pair-2: #eaa862;        /* apricot */
+  --pair-3: #9fd49c;        /* mint */
+  --pair-4: #c9c8c4;        /* silver */
+  --mark: #e2553a;          /* the paper's red fibres: the chosen tool in a secondary bar */
+  --focus: #2f6bff;
+
+  --btn: 44px;              /* a button */
+  --bar-h: 56px;            /* a bar */
+  --pad: 6px;               /* inside a bar, at each end */
+  --gap: 4px;               /* between buttons */
+  --tier-gap: 14px;         /* between rows: close, so a fold reads as one body */
+  --neck: 26px;             /* the neck from a pressed tool down into its tools: ink, never the pair colour */
+  --join: 18px;             /* the bridge between a secondary bar and the main bar after it */
+  --bridge: 10px;           /* the bridge's thickness: thin, ink, never the pair colour */
+  --goo: 6;                 /* px of blur melting bars and bridges into one shape */
+  --frame: 5px;             /* a secondary bar's colour sits this far inside its ink bar: a black frame round it */
+  --pick-inset: 5px;       /* the picked tool's disc sits this far in from its button, clear of the bar's edge */
+  --icon: 20px;
+  --label: 13px;
+  --text-pad: 11px;         /* side padding of a button with a label */
+
+  /* motion: read by the script */
+  --spring-k: 150;          /* stiffness: unhurried, so the bar is seen to flow */
+  --spring-zeta: .9;        /* damping ratio: a soft settle, almost no overshoot */
+  --stagger: 28;            /* ms between buttons setting off */
+  --pipe-time: 260;         /* ms: the drop of colour runs down from the pressed tool; the bar spreads out from it after 60% of this */
+  --fold-back-wait: 120;    /* ms: folding in, the bar starts to close this long after its tools begin to leave */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 500 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+
+/* ---- the cascade ---- */
+.cascade { position: relative; }
+.cascade svg.pipes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cascade svg.pipes g { fill: var(--ink); stroke: var(--ink); }
+.cascade svg.pipes rect { stroke: none; }
+/* the bars' own boxes carry the buttons; their ink is drawn in the shape above */
+.seg-bg, .sec { position: absolute; height: var(--bar-h); border-radius: calc(var(--bar-h) / 2); background: transparent; }
+.sec { display: flex; align-items: center; gap: var(--gap); padding: 0 var(--pad); overflow: hidden; }
+.btn { position: absolute; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--btn); min-width: var(--btn); padding: 0;
+  border-radius: calc(var(--btn) / 2); color: var(--on-bar); font: 600 var(--label)/1 var(--font); letter-spacing: .01em; white-space: nowrap; z-index: 2;
+  transition: background-color .2s ease, color .2s ease; }
+.sec .btn { position: relative; flex: none; }
+.btn svg { flex: none; width: var(--icon); height: var(--icon); }
+.btn .lbl { display: none; }
+.btn:hover, .btn.is-hover { background: rgba(244, 240, 234, .14); }
+.btn:active, .btn.is-press { background: rgba(244, 240, 234, .26); }
+.btn .face { display: inline-flex; align-items: center; gap: 8px; transition: transform .35s cubic-bezier(.22, 1, .36, 1); }
+.btn:active .face, .btn.is-press .face { transform: scale(.88); transition-duration: .08s; }
+/* a main tool with more tools: a small corner mark */
+.btn.more::after { content: ""; position: absolute; right: 7px; bottom: 7px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .55; }
+/* its bar is open: a pale disc, ink icon (the sketch's circled tick) */
+.btn[aria-expanded="true"] { background: var(--c, var(--open)); color: var(--ink); }
+.btn[aria-expanded="true"]::after, .btn.homing::after { opacity: 0; }
+/* folding back: the tool keeps its colour until its drop has climbed back into it */
+.btn.homing { background: var(--c, var(--open)); color: var(--ink); }
+/* the chosen tool in a secondary bar: a red dot under it */
+/* inside a coloured secondary bar the icons are ink; the chosen tool sits on an ink disc, its icon light */
+.sec .btn { color: var(--ink); }
+.sec .btn:hover, .sec .btn.is-hover { background-color: rgba(28, 28, 30, .12); }
+.sec .btn:active, .sec .btn.is-press { background-color: rgba(28, 28, 30, .22); }
+/* the disc (and its hover) is drawn inside a clear border, so it never touches the bar's edge */
+.sec .btn { border: var(--pick-inset) solid transparent; background-clip: padding-box; }
+.sec .btn[aria-pressed="true"] { background-color: var(--ink); color: var(--on-bar); }
+.sec .btn[aria-pressed="true"]::before { content: ""; position: absolute; left: 50%; bottom: 1px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--c, var(--mark)); }
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* content modes */
+.cascade[data-content="text"] .btn svg { display: none; }
+.cascade[data-content="text"] .btn .lbl, .cascade[data-content="both"] .btn .lbl { display: inline; }
+.cascade[data-content="text"] .btn, .cascade[data-content="both"] .btn { padding: 0 var(--text-pad); }
+
+/* ---- spec ---- */
+.spec { padding: 48px 32px 64px; color: var(--ink); border-top: 1px solid #ddd3c9; }
+.spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--mark); }
+.spec > p { margin: 0 0 24px; color: var(--dim); max-width: 72ch; font-size: 14px; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.spec-card { padding: 16px 18px 14px; border-radius: 20px; background: #f7f3ee; }
+.spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+.spec-card dt { color: var(--dim); }
+.spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
+@media (prefers-reduced-motion: reduce) { .btn, .btn .face { transition: none; } }

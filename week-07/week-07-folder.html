@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Folder</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Folder: a settings panel for a 3D tool, its toolbar a row of folder tabs on top. Grey tabs hold
+     grey icons; the open tab takes the panel's colour and runs into it, so tab and panel read as one
+     sheet of card. Each tab has its own colour, and the panel changes to it. Inside: number fields,
+     an icon-and-text Reset, a text Duplicate, and Render, a big dark text button.
+     Motion: a tab you point at lifts its icon; the tab you pick rises on a spring and its colour floods
+     the panel as a circle spreading from under the tab, while the page slides in from the side the
+     tab sits on (later tabs from the right, earlier from the left). Choices inside slide one dark
+     highlight between them. Render fills with progress, says Done, and empties again. */
+  :root { --w: 620px; --h: 540px; --c: #f6dc48; --ink: #3b3a33; --soft: rgba(59,58,51,.55); --ease: cubic-bezier(.22, 1, .36, 1); }
+  body { background: #e6e6e6; color: var(--ink); font: 500 16px/1.2 ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; }
+  .said { position: absolute; left: 0; right: 0; top: 14px; margin: 0; text-align: center; font-size: 13px; color: #8a8a8a; min-height: 1em; }
+  .card { position: absolute; left: 70px; top: 48px; width: 480px; padding: 4px; border-radius: 26px; background: #d2d2d2; }
+  .tabs { gap: 4px; height: 58px; }
+  .tab { position: relative; display: grid; place-items: center; width: 72px; height: 54px; border-radius: 22px 22px 0 0; background: #dcdcdc; color: #8b8b8b; align-self: flex-end;
+    transition: background-color .3s var(--ease), color .2s, height .3s var(--ease); }
+  .tab svg { width: 24px; height: 24px; transition: transform .25s var(--ease); }
+  .tab:hover { background: #e6e6e6; color: #5e5e5e; }
+  .tab:hover svg { transform: translateY(-3px) rotate(-6deg); }
+  .tab svg { transition: transform var(--snap-t) var(--snap); }
+  .tab:focus-visible { outline: 3px solid #fff; outline-offset: -5px; }
+  .tab { transition: background-color .3s var(--ease), color .2s, height var(--snap-t) var(--snap); }
+  .tab[aria-pressed="true"] { height: 58px; background: var(--c); color: var(--ink); }
+  .tab[aria-pressed="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 12px; background: var(--c); transition: background-color .3s var(--ease); }
+  .tab[aria-pressed="true"] svg { transform: none; }
+  .sheet { position: relative; overflow: hidden; isolation: isolate; min-height: 350px; padding: 20px 18px 18px; border-radius: 22px; background: var(--c); transition: background-color .3s var(--ease); }
+  .page { display: none; position: relative; z-index: 1; } .page.is-on { display: block; }
+  .flood { position: absolute; z-index: 0; width: 20px; height: 20px; margin: -10px; border-radius: 50%; pointer-events: none; }
+  .acts > div { position: relative; }
+  .hl { position: absolute; left: 0; top: 0; height: 44px; border-radius: 22px; background: var(--ink); z-index: 0; pointer-events: none; transition: transform var(--flow-t) var(--flow), width var(--flow-t) var(--flow); }
+  .acts .btn { position: relative; z-index: 1; }
+  .acts[data-radio] .btn[aria-pressed="true"] { background: transparent; }
+  .render { position: relative; overflow: hidden; }
+  .render .bar { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); background: rgba(255,255,255,.12); }
+  .render span { position: relative; }
+  h2 { margin: 0 0 16px; font-size: 28px; font-weight: 600; letter-spacing: -.01em; }
+  .lab { margin: 18px 0 6px; font-size: 13px; color: var(--soft); }
+  .fields { display: flex; gap: 4px; }
+  .field { flex: 1; display: flex; align-items: baseline; gap: 6px; height: 52px; padding: 13px 12px 0; border-radius: 10px; background: rgba(255,255,255,.78); font-size: 26px; font-variant-numeric: tabular-nums; }
+  .field small { font-size: 12px; color: var(--soft); }
+  .fields .field:first-child { border-radius: 12px 4px 4px 12px; } .fields .field:last-child { border-radius: 4px 12px 12px 4px; }
+  .axes { position: relative; height: 110px; border-bottom: 1px solid rgba(0,0,0,.08); }
+  .cube { position: absolute; left: 150px; top: 46px; width: 40px; height: 40px; background: #fffbe4; border-radius: 4px; box-shadow: 6px -6px 0 #fff3b0; }
+  .acts { gap: 6px; margin-top: 16px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 22px; background: rgba(255,255,255,.55); color: var(--ink); font-size: 15px;
+    transition: background-color .15s, transform .18s var(--ease); }
+  .btn svg { width: 18px; height: 18px; }
+  .btn:hover { background: rgba(255,255,255,.85); }
+  .btn:active, .btn.is-picked { background: #fff; }
+  .btn.icon { width: 44px; padding: 0; justify-content: center; }
+  .btn[aria-pressed="true"] { background: var(--ink); color: var(--c); }
+  .btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .render { display: grid; place-items: center; width: 100%; height: 112px; margin-top: 10px; border-radius: 18px; background: #3d3d3d; color: var(--c); font-size: 26px; font-weight: 600;
+    transition: background-color .15s, transform .2s var(--ease); }
+  .render:hover { background: #333; } .render:active, .render.is-picked { background: #222; }
+  .render:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <p class="said" aria-live="polite"></p>
+    <div class="card">
+      <div class="tabs dock" role="toolbar" aria-label="Settings" data-radio>
+        <div class="dock" data-glide style="gap:4px;align-items:flex-end;height:58px">
+          <button class="tab" type="button" aria-pressed="true" aria-label="Object" data-c="#f6dc48" data-page="p-obj"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" fill="currentColor"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.4"/></svg></button>
+          <button class="tab" type="button" aria-pressed="false" aria-label="Light" data-c="#a8e3bd" data-page="p-light"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z" fill="currentColor"/><path d="M9.5 18.5h5M10.5 21h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+          <button class="tab" type="button" aria-pressed="false" aria-label="Material" data-c="#cbb8f3" data-page="p-mat"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5" fill="currentColor"/><path d="M4 14L14 4M4 19L19 4M9 20L20 9M14 20l6-6" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/></svg></button>
+          <button class="tab" type="button" aria-pressed="false" aria-label="Camera" data-c="#92d2f6" data-page="p-cam"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2.5" fill="currentColor"/><path d="M17 10.5l4-2.5v8l-4-2.5z" fill="currentColor"/><path d="M8 9.5v5l4-2.5z" fill="#fff" fill-opacity=".6"/></svg></button>
+          <button class="tab" type="button" aria-pressed="false" aria-label="Export" data-c="#f2a63a" data-page="p-render"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="currentColor"/><circle cx="11.5" cy="13" r="4.5" fill="#fff" fill-opacity=".55"/><path d="M11.5 10.5v4.5M9.5 13l2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="sheet">
+        <section class="page is-on" id="p-obj">
+          <h2>Object settings</h2>
+          <div class="axes" aria-hidden="true">
+            <svg viewBox="0 0 440 150" width="440" height="110" preserveAspectRatio="none" style="position:absolute;inset:0"><path d="M90 6V110" stroke="#36b24a" stroke-width="1.5"/><path d="M90 110H436" stroke="#2c6fd8" stroke-width="1.5"/><path d="M90 110L10 150" stroke="#b39d3a" stroke-width="1.2"/><text x="96" y="16" font-size="12" fill="#36b24a">y</text><text x="426" y="104" font-size="12" fill="#2c6fd8">z</text></svg>
+            <span class="cube"></span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-end">
+            <div style="flex:1"><p class="lab">Size</p><div class="fields"><span class="field">230<small>x</small></span><span class="field">240<small>y</small></span><span class="field">235<small>z</small></span></div></div>
+            <div><p class="lab">Radius</p><span class="field" style="width:82px;border-radius:50%;justify-content:center;padding:13px 0 0;background:none;box-shadow:inset 0 0 0 2px rgba(59,58,51,.35)">0</span></div>
+          </div>
+          <div class="acts dock" role="toolbar" aria-label="Object actions">
+            <div style="display:flex;gap:6px" data-glide>
+              <button class="btn" type="button"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3.5 8a5.5 5.5 0 1 1 1.6 4.4M3.5 3.5V8H8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Reset</button>
+              <button class="btn" type="button">Duplicate</button>
+              <button class="btn icon" type="button" aria-label="Delete"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M7 5V3h4v2M5 5l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="p-light">
+          <h2>Light settings</h2>
+          <p class="lab">Intensity</p><div class="fields"><span class="field">80<small>%</small></span><span class="field">5600<small>K</small></span></div>
+          <p class="lab">Shadows</p>
+          <div class="acts dock" role="toolbar" aria-label="Shadows" data-radio>
+            <div style="display:flex;gap:6px" data-glide>
+              <button class="btn" type="button" aria-pressed="false">None</button>
+              <button class="btn" type="button" aria-pressed="true">Soft</button>
+              <button class="btn" type="button" aria-pressed="false">Hard</button>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="p-mat">
+          <h2>Material</h2>
+          <p class="lab">Surface</p><div class="fields"><span class="field">0.4<small>rough</small></span><span class="field">1.5<small>ior</small></span><span class="field">0<small>metal</small></span></div>
+          <p class="lab">Finish</p>
+          <div class="acts dock" role="toolbar" aria-label="Finish" data-radio>
+            <div style="display:flex;gap:6px" data-glide>
+              <button class="btn" type="button" aria-pressed="true"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="currentColor"/></svg>Matte</button>
+              <button class="btn" type="button" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="currentColor"/><circle cx="7" cy="7" r="2" fill="#fff"/></svg>Gloss</button>
+              <button class="btn" type="button" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Glass</button>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="p-cam">
+          <h2>Camera</h2>
+          <p class="lab">View</p>
+          <div class="acts dock" role="toolbar" aria-label="View" data-radio>
+            <div style="display:flex;gap:6px" data-glide>
+              <button class="btn" type="button" aria-pressed="true">Front</button>
+              <button class="btn" type="button" aria-pressed="false">Top</button>
+              <button class="btn" type="button" aria-pressed="false">Side</button>
+              <button class="btn" type="button" aria-pressed="false">Free</button>
+            </div>
+          </div>
+          <p class="lab">Lens</p><div class="fields"><span class="field">35<small>mm</small></span><span class="field">f/2.8</span></div>
+        </section>
+        <section class="page" id="p-render">
+          <h2>Render settings</h2>
+          <div class="fields"><span class="field">1440<small>width</small></span><span class="field">600<small>height</small></span><span class="field" style="flex:.6;justify-content:center">1x</span></div>
+          <button class="render" type="button" data-no-squash><span class="bar"></span><span class="txt">Render</span></button>
+          <div class="acts dock" role="toolbar" aria-label="Format" data-radio>
+            <div style="display:flex;gap:6px" data-glide>
+              <button class="btn" type="button" aria-pressed="true">PNG</button>
+              <button class="btn" type="button" aria-pressed="false">JPG</button>
+              <button class="btn" type="button" aria-pressed="false">MP4</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const root = document.documentElement, sheet = document.querySelector('.sheet');
+      const tabs = [...document.querySelectorAll('.tab')];
+      let current = 0;
+      // a picked tab floods the panel with its colour from under the tab; the page slides in from its side
+      document.querySelector('.tabs').addEventListener('click', e => {
+        const t = e.target.closest('.tab'); if (!t) return;
+        const i = tabs.indexOf(t); if (i === current) return;
+        const dir = i > current ? 1 : -1; current = i;
+        const next = document.getElementById(t.dataset.page);
+        document.querySelectorAll('.page').forEach(p => p.classList.toggle('is-on', p === next));
+        placeHighlights();
+        if (M.calm.matches) { root.style.setProperty('--c', t.dataset.c); return; }
+        const sr = sheet.getBoundingClientRect(), tr = t.getBoundingClientRect(), f = M.fit();
+        const x = (tr.left + tr.width / 2 - sr.left) / f, far = Math.hypot(Math.max(x, sr.width / f - x), sr.height / f);
+        const flood = document.createElement('span'); flood.className = 'flood';
+        flood.style.left = x + 'px'; flood.style.top = '0px'; flood.style.background = t.dataset.c;
+        sheet.prepend(flood);
+        // the tab takes its colour at once; the panel catches up as the circle spreads
+        t.style.setProperty('--c', t.dataset.c);
+        flood.animate([{ transform: 'scale(0)' }, { transform: `scale(${far / 10})` }], { duration: 520, easing: 'cubic-bezier(.3, .7, .2, 1)' })
+          .finished.then(() => { root.style.setProperty('--c', t.dataset.c); t.style.removeProperty('--c'); flood.remove(); });
+        next.animate([{ transform: `translateX(${dir * 36}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.open, easing: M.ease.open });
+      });
+
+      // one dark highlight slides between the choices of each group
+      const groups = [...document.querySelectorAll('.acts[data-radio] > div')];
+      groups.forEach(g => { const h = document.createElement('span'); h.className = 'hl'; g.prepend(h); });
+      const placeHighlights = (animate = false) => groups.forEach(g => {
+        const on = g.querySelector('[aria-pressed="true"]'), h = g.querySelector('.hl');
+        if (!on || !g.offsetParent) return;
+        if (!animate) { h.style.transition = 'none'; requestAnimationFrame(() => h.style.transition = ''); }
+        h.style.width = on.offsetWidth + 'px'; h.style.transform = `translateX(${on.offsetLeft}px)`;
+      });
+      groups.forEach(g => g.addEventListener('click', e => { if (e.target.closest('.btn')) setTimeout(() => placeHighlights(true)); }));
+      placeHighlights();
+      addEventListener('click', e => { if (e.target.closest('[data-align-to]')) setTimeout(() => placeHighlights(true), 0); });
+
+      // Render: fills with progress, says Done, empties again
+      const render = document.querySelector('.render');
+      render.addEventListener('click', async () => {
+        if (render.dataset.busy) return; render.dataset.busy = 1;
+        const bar = render.querySelector('.bar'), txt = render.querySelector('.txt');
+        txt.textContent = 'Rendering…';
+        await bar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(.35)', offset: .3 }, { transform: 'scaleX(.42)', offset: .55 }, { transform: 'scaleX(1)' }], { duration: M.calm.matches ? 10 : 1400, easing: 'ease-in-out', fill: 'forwards' }).finished;
+        txt.textContent = 'Done ✓';
+        txt.animate([{ transform: 'scale(.6)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.pop, easing: M.ease.pop });
+        await new Promise(r => setTimeout(r, 1100));
+        await bar.animate([{ transform: 'scaleX(1)', opacity: 1 }, { transform: 'scaleX(1)', opacity: 0 }], { duration: 300, fill: 'forwards' }).finished;
+        bar.getAnimations().forEach(a => a.cancel());
+        txt.textContent = 'Render'; delete render.dataset.busy;
+      });
+    })();
+  </script>
+</body>
+</html>

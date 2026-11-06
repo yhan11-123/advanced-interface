@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Strip: Insert</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <link rel="stylesheet" href="week-07-strip.css?v=3" />
+  <style>
+  /* Strip: Insert. A label, then keys that each hold a kind of thing to insert. A key with a chevron
+     opens its row under the strip: Symbols opens icon-and-text keys, and those open a shelf of
+     components, each a small picture on a key; pressing one lifts it white, its pressed state.
+     Motion: every component on the shelf shows its own behaviour when you point at it (the switch
+     flips, the button's arrow nudges, the bubble pops, the card's header slides, the tag's cross
+     turns). Press one and it lifts on a spring, then a copy of it flies up in an arc into the
+     Symbols key, which swallows it with a bump: inserted. */
+  .key.is-fill[aria-expanded="true"] { background: var(--on); color: #fff; }
+  .key.is-fill[aria-expanded="true"] .chev { color: #fff; }
+  .shelf .key { height: 44px; padding: 0 10px; border-radius: 2px; background: #1c1c1e; }
+  .shelf .key:hover { background: #2c2c2e; }
+  .shelf .key[aria-pressed="true"] { background: #fff; transform: translateY(-3px); box-shadow: 0 6px 14px -6px rgba(0,0,0,.8); }
+  .shelf .key { transition: background-color .12s, transform var(--pop-t) var(--pop), box-shadow .3s ease; }
+  .mini-switch::after { transition: transform .32s var(--snap); }
+  .shelf .key:hover .mini-switch::after { transform: translateX(-16px); }
+  .shelf .key:hover .mini-switch { background: #48484a; }
+  .mini-switch { transition: background-color .2s; }
+  .mini-btn span { display: inline-block; transition: transform .3s var(--snap); }
+  .shelf .key:hover .mini-btn span { transform: translateX(4px); }
+  .mini-bubble { transition: transform var(--pop-t) var(--pop); transform-origin: 0 100%; }
+  .shelf .key:hover .mini-bubble { transform: scale(1.12); }
+  .mini-card { background-size: 100% 100%; transition: background-position .3s; position: relative; overflow: hidden; }
+  .mini-card::after { content: ""; position: absolute; inset: 0 0 60% 0; background: #5ac8fa; transition: transform .35s var(--flow); }
+  .mini-card { background: #e5e5ea; }
+  .shelf .key:hover .mini-card::after { transform: translateY(150%); }
+  .mini-tag b { display: inline-block; font-weight: 400; transition: transform .35s var(--snap); }
+  .shelf .key:hover .mini-tag b { transform: rotate(90deg); }
+  .flyer { position: fixed; z-index: 20; left: 0; top: 0; pointer-events: none; transform-origin: 0 0; }
+  .mini-switch { width: 34px; height: 18px; border-radius: 9px; background: #0a84ff; position: relative; }
+  .mini-switch::after { content: ""; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .mini-btn { padding: 4px 10px; border-radius: 9px; background: #34c759; color: #fff; font-size: 10px; }
+  .mini-bubble { padding: 4px 10px; border-radius: 10px 10px 10px 2px; background: #0a84ff; color: #fff; font-size: 10px; }
+  .mini-card { width: 46px; height: 24px; border-radius: 3px; background: linear-gradient(#5ac8fa 0 40%, #e5e5ea 40%); }
+  .mini-tag { padding: 3px 8px; border-radius: 8px; border: 1px solid #8e8e93; color: #8e8e93; font-size: 10px; }
+  .shelf .key[aria-pressed="true"] .mini-tag { border-color: #3a3a3c; color: #3a3a3c; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <p class="said" aria-live="polite"></p>
+    <div class="deck">
+      <div class="tbar">
+        <button class="key esc" type="button">esc</button>
+        <div class="app dock" role="toolbar" aria-label="Insert">
+          <div class="cluster" data-glide>
+            <span class="lbl">Insert:</span>
+            <button class="key is-fill" type="button" data-opens="t-sym" aria-label="Symbols" id="k-sym"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15 7.5A5.5 5.5 0 0 0 5 6.5M5 12.5a5.5 5.5 0 0 0 10 1M5 3v3.5h3.5M15 17v-3.5h-3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key icon" type="button" aria-label="Image"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h14v12H3zM3 13l4-4 3 3 2-2 5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="13" cy="8" r="1.4" fill="currentColor"/></svg></button>
+            <button class="key" type="button" data-opens="t-shape" aria-label="Shapes"><svg viewBox="0 0 30 20" aria-hidden="true" style="width:30px"><path d="M2 6h12v9H2zM22 5l6 10H16z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key" type="button" data-opens="t-board" aria-label="Artboard"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2v16M15 2v16M2 5h16M2 15h16" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key icon" type="button" aria-label="Text"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 17L10 3l6 14M6.5 12h7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="key icon" type="button" aria-label="Pen"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2l5 8-3 3H8l-3-3zM10 2v6M8 13l-1 5h6l-1-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="10" cy="9" r="1.2" fill="currentColor"/></svg></button>
+          </div>
+        </div>
+        <div class="cluster" role="toolbar" aria-label="Document">
+          <button class="key icon" type="button" aria-label="Fill colour"><span style="width:22px;height:22px;border-radius:50%;background:conic-gradient(#ff2d55,#ffd60a,#30d158,#64d2ff,#bf5af2,#ff2d55)"></span></button>
+          <button class="key icon" type="button" aria-label="Share"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11M6.5 5.5L10 2l3.5 3.5M6 8H4v10h12V8h-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="ctrl" data-ctrl></div>
+      </div>
+    </div>
+
+    <div class="tiers">
+      <div class="tier dock is-open" data-tier id="t-sym">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Symbols">
+          <button class="key" type="button" data-opens="t-shelf"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 3h9v9H3zM8 8h9v9H8z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Symbols</button>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 3h14v14H3z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3" fill="currentColor"/></svg>Layer Styles</button>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12M10 4v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Text Styles</button>
+        </div>
+      </div>
+      <div class="tier dock is-open" data-tier id="t-shelf">
+        <div class="tier-in shelf" data-glide role="toolbar" aria-label="Symbol shelf" data-radio>
+          <button class="key" type="button" aria-pressed="false" aria-label="Switch"><span class="mini-switch"></span></button>
+          <button class="key" type="button" aria-pressed="false" aria-label="Send email button"><span class="mini-btn">Send Email <span>&rsaquo;</span></span></button>
+          <button class="key" type="button" aria-pressed="true" aria-label="Chat bubble"><span class="mini-bubble">Chat Bubble</span></button>
+          <button class="key" type="button" aria-pressed="false" aria-label="Card"><span class="mini-card"></span></button>
+          <button class="key" type="button" aria-pressed="false" aria-label="Tag"><span class="mini-tag">Tag <b>&times;</b></span></button>
+        </div>
+      </div>
+      <div class="tier dock" data-tier id="t-shape">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Shapes">
+          <span class="lbl" style="margin-right:8px">Shape:</span>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Rectangle</button>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="10" cy="10" rx="7" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Oval</button>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l7 13H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Triangle</button>
+          <button class="key" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l2.2 4.6 5 .6-3.7 3.4 1 5-4.5-2.5-4.5 2.5 1-5L2.8 7.7l5-.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Star</button>
+        </div>
+      </div>
+      <div class="tier dock" data-tier id="t-board">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Artboard size" data-radio>
+          <span class="lbl" style="margin-right:8px">Artboard:</span>
+          <button class="key" type="button" aria-pressed="true">iPhone</button>
+          <button class="key" type="button" aria-pressed="false">iPad</button>
+          <button class="key" type="button" aria-pressed="false">Desktop</button>
+          <button class="key" type="button" aria-pressed="false">Watch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-strip.js?v=2"></script>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    // a component pressed on the shelf flies up in an arc into the Symbols key
+    document.querySelector('.shelf').addEventListener('click', e => {
+      const b = e.target.closest('.key'); if (!b || M.calm.matches) return;
+      const art = b.firstElementChild, target = document.getElementById('k-sym');
+      const a = art.getBoundingClientRect(), t = target.getBoundingClientRect(), f = M.fit();
+      const fly = art.cloneNode(true); fly.classList.add('flyer'); document.body.append(fly);
+      const x0 = a.left, y0 = a.top, x1 = t.left + t.width / 2 - a.width / 2, y1 = t.top + t.height / 2 - a.height / 2;
+      const peak = Math.min(y0, y1) - 70 * f, frames = [];
+      for (let i = 0; i <= 12; i++) {
+        const u = i / 12, x = x0 + (x1 - x0) * u, y = (1 - u) * (1 - u) * y0 + 2 * (1 - u) * u * peak + u * u * y1;
+        frames.push({ transform: `translate(${x}px, ${y}px) scale(${f * (1 - u * .75)}) rotate(${u * -8}deg)`, opacity: u > .85 ? (1 - u) / .15 : 1 });
+      }
+      fly.animate(frames, { duration: 520, delay: 120, easing: 'cubic-bezier(.45, 0, .2, 1)', fill: 'both' }).finished.then(() => {
+        fly.remove();
+        target.animate([{ scale: 1 }, { scale: 1.16 }, { scale: 1 }], { duration: M.dur.pop, easing: M.ease.pop });
+        document.querySelector('.said').textContent = (b.getAttribute('aria-label') || 'Symbol') + ' inserted';
+      });
+    });
+    // one row at a time from the strip, as on a Touch Bar: opening Symbols, Shapes or Artboard folds the
+    // others away (the shelf belongs to Symbols, so it folds with it). Runs after the shared script has
+    // toggled the pressed key's row, so it reads the new state.
+    const ROWS = { 't-sym': ['t-shelf', 't-sym'], 't-shape': ['t-shape'], 't-board': ['t-board'] };
+    document.querySelectorAll('.tbar [data-opens]').forEach(k => k.addEventListener('click', () => setTimeout(() => {
+      const mine = k.dataset.opens, nowOpen = document.getElementById(mine).classList.contains('is-open');
+      for (const [id, ids] of Object.entries(ROWS)) {
+        if (id === mine) { if (!nowOpen) ids.forEach(t => t !== mine && M.tier(t, false)); continue; }
+        ids.forEach(t => M.tier(t, false));
+      }
+    })));
+  </script>
+</body>
+</html>

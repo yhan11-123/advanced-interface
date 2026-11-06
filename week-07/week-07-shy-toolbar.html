@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 &middot; Set 1</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="week-07-shy.css?v=12" />
+  <style>
+  /* Set 1, in use: nineteen drawing tools in a row with no box round them. The buttons stay where they
+     are; a yellow highlight of slanted strokes gathers behind them wherever the pointer is. */
+  .hero { position: relative; height: 520px; overflow: hidden; background: var(--page); }
+  .hero-head { position: absolute; left: 32px; top: 26px; z-index: 3; }
+  .hero-head p { margin: 0; color: var(--dim); font-size: 14px; max-width: 46ch; }
+  .hero-head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--hl); }
+  .ctl { position: absolute; right: 28px; top: 26px; z-index: 3; display: flex; gap: 12px; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .ctl .opts { display: flex; border: 1px solid var(--rule); }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 7px 12px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  .ctl input:checked + span { background: var(--ink); color: var(--page); }
+  .ctl input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .dock { position: absolute; left: 0; right: 0; top: 240px; z-index: 2; display: flex; padding: 0 32px; }
+  .dock[data-align="left"] { justify-content: flex-start; } .dock[data-align="center"] { justify-content: center; } .dock[data-align="right"] { justify-content: flex-end; }
+  .hint { position: absolute; left: 0; right: 0; top: 370px; z-index: 2; text-align: center; color: var(--dim); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; min-height: 1.5em; }
+  .hint b { color: var(--ink); font-weight: 700; }
+  .tip { position: absolute; z-index: 5; padding: 6px 8px; background: var(--ink); color: var(--page); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; line-height: 1; white-space: nowrap; pointer-events: none; transform: translate(-50%, -100%); }
+
+  /* states sheet */
+  .states { padding: 44px 32px 36px; background: var(--page); border-top: 1px solid var(--rule); }
+  .states h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--hl); }
+  .states > p { margin: 0 0 22px; color: var(--dim); max-width: 72ch; font-size: 14px; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 16px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .states td { padding: 14px 16px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  .states td:first-child { width: 190px; min-width: 170px; font-weight: 600; font-size: 14px; }
+  .states td:first-child small { display: block; font-weight: 400; color: var(--dim); font-size: 13px; }
+  .states .bar { pointer-events: none; }
+  .frame { position: relative; display: flex; align-items: center; justify-content: center; width: 220px; height: 100px; background: #13284d; overflow: hidden; }
+  .frame.wide { width: 290px; height: 110px; }
+  .frame.small { width: 230px; height: 70px; padding: 0 10px; }
+  .frame .cursor { position: absolute; z-index: 3; width: 16px; height: 20px; pointer-events: none; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20,20,20,.72); padding: 8px 12px; text-decoration: none; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; font-weight: 700; }
+  /* narrow: everything stacks in the page's flow, so nothing lands on the toolbar */
+  @media (max-width: 760px) { .hero { height: auto; padding: 24px 16px 44px; } .hero-head, .ctl, .dock, .hint { position: static; } .ctl { translate: none; margin-top: 18px; flex-wrap: wrap; } .dock { margin-top: 56px; padding: 0 16px; } .hint { margin: 40px 0 0; } }
+  </style>
+</head>
+<body>
+  <section class="hero" id="hero" aria-label="The toolbar in use">
+    <div class="hero-head">
+      <p><b>Week 07 · Set 1 · Toolbar</b>No box, just the tools. Move along them and a yellow highlight follows: dense slanted strokes that gather round the tools you are near and leave a wake when you are quick. A picked tool is filled by the strokes themselves.</p>
+    </div>
+    <form class="ctl" onsubmit="return false">
+      <fieldset><legend>Align</legend><div class="opts">
+        <label><input type="radio" name="align" value="left" /><span>Left</span></label>
+        <label><input type="radio" name="align" value="center" checked /><span>Center</span></label>
+        <label><input type="radio" name="align" value="right" /><span>Right</span></label>
+      </div></fieldset>
+      <fieldset><legend>Buttons</legend><div class="opts">
+        <label><input type="radio" name="content" value="icon" checked /><span>Icon</span></label>
+        <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+        <label><input type="radio" name="content" value="both" /><span>Both</span></label>
+      </div></fieldset>
+    </form>
+    <div class="dock" id="dock" data-align="center">
+      <div class="bar" id="live" role="toolbar" aria-label="Drawing tools" data-content="icon"></div>
+    </div>
+    <p class="hint" aria-live="polite" id="said"><b>Selection</b> is on.</p>
+    <span class="tip" id="tip" role="tooltip" hidden></span>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>One button build in each configuration, at rest, pointed at and pressed: every button sits in a clean window slanted like the strokes, so its icon never sits on one; pointed at, the strokes gather round that window; pressed, the strokes inside it thicken from the press outward and close into one slanted block (here half way), with a band going out. Then the row (its first six tools) with nothing near, with the pointer resting, and with the pointer moving quickly; and the row against the left edge, in the middle and against the right edge.</p>
+    <table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table>
+    <table style="margin-top:26px">
+      <thead><tr><th>The highlight</th><th>Nothing near</th><th>The pointer resting</th><th>The pointer moving quickly</th></tr></thead>
+      <tbody id="bar-rows"></tbody>
+    </table>
+    <table style="margin-top:26px">
+      <thead><tr><th>Alignment</th><th>Left</th><th>Center</th><th>Right</th></tr></thead>
+      <tbody id="align-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: the sizes from the button build as the browser lays it out, the colours and the field's constants from the same tokens the toolbar above uses.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-07.html#deliverables" hidden>&larr; Week 07</a>
+
+  <script>
+    // ---------- the button build ----------
+    const sv = d => `<path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>`;
+    const ICON = {
+      select: '<path d="M5 3l12 7.5-5.5 1.2L9 17.5z" fill="currentColor"/>',
+      direct: sv('M5 3l12 7.5-5.5 1.2L9 17.5z'),
+      pen: sv('M11 2.5l5 8-3 3.5H9L6 10.5zM11 2.5V9M9 14l-.5 5h5L13 14') + '<circle cx="11" cy="10" r="1.3" fill="currentColor"/>',
+      type: sv('M4 5V3.5h14V5M11 3.5V18.5M8 18.5h6'),
+      line: sv('M4 18L18 4'),
+      rect: sv('M3.5 5.5h15v11h-15z'),
+      ellipse: sv('M11 5c4.4 0 8 2.7 8 6s-3.6 6-8 6-8-2.7-8-6 3.6-6 8-6z'),
+      star: sv('M11 2.8l2.4 5 5.4.7-4 3.8 1 5.4L11 15l-4.8 2.7 1-5.4-4-3.8 5.4-.7z'),
+      brush: sv('M18.5 3.5l-8 8.5M10.5 12c-2.5-.5-5 .8-5 3.6 0 1.4-1 2.4-2.5 2.6 3.5 1.6 8.2.3 8.2-3.6z'),
+      pencil: sv('M4 18l1-4 10-10 3 3-10 10zM13 6l3 3'),
+      erase: sv('M8 19h11M5.5 14.5l7-7a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 18H8.5z'),
+      rotate: sv('M17.5 11a6.5 6.5 0 1 1-2.6-5.2M15.5 2.5v4h4'),
+      scale: sv('M3.5 10h8v8.5h-8zM8 3.5h10.5V14M13.5 8.5l5-5M15 3.5h3.5V7'),
+      width: sv('M3 11c3-6 5-6 8 0s5 6 8 0M11 6v10M8.5 8.5L11 6l2.5 2.5M8.5 13.5L11 16l2.5-2.5'),
+      gradient: '<defs><linearGradient id="gr" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><rect x="3.5" y="5.5" width="15" height="11" fill="url(#gr)" stroke="currentColor" stroke-width="1.8"/>',
+      dropper: sv('M15.5 3l3.5 3.5-2.5 2.5-3.5-3.5zM14 5.5L5 14.5V17h2.5l9-9'),
+      artboard: sv('M6 3v16M16 3v16M3 6h16M3 16h16'),
+      hand: sv('M7.5 11V5.5a1.3 1.3 0 0 1 2.6 0V10M10.1 10V4a1.3 1.3 0 0 1 2.6 0v6M12.7 10V5.5a1.3 1.3 0 0 1 2.6 0v6M15.3 11.5V9a1.3 1.3 0 0 1 2.6 0v4.5c0 3.8-2.4 6-5.7 6-2.8 0-4.4-1.5-5.5-3.6l-1.6-3.2a1.2 1.2 0 0 1 2-1.3l1.4 2'),
+      zoom: sv('M9.5 3.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM14 14l5 5')
+    };
+    // [key, name, tool, starts a group]
+    const TOOLS = [
+      ['select', 'Selection', 1], ['direct', 'Direct Selection', 0],
+      ['pen', 'Pen', 1], ['type', 'Type', 0], ['line', 'Line', 0],
+      ['rect', 'Rectangle', 1], ['ellipse', 'Ellipse', 0], ['star', 'Star', 0],
+      ['brush', 'Paintbrush', 1], ['pencil', 'Pencil', 0], ['erase', 'Eraser', 0],
+      ['rotate', 'Rotate', 1], ['scale', 'Scale', 0], ['width', 'Width', 0],
+      ['gradient', 'Gradient', 1], ['dropper', 'Eyedropper', 0],
+      ['artboard', 'Artboard', 1], ['hand', 'Hand', 0], ['zoom', 'Zoom', 0]
+    ].map(([k, l, g], i) => [k, l, true, !!g && i > 0]);
+    const seg = (k, label, tool, on, extra = '', grp = false) => `<button class="seg${grp ? ' grp' : ''}${extra}" type="button" data-k="${k}"${tool ? ` aria-pressed="${on}"` : ''}><svg viewBox="0 0 22 22" aria-hidden="true">${ICON[k]}</svg><span class="lbl">${label}</span></button>`;
+    document.getElementById('live').innerHTML = TOOLS.map(([k, l, t, g], i) => seg(k, l, t, i === 0, '', g)).join('');
+  </script>
+  <script src="week-07-shy-field.js?v=11"></script>
+  <script>
+    (() => {
+      const hero = document.getElementById('hero'), dock = document.getElementById('dock'), bar = document.getElementById('live');
+      const segs = [...bar.querySelectorAll('.seg')], said = document.getElementById('said'), names = TOOLS.map(t => t[1]);
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+
+      // ?pose=quick holds a still of the field with a quick pointer passing (for the week page's frames)
+      const pose = new URLSearchParams(location.search).get('pose');
+      const field = pose === 'quick'
+        ? makeField(bar, { still: { windows: segs.map(e => [e.offsetLeft, e.offsetTop, e.offsetWidth, e.offsetHeight]), on: [[segs[0].offsetLeft, segs[0].offsetTop, segs[0].offsetWidth, segs[0].offsetHeight], 1], at: [bar.offsetWidth * .62, 38], trail: [[bar.offsetWidth * .56, 38, .75], [bar.offsetWidth * .5, 38, .5], [bar.offsetWidth * .44, 38, .28]] } })
+        : makeField(bar, { live: true });
+
+      // a press: the tool changes, and a ring of thick bars goes out from the button through the field
+      bar.addEventListener('click', e => {
+        const b = e.target.closest('.seg'); if (!b) return;
+        segs.forEach(x => { x.tabIndex = x === b ? 0 : -1; x.setAttribute('aria-pressed', String(x === b)); });
+        said.innerHTML = `<b>${names[segs.indexOf(b)]}</b> is on.`;
+        // the picked tool fills from the field, starting where it was pressed; the old one thins away
+        const br = bar.getBoundingClientRect(), r = b.getBoundingClientRect();
+        field.select?.(b, e.detail ? e.clientX - br.left : null);
+        field.ripple?.(r.left + r.width / 2 - br.left, r.top + r.height / 2 - br.top);
+      });
+
+      // every button sits in a clean slanted window, so no icon ever sits on a stroke
+      field.setWindows?.(segs);
+      field.select?.(segs[0], null, true);
+
+      // one tab stop, arrows along the bar
+      segs.forEach((b, i) => b.tabIndex = i ? -1 : 0);
+      bar.addEventListener('keydown', e => {
+        const i = segs.indexOf(document.activeElement); if (i < 0) return;
+        const to = { ArrowRight: (i + 1) % segs.length, ArrowLeft: (i - 1 + segs.length) % segs.length, Home: 0, End: segs.length - 1 }[e.key];
+        if (to === undefined) return; e.preventDefault(); segs.forEach(b => b.tabIndex = -1); segs[to].tabIndex = 0; segs[to].focus();
+      });
+
+      // name tip: an icon alone needs its name; it fades up above the button after a short wait
+      const tip = document.getElementById('tip'); let tipT;
+      const showTip = b => {
+        clearTimeout(tipT);
+        tipT = setTimeout(() => {
+          if (bar.dataset.content !== 'icon') return;
+          const hr = hero.getBoundingClientRect(), r = b.getBoundingClientRect();
+          tip.textContent = names[segs.indexOf(b)]; tip.hidden = false;
+          tip.style.left = (r.left + r.width / 2 - hr.left) + 'px'; tip.style.top = (r.top - hr.top - 18) + 'px';
+          if (!calm.matches) tip.animate([{ opacity: 0, translate: '0 4px' }, { opacity: 1, translate: '0 0' }], { duration: 180, easing: 'ease-out' });
+        }, 380);
+      };
+      const hideTip = () => { clearTimeout(tipT); tip.hidden = true; };
+      segs.forEach(b => { b.addEventListener('pointerenter', () => showTip(b)); b.addEventListener('pointerleave', hideTip); b.addEventListener('focus', () => showTip(b)); b.addEventListener('blur', hideTip); b.addEventListener('pointerdown', hideTip); });
+
+      // alignment and content: the bar slides to its new place and changes width, easing in, no bounce
+      const EASE = 'cubic-bezier(.22, 1, .36, 1)';
+      document.querySelectorAll('.ctl input').forEach(inp => inp.addEventListener('change', () => {
+        hideTip();
+        if (inp.name === 'align') {
+          const x0 = bar.getBoundingClientRect().left; dock.dataset.align = inp.value; const dx = x0 - bar.getBoundingClientRect().left;
+          if (!calm.matches && dx) bar.animate([{ translate: `${dx}px 0` }, { translate: '0 0' }], { duration: 520, easing: EASE });
+          said.innerHTML = `<b>Aligned ${inp.value}.</b>`;
+        } else {
+          const w0 = bar.offsetWidth, h0 = bar.offsetHeight; bar.dataset.content = inp.value; const w1 = bar.offsetWidth, h1 = bar.offsetHeight;
+          if (!calm.matches) bar.animate([{ width: w0 + 'px', height: h0 + 'px' }, { width: w1 + 'px', height: h1 + 'px' }], { duration: 420, easing: EASE });
+          segs.forEach((b, i) => inp.value === 'icon' ? b.setAttribute('aria-label', names[i]) : b.removeAttribute('aria-label'));
+          said.innerHTML = `<b>${{ icon: 'Icon buttons', text: 'Text buttons', both: 'Icon and text buttons' }[inp.value]}.</b>`;
+        }
+      }));
+      segs.forEach((b, i) => b.setAttribute('aria-label', names[i]));
+      if (window.self === window.top && !/[?&](still|pose)/.test(location.search)) document.querySelector('.back-pill').removeAttribute('hidden');
+    })();
+  </script>
+  <script>
+    // ---------- the states sheet: still pictures of the same build, each with its own patch of field ----------
+    (() => {
+      const cur = (x, y) => `<svg class="cursor" style="left:${x}px;top:${y}px" viewBox="0 0 18 22" aria-hidden="true"><path d="M2 2l13 9-6 1.5L6 19z" fill="#fff" stroke="#0e1e3d" stroke-width="1.5" stroke-linejoin="miter"/></svg>`;
+      const rows = [
+        ['Icon button', 'an icon alone; the default', 'icon', 'pen', 'Pen'],
+        ['Text button', 'a label alone', 'text', 'rotate', 'Rotate'],
+        ['Icon and text button', 'side by side', 'both', 'brush', 'Paintbrush'],
+        ['Tool that is on', 'a slanted yellow swatch behind it', 'icon', 'select', 'Selection', true]
+      ];
+      const stills = [];
+      const one = (content, k, l, on, state) => `<div class="frame"><div class="bar" data-content="${content}" data-still="${state}">${seg(k, l, true, !!on, state === 'hover' ? ' is-hover' : state === 'press' ? ' is-press' : '')}</div>${state !== 'rest' ? cur(118, 56) : ''}</div>`;
+      document.getElementById('state-rows').innerHTML = rows.map(([n, sub, c, k, l, on]) =>
+        `<tr><td>${n}<small>${sub}</small></td><td>${one(c, k, l, on, 'rest')}</td><td>${one(c, k, l, on, 'hover')}</td><td>${one(c, k, l, on, 'press')}</td></tr>`).join('');
+      document.querySelectorAll('#state-rows .bar').forEach(b => {
+        const w = b.offsetWidth, h = b.offsetHeight, s = b.dataset.still;
+        const k = b.querySelector('.seg'), r = [k.offsetLeft, k.offsetTop, k.offsetWidth, k.offsetHeight], on = k.getAttribute('aria-pressed') === 'true';
+        // rest: an empty window (a filled block, if on); hover: the field gathers round the window; pressed: the block half grown from the press
+        const base = { windows: [r] }, block = { on: [r, 1] };
+        makeField(b, { still: s === 'rest' ? (on ? block : base) : s === 'hover' ? { ...base, ...(on ? block : {}), at: [w / 2, h / 2] } : { ...base, at: [w / 2, h / 2], ring: [[w / 2, h / 2], .06], on: [r, on ? 1 : .45, r[0] + r[2] * .3] } });
+      });
+      const six = TOOLS.slice(0, 6).map(([k, l, t, g], i) => seg(k, l, t, i === 0, '', g)).join('');
+      const tight = 'style="--bar-h:48px;--tile-h:28px;--icon:14px;--gap:2px;--group-gap:14px"';
+      document.getElementById('bar-rows').innerHTML = `<tr><td>The row<small>nineteen tools in seven groups; here the first six</small></td>
+        <td><div class="frame wide"><div class="bar" data-content="icon" ${tight} data-f="none">${six}</div></div></td>
+        <td><div class="frame wide"><div class="bar" data-content="icon" ${tight} data-f="rest">${six}</div>${cur(196, 60)}</div></td>
+        <td><div class="frame wide"><div class="bar" data-content="icon" ${tight} data-f="quick">${six}</div>${cur(226, 60)}</div></td></tr>`;
+      document.querySelectorAll('#bar-rows .bar').forEach(b => {
+        const w = b.offsetWidth, f = b.dataset.f;
+        // the button under the pointer stays clear, as in use
+        const under = x => { const k = [...b.querySelectorAll('.seg')].reduce((m, e) => Math.abs(e.offsetLeft + e.offsetWidth / 2 - x) < Math.abs(m.offsetLeft + m.offsetWidth / 2 - x) ? e : m); return [k.offsetLeft, k.offsetTop, k.offsetWidth, k.offsetHeight]; };
+        const rs = [...b.querySelectorAll('.seg')].map(e => [e.offsetLeft, e.offsetTop, e.offsetWidth, e.offsetHeight]), on = { windows: rs, on: [rs[0], 1] };
+        makeField(b, { still: f === 'none' ? { ...on } : f === 'rest' ? { ...on, at: [w * .62, 24] } : { ...on, at: [w * .78, 24], trail: [[w * .66, 24, .7], [w * .54, 24, .45], [w * .42, 24, .22]] } });
+      });
+      const pos = j => `<div class="frame small" style="justify-content:${j}"><div class="bar" data-content="icon" style="--bar-h:36px;--tile-h:24px;--icon:12px;--gap:2px;--group-gap:8px">${TOOLS.slice(0, 5).map(([k, l, t, g], i) => seg(k, l, t, i === 0, '', g)).join('')}</div></div>`;
+      document.getElementById('align-rows').innerHTML = `<tr><td>Where it sits<small>left, center or right</small></td><td>${pos('flex-start')}</td><td>${pos('center')}</td><td>${pos('flex-end')}</td></tr>`;
+      document.querySelectorAll('#align-rows .bar').forEach(b => { const rs = [...b.querySelectorAll('.seg')].map(e => [e.offsetLeft, e.offsetTop, e.offsetWidth, e.offsetHeight]); makeField(b, { still: { windows: rs, on: [rs[0], 1] } }); });
+      document.querySelectorAll('.states .seg').forEach(b => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); });
+    })();
+  </script>
+  <script src="week-07-shy-spec.js?v=13"></script>
+</body>
+</html>

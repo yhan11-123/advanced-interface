@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Spark</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Spark: a round black button with a blue count, after an assistant button that sits in the corner
+     of a page (a list with a sparkle). Pressed, it becomes the toolbar: Summarize and Translate
+     (icon-and-text), Rewrite (text), and a close (icon).
+     Motion: the button is one shape the whole time. Point at it and its lines slide and the sparkle
+     turns; press it and the circle stretches into a pill on a spring, the actions arriving one after
+     another out of its middle, the badge riding the moving edge. An action shimmers while it works,
+     then a result card rises from the bar and the badge pops to its new count. Close sends the
+     actions back in, last first, and the pill draws itself back into the circle. */
+  :root { --w: 680px; --h: 420px; }
+  body { background: #fbfbfb; font: 500 14px/1 "Inter", -apple-system, system-ui, sans-serif; color: #1a1a1a; }
+  .page { position: absolute; left: 40px; right: 40px; top: 36px; }
+  .page i { display: block; height: 10px; margin-bottom: 14px; border-radius: 5px; background: #ececec; }
+  .said { position: absolute; left: 40px; top: 12px; margin: 0; font-size: 12px; color: #9a9a9a; min-height: 1em; }
+  .wrap { position: absolute; left: 0; right: 0; bottom: 36px; padding: 0 36px; }
+  .fabw { position: relative; }
+  .fab { position: relative; display: flex; align-items: center; height: 68px; min-width: 68px; border-radius: 34px; background: #171717; color: #fff; box-shadow: 0 12px 28px -12px rgba(0,0,0,.55); overflow: hidden; }
+  .face { width: 68px; height: 68px; flex: none; display: grid; place-items: center; }
+  .face svg { width: 30px; height: 30px; overflow: visible; }
+  .face .ln { transition: transform var(--snap-t) var(--snap); }
+  .face .sp { transform-box: fill-box; transform-origin: center; transition: transform .6s var(--snap); }
+  .face:hover .l1 { transform: translateX(3px); } .face:hover .l2 { transform: translateX(-2px); } .face:hover .l3 { transform: translateX(4px); }
+  .face:hover .sp { transform: rotate(90deg) scale(1.2); }
+  .acts { display: none; align-items: center; gap: 4px; padding-right: 10px; white-space: nowrap; }
+  .is-open .acts { display: flex; }
+  .is-open .face { width: 56px; }
+  .act { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 23px; color: #eaeaea; overflow: hidden; transition: background-color .15s; }
+  .act:hover { background: #2a2a2a; }
+  .act:active { background: #333; }
+  .act svg { width: 17px; height: 17px; }
+  .act.busy::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.22) 50%, transparent 80%); animation: sh .8s linear infinite; }
+  @keyframes sh { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  .x { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; color: #aaa; }
+  .x:hover { background: #2a2a2a; color: #fff; }
+  .badge { position: absolute; top: -8px; right: -8px; z-index: 2; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 14px; background: #3d82f6; color: #fff; font-size: 14px; font-weight: 600; display: grid; place-items: center; box-shadow: 0 0 0 3px #fbfbfb; font-variant-numeric: tabular-nums; pointer-events: none; }
+  .card { position: absolute; bottom: calc(100% + 14px); width: 300px; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px #eee, 0 14px 30px -14px rgba(0,0,0,.3); font-size: 13px; line-height: 1.45; color: #444; }
+  .card b { display: block; margin-bottom: 6px; color: #1a1a1a; }
+  .fab:focus-visible, button:focus-visible { outline: 2px solid #3d82f6; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="right">
+    <p class="said" aria-live="polite"></p>
+    <div class="page" aria-hidden="true"><i style="width:40%;height:16px"></i><i style="width:92%"></i><i style="width:86%"></i><i style="width:90%"></i><i style="width:60%"></i><br><i style="width:88%"></i><i style="width:78%"></i><i style="width:84%"></i></div>
+    <div class="wrap dock">
+      <div class="fabw" data-glide id="fabw">
+        <div class="fab" id="fab" role="toolbar" aria-label="Assistant">
+          <button class="face" type="button" id="face" aria-expanded="false" aria-label="Assistant, 1 new" data-manual>
+            <svg viewBox="0 0 30 30" aria-hidden="true"><path class="ln l1" d="M4 8h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="ln l2" d="M4 15h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="ln l3" d="M4 22h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="sp" d="M21 13l1.4 3.6L26 18l-3.6 1.4L21 23l-1.4-3.6L16 18l3.6-1.4z" fill="currentColor"/></svg>
+          </button>
+          <div class="acts" id="acts">
+            <button class="act" type="button" data-a="Summary"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 4h12M3 9h8M3 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 10l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" fill="currentColor"/></svg>Summarize</button>
+            <button class="act" type="button" data-a="Rewrite">Rewrite</button>
+            <button class="act" type="button" data-a="Translation"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 4h8M6 2v2M4 4c0 3 2 5 5 6M8 4c0 3-2 6-6 7M10 16l3-8 3 8M11 13.5h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Translate</button>
+            <button class="x" type="button" aria-label="Close" id="close"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <span class="badge" id="badge">1</span>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id), said = document.querySelector('.said'), calm = () => M.calm.matches;
+      const fab = $('fab'), face = $('face'), acts = $('acts'), badge = $('badge');
+      let count = 1, busy = false;
+
+      // the sparkle twinkles now and then, so the button looks alive at rest
+      setInterval(() => { if (!calm() && !fab.classList.contains('is-open')) face.querySelector('.sp').animate([{ transform: 'none' }, { transform: 'rotate(45deg) scale(1.35)' }, { transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.3, 1.4, .5, 1)' }); }, 3200);
+
+      // one shape: the circle stretches into the bar and draws back into the circle
+      const setOpen = async open => {
+        const w0 = fab.offsetWidth;
+        if (!open && !calm()) {
+          const kids = [...acts.children].reverse();
+          await Promise.all(kids.map((k, i) => k.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-14px) scale(.9)' }], { duration: 140, delay: i * 25, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).finished));
+        }
+        fab.classList.toggle('is-open', open); face.setAttribute('aria-expanded', String(open));
+        acts.querySelectorAll('*').forEach(k => k.getAnimations().forEach(a => a.cancel()));
+        const w1 = fab.offsetWidth;
+        if (calm()) return;
+        fab.animate([{ width: w0 + 'px' }, { width: w1 + 'px' }], { duration: open ? M.dur.open : 420, easing: open ? M.ease.open : 'cubic-bezier(.3, .7, .2, 1)' });
+        if (open) [...acts.children].forEach((k, i) => k.animate([{ opacity: 0, transform: 'translateX(-24px) scale(.85)' }, { opacity: 1, transform: 'none' }], { duration: M.dur.open, delay: 70 + i * 45, easing: M.ease.open, fill: 'backwards' }));
+        // the badge rides the edge; a small squash when the shape lands
+        face.animate([{ transform: 'rotate(0)' }, { transform: open ? 'rotate(-90deg)' : 'rotate(90deg)', offset: .4 }, { transform: 'rotate(0)' }], { duration: 420, easing: 'ease-out' });
+      };
+      face.addEventListener('click', () => { setOpen(!fab.classList.contains('is-open')); said.textContent = fab.classList.contains('is-open') ? 'Assistant open' : 'Assistant closed'; });
+      $('close').addEventListener('click', () => { setOpen(false); face.focus(); said.textContent = 'Assistant closed'; });
+      addEventListener('keydown', e => { if (e.key === 'Escape' && fab.classList.contains('is-open')) { setOpen(false); face.focus(); } });
+
+      // an action works (shimmer), then a card rises from the bar and the badge pops to its new count
+      let card = null;
+      acts.addEventListener('click', async e => {
+        const a = e.target.closest('.act'); if (!a || busy) return;
+        busy = true; a.classList.add('busy'); said.textContent = a.textContent.trim() + '…';
+        await new Promise(r => setTimeout(r, calm() ? 0 : 900));
+        a.classList.remove('busy'); busy = false;
+        if (card) card.remove();
+        card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<b>${a.dataset.a} ready</b>The page in three lines: what changed, who it affects, and what to do next.`;
+        const right = document.querySelector('.stage').dataset.align === 'right';
+        card.style[right ? 'right' : 'left'] = '0';
+        $('fabw').append(card);
+        if (!calm()) card.animate([{ opacity: 0, transform: 'translateY(16px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: M.dur.open, easing: M.ease.open });
+        count++; badge.textContent = count; face.setAttribute('aria-label', `Assistant, ${count} new`);
+        if (!calm()) badge.animate([{ transform: 'scale(.4)' }, { transform: 'scale(1)' }], { duration: M.dur.pop, easing: M.ease.pop });
+        said.textContent = a.dataset.a + ' ready';
+        const c = card; setTimeout(() => { if (card !== c) return; c.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(8px)' }], { duration: 240, fill: 'forwards' }).finished.then(() => { c.remove(); if (card === c) card = null; }); }, 3200);
+      });
+    })();
+  </script>
+</body>
+</html>

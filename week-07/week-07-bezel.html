@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Bezel</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Bezel: a phone whose side bezel swells into the screen when you press a side button, after a
+     concept where the black edge itself becomes the control. Volume swells into a tall slider; the
+     mode switch swells into a short wheel of bell icons with SILENT or RING beside it; Focus swells
+     into a wheel of focus icons with the focus's name. The side buttons are icon buttons; the bar
+     under the phone holds the same three as icon-and-text buttons; the name beside the bulge is text.
+     Alignment moves the bulge to the left edge, the right edge, or into the middle as a floating pill.
+     Motion: the bulge is liquid. Its height runs ahead on a quick spring and its width follows on a
+     softer one, so it stretches out of the edge with a neck and settles; when it goes it drains back
+     into the edge the same way. The volume level rises and falls on its own spring; the wheels roll
+     to the chosen icon, which grows while the others shrink and dim; the name slides out of the
+     bulge and rolls to the new word. Left alone for two seconds, the bulge drains away. */
+  :root { --w: 760px; --h: 660px; }
+  body { background: #e9e9e7; color: #fff; font: 800 15px/1 "SF Pro Display", -apple-system, system-ui, sans-serif; }
+  .said { position: absolute; left: 0; right: 0; bottom: 10px; margin: 0; text-align: center; font: 500 12px/1 system-ui; color: #77756f; min-height: 1em; }
+  .phone { position: absolute; left: 50%; top: 20px; width: 330px; height: 560px; margin-left: -165px; border-radius: 54px; padding: 12px; background: linear-gradient(90deg, #cfcfcb, #f4f4f2 30%, #bdbdb8); box-shadow: 0 20px 40px -24px rgba(0,0,0,.5); }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 44px; overflow: hidden; background: #000; }
+  .wall { position: absolute; inset: 0 12px; border-radius: 36px; background: radial-gradient(ellipse 80% 50% at 70% 30%, #d9d8d2, transparent 60%), radial-gradient(ellipse 60% 70% at 20% 80%, #44484d, transparent 70%), linear-gradient(160deg, #9fa3a6, #5d6064 50%, #b8b6ad); }
+  .bulge { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .content { position: absolute; pointer-events: none; }
+  .hw { position: absolute; width: 6px; border-radius: 3px; background: linear-gradient(90deg, #a9a9a4, #e2e2de); box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+  .hw:hover { filter: brightness(1.06); }
+  .hw:focus-visible, .key:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+  /* volume */
+  .vol { width: 76px; height: 220px; border-radius: 22px; background: #2e2e2e; overflow: hidden; position: relative; }
+  .vol .lvl { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: #efefed; }
+  .vol svg { position: absolute; left: 50%; bottom: 22px; width: 34px; height: 26px; margin-left: -17px; color: #333; }
+  /* wheels */
+  .wheel { position: relative; width: 48px; overflow: hidden; }
+  .wheel .track { position: absolute; left: 0; top: 0; width: 48px; }
+  .wheel .it { width: 48px; height: 46px; display: grid; place-items: center; }
+  .wheel .it svg { width: 30px; height: 30px; transition: transform .35s var(--flow), opacity .3s; transform: scale(.72); opacity: .35; }
+  .wheel .it.is-on svg { transform: none; opacity: 1; }
+  .name { position: absolute; font-size: 22px; letter-spacing: .02em; text-shadow: 0 1px 12px rgba(0,0,0,.35); white-space: nowrap; overflow: hidden; height: 26px; }
+  .name span { display: block; }
+  .keys { position: absolute; left: 0; right: 0; bottom: 34px; display: flex; justify-content: center; gap: 8px; }
+  .key { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 20px; background: #fff; color: #222; font: 600 13px/1 system-ui; box-shadow: 0 1px 2px rgba(0,0,0,.12); transition: background-color .15s; }
+  .key svg { width: 18px; height: 18px; }
+  .key:hover { background: #f6f6f4; }
+  .key[aria-pressed="true"] { background: #1d1d1f; color: #fff; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <div class="phone" id="phone">
+      <div class="screen" id="screen">
+        <div class="wall"></div>
+        <svg class="bulge" id="bulge" aria-hidden="true"><path id="bpath" fill="#000"/></svg>
+        <div class="content" id="c-vol" style="opacity:0"><div class="vol"><span class="lvl" id="lvl"></span><svg viewBox="0 0 34 26" aria-hidden="true"><path d="M2 9h6l8-7v22l-8-7H2z" fill="currentColor"/><path id="w1" d="M21 8a6 6 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path id="w2" d="M26 4a12 12 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div></div>
+        <div class="content" id="c-ring" style="opacity:0"><div class="wheel" style="height:150px"><div class="track" id="t-ring"></div></div></div>
+        <div class="content" id="c-focus" style="opacity:0"><div class="wheel" style="height:230px"><div class="track" id="t-focus"></div></div></div>
+        <div class="name" id="name" style="opacity:0"><span>SILENT</span></div>
+      </div>
+    </div>
+    <!-- side buttons, on whichever edge the bulge lives -->
+    <button class="hw" type="button" id="hw-up" aria-label="Volume up" style="height:56px"></button>
+    <button class="hw" type="button" id="hw-down" aria-label="Volume down" style="height:56px"></button>
+    <button class="hw" type="button" id="hw-mode" aria-label="Ring or silent" style="height:30px"></button>
+    <div class="keys" role="toolbar" aria-label="Side controls">
+      <button class="key" type="button" id="k-vol" data-manual><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 6.5h3l4-3.5v12l-4-3.5H2z" fill="currentColor"/><path d="M12 6a4 4 0 0 1 0 6M14.5 3.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Volume</button>
+      <button class="key" type="button" id="k-ring" data-manual><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 13V8a4.5 4.5 0 0 1 9 0v5l1.5 1.5H3zM7.5 16h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Ring</button>
+      <button class="key" type="button" id="k-focus" data-manual><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M14 11.5A6 6 0 0 1 6.5 4a6 6 0 1 0 7.5 7.5z" fill="currentColor"/></svg>Focus</button>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const stage = document.querySelector('.stage'), said = document.querySelector('.said');
+      const screen = document.getElementById('screen'), bpath = document.getElementById('bpath'), name = document.getElementById('name');
+      const SW = 306, SH = 536, EDGE = 12;           // screen size; the black edge is 12 wide
+      const C = { vol: document.getElementById('c-vol'), ring: document.getElementById('c-ring'), focus: document.getElementById('c-focus') };
+      const SIZE = { vol: [100, 250], ring: [70, 170], focus: [70, 250] };
+      let side = 'left', mode = null, w = 0, h = 0, cy = SH * .55, stopW = () => {}, stopH = () => {}, idle;
+
+      // icons
+      const I = {
+        bellOff: '<path d="M7 22V13a8 8 0 0 1 16 0v9l3 3H4zM12 28h6M4 4l22 24" fill="none" stroke="#ff453a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+        bell: '<path d="M7 22V13a8 8 0 0 1 16 0v9l3 3H4zM12 28h6" fill="#8e8e93" stroke="#8e8e93" stroke-width="1.5" stroke-linejoin="round"/>',
+        none: '<circle cx="15" cy="15" r="11" fill="none" stroke="#636366" stroke-width="2.4"/><path d="M7 23L23 7" stroke="#636366" stroke-width="2.4"/>',
+        moon: '<path d="M24 19A11 11 0 0 1 11 6a11 11 0 1 0 13 13z" fill="#5e5ce6"/>',
+        person: '<circle cx="15" cy="9" r="6" fill="#bf5af2"/><path d="M3 28c0-7 5-11 12-11s12 4 12 11z" fill="#bf5af2"/>',
+        work: '<rect x="6" y="3" width="18" height="25" rx="3" fill="#30b0c7"/><circle cx="15" cy="13" r="3.6" fill="#0b3a44"/><path d="M9 23c1-4 3.5-5.5 6-5.5s5 1.5 6 5.5z" fill="#0b3a44"/>',
+        book: '<path d="M4 6c4-2 8-2 11 1 3-3 7-3 11-1v19c-4-2-8-2-11 1-3-3-7-3-11-1z" fill="#ff9f0a"/>'
+      };
+      const RING = [['SILENT', 'bellOff'], ['RING', 'bell']];
+      const FOCUS = [['OFF', 'none'], ['SLEEP', 'moon'], ['PERSONAL', 'person'], ['WORK', 'work'], ['READING', 'book']];
+      const fill = (el, list) => el.innerHTML = list.map(([n, k]) => `<div class="it"><svg viewBox="0 0 30 30" aria-hidden="true">${I[k]}</svg></div>`).join('');
+      fill(document.getElementById('t-ring'), RING); fill(document.getElementById('t-focus'), FOCUS);
+      let ring = 0, focus = 3, vol = .5;
+
+      // the liquid outline: a rounded body joined to the edge by two soft necks (or, in the middle, a pill)
+      const draw = () => {
+        if (w < .5 || h < .5) { bpath.setAttribute('d', ''); return; }
+        const top = cy - h / 2, bot = cy + h / 2, n = Math.min(46, h * .22), r = Math.min(26, w / 2, h / 2);
+        let d;
+        if (side === 'center') {
+          const x0 = SW / 2 - w / 2, x1 = SW / 2 + w / 2, rr = Math.min(w / 2, 34);
+          d = `M${x0 + rr} ${top} H${x1 - rr} Q${x1} ${top} ${x1} ${top + rr} V${bot - rr} Q${x1} ${bot} ${x1 - rr} ${bot} H${x0 + rr} Q${x0} ${bot} ${x0} ${bot - rr} V${top + rr} Q${x0} ${top} ${x0 + rr} ${top}Z`;
+        } else {
+          const e = EDGE, W = e + w;
+          d = `M0 ${top - n} L${e} ${top - n} C${e} ${top - n * .2} ${W} ${top - n * .25} ${W} ${top + r} V${bot - r} C${W} ${bot + n * .25} ${e} ${bot + n * .2} ${e} ${bot + n} L0 ${bot + n}Z`;
+          if (side === 'right') d = d.replace(/(-?\d+(\.\d+)?) (-?\d+(\.\d+)?)/g, (m, x, _, y) => `${SW - x} ${y}`);
+        }
+        bpath.setAttribute('d', d);
+        // the content rides in the bulge, showing once there is room for it
+        const [fw, fh] = SIZE[mode] || [1, 1], k = Math.max(0, Math.min(1, (w / fw - .55) / .45)) * Math.max(0, Math.min(1, (h / fh - .6) / .4));
+        for (const m in C) {
+          const el = C[m]; el.style.opacity = m === mode ? k : 0;
+          const cw = el.firstElementChild.offsetWidth, ch = el.firstElementChild.offsetHeight;
+          const cx = side === 'left' ? EDGE + w / 2 : side === 'right' ? SW - EDGE - w / 2 : SW / 2;
+          el.style.left = cx - cw / 2 + 'px'; el.style.top = cy - ch / 2 + 'px';
+          el.style.transform = `scale(${.85 + .15 * k})`;
+        }
+        const showName = mode === 'ring' || mode === 'focus';
+        name.style.opacity = showName ? k : 0;
+        const nx = side === 'left' ? EDGE + w + 18 : side === 'right' ? SW - EDGE - w - 18 - name.offsetWidth : SW / 2 - name.offsetWidth / 2;
+        name.style.left = nx + 'px';
+        name.style.top = (side === 'center' ? cy + h / 2 + 14 : cy - 13) + 'px';
+        name.style.transform = `translateX(${(side === 'left' ? -1 : side === 'right' ? 1 : 0) * (1 - k) * 16}px)`;
+      };
+
+      // height leads on a quick spring, width follows on a softer one: it stretches out, then fills
+      const go = (W, H) => {
+        stopW(); stopH();
+        stopH = M.spring(h, H, 0, v => { h = Math.max(0, v); draw(); }, { visual: .3, bounce: .25 });
+        stopW = M.spring(w, W, 0, v => { w = Math.max(0, v); draw(); }, { visual: H ? .42 : .26, bounce: H ? .32 : 0 });
+      };
+      const open = m => {
+        clearTimeout(idle);
+        if (mode !== m) {
+          mode = m;
+          for (const k in C) C[k].style.opacity = 0;
+        }
+        const [W, H] = SIZE[m]; go(W, H);
+        idle = setTimeout(close, 2200);
+        document.querySelectorAll('.key').forEach(k => k.setAttribute('aria-pressed', String(k.id === 'k-' + m)));
+      };
+      const close = () => { go(0, 0); document.querySelectorAll('.key').forEach(k => k.setAttribute('aria-pressed', 'false')); setTimeout(() => { if (!h) mode = null; }, 600); };
+
+      // volume: the level rises and falls on its own spring; the speaker loses waves as it gets quiet
+      const lvl = document.getElementById('lvl'); let stopV = () => {}, shown = vol;
+      const paintVol = v => { shown = v; lvl.style.height = (v * 100) + '%'; document.getElementById('w1').style.opacity = v > .05 ? 1 : .15; document.getElementById('w2').style.opacity = v > .5 ? 1 : .15; };
+      const setVol = d => { vol = Math.max(0, Math.min(1, Math.round((vol + d) * 16) / 16)); stopV(); stopV = M.spring(shown, vol, 0, paintVol, { visual: .25, bounce: .3 }); said.textContent = 'Volume ' + Math.round(vol * 100) + '%'; };
+      paintVol(vol);
+
+      // wheels roll to the chosen icon; the name rolls to the new word
+      const roll = (track, i, H) => {
+        const items = [...track.children];
+        track.style.transition = M.calm.matches ? 'none' : `transform ${M.dur.flow}ms ${M.ease.flow}`;
+        track.style.transform = `translateY(${H / 2 - 23 - i * 46}px)`;
+        items.forEach((it, k) => it.classList.toggle('is-on', k === i));
+      };
+      const rename = word => {
+        const old = name.firstElementChild;
+        if (old.textContent === word) return;
+        const nu = document.createElement('span'); nu.textContent = word; name.append(nu);
+        if (M.calm.matches) { old.remove(); return; }
+        old.animate([{ transform: 'none' }, { transform: 'translateY(-100%)' }], { duration: 260, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' }).finished.then(() => old.remove());
+        nu.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], { duration: 260, easing: 'cubic-bezier(.4, 0, .2, 1)' }).finished.then(() => nu.style.transform = '');
+        name.style.height = '26px';
+      };
+      const doRing = () => { ring = mode === 'ring' ? 1 - ring : ring; open('ring'); roll(document.getElementById('t-ring'), ring, 150); rename(RING[ring][0]); said.textContent = RING[ring][0] === 'SILENT' ? 'Silent' : 'Ring'; };
+      const doFocus = step => { if (mode === 'focus') focus = (focus + step + FOCUS.length) % FOCUS.length; open('focus'); roll(document.getElementById('t-focus'), focus, 230); rename(FOCUS[focus][0]); said.textContent = 'Focus: ' + FOCUS[focus][0].toLowerCase(); };
+
+      document.getElementById('hw-up').addEventListener('click', () => { if (mode === 'focus') doFocus(-1); else { open('vol'); setVol(1 / 16); } });
+      document.getElementById('hw-down').addEventListener('click', () => { if (mode === 'focus') doFocus(1); else { open('vol'); setVol(-1 / 16); } });
+      document.getElementById('hw-mode').addEventListener('click', doRing);
+      document.getElementById('k-vol').addEventListener('click', () => { open('vol'); said.textContent = 'Volume ' + Math.round(vol * 100) + '%'; });
+      document.getElementById('k-ring').addEventListener('click', doRing);
+      document.getElementById('k-focus').addEventListener('click', () => doFocus(1));
+      // scrolling over the bulge changes the value
+      screen.addEventListener('wheel', e => { if (!mode) return; e.preventDefault(); const s = Math.sign(e.deltaY); if (mode === 'vol') { setVol(-s / 16); open('vol'); } else if (mode === 'focus') doFocus(s); }, { passive: false });
+
+      // the side buttons sit on the bulge's edge; alignment moves bulge and buttons
+      const placeHw = () => {
+        const ph = document.getElementById('phone'), x = side === 'right' ? ph.offsetLeft + ph.offsetWidth - 2 : ph.offsetLeft - 4;
+        [['hw-mode', 110], ['hw-up', 170], ['hw-down', 236]].forEach(([id, y]) => { const b = document.getElementById(id); b.style.left = x + 'px'; b.style.top = ph.offsetTop + y + 'px'; b.style.display = side === 'center' ? 'none' : ''; });
+      };
+      new MutationObserver(() => {
+        const was = mode; side = stage.dataset.align;
+        placeHw(); w = 0; h = 0; draw();
+        if (was) { mode = null; open(was); }
+      }).observe(stage, { attributes: true, attributeFilter: ['data-align'] });
+      placeHw();
+      roll(document.getElementById('t-ring'), ring, 150); roll(document.getElementById('t-focus'), focus, 230);
+      // open once so the picture shows what it is
+      setTimeout(() => { open('ring'); rename('SILENT'); }, 400);
+    })();
+  </script>
+</body>
+</html>

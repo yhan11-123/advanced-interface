@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 &middot; Toolbars &middot; Advanced Interface</title>
+  <meta name="description" content="Two sets of toolbars, each a tone: one build that sits left, right or centre and takes icon, text, or icon and text buttons." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=23" />
+  <style>
+    /* Week 07 diagram kit: one toolbar drawn the same way everywhere.
+       Picts (112 x 68): toolbar 14 tall, button 10, icon 5, label line 1.6.
+       Anatomy (px, true size): the brief's Material drawing, container 64, padding 8, button 48, gap 4, primary action 56 at 8 from the bar. */
+    .tb-box { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+    .tb-layer { fill: var(--accent); }
+    .tb-fab { fill: var(--accent); fill-opacity: .14; stroke: var(--accent); stroke-opacity: .4; stroke-width: 1; }
+    .tb-label { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; }
+    .tb-icon { fill: none; stroke: var(--fg); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .tb-rule { stroke: var(--line); stroke-width: 1; }
+    .tb-guide { stroke: var(--fg-muted); stroke-width: 1; stroke-dasharray: 2 2; opacity: .6; }
+    .tb-meta { fill: var(--fg-muted); font: 7px/1 var(--font); }
+    .tb-txt { fill: var(--fg); font: 500 14px/1 var(--font); }
+    .tb-dim { fill: none; stroke: #e2537d; stroke-width: .8; }
+    .tb-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
+    .tb-pad { fill: #e2537d; opacity: .12; }
+    .rv-anat-fig .an-num text { font-size: 7px; }
+
+    /* Try it: a plain toolbar that does what the brief asks, live */
+    .tb-try { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 20px; align-items: start; margin: 16px 0 24px; padding: 20px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .tb-try-stage { display: flex; flex-direction: column; min-height: 300px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); overflow: hidden; }
+    .tb-try-page { flex: 1; padding: 20px 20px 0; }
+    .tb-try-page i { display: block; height: 8px; margin: 0 0 10px; border-radius: 4px; background: var(--line); }
+    .tb-try-dock { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 16px; }
+    .tb-try-bar { flex: none; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .tb-try-dock[data-align="left"] { justify-content: flex-start; }
+    .tb-try-dock[data-align="center"] { justify-content: center; }
+    .tb-try-dock[data-align="right"] { justify-content: flex-end; }
+    .tb-try-bar { display: flex; align-items: center; gap: 4px; height: 64px; padding: 0 8px; border-radius: 32px; background: var(--bg-elev); border: 1px solid var(--line); box-shadow: 0 6px 18px -10px rgb(0 0 0 / .3); overflow: hidden; white-space: nowrap; }
+    .tb-try-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; min-width: 48px; height: 48px; margin: 0; padding: 0 12px; border: 0; border-radius: 24px; background: none; color: var(--fg); font: inherit; font-size: 14px; font-weight: 500; line-height: 20px; cursor: pointer; }
+    .tb-try-btn::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--fg); opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+    .tb-try-btn:hover::before { opacity: .08; }
+    .tb-try-btn:active::before { opacity: .12; transition: none; }
+    .tb-try-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .tb-try-btn svg { flex: none; width: 24px; height: 24px; }
+    .tb-try-btn[aria-pressed="true"] { color: var(--accent); }
+    .tb-try-btn[aria-pressed="true"]::before { background: var(--accent); opacity: .12; }
+    .tb-try-fab { flex: none; width: 56px; min-width: 56px; height: 56px; padding: 0 16px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 14%, var(--bg-elev)); color: var(--accent); box-shadow: 0 6px 18px -10px rgb(0 0 0 / .3); }
+    .tb-try-fab.is-wide { width: auto; }
+    /* content modes: icon, text, icon + text */
+    .tb-try-dock[data-content="icon"] .tb-try-btn > span { display: none; }
+    .tb-try-dock[data-content="icon"] .tb-try-btn { padding: 0; width: 48px; }
+    .tb-try-dock[data-content="icon"] .tb-try-fab { width: 56px; }
+    .tb-try-dock[data-content="text"] .tb-try-btn > svg { display: none; }
+    .tb-try-said { margin-top: 14px; font-size: 13px; color: var(--fg-muted); min-height: 1.4em; }
+    .tb-try-side { display: grid; gap: 16px; }
+    .tb-try-seg { margin: 0; padding: 0; border: 0; }
+    .tb-try-seg legend { margin-bottom: 6px; padding: 0; font-size: 12px; font-weight: 600; color: var(--fg-muted); }
+    .tb-try-seg div { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+    .tb-try-seg label { position: relative; flex: 1; }
+    .tb-try-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .tb-try-seg span { display: block; padding: 6px 4px; border-radius: 7px; font-size: 12.5px; text-align: center; color: var(--fg-muted); transition: background-color .15s ease, color .15s ease; }
+    .tb-try-seg input:checked + span { background: var(--bg-elev); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
+    .tb-try-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .prose .tb-try-keylist { display: grid; gap: 12px; margin: 0; padding: 4px 0 0; list-style: none; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .prose .tb-try-keylist li { position: relative; margin: 0; padding-left: 30px; }
+    .tb-try-keylist b { display: block; font-size: 13.5px; color: var(--fg); }
+    .tb-try-keylist i { position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); font-style: normal; font-size: 11px; line-height: 18px; text-align: center; color: var(--fg); }
+    @media (max-width: 720px) { .tb-try { grid-template-columns: minmax(0, 1fr); } }
+    @media (prefers-reduced-motion: reduce) { .tb-try-btn::before, .tb-try-seg span { transition: none; } }
+
+    /* Numbers to remember: four tiles */
+    .tb-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .tb-nums div { padding: 16px 16px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .tb-nums b { display: block; margin-bottom: 6px; font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .tb-nums small { font-size: 13px; font-weight: 500; margin-left: 1px; }
+    .tb-nums span { display: block; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+    .tb-dd { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .tb-dd { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 07</div>
+      <h1>Toolbars</h1>
+      <div class="meta">
+        <span>Nov 2, 2026</span>
+        <span class="tag">toolbars</span>
+        <span class="tag">system</span>
+        <span class="tag">alignment</span>
+        <span class="tag">buttons</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Brief</h2>
+
+      <p>Two sets of toolbars, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the toolbar is for and what it lets you do. A toolbar's function is to keep the few commands you use most within one reach of the content they act on, and to stay out of the content's way, so the tone has to live in how the bar sits, how its buttons look and how they answer the pointer, without hiding what each one does.</p>
+
+      <p>The rule that shapes everything: <strong>the toolbar works as a system</strong>. One basic structure, many configurations.</p>
+
+      <h3>What the structure has to take</h3>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Has to support</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Alignment</td><td>Left or right aligned, and center aligned</td></tr>
+          <tr><td>Icon button</td><td>An icon alone</td></tr>
+          <tr><td>Text button</td><td>A label alone</td></tr>
+          <tr><td>Icon and text button</td><td>An icon with its label</td></tr>
+        </tbody>
+      </table>
+
+      <h3>States</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Shows</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Enabled</td><td>The button at rest, ready to press</td></tr>
+          <tr><td>Hover</td><td>The button under the pointer, about to be pressed</td></tr>
+          <tr><td>Pressed</td><td>The press landing</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief shows two drawings. Apple's: the top of an iPad window, its toolbar split into three groups. Leading holds a back button and the title; center holds six tool icons in one capsule; trailing holds undo, share and more in a capsule, then compose on its own. Material's: a floating toolbar measured out, 64 tall, 8 of padding at each end, four buttons 4 apart; beside it, 8 away, a 56 primary action with its own rounded square.</p>
+
+      <h3>The spec</h3>
+
+      <p>As before, no Figma file: every prototype carries its own spec in a section of the page. At least spacing, font, font size and line height, the size of the bar and its buttons, and every other property that shapes it: roundness, stroke width, shadow, the state layers, how it changes between alignments. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>What a toolbar is and how it behaves, from Apple's Toolbars and Material 3's Toolbars. Nothing about tone yet, only the toolbar.</p>
+
+      <h3>The parts</h3>
+
+      <p>One container, one button build. A primary action can stand beside the bar.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-34 -34 340 132" role="img" aria-label="A floating toolbar drawn at true size: a capsule 64 tall with four icon buttons 48 wide, 8 of padding at each end and 4 between buttons, the second button hovered, and a 56 primary action 8 to its right, with five numbered parts">
+            <rect x="0" y="0" width="220" height="64" rx="32" class="tb-box"/>
+            <!-- padding 8 and gaps 4 -->
+            <rect x="0" y="8" width="8" height="48" class="tb-pad"/><rect x="56" y="8" width="4" height="48" class="tb-pad"/>
+            <rect x="108" y="8" width="4" height="48" class="tb-pad"/><rect x="160" y="8" width="4" height="48" class="tb-pad"/>
+            <rect x="212" y="8" width="8" height="48" class="tb-pad"/><rect x="220" y="8" width="8" height="48" class="tb-pad"/>
+            <!-- button 1: check -->
+            <rect x="8" y="8" width="48" height="48" rx="24" fill="none" stroke="var(--line)" stroke-dasharray="2 2"/>
+            <path class="tb-icon" d="M23 23 h18 v18 h-18 z M27 32 l4 4 l7 -8"/>
+            <!-- button 2: hovered, brush -->
+            <rect x="60" y="8" width="48" height="48" rx="24" class="tb-layer" opacity=".1"/>
+            <path class="tb-icon" d="M76 41 c3 0 5 -2 5 -4 l12 -12 l-3 -3 l-12 12 c-2 0 -4 2 -2 7z"/>
+            <!-- button 3: mic -->
+            <path class="tb-icon" d="M133 22 a3.5 3.5 0 0 1 7 0 v9 a3.5 3.5 0 0 1 -7 0 z M128 30 a8 8 0 0 0 17 0 M136.5 38 v5"/>
+            <!-- button 4: image -->
+            <path class="tb-icon" d="M177 23 h18 v18 h-18 z M177 37 l5 -5 l4 4 l3 -3 l6 6"/>
+            <!-- primary action -->
+            <rect x="228" y="4" width="56" height="56" rx="16" class="tb-fab"/>
+            <path class="tb-icon" d="M256 24 v16 M248 32 h16" style="stroke: var(--accent)"/>
+            <!-- dimensions, top -->
+            <path class="tb-dim" d="M0 -8 H8 M0 -11 V-5 M8 -11 V-5 M8 -8 H56 M56 -11 V-5 M56 -8 H60 M60 -11 V-5 M212 -8 H220 M212 -11 V-5 M220 -11 V-5 M220 -8 H228 M228 -11 V-5 M228 -8 H284 M284 -11 V-5"/>
+            <text x="4" y="-14" class="tb-dim-txt">8</text><text x="32" y="-14" class="tb-dim-txt">48</text><text x="58" y="-23" class="tb-dim-txt">4</text><text x="216" y="-23" class="tb-dim-txt">8</text><text x="224" y="-14" class="tb-dim-txt">8</text><text x="256" y="-14" class="tb-dim-txt">56</text>
+            <!-- dimensions, left -->
+            <path class="tb-dim" d="M-8 0 V64 M-11 0 H-5 M-11 64 H-5"/>
+            <text x="-19" y="35" class="tb-dim-txt">64</text>
+            <path class="tb-dim" d="M292 4 V60 M289 4 H295 M289 60 H295"/>
+            <!-- numbered parts, each beside its part -->
+            <g class="an-num"><circle cx="110" cy="64" r="5"/><text x="110" y="64">1</text></g>
+            <g class="an-num"><circle cx="32" cy="58" r="5"/><text x="32" y="58">2</text></g>
+            <g class="an-num"><circle cx="84" cy="10" r="5"/><text x="84" y="10">3</text></g>
+            <g class="an-num"><circle cx="48" cy="44" r="5"/><text x="48" y="44">4</text></g>
+            <g class="an-num"><circle cx="256" cy="60" r="5"/><text x="256" y="60">5</text></g>
+            <text x="256" y="82" text-anchor="middle" class="tb-meta">radius 16</text>
+            <text x="110" y="82" text-anchor="middle" class="tb-meta">radius 32 (full)</text>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>The bar; as wide as its buttons, never the full screen when it floats</span></li>
+          <li><b>Button</b><span>48 square for an icon; wider for a label; the one build</span></li>
+          <li><b>State layer</b><span>Covers the button on hover and press</span></li>
+          <li><b>Icon or label</b><span>An icon, a label, or both, side by side</span></li>
+          <li><b>Primary action</b><span>Optional; the one most used command, beside the bar</span></li>
+        </ol>
+      </div>
+
+      <h3>One build, many toolbars</h3>
+
+      <p>Where the bar sits and what its buttons hold are two separate choices. Mixing them gives every toolbar the brief asks for, from one build.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <path class="tb-guide" d="M8 4 V64 M104 4 V64"/>
+            <rect x="8" y="10" width="44" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M14 15 h4 v4 h-4 z M24 15 h4 v4 h-4 z M34 15 h4 v4 h-4 z M44 15 h4 v4 h-4 z"/>
+            <rect x="60" y="44" width="44" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M66 49 h4 v4 h-4 z M76 49 h4 v4 h-4 z M86 49 h4 v4 h-4 z M96 49 h4 v4 h-4 z"/>
+          </svg>
+          <b>Left or right</b>
+          <p>The bar holds an edge, next to the content or the hand it serves.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <path class="tb-guide" d="M56 4 V64"/>
+            <rect x="34" y="27" width="44" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M40 32 h4 v4 h-4 z M50 32 h4 v4 h-4 z M60 32 h4 v4 h-4 z M70 32 h4 v4 h-4 z"/>
+          </svg>
+          <b>Center</b>
+          <p>The bar sits on the middle line; it grows out to both sides when it gains a button.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="8" y="6" width="36" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M15 11 h4 v4 h-4 z M26 11 h4 v4 h-4 z"/>
+            <rect x="8" y="27" width="56" height="14" rx="7" class="tb-box"/>
+            <path class="tb-label" d="M15 34 H27 M38 34 H50"/>
+            <rect x="8" y="48" width="80" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M14 53 h4 v4 h-4 z M48 53 h4 v4 h-4 z"/><path class="tb-label" d="M22 55 H36 M56 55 H72"/>
+          </svg>
+          <b>Icon, text, or both</b>
+          <p>Same button, same height. Only its width changes with what it holds.</p>
+        </div>
+      </div>
+
+      <h3>Try it</h3>
+
+      <p>A plain toolbar with no tone, doing everything the brief asks. Move it to a side, change what its buttons hold, then point at a button and press it. Tab lands on the bar once; the arrow keys move along it.</p>
+
+      <div class="tb-try">
+        <div>
+          <div class="tb-try-stage">
+            <div class="tb-try-page" aria-hidden="true"><i style="width:62%"></i><i style="width:88%"></i><i style="width:74%"></i><i style="width:40%"></i></div>
+            <div class="tb-try-dock" data-align="center" data-content="icon">
+              <div class="tb-try-bar" role="toolbar" aria-label="Note tools">
+                <button class="tb-try-btn" type="button" tabindex="0" aria-pressed="false" data-name="Checklist">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 12l3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Checklist</span>
+                </button>
+                <button class="tb-try-btn" type="button" tabindex="-1" aria-pressed="false" data-name="Draw">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c3 0 4.5-1.5 4.5-3.5L19 6l-2-2-9.5 9.5C5.5 13.5 4 15 5 19z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Draw</span>
+                </button>
+                <button class="tb-try-btn" type="button" tabindex="-1" aria-pressed="false" data-name="Voice">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Voice</span>
+                </button>
+                <button class="tb-try-btn" type="button" tabindex="-1" aria-pressed="false" data-name="Image">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Image</span>
+                </button>
+              </div>
+              <button class="tb-try-btn tb-try-fab" type="button" data-name="New note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>New</span>
+              </button>
+            </div>
+          </div>
+          <p class="tb-try-said" aria-live="polite"></p>
+        </div>
+        <div class="tb-try-side">
+          <fieldset class="tb-try-seg" data-set="align">
+            <legend>Alignment</legend>
+            <div>
+              <label><input type="radio" name="tb-align" value="left" /><span>Left</span></label>
+              <label><input type="radio" name="tb-align" value="center" checked /><span>Center</span></label>
+              <label><input type="radio" name="tb-align" value="right" /><span>Right</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="tb-try-seg" data-set="content">
+            <legend>Buttons</legend>
+            <div>
+              <label><input type="radio" name="tb-content" value="icon" checked /><span>Icon</span></label>
+              <label><input type="radio" name="tb-content" value="text" /><span>Text</span></label>
+              <label><input type="radio" name="tb-content" value="both" /><span>Both</span></label>
+            </div>
+          </fieldset>
+          <ul class="tb-try-keylist">
+            <li><i>&#8677;</i><b>Tab</b>Lands on the bar once, on the last button used</li>
+            <li><i>&larr;</i><b>Arrows</b>Move along the bar; Home and End jump to its ends</li>
+            <li><i>&#9679;</i><b>Toggle</b>A tool stays on, tinted, until pressed again</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Three states</h3>
+
+      <p>A tool that stays on (Draw, say) is a fourth look, not a fourth state: it still answers hover and press on top of being on.</p>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="6" width="96" height="28" rx="14" class="tb-box"/><path class="tb-icon" d="M12 17 h6 v6 h-6 z M32 17 h6 v6 h-6 z M52 17 h6 v6 h-6 z M72 17 h6 v6 h-6 z"/></svg>
+          <figcaption><b>Enabled</b><span>At rest</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="6" width="96" height="28" rx="14" class="tb-box"/><rect x="25" y="8" width="20" height="24" rx="10" class="tb-layer" opacity=".1"/><path class="tb-icon" d="M12 17 h6 v6 h-6 z M32 17 h6 v6 h-6 z M52 17 h6 v6 h-6 z M72 17 h6 v6 h-6 z"/><path d="M40 26 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/></svg>
+          <figcaption><b>Hover</b><span>Layer about 8%, on one button only</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="2" y="6" width="96" height="28" rx="14" class="tb-box"/><rect x="25" y="8" width="20" height="24" rx="10" class="tb-layer" opacity=".16"/><path class="tb-icon" d="M12 17 h6 v6 h-6 z M32 17 h6 v6 h-6 z M52 17 h6 v6 h-6 z M72 17 h6 v6 h-6 z"/></svg>
+          <figcaption><b>Pressed</b><span>Layer about 12%, the command runs</span></figcaption>
+        </figure>
+      </div>
+
+      <h3>Numbers to remember</h3>
+
+      <div class="tb-nums">
+        <div><b>64</b><span>Height of Material's floating toolbar in the brief's drawing.</span></div>
+        <div><b>48 &middot; 44<small>pt</small></b><span>Smallest button target, Material / Apple. An icon is 24 inside it.</span></div>
+        <div><b>8 &middot; 4</b><span>Padding at each end of the bar, and the gap between buttons.</span></div>
+        <div><b>56</b><span>The primary action beside the bar, 8 away from it.</span></div>
+      </div>
+
+      <h3>Do and don't</h3>
+
+      <div class="rv-dd tb-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="4" y="15" width="34" height="14" rx="7" class="tb-box"/><path class="tb-icon" d="M11 20 h4 v4 h-4 z M23 20 h4 v4 h-4 z"/>
+            <rect x="44" y="15" width="44" height="14" rx="7" class="tb-box"/><path class="tb-icon" d="M51 20 h4 v4 h-4 z M63 20 h4 v4 h-4 z M75 20 h4 v4 h-4 z"/>
+            <rect x="94" y="15" width="22" height="14" rx="7" class="tb-box"/><path class="tb-icon" d="M103 20 h4 v4 h-4 z"/>
+          </svg>
+          <figcaption><b>Do</b>Group buttons that work together, and space the groups apart.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14" y="15" width="92" height="14" rx="7" class="tb-box"/>
+            <path class="tb-label" d="M22 22 H34 M46 22 H56 M68 22 H82"/>
+            <circle cx="96" cy="22" r="1" fill="var(--fg)"/><circle cx="99.5" cy="22" r="1" fill="var(--fg)"/><circle cx="93" cy="22" r="1" fill="var(--fg)"/>
+          </svg>
+          <figcaption><b>Do</b>Use short verbs; when the bar runs out of room, put the rest in More.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="24" y="15" width="72" height="14" rx="7" class="tb-box"/>
+            <rect x="44" y="16" width="16" height="12" rx="6" class="tb-layer" opacity=".18"/>
+            <path class="tb-icon" d="M31 20 h4 v4 h-4 z M50 20 h4 v4 h-4 z M69 20 h4 v4 h-4 z M84 20 h4 v4 h-4 z"/>
+          </svg>
+          <figcaption><b>Do</b>Show a tool that stays on with a tint, so the bar says which mode you are in.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="4" y="15" width="112" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M9 20 h4 v4 h-4 z M18 20 h4 v4 h-4 z M27 20 h4 v4 h-4 z M36 20 h4 v4 h-4 z M45 20 h4 v4 h-4 z M54 20 h4 v4 h-4 z M63 20 h4 v4 h-4 z M72 20 h4 v4 h-4 z M81 20 h4 v4 h-4 z M90 20 h4 v4 h-4 z M99 20 h4 v4 h-4 z M108 20 h4 v4 h-4 z"/>
+          </svg>
+          <figcaption><b>Don't</b>Fit every command in; a crowded bar shrinks targets and hides the important few.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14" y="15" width="92" height="14" rx="7" class="tb-box"/>
+            <path class="tb-icon" d="M21 20 h4 v4 h-4 z"/><path class="tb-label" d="M34 22 H50"/><path class="tb-icon" d="M58 20 h4 v4 h-4 z"/><path class="tb-label" d="M66 22 H78"/><path class="tb-icon" d="M88 20 h4 v4 h-4 z"/>
+          </svg>
+          <figcaption><b>Don't</b>Mix icon, text and both in one group; pick one kind per group.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14" y="15" width="92" height="14" rx="7" class="tb-box"/>
+            <path class="tb-label" d="M22 22 H36"/><path class="tb-label" d="M46 22 H60" opacity=".35"/><path class="tb-label" d="M70 22 H84" opacity=".35"/>
+            <path class="tb-rule" d="M22 27 H36" style="stroke: var(--fg); stroke-width: 1.4"/>
+          </svg>
+          <figcaption><b>Don't</b>Use a toolbar as tabs; it acts on what is shown, it doesn't switch views.</figcaption>
+        </figure>
+      </div>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box, each with every part the brief asks for: icon, text, and icon and text buttons in three states, and an align switch at the bottom right that moves the toolbar left, center or right. The first five come from one Touch Bar reference, split by the kind of row. Each has its own motion as well as its own look.</p>
+
+      <!-- Add a sketch: build it as week-07-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-07-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-07-NAME.html">View larger</button>
+          </figcaption>
+        </figure> -->
+      <div class="idea-grid">
+        <figure class="idea">
+          <iframe src="week-07-strip-type.html?v=5" title="Strip: Type sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Strip: Type</b>
+            <span>The text row of a Touch Bar. The T tool stays on in white; font and weight are text keys whose rows hold the choices; alignment is an icon key whose row holds icon and text keys; size is a scrubber.</span>
+            <button type="button" class="viewer-open" data-src="week-07-strip-type.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-strip-insert.html?v=5" title="Strip: Insert sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Strip: Insert</b>
+            <span>A label, then keys for each kind of thing to insert. Symbols opens icon-and-text keys, and those open a shelf of components that lift white when pressed.</span>
+            <button type="button" class="viewer-open" data-src="week-07-strip-insert.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-strip-swatches.html?v=5" title="Strip: Swatches sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Strip: Swatches</b>
+            <span>The keys are the colours: round, no key behind them. They grow on hover, squeeze on press, and the picked one wears a ring. Spectrum swaps the row for a slider.</span>
+            <button type="button" class="viewer-open" data-src="week-07-strip-swatches.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-strip-transform.html?v=5" title="Strip: Transform sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Strip: Transform</b>
+            <span>Transform, Align and Boolean each open a labelled row of coloured icon keys, and the rows stack under the strip so all three can stay out.</span>
+            <button type="button" class="viewer-open" data-src="week-07-strip-transform.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-strip-scrub.html?v=5" title="Strip: Scrub sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Strip: Scrub</b>
+            <span>Rotate, Scale and Width are text keys; the picked one turns the strip into a ruler you drag under a fixed red mark. Nine dots open the transform points.</span>
+            <button type="button" class="viewer-open" data-src="week-07-strip-scrub.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-folder.html?v=5" title="Folder sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Folder</b>
+            <span>A 3D tool&rsquo;s settings with folder tabs for a toolbar: the open tab takes the panel&rsquo;s colour and runs into it, and each tab brings its own colour.</span>
+            <button type="button" class="viewer-open" data-src="week-07-folder.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-clinic.html?v=5" title="Clinic sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Clinic</b>
+            <span>A patient record in warm greys: icon-and-text pills on a dark band with one soft curve, a round filter, text pills that switch records on and off, a yellow add button.</span>
+            <button type="button" class="viewer-open" data-src="week-07-clinic.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-keyframe.html?v=5" title="Keyframe sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Keyframe</b>
+            <span>An animation inspector on a yellow page: monospace values in dark cells you drag to scrub, green for what is live, magenta for the field being edited, a transport over a timeline.</span>
+            <button type="button" class="viewer-open" data-src="week-07-keyframe.html?v=5">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-palette.html?v=1" title="Palette sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Palette</b>
+            <span>A drawing app&rsquo;s tool palette in three eras (1990 one-bit, 2000 bevels, 2024 dark). Changing era turns every tool over in a wave and walks it to its new place; held tools fly out their hidden siblings.</span>
+            <button type="button" class="viewer-open" data-src="week-07-palette.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-collage.html?v=1" title="Collage sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Collage</b>
+            <span>A mid-90s paths palette over a loud collage. Everything moves in steps like an old screen: anchors land in three frames, Stroke runs a plotter pen, Fill fades through dither, the close box rolls the palette up like a shade.</span>
+            <button type="button" class="viewer-open" data-src="week-07-collage.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-graph.html?v=1" title="Graph sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Graph</b>
+            <span>A visual-scripting editor. Play sends a bead of light from node to node while data wires stream into the node it reaches; Pause freezes it mid-wire. Chips drop new variables in; the layout and tilt buttons move the graph on springs.</span>
+            <button type="button" class="viewer-open" data-src="week-07-graph.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-blueprint.html?v=1" title="Blueprint sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Blueprint</b>
+            <span>A tower builder&rsquo;s plan with a dark icon-over-label panel. Mirroring is shown, not told: a placed column snaps to the grid and its copies fly across the axes; Undo pulls them home; Construct stacks the floors one by one.</span>
+            <button type="button" class="viewer-open" data-src="week-07-blueprint.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-bezel.html?v=1" title="Bezel sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Bezel</b>
+            <span>A phone whose black edge swells into the screen when a side button is pressed: a volume slider, a silent switch, a wheel of focus modes. The bulge is liquid: height leads, width follows, and it drains back after two seconds.</span>
+            <button type="button" class="viewer-open" data-src="week-07-bezel.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-pads.html?v=1" title="Pads sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Pads</b>
+            <span>A live-visuals strip of effect pads. Everything keeps time: the dial steps, the tempo kicks, steps light, radars sweep once a bar. Hit a pad or its key and its colour washes out from the hit; TAP counts the tempo in.</span>
+            <button type="button" class="viewer-open" data-src="week-07-pads.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-jam.html?v=1" title="Jam sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Jam</b>
+            <span>A whiteboard toolbar of objects: the pencil rises out of the bar, sticky notes swing with your drag and land with a squash, shapes jiggle and pop onto the board, the &ldquo;New shapes!&rdquo; tab bobs until opened.</span>
+            <button type="button" class="viewer-open" data-src="week-07-jam.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-recorder.html?v=1" title="Recorder sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Recorder</b>
+            <span>A screen recorder&rsquo;s pill bar. Modes light the screen, Cam sends a bubble to the corner, Mic&rsquo;s levels move; Record counts 3, 2, 1 on the button, then the whole bar gathers into a small pill with a breathing dot.</span>
+            <button type="button" class="viewer-open" data-src="week-07-recorder.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-filters.html?v=2" title="Filters sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Filters</b>
+            <span>A white filter pill over a flat for rent. A grey spot follows the pointer; a filter grows the pill down into its panel; values roll from &ldquo;Any&rdquo;, the home count counts, and Clear swells out only when there is something to clear.</span>
+            <button type="button" class="viewer-open" data-src="week-07-filters.html?v=2">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-spark.html?v=1" title="Spark sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Spark</b>
+            <span>A round assistant button with a count. One shape throughout: the circle stretches into a bar of actions, the badge riding its edge; a result card rises and the badge pops; closing draws the bar back into the circle.</span>
+            <button type="button" class="viewer-open" data-src="week-07-spark.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-07-node.html?v=1" title="Node sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Node</b>
+            <span>A dark automation card whose toolbar rises from behind its top edge. The avatars fan open and &ldquo;+3&rdquo; becomes three more faces; Run sends light round the border before a tick pops in; Duplicate slides a copy out behind.</span>
+            <button type="button" class="viewer-open" data-src="week-07-node.html?v=1">View larger</button>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h2>Deliverables</h2>
+
+      <p>Two sets of toolbars, each a tone. Each set is one prototype: the toolbar in use, moving between left, center and right and between icon, text and icon and text buttons, then every configuration laid out in enabled, hover and pressed, then the spec.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file name (week-07-TONE-toolbar.html, images/process/TONE-toolbar-N.png).
+           Filling the prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe style="height:auto;aspect-ratio:W/H" src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-wide data-src="…">View larger</button>.
+           The prototype page holds the toolbar in use first, then a States section, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/shy-toolbar-0.png?v=13" alt="" loading="lazy" /><img src="images/process/shy-toolbar-1.png?v=13" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Shy</span><span class="set-line">Hard and ordered. No box, just the tools, still; behind them a field of tall slanted acid-yellow strokes, after a Swiss poster, gathers round the pointer, leans the way it moves and leaves a wake.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Shy</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1200/520" src="week-07-shy-toolbar.html?v=16" title="Shy in use and every state: a row of jelly buttons that bounce away from a quick pointer and hop back for a calm one, then every configuration and state, then the spec" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>Nineteen drawing tools in seven groups, with no box round them: pale icons on deep navy, square edges, small tracked capitals. The tools stay put; a highlight moves. Behind the row is a dense field of slanted acid-yellow strokes in stepped bands; every tool sits in a clean slanted window so no icon ever sits on a stroke, after a Swiss poster: nothing at rest; near the pointer the strokes thicken round those windows and fill in behind you as a wake when you are quick. The icons are drawn in difference, so they turn deep blue where the yellow passes under them. A tool that is on sits on a solid slanted yellow block grown out of the field itself: press a tool and the strokes inside its window thicken, from where you pressed outward, until they close into the block, while the old one thins back into strokes. Icons by default with a square name tip; switches move the row left, center or right and change the buttons to icons, text or both. Under it, every state, then the spec.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-07-shy-toolbar.html?v=16">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time, the last one now.</p>
+              <div class="process-grid">
+                <figure><img src="images/process/shy-toolbar-0.png?v=13" alt="The toolbar at rest: icons on navy" loading="lazy" /><figcaption>Nothing near: only the icons.</figcaption></figure>
+                <figure><img src="images/process/shy-toolbar-1.png?v=13" alt="The bar with a quick pointer passing: thick bars and a wake" loading="lazy" /><figcaption>A quick pointer: the yellow strokes gather, lean, and trail.</figcaption></figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/cascade-toolbar-0.png?v=3" alt="" loading="lazy" /><img src="images/process/cascade-toolbar-1.png?v=9" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Cascade</span><span class="set-line">Fluid. A main toolbar whose tools hold more tools, after my own sketch: press one and the bar folds down a row, its own tools running out below while the rest of the toolbar comes down to join them, all one melted shape.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Cascade</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1200/560" src="week-07-cascade-toolbar.html?v=17" title="Cascade in use and every state: a toolbar of nine tools that folds down a row when one is pressed, then every configuration and state, then the spec" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>Nine design tools on one round ink bar, on the sketch&rsquo;s paper; each holds more tools (Select, Pen, Shape, Type, Paint, Cut, Transform, Colour, View). Press one and the toolbar folds: the pressed tool keeps its place at the end of its row as a coloured disc, an ink neck runs down from it into a secondary bar of its tools just below, and every main tool after it travels down, one after another, to join that bar on its right by a thin ink bridge. The open tool and its bar share one pair colour; the neck and bridges stay ink (coral, apricot, mint, silver, after a set of retro-tech cards), so each bar shows whose tools it holds. Press a main tool on that lower row and it folds again, one more row down. Picking a tool in a secondary bar puts it on an ink disc and the main tool takes its icon. Nothing appears out of empty space: a drop of the pair colour runs down out of the pressed tool and spreads into the bar, while the rest of the toolbar sinks with it as one solid piece and slides right as it spreads. Press the disc again, or Escape, and it folds back the same way backwards: the tools leave, the bar draws in to a drop, and the drop and the rest rise back into the bar together. Icons are Phosphor in their solid fill weight. Everything moves on one soft spring. Icons by default with a name tip; switches move it left, center or right and change the buttons to icons, text or both. Under it, every state, then the spec.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-07-cascade-toolbar.html?v=17">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>From a sketch on paper: step 1, one main toolbar; step 2, a pressed tool folds the bar, its secondary toolbar on the row below with the rest of the main toolbar joined after it.</p>
+              <div class="process-grid">
+                <figure><img src="images/process/cascade-sketch.jpg" alt="The paper sketch: step 1 a main toolbar; step 2 the toolbar folded under a pressed tool" loading="lazy" /><figcaption>The sketch.</figcaption></figure>
+                <figure><img src="images/process/cascade-toolbar-0.png?v=3" alt="Cascade closed" loading="lazy" /><figcaption>Step 1: one main toolbar.</figcaption></figure>
+                <figure><img src="images/process/cascade-toolbar-1.png?v=9" alt="Cascade with two tools open" loading="lazy" /><figcaption>Step 2 and 3: folded twice.</figcaption></figure>
+              </div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/toolbars">Toolbars</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://m3.material.io/components/toolbars/overview">Toolbars</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/foundations/interaction/states/state-layers">State layers</a>, Material Design 3</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/">Toolbar pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-06/week-06.html">&larr; Week 06: Menus</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=8"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+  <script>
+    // Try it: one tab stop with arrow keys inside the bar (roving tabindex), toggles that stay on,
+    // and the bar gliding between alignments (FLIP) and resizing between content modes.
+    (() => {
+      const dock = document.querySelector('.tb-try-dock');
+      if (!dock) return;
+      const bar = dock.querySelector('.tb-try-bar');
+      const fab = dock.querySelector('.tb-try-fab');
+      const said = document.querySelector('.tb-try-said');
+      const btns = [...bar.querySelectorAll('.tb-try-btn')];
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      // A short ease-out with no overshoot: the bar settles, it doesn't bounce.
+      const EASE = 'cubic-bezier(.22, 1, .36, 1)';
+
+      // Icon-only buttons need a name; with a visible label the label is the name.
+      const name = () => {
+        const iconOnly = dock.dataset.content === 'icon';
+        [...btns, fab].forEach(b => iconOnly ? b.setAttribute('aria-label', b.dataset.name) : b.removeAttribute('aria-label'));
+        fab.classList.toggle('is-wide', !iconOnly);
+      };
+      name();
+
+      const focusAt = i => {
+        btns.forEach(b => b.tabIndex = -1);
+        btns[i].tabIndex = 0; btns[i].focus();
+      };
+      bar.addEventListener('keydown', e => {
+        const i = btns.indexOf(document.activeElement);
+        if (i < 0) return;
+        const n = btns.length;
+        const to = { ArrowRight: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault(); focusAt(to);
+      });
+      bar.addEventListener('click', e => {
+        const b = e.target.closest('.tb-try-btn');
+        if (!b) return;
+        const on = b.getAttribute('aria-pressed') !== 'true';
+        b.setAttribute('aria-pressed', String(on));
+        btns.forEach(x => x.tabIndex = x === b ? 0 : -1);
+        said.textContent = b.dataset.name + (on ? ' on.' : ' off.');
+      });
+      fab.addEventListener('click', () => { said.textContent = 'New note.'; });
+
+      // Alignment: measure, change, then slide the bar and its primary action from where they were.
+      const glide = change => {
+        const els = [bar, fab];
+        const before = els.map(el => el.getBoundingClientRect().left);
+        change();
+        if (calm.matches) return;
+        els.forEach((el, k) => {
+          const dx = before[k] - el.getBoundingClientRect().left;
+          if (dx) el.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: 420, easing: EASE });
+        });
+      };
+      // Content: the bar's width eases from old to new while the labels fade in.
+      const resize = change => {
+        const els = [bar, fab];
+        const before = els.map(el => el.offsetWidth);
+        change();
+        if (calm.matches) return;
+        els.forEach((el, k) => {
+          const w = el.offsetWidth;
+          if (w !== before[k]) el.animate([{ width: before[k] + 'px' }, { width: w + 'px' }], { duration: 320, easing: EASE });
+        });
+        dock.querySelectorAll('.tb-try-btn > span').forEach(s => s.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 80, easing: 'ease-out', fill: 'backwards' }));
+      };
+
+      document.querySelectorAll('.tb-try-seg input').forEach(input => input.addEventListener('change', () => {
+        if (input.name === 'tb-align') glide(() => { dock.dataset.align = input.value; });
+        else resize(() => { dock.dataset.content = input.value; name(); });
+      }));
+    })();
+  </script>
+</body>
+</html>

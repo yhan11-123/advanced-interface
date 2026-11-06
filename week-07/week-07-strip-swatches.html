@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Strip: Swatches</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <link rel="stylesheet" href="week-07-strip.css?v=3" />
+  <style>
+  /* Strip: Swatches. The keys are the colours themselves: round, no key behind them. The picked one
+     wears a white ring and fills the chip on the right. Spectrum (an icon-and-text key) swaps the row
+     for a rainbow slider; Swatches swaps it back.
+     Motion: the row swells under the pointer like a dock, the nearest colours growing most and
+     springing back when the pointer leaves. A picked colour leaves its swatch as a drop, arcs over
+     to the chip and floods it from the middle. Spectrum: the swatches are drawn into the middle one
+     after another and the rainbow unrolls out of that point; Swatches rolls it back up and the
+     colours pop out of the middle again. */
+  .sw { width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: var(--c); flex: none;
+    transition: scale var(--snap-t) var(--snap), box-shadow .3s var(--snap); box-shadow: 0 0 0 0 #000, 0 0 0 0 #fff; transform-origin: 50% 70%; }
+  .row.is-docking .sw { transition: scale .09s linear, box-shadow .3s var(--snap); }
+  .sw[aria-pressed="true"] { box-shadow: 0 0 0 3px #000, 0 0 0 5px #fff; }
+  .drop { position: fixed; z-index: 20; left: 0; top: 0; width: 34px; height: 34px; border-radius: 50%; pointer-events: none; transform-origin: 0 0; }
+  .now { position: relative; overflow: hidden; }
+  .now i { position: relative; z-index: 1; }
+  .now .flood { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px; border-radius: 50%; z-index: 2; }
+  .sw:focus-visible { outline: 2px solid #0a84ff; outline-offset: 6px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .now { width: 64px; padding: 0; }
+  .now i { width: 26px; height: 26px; border-radius: 50%; background: var(--pick, #30d158); }
+  .spectrum { position: relative; width: 420px; height: 34px; border-radius: 8px; background: linear-gradient(90deg, #ff2d55, #ff9f0a, #ffd60a, #30d158, #64d2ff, #0a84ff, #5e5ce6, #bf5af2, #ff2d55); cursor: ew-resize; touch-action: none; }
+  .spectrum .knob { position: absolute; top: 3px; left: 0; transition: left .5s var(--flow); width: 12px; height: 28px; margin-left: -6px; border-radius: 4px; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4); pointer-events: none; }
+  .spectrum:focus-visible { outline: 2px solid #0a84ff; outline-offset: 3px; }
+  [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <p class="said" aria-live="polite"></p>
+    <div class="deck">
+      <div class="tbar">
+        <button class="key round" type="button" aria-label="Close" style="background:#3a3a3c"><svg viewBox="0 0 20 20" aria-hidden="true" style="width:14px"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <div class="app dock" role="toolbar" aria-label="Swatches">
+          <div class="cluster" data-glide>
+            <span class="lbl">Swatches:</span>
+            <div class="row" data-radio id="swatches"></div>
+            <div class="row" id="spec" hidden><div class="spectrum" tabindex="0" role="slider" aria-label="Hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="140"><span class="knob"></span></div></div>
+          </div>
+        </div>
+        <div class="cluster" role="toolbar" aria-label="Colour">
+          <button class="key" type="button" id="mode"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor"/></svg><span>Spectrum</span></button>
+          <button class="key now" type="button" aria-label="Current colour"><i></i></button>
+        </div>
+        <div class="ctrl" data-ctrl data-collapsed></div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-strip.js?v=2"></script>
+  <script>
+    const COLORS = [['Teal', '#1fb59a'], ['Green', '#30d158'], ['Sky', '#2ad0f5'], ['Violet', '#a55ce0'], ['Yellow', '#ffd23f'], ['Orange', '#f2700f'], ['Red', '#ef3b4a'], ['Rose', '#ff2d6a'], ['Indigo', '#6a14d6'], ['Coral', '#ef5a3c'], ['Magenta', '#e010b0'], ['Blue', '#1268e8']];
+    document.getElementById('swatches').innerHTML = COLORS.map(([n, c], i) => `<button class="sw" type="button" aria-label="${n}" aria-pressed="${i === 1}" style="--c:${c}"></button>`).join('');
+  </script>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const root = document.documentElement, said = document.querySelector('.said');
+      const sw = document.getElementById('swatches'), spec = document.getElementById('spec');
+      const chip = document.querySelector('.now'), dots = [...sw.children];
+
+      // dock: each swatch grows with how close the pointer is, up to 1.45 at the pointer, nothing past 3 swatches
+      sw.addEventListener('pointermove', e => {
+        sw.classList.add('is-docking');
+        const f = M.fit();
+        dots.forEach(d => { const r = d.getBoundingClientRect(), dist = Math.abs(e.clientX - (r.left + r.width / 2)) / f; d.style.scale = 1 + .45 * Math.max(0, 1 - dist / 110) ** 2; });
+      });
+      sw.addEventListener('pointerleave', () => { sw.classList.remove('is-docking'); dots.forEach(d => d.style.scale = ''); });
+
+      // a picked colour leaves as a drop, arcs to the chip, and floods it from the middle
+      const pick = (c, from) => {
+        if (M.calm.matches || !from) { root.style.setProperty('--pick', c); return; }
+        const a = from.getBoundingClientRect(), t = chip.querySelector('i').getBoundingClientRect(), f = M.fit();
+        const drop = document.createElement('span'); drop.className = 'drop'; drop.style.background = c; document.body.append(drop);
+        const s0 = a.width / 34, s1 = t.width / 34, peak = Math.min(a.top, t.top) - 60 * f, frames = [];
+        for (let i = 0; i <= 14; i++) {
+          const u = i / 14, x = a.left + (t.left - a.left) * u, y = (1 - u) ** 2 * a.top + 2 * (1 - u) * u * peak + u * u * t.top;
+          const sq = 1 + Math.sin(u * Math.PI) * .18;   // stretches along the way, round again on arrival
+          frames.push({ transform: `translate(${x}px, ${y}px) scale(${(s0 + (s1 - s0) * u) * sq}, ${(s0 + (s1 - s0) * u) / sq})` });
+        }
+        drop.animate(frames, { duration: 460, easing: 'cubic-bezier(.4, 0, .2, 1)' }).finished.then(() => {
+          drop.remove();
+          const flood = document.createElement('span'); flood.className = 'flood'; flood.style.background = c; chip.append(flood);
+          flood.animate([{ transform: 'scale(.2)' }, { transform: 'scale(1)' }], { duration: M.dur.pop, easing: M.ease.pop }).finished.then(() => { root.style.setProperty('--pick', c); flood.remove(); });
+        });
+      };
+      sw.addEventListener('click', e => { const b = e.target.closest('.sw'); if (b) pick(b.style.getPropertyValue('--c'), b); });
+
+      // Spectrum: swatches drawn into the middle, then the rainbow unrolls from there; and back
+      const mode = document.getElementById('mode');
+      let busy = false;
+      mode.addEventListener('click', async () => {
+        if (busy) return; busy = true;
+        const toSpec = !sw.hidden;
+        mode.querySelector('span').textContent = toSpec ? 'Swatches' : 'Spectrum';
+        const bar = spec.querySelector('.spectrum');
+        if (M.calm.matches) { sw.hidden = toSpec; spec.hidden = !toSpec; busy = false; return; }
+        if (toSpec) {
+          const r = sw.getBoundingClientRect(), mid = r.left + r.width / 2, f = M.fit();
+          await Promise.all(dots.map((d, i) => {
+            const c = d.getBoundingClientRect(), dx = (mid - (c.left + c.width / 2)) / f, edge = Math.abs(i - (dots.length - 1) / 2);
+            return d.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${dx}px) scale(.3)`, opacity: 0 }], { duration: 260, delay: (6 - edge) * 22, easing: 'cubic-bezier(.5, 0, .9, .4)', fill: 'forwards' }).finished;
+          }));
+          sw.hidden = true; spec.hidden = false; dots.forEach(d => d.getAnimations().forEach(a => a.cancel()));
+          bar.animate([{ transform: 'scaleX(0)', borderRadius: '17px' }, { transform: 'scaleX(1)', borderRadius: '8px' }], { duration: M.dur.open, easing: M.ease.open });
+          bar.querySelector('.knob').animate([{ opacity: 0, transform: 'translateY(-14px)' }, { opacity: 1, transform: 'none' }], { duration: M.dur.pop, delay: 200, easing: M.ease.pop, fill: 'backwards' });
+        } else {
+          await bar.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)', borderRadius: '17px' }], { duration: 220, easing: 'cubic-bezier(.5, 0, .9, .4)', fill: 'forwards' }).finished;
+          spec.hidden = true; sw.hidden = false; bar.getAnimations().forEach(a => a.cancel());
+          const r = sw.getBoundingClientRect(), mid = r.left + r.width / 2, f = M.fit();
+          dots.forEach((d, i) => {
+            const c = d.getBoundingClientRect(), dx = (mid - (c.left + c.width / 2)) / f, edge = Math.abs(i - (dots.length - 1) / 2);
+            d.animate([{ transform: `translateX(${dx}px) scale(.3)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.pop, delay: edge * 26, easing: M.ease.pop, fill: 'backwards' });
+          });
+        }
+        busy = false;
+      });
+
+      // spectrum knob: drag along the rainbow; the chip follows live
+      const bar = spec.querySelector('.spectrum'), knob = bar.querySelector('.knob');
+      let hue = 140;
+      const set = (h, live) => {
+        hue = Math.max(0, Math.min(360, h));
+        knob.style.transition = live ? 'none' : '';
+        knob.style.left = (hue / 360 * 100) + '%';
+        bar.setAttribute('aria-valuenow', Math.round(hue));
+        root.style.setProperty('--pick', `hsl(${hue} 85% 55%)`);
+      };
+      const at = (e, live) => { const r = bar.getBoundingClientRect(); set((e.clientX - r.left) / r.width * 360, live); };
+      bar.addEventListener('pointerdown', e => { bar.setPointerCapture(e.pointerId); at(e, false); bar.onpointermove = ev => at(ev, true); });
+      bar.addEventListener('pointerup', () => { bar.onpointermove = null; });
+      bar.addEventListener('keydown', e => { if (e.key === 'ArrowUp') { e.preventDefault(); set(hue + 10); } if (e.key === 'ArrowDown') { e.preventDefault(); set(hue - 10); } });
+      knob.style.left = (hue / 360 * 100) + '%';
+    })();
+  </script>
+</body>
+</html>

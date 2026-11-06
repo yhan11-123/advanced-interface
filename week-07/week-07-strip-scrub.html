@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Strip: Scrub</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <link rel="stylesheet" href="week-07-strip.css?v=3" />
+  <style>
+  /* Strip: Scrub. Rotate, Scale and Size are text keys; the picked one turns the middle of the strip
+     into a ruler you drag. The ticks slide under a red mark that stays put, the value rides above it.
+     Motion: the ruler can be thrown; it coasts, slows, and springs onto a round value (15&deg; steps for
+     Rotate, 5% for the others), pulling back like rubber at either end. Passing 0, 90, 180&hellip; the red
+     mark gives a little kick, a felt detent. A shape beside the strip shows the change live, turning or
+     stretching around the chosen transform point; the point's dot slides to its new place.
+     The transform-point key (nine dots) opens a row of points to turn around; Link is a toggle. */
+  .modes .key { min-width: 76px; }
+  .ruler { position: relative; width: 430px; height: 52px; overflow: hidden; cursor: ew-resize; touch-action: none; border-radius: 6px; }
+  .ruler:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+  .ticks { position: absolute; left: 50%; bottom: 6px; height: 22px; width: 4000px; margin-left: -2000px;
+    background: repeating-linear-gradient(90deg, #5a5a5e 0 1px, transparent 1px 10px) 0 100% / 100% 12px no-repeat,
+                repeating-linear-gradient(90deg, #8e8e93 0 1px, transparent 1px 50px) 0 100% / 100% 22px no-repeat; }
+  .ruler::before, .ruler::after { content: ""; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 1; pointer-events: none; }
+  .ruler::before { left: 0; background: linear-gradient(90deg, #000, transparent); }
+  .ruler::after { right: 0; background: linear-gradient(-90deg, #000, transparent); }
+  .mark { position: absolute; left: 50%; bottom: 4px; width: 2px; height: 26px; margin-left: -1px; background: #ff3b30; border-radius: 1px; z-index: 2; }
+  .val { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; z-index: 2; }
+  .dots { width: 20px; height: 20px; position: relative; }
+  .dots i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .4; }
+  .dots i.on { width: 6px; height: 6px; margin: -1px; opacity: 1; background: #2f8bff; box-shadow: 0 0 0 2px rgba(47,139,255,.3); }
+  .tier .lbl { width: 140px; text-align: right; }
+  .mark { transform-origin: 50% 100%; }
+  .val { transition: none; }
+  .dots i.lit { opacity: 1; width: 6px; height: 6px; margin: -1px; background: #2f8bff; box-shadow: 0 0 0 2px rgba(47,139,255,.3); transition: left var(--flow-t) var(--flow), top var(--flow-t) var(--flow); }
+  .preview { position: absolute; left: 50%; top: 222px; width: 110px; height: 110px; margin-left: -55px; display: grid; place-items: center; }
+  .preview .ghost, .preview .shape { position: absolute; width: 44px; height: 44px; border-radius: 6px; }
+  .preview .ghost { border: 1px dashed #48484a; }
+  .preview .shape { background: linear-gradient(135deg, #5e5ce6, #bf5af2); opacity: .9; }
+  .preview .pin { position: absolute; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #2f8bff; box-shadow: 0 0 0 3px rgba(47,139,255,.3); transition: left var(--flow-t) var(--flow), top var(--flow-t) var(--flow); }
+  .tier-in .key { border-radius: 2px; }
+  .tier-in .key:nth-child(2) { border-radius: 8px 2px 2px 8px; }
+  .tier-in .key:last-child { border-radius: 2px 8px 8px 2px; }
+  .tier-in .key[aria-pressed="true"] { background: #fff; color: #2c2c2e; }
+  .key[aria-pressed="true"] .dots i.on { box-shadow: none; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="center">
+    <p class="said" aria-live="polite"></p>
+    <div class="deck">
+      <div class="tbar">
+        <button class="key round" type="button" aria-label="Close" style="background:#3a3a3c"><svg viewBox="0 0 20 20" aria-hidden="true" style="width:14px"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <div class="app dock" role="toolbar" aria-label="Transform">
+          <div class="cluster" data-glide>
+            <button class="key" type="button" data-opens="t-pt" aria-label="Transform point" style="padding:0 16px"><span class="dots" id="dots"></span><svg class="chev" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l4 5-4 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="seg modes" data-radio>
+              <button class="key" type="button" aria-pressed="true" data-mode="rotate">Rotate</button>
+              <button class="key" type="button" aria-pressed="false" data-mode="scale">Scale</button>
+              <button class="key" type="button" aria-pressed="false" data-mode="width">Width</button>
+            </div>
+            <div class="ruler" tabindex="0" role="slider" aria-label="Rotate"><span class="val">0&deg;</span><span class="ticks"></span><span class="mark"></span></div>
+            <button class="key" type="button" aria-pressed="false" data-say="Link proportions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5l3-3M7 9l-2 2a2.8 2.8 0 0 0 4 4l2-2M13 11l2-2a2.8 2.8 0 0 0-4-4L9 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Link</button>
+            <button class="key icon" type="button" aria-label="Share"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11M6.5 5.5L10 2l3.5 3.5M6 8H4v10h12V8h-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+        <div class="ctrl" data-ctrl data-collapsed></div>
+      </div>
+    </div>
+    <div class="preview" aria-hidden="true"><span class="ghost"></span><span class="shape"></span><span class="pin"></span></div>
+    <div class="tiers">
+      <div class="tier dock is-open" data-tier id="t-pt">
+        <div class="tier-in" data-glide role="toolbar" aria-label="Transform point" data-radio id="points">
+          <span class="lbl">Transform Point:</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-strip.js?v=2"></script>
+  <script>
+    // nine-dot glyphs: the lit dot is the point the shape turns around
+    const glyph = on => [0, 1, 2].flatMap(r => [0, 1, 2].map(c => `<i class="${r * 3 + c === on ? 'on' : ''}" style="left:${c * 8}px;top:${r * 8}px"></i>`)).join('');
+    const NAMES = ['Top left', 'Top', 'Top right', 'Left', 'Centre', 'Right', 'Bottom left', 'Bottom', 'Bottom right'];
+    // the key's glyph keeps one lit dot that slides between points
+    const pos = k => [k % 3 * 8, Math.floor(k / 3) * 8];
+    document.getElementById('dots').innerHTML = glyph(-1) + `<i class="lit" style="left:8px;top:8px"></i>`;
+    window.POINT = 4;
+    document.getElementById('points').insertAdjacentHTML('beforeend', [0, 2, 4, 6, 8].map(k => `<button class="key" type="button" aria-pressed="${k === 4}" aria-label="${NAMES[k]}" data-pt="${k}" style="width:56px"><span class="dots">${glyph(k)}</span></button>`).join(''));
+    document.getElementById('points').addEventListener('click', e => {
+      const b = e.target.closest('[data-pt]'); if (!b) return;
+      const [x, y] = pos(+b.dataset.pt), lit = document.querySelector('#dots .lit');
+      lit.style.left = x + 'px'; lit.style.top = y + 'px';
+      window.POINT = +b.dataset.pt; window.dispatchEvent(new Event('point'));
+    });
+  </script>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const MODES = {
+        rotate: { v: 0, min: -360, max: 360, unit: '°', step: 15, rest: 0 },
+        scale: { v: 100, min: 10, max: 400, unit: '%', step: 5, rest: 100 },
+        width: { v: 100, min: 10, max: 400, unit: '%', step: 5, rest: 100 }
+      };
+      let mode = 'rotate', stop = () => {};
+      const ruler = document.querySelector('.ruler'), ticks = ruler.querySelector('.ticks'), val = ruler.querySelector('.val'), mark = ruler.querySelector('.mark');
+      const shape = document.querySelector('.preview .shape'), pin = document.querySelector('.preview .pin');
+      const PX = 4;   // ruler px per unit
+
+      const draw = () => {
+        const m = MODES[mode];
+        ticks.style.transform = `translateX(${-((m.v - m.rest) * PX) % 1000}px)`;
+        val.textContent = Math.round(m.v) + m.unit;
+        ruler.setAttribute('aria-valuenow', Math.round(m.v)); ruler.setAttribute('aria-valuemin', m.min); ruler.setAttribute('aria-valuemax', m.max);
+        const [px, py] = [window.POINT % 3 * 50, Math.floor(window.POINT / 3) * 50];
+        shape.style.transformOrigin = `${px}% ${py}%`;
+        const k = v => Math.min(1.6, v / 100);   // the preview only hints at big scales
+        shape.style.transform = `rotate(${MODES.rotate.v}deg) scale(${k(MODES.scale.v) * k(MODES.width.v)}, ${k(MODES.scale.v)})`;
+        pin.style.left = `calc(50% - 22px + ${px * .44}px)`; pin.style.top = `calc(50% - 22px + ${py * .44}px)`;
+      };
+      // a felt detent: the red mark kicks when the value passes a quarter turn (or 100%)
+      let lastBand = 0;
+      const detent = () => {
+        const m = MODES[mode], band = Math.floor((m.v - m.rest) / (mode === 'rotate' ? 90 : 100));
+        if (band !== lastBand && !M.calm.matches) mark.animate([{ scale: '1 1' }, { scale: '1.8 1.35' }, { scale: '1 1' }], { duration: 300, easing: M.ease.snap });
+        lastBand = band;
+      };
+      const paint = v => { MODES[mode].v = v; detent(); draw(); };
+      const rubber = v => { const m = MODES[mode]; return v < m.min ? m.min - (m.min - v) / 3 : v > m.max ? m.max + (v - m.max) / 3 : v; };
+      const settle = (target, vel = 0) => {
+        const m = MODES[mode]; stop();
+        target = Math.max(m.min, Math.min(m.max, Math.round(target / m.step) * m.step));
+        stop = M.spring(m.v, target, vel, paint, { visual: .32, bounce: .22 });
+      };
+
+      document.querySelector('.modes').addEventListener('click', e => {
+        const b = e.target.closest('[data-mode]'); if (!b || b.dataset.mode === mode) return;
+        stop();
+        const dir = Object.keys(MODES).indexOf(b.dataset.mode) > Object.keys(MODES).indexOf(mode) ? 1 : -1;
+        mode = b.dataset.mode; ruler.setAttribute('aria-label', b.textContent); lastBand = 0;
+        draw();
+        if (M.calm.matches) return;
+        // the new ruler slides in from the side of the mode it came from, the value rises in
+        ticks.animate([{ translate: `${dir * 160}px 0`, opacity: 0 }, { translate: '0 0', opacity: 1 }], { duration: M.dur.glide, easing: M.ease.glide });
+        val.animate([{ transform: 'translateY(8px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: M.dur.open, easing: M.ease.open });
+      });
+
+      let x0 = null, v0 = 0, samples = [];
+      ruler.addEventListener('pointerdown', e => { stop(); x0 = e.clientX; v0 = MODES[mode].v; samples = [[e.timeStamp, v0]]; ruler.setPointerCapture(e.pointerId); shape.style.transition = 'none'; });
+      ruler.addEventListener('pointermove', e => {
+        if (x0 === null) return;
+        const v = rubber(v0 - (e.clientX - x0) / M.fit() / PX);
+        paint(v); samples.push([e.timeStamp, v]); if (samples.length > 5) samples.shift();
+      });
+      ruler.addEventListener('pointerup', () => {
+        if (x0 === null) return; x0 = null;
+        const [t0, a] = samples[0], [t1, b] = samples[samples.length - 1];
+        const vel = t1 > t0 ? (b - a) / (t1 - t0) : 0;
+        settle(MODES[mode].v + vel * 300, vel);
+      });
+      ruler.addEventListener('dblclick', () => settle(MODES[mode].rest));
+      ruler.addEventListener('keydown', e => {
+        const m = MODES[mode];
+        if (e.key === 'ArrowUp') { e.preventDefault(); settle(m.v + m.step); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); settle(m.v - m.step); }
+      });
+      addEventListener('point', () => { shape.style.transition = 'transform-origin var(--flow-t) var(--flow)'; draw(); });
+      draw();
+    })();
+  </script>
+</body>
+</html>

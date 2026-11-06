@@ -1,0 +1,86 @@
+/* Week 07, Set 1. One toolbar build, shared by the toolbar in use, the states sheet and the spec.
+   Colours after a set of race-day passes (navy, acid yellow, pale ice); the highlight after a Swiss
+   poster of tall slanted bars, red on black: hard edges, a strict grid, rough but ordered. Every
+   number the spec shows is one of these tokens; the script reads the field's constants from here. */
+:root {
+  --font: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --page: #0e1e3d;          /* deep navy, flat */
+  --ink: #e4f0f2;           /* pale ice: icons and type */
+  --dim: #7f95ad;
+  --rule: rgba(228, 240, 242, .16);
+  --hl: #eef23a;            /* acid yellow: the highlight, the only colour behind the icons */
+  --hl-deep: #c9cd10;       /* the highlight pressed */
+  --stripe: #eef23a;        /* the field's strokes are the highlight */
+  --focus: #ff5a7a;
+
+  --bar-h: 76px;            /* the toolbar's height: no box, just the row of icons */
+  --pad: 0px;
+  --tile-h: 44px;           /* a button's hit area */
+  --tile-pad: 12px;         /* side padding of a button with a label */
+  --gap: 4px;               /* between buttons */
+  --group-gap: 28px;        /* between groups of tools */
+  --gap-in: 8px;            /* icon to label */
+  --icon: 20px;
+  --label: 12px;            /* Inter Tight 600, capitals, tracked */
+  --track: .08em;
+  --bleed-x: 12;            /* px: the field reaches just past the ends of the row */
+  --bleed-y: 6;             /* px: and just above and below it */
+
+  /* the field: read by the script */
+  --cell-w: 8;              /* px: one stroke's slot: dense */
+  --band-h: 11;             /* px: one band. The row's height plus its bleed is a whole number of bands, and the
+                               buttons sit exactly on band lines, so windows and blocks start and end on them */
+  --row-shift: .37;         /* each row slides this much of a slot further than the one above */
+  --slant: .29;             /* horizontal run per unit of height: about 16° off upright */
+  --stroke-min: 0;          /* px: far from the pointer there is nothing */
+  --stroke-max: 6.4;        /* px: right under it, most of its slot */
+  --reach-x: 64;            /* px: how far the pointer's pull spreads along the row: a tight patch */
+  --reach-y: 34;            /* px: and above or below it */
+  --follow: 9;              /* per second: how quickly strokes catch up, so a quick pointer leaves a wake */
+  --ripple-speed: 620;      /* px/s: a press sends a band of thick strokes out from its button */
+  --idle: 0;                /* nothing moves when nothing is near */
+  --fill-in: 520;           /* ms: a picked tool's strokes thicken and close into a block */
+  --fill-out: 360;          /* ms: the tool it replaces thins back into the field */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 500 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+
+/* ---- the toolbar: no box. A row of icons; the yellow highlight lives behind them ---- */
+.bar { position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--gap); min-height: var(--bar-h); max-width: 100%;
+  padding: calc((var(--bar-h) - var(--tile-h)) / 2) var(--pad); isolation: isolate; }
+.bar canvas.field { position: absolute; z-index: -2; pointer-events: none;
+  left: calc(var(--bleed-x) * -1px); top: calc(var(--bleed-y) * -1px); width: calc(100% + var(--bleed-x) * 2px); height: calc(100% + var(--bleed-y) * 2px); }
+/* icons and labels are white drawn in "difference": pale on the navy, deep blue where the yellow passes under them */
+.seg { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap-in); flex: none;
+  height: var(--tile-h); min-width: var(--tile-h); padding: 0 var(--tile-pad); color: #fff;
+  font: 600 var(--label)/1 var(--font); letter-spacing: var(--track); text-transform: uppercase; white-space: nowrap; }
+.seg svg, .seg .lbl { position: relative; mix-blend-mode: difference; }
+.seg.grp { margin-left: calc(var(--group-gap) - var(--gap)); }
+.seg.grp::after { content: ""; position: absolute; left: calc((var(--group-gap) - var(--gap)) / -2 - 1px); top: 10px; bottom: 10px; width: 1px; background: var(--rule); }
+.seg svg { flex: none; width: var(--icon); height: var(--icon); }
+.seg .lbl { display: inline-block; }
+/* no swatch of its own: a tool that is on is filled by the field behind it (see the script) */
+.seg:active svg, .seg.is-press svg { translate: 0 1px; }
+.seg:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; z-index: 2; }
+
+/* content modes: icon, text, both */
+.bar[data-content="icon"] .seg { padding: 0; width: var(--tile-h); }
+.bar[data-content="icon"] .lbl { display: none; }
+.bar[data-content="text"] .seg svg { display: none; }
+
+/* ---- spec ---- */
+.spec { padding: 48px 32px 64px; background: var(--page); color: var(--ink); border-top: 1px solid var(--rule); }
+.spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--hl); }
+.spec > p { margin: 0 0 24px; color: var(--dim); max-width: 72ch; font-size: 14px; }
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.spec-card { padding: 16px 16px 14px; background: var(--page); }
+.spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+.spec-card dt { color: var(--dim); }
+.spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+.spec-measure { position: absolute; left: -9999px; top: 0; }
+

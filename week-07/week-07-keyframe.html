@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Keyframe</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Keyframe: an animation tool's inspector, a black slab on a yellow page. Monospace values in dark
+     cells; green for what is live (the frame, a lock that is on, Origin), magenta for the field being
+     edited. Above, a transport (icon buttons) beside a timeline of diamonds and a green playhead.
+     Every number cell is a button you drag sideways to scrub; link, pin, lock and the sun are
+     toggles; Origin is a text button.
+     Motion: the frame number rolls like an odometer; the playhead springs to a key or follows your
+     drag along the track; a key added pops in, a key removed shrinks away. Magenta, the field being
+     edited, floods a cell from where you pressed it. The toggles act out their meaning: the lock's
+     shackle lifts open and drops shut, the link's two halves pull apart and snap together, the pin
+     drops in, the sun turns and spreads its rays. Prev and next arrows lean the way they go. */
+  :root { --w: 900px; --h: 420px; --cell: #1f1f1f; --cell-hover: #2a2a2a; --cell-press: #343434; --ink: #e9e9e9; --dim: #8a8a8a;
+    --green: #5ee35e; --mag: #e540e8; --olive: #9a9a2e; --ease: cubic-bezier(.22, 1, .36, 1); }
+  body { background: #fbf39a; font: 500 17px/1 "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace; color: var(--ink); }
+  .said { position: absolute; left: 0; right: 0; top: 18px; margin: 0; text-align: center; font-size: 12px; color: #6b6630; min-height: 1em; }
+  .slab { position: absolute; left: 20px; right: 20px; top: 60px; padding: 16px; border-radius: 22px; background: #000; display: grid; gap: 6px; }
+  .head { display: grid; grid-template-columns: auto 120px 1fr; gap: 6px; height: 104px; }
+  .transport { display: grid; grid-template-columns: repeat(3, 28px); grid-template-rows: 1fr 1fr; align-items: center; justify-items: center; padding: 0 8px; }
+  .t { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: #fff; transition: background-color .12s, transform .15s var(--ease); }
+  .t:hover { background: #262626; } .t:active, .t.is-picked { background: #333; }
+  .t svg { width: 14px; height: 14px; }
+  .t:focus-visible, .c:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+  .frame { display: grid; place-items: center; border-radius: 8px; background: var(--cell); color: var(--green); font-size: 22px; font-variant-numeric: tabular-nums; }
+  .track { position: relative; border-radius: 8px; background: #3b3e3d; overflow: hidden; cursor: pointer; }
+  .track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #555; }
+  .lane { position: absolute; left: 0; right: 0; height: 50%; }
+  .lane.b { top: 50%; }
+  .dia { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; rotate: 45deg; border: 1.6px solid var(--c); transition: background-color .2s, scale var(--snap-t) var(--snap); }
+  .dia.on { background: var(--c); scale: 1.25; }
+  .head-line { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--green); transition: left var(--glide-t) var(--glide); pointer-events: none; }
+  .track.is-drag .head-line { transition: none; }
+  .odo { display: flex; height: 1.2em; overflow: hidden; line-height: 1.2em; }
+  .odo b { display: flex; flex-direction: column; font-weight: 500; transition: transform var(--flow-t) var(--flow); }
+  .track.is-drag ~ * .odo b, .is-drag-frame .odo b { transition-duration: .12s; }
+  .rows { display: grid; gap: 6px; }
+  .row { gap: 6px; }
+  .cells { display: flex; gap: 6px; }
+  .c { display: inline-flex; align-items: center; gap: 14px; height: 50px; padding: 0 16px; border-radius: 8px; background: var(--cell); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums;
+    transition: background-color .12s, box-shadow .15s, transform .15s var(--ease); }
+  .c:hover { background: var(--cell-hover); box-shadow: inset 0 0 0 1px #444; }
+  .c:active, .c.is-picked { background: var(--cell-press); }
+  .c.num { cursor: ew-resize; touch-action: none; }
+  .c { position: relative; overflow: hidden; }
+  .c > * { position: relative; z-index: 1; }
+  .c.num::before { content: ""; position: absolute; inset: 0; background: var(--mag); clip-path: circle(0 at var(--x, 50%) var(--y, 50%)); transition: clip-path .32s cubic-bezier(.4, 0, .6, 1); }
+  .c.num.mag::before { clip-path: circle(150% at var(--x, 50%) var(--y, 50%)); transition: clip-path .5s cubic-bezier(.2, .7, .3, 1); }
+  .c.num { transition: color .25s, background-color .12s, box-shadow .15s; }
+  .c.num.mag { color: #120012; box-shadow: none; }
+  .c.num.mag:hover { background: var(--cell); }
+  .c.icon { width: 56px; padding: 0; justify-content: center; }
+  .c svg { width: 20px; height: 20px; flex: none; }
+  .c .k { color: var(--dim); }
+  .c.num.mag .k { color: rgba(18,0,18,.6); transition: color .25s; }
+  .c.num.mag.is-scrub::before { filter: brightness(1.15); }
+  .c[aria-pressed="true"]:not(.mag) { color: var(--green); box-shadow: inset 0 0 0 1px rgba(94,227,94,.45); }
+  .c.text { color: var(--green); }
+  .c svg * { transform-box: fill-box; transition: transform var(--snap-t) var(--snap); }
+  .lock .shackle { transform-origin: 100% 100%; transform: translateY(-3px) rotate(28deg); }
+  .lock[aria-pressed="true"] .shackle { transform: none; }
+  .link .h1 { transform: translate(-2px, 2px); } .link .h2 { transform: translate(2px, -2px); }
+  .link[aria-pressed="true"] .h1, .link[aria-pressed="true"] .h2 { transform: none; }
+  .pin svg { transition: transform var(--pop-t) var(--pop); }
+  .pin[aria-pressed="true"] svg { transform: translateY(2px); }
+  .sun .rays { transform-origin: 50% 50%; transform: scale(.75); }
+  .sun[aria-pressed="true"] .rays { transform: rotate(45deg) scale(1.05); }
+  .t svg { transition: transform var(--snap-t) var(--snap); }
+  .t[data-go$=",-1"]:hover svg { transform: translateX(-2px); }
+  .t[data-go$=",1"]:hover svg { transform: translateX(2px); }
+  .grid9 { display: grid; grid-template-columns: repeat(3, 4px); gap: 4px; }
+  .grid9 i { width: 4px; height: 4px; border-radius: 50%; background: #777; }
+  .grid9 i:nth-child(5) { background: var(--green); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="left">
+    <p class="said" aria-live="polite"></p>
+    <div class="slab">
+      <div class="head">
+        <div class="transport" role="toolbar" aria-label="Keyframes">
+          <button class="t" type="button" aria-label="Previous key, x" data-go="a,-1"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11 2L3 7l8 5z" fill="currentColor"/></svg></button>
+          <button class="t" type="button" aria-label="Remove key, x" data-key="a"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+          <button class="t" type="button" aria-label="Next key, x" data-go="a,1"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2l8 5-8 5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>
+          <button class="t" type="button" aria-label="Previous key, rotation" data-go="b,-1"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11 2L3 7l8 5z" fill="currentColor"/></svg></button>
+          <button class="t" type="button" aria-label="Add key, rotation" data-key="b"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5L12.5 7 7 12.5 1.5 7z" fill="currentColor"/></svg></button>
+          <button class="t" type="button" aria-label="Next key, rotation" data-go="b,1"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2l8 5-8 5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="frame" aria-label="Frame"><span class="odo" id="frame"></span></div>
+        <div class="track" id="track"><div class="lane a" data-c="var(--mag)"></div><div class="lane b" data-c="var(--olive)"></div><span class="head-line" id="playhead"></span></div>
+      </div>
+      <div class="rows">
+        <div class="row dock">
+          <div class="cells" data-glide role="toolbar" aria-label="Position and rotation">
+            <button class="c num mag" type="button" data-v="745" data-v2="-34" aria-label="Position"><span class="k">X</span><span class="v">745</span><span class="k">Y</span><span class="v2">-34</span></button>
+            <button class="c num" type="button" data-v="50" data-unit="°" aria-label="Rotation"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16h13M4 16L13 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="v">50°</span></button>
+            <button class="c icon link" type="button" aria-pressed="false" aria-label="Link to parent"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path class="h1" d="M8.5 11.5l1.5-1.5M7 9l-2 2a2.8 2.8 0 0 0 4 4l2-2"/><path class="h2" d="M10 10l1.5-1.5M13 11l2-2a2.8 2.8 0 0 0-4-4L9 7"/></svg></button>
+            <button class="c icon pin" type="button" aria-pressed="false" aria-label="Pin"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7c0-2 3-3 6-3s6 1 6 3-3 2-6 2-6 0-6-2zM10 9v9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+            <button class="c num" type="button" data-v="100" aria-label="Scale"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 4M10 4h6v6M4 10v6h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="v">100</span><span class="grid9" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <button class="c icon sun" type="button" aria-pressed="false" aria-label="Glow"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4" fill="currentColor"/><path class="rays" d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="row dock">
+          <div class="cells" data-glide role="toolbar" aria-label="Shape">
+            <button class="c num" type="button" data-v="0" aria-label="Corner radius" style="min-width:130px"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 17V10a6 6 0 0 1 6-6h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="v" style="margin-left:auto">0</span></button>
+            <button class="c num" type="button" data-v="0" aria-label="Stroke" style="min-width:130px"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="v" style="margin-left:auto">0</span></button>
+            <button class="c num" type="button" data-v="500" aria-label="Width" style="min-width:130px"><span class="k">W</span><span class="v" style="margin-left:auto">500</span></button>
+            <button class="c icon lock" type="button" aria-pressed="true" aria-label="Lock proportions"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path class="shackle" d="M7 9V6.5a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="13.5" r="1.4" fill="currentColor"/></svg></button>
+            <button class="c num" type="button" data-v="348" aria-label="Height" style="min-width:130px"><span class="k">H</span><span class="v" style="margin-left:auto">348</span></button>
+            <button class="c text" type="button">Origin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const FRAMES = 400;
+      const keys = { a: [18, 102], b: [60, 240] };
+      let frame = 237;
+      const track = document.getElementById('track'), ph = document.getElementById('playhead'), odo = document.getElementById('frame');
+      const lanes = { a: track.querySelector('.lane.a'), b: track.querySelector('.lane.b') };
+
+      // odometer: three wheels of 0-9
+      odo.innerHTML = '<b></b><b></b><b></b>';
+      const wheels = [...odo.children];
+      wheels.forEach(w => w.innerHTML = [...'0123456789'].map(d => `<span>${d}</span>`).join(''));
+      const roll = () => {
+        String(frame).padStart(3, '0').split('').forEach((d, i) => { wheels[i].style.transform = `translateY(${-d * 1.2}em)`; });
+        odo.parentElement.setAttribute('aria-label', 'Frame ' + frame);
+      };
+
+      // diamonds are kept, so they can pop in and shrink away
+      const dia = {};
+      const addDia = (k, f, pop) => {
+        const d = document.createElement('span'); d.className = 'dia'; d.style.left = (f / FRAMES * 100) + '%'; d.style.setProperty('--c', lanes[k].dataset.c);
+        lanes[k].append(d); dia[k + f] = d;
+        if (pop && !M.calm.matches) d.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: M.dur.pop, easing: M.ease.pop });
+      };
+      const dropDia = (k, f) => {
+        const d = dia[k + f]; delete dia[k + f]; if (!d) return;
+        if (M.calm.matches) { d.remove(); return; }
+        d.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).finished.then(() => d.remove());
+      };
+      for (const k in keys) keys[k].forEach(f => addDia(k, f));
+      const mark = () => { for (const id in dia) dia[id].classList.toggle('on', +id.slice(1) === frame); };
+      const go = f => { frame = Math.max(0, Math.min(FRAMES, Math.round(f))); ph.style.left = (frame / FRAMES * 100) + '%'; roll(); mark(); };
+
+      // the track: click to jump (the playhead springs there), drag to scrub (it follows)
+      const at = e => { const r = track.getBoundingClientRect(); return (e.clientX - r.left) / r.width * FRAMES; };
+      track.addEventListener('pointerdown', e => {
+        track.setPointerCapture(e.pointerId); go(at(e));
+        const move = ev => { track.classList.add('is-drag'); document.body.classList.add('is-drag-frame'); go(at(ev)); };
+        track.addEventListener('pointermove', move);
+        track.addEventListener('pointerup', () => { track.removeEventListener('pointermove', move); track.classList.remove('is-drag'); document.body.classList.remove('is-drag-frame'); }, { once: true });
+      });
+      document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+        const [k, d] = b.dataset.go.split(','), list = [...keys[k]].sort((x, y) => x - y);
+        const t = +d > 0 ? list.find(f => f > frame) : list.reverse().find(f => f < frame);
+        if (t !== undefined) go(t);
+      }));
+      document.querySelectorAll('[data-key]').forEach(b => b.addEventListener('click', () => {
+        const k = b.dataset.key, i = keys[k].indexOf(frame);
+        if (i >= 0) { keys[k].splice(i, 1); dropDia(k, frame); } else { keys[k].push(frame); addDia(k, frame, true); }
+        mark();
+      }));
+      go(frame);
+
+      // number cells: press to edit (magenta floods from the press), drag sideways to scrub
+      const cells = [...document.querySelectorAll('.c.num')];
+      cells.forEach(c => {
+        c.setAttribute('data-no-squash', '');
+        const out = c.querySelector('.v'), unit = c.dataset.unit || '';
+        let x0 = null, v0 = 0;
+        const set = v => { c.dataset.v = Math.round(v); out.textContent = c.dataset.v + unit; };
+        c.addEventListener('pointerdown', e => {
+          const r = c.getBoundingClientRect();
+          c.style.setProperty('--x', (e.clientX - r.left) / M.fit() + 'px'); c.style.setProperty('--y', (e.clientY - r.top) / M.fit() + 'px');
+          cells.forEach(x => x.classList.toggle('mag', x === c));
+          x0 = e.clientX; v0 = +c.dataset.v; c.setPointerCapture(e.pointerId); c.classList.add('is-scrub');
+        });
+        c.addEventListener('pointermove', e => { if (x0 !== null) set(v0 + (e.clientX - x0) / M.fit() / 2); });
+        const end = () => { x0 = null; c.classList.remove('is-scrub'); };
+        c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+        c.addEventListener('focus', () => { if (!c.classList.contains('mag')) { c.style.removeProperty('--x'); c.style.removeProperty('--y'); } });
+        c.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') cells.forEach(x => x.classList.toggle('mag', x === c));
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); set(+c.dataset.v + (e.key === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 10 : 1)); }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

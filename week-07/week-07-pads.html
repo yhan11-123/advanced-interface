@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 07 sketch &middot; Pads</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="week-07-sketch.css?v=2" />
+  <style>
+  /* Pads: a live-visuals toolbar, after a VJ app's strip of effect pads. A white capsule with Play
+     or Stop (an icon-and-text button) over a beat dial; a black capsule with the tempo, the note
+     length (a text button) and TAP; then eight pads, each a big button with its number, its key,
+     three small icon toggles (follow the beat, hold, sound) and its own picture of what it does.
+     Motion: everything keeps time. On every beat the dial's dot steps round, the tempo number
+     gives a small kick, the step pads light their next column and the radars sweep one turn per
+     bar. Hit a pad (click, or its key: A S D F H J K L) and it fires: a wash of its colour spreads
+     from where you hit it and fades, its key cap sinks and springs back. TAP four times and the
+     tempo counts its way to your tempo. Stop lets everything run down and rest. */
+  :root { --w: 1300px; --h: 330px; }
+  body { background: #e8e8ea; font: 600 13px/1 "Inter", -apple-system, system-ui, sans-serif; color: #fff; }
+  .said { position: absolute; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center; font-weight: 500; font-size: 12px; color: #77777c; min-height: 1em; }
+  .row { position: absolute; left: 0; right: 0; top: 60px; padding: 0 30px; }
+  .rack { display: flex; align-items: stretch; gap: 8px; }
+  .cap { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 74px; padding: 12px 0; border-radius: 37px; }
+  .cap.white { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); color: #1e6bff; }
+  .cap.black { background: #121212; }
+  .play { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; letter-spacing: .04em; color: #1e6bff; }
+  .play i { width: 38px; height: 38px; border-radius: 50%; background: #1e6bff; display: grid; place-items: center; transition: transform var(--snap-t) var(--snap); }
+  .play:hover i { transform: scale(1.07); }
+  .play svg { width: 16px; height: 16px; color: #fff; }
+  .dial { position: relative; width: 58px; height: 58px; border-radius: 50%; background: #111; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #ddd; }
+  .dial::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; border: 2px solid #fff; }
+  .dial .dot { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: #3ddc84; }
+  .bpm { text-align: center; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .bpm small { display: block; margin-top: 4px; font-size: 10px; color: #8a8a8f; letter-spacing: .08em; }
+  .div { height: 26px; padding: 0 8px; border-radius: 6px; font-size: 18px; color: #fff; font-variant-numeric: tabular-nums; }
+  .div:hover { background: #262626; }
+  .tap { width: 46px; height: 46px; border-radius: 50%; background: #1fae5b; font-size: 12px; letter-spacing: .04em; }
+  .tap:hover { background: #24c466; }
+  .metro { width: 26px; height: 22px; color: #8a8a8f; }
+  .pads { display: flex; gap: 6px; padding: 8px; border-radius: 30px; background: #141414; }
+  .pad { position: relative; width: 130px; height: 196px; padding: 12px; border-radius: 22px; background: #0c0c0c; box-shadow: inset 0 0 0 1px #2a2a2a; text-align: left; overflow: hidden; cursor: pointer; transition: box-shadow .2s; }
+  .pad:hover { box-shadow: inset 0 0 0 1px #4a4a4a; }
+  .pad:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .pad .wash { position: absolute; width: 20px; height: 20px; margin: -10px; border-radius: 50%; background: var(--c); pointer-events: none; }
+  .pad .top { position: relative; display: flex; align-items: center; justify-content: space-between; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px 0 3px; border-radius: 11px; background: #1d1d1d; font-size: 11px; }
+  .badge b { width: 16px; height: 16px; border-radius: 50%; background: var(--c); display: grid; place-items: center; font-size: 10px; color: #000; }
+  .mini { display: flex; gap: 2px; }
+  .mini span { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 4px; color: #555; }
+  .mini span[aria-pressed="true"] { color: var(--c); }
+  .mini span:hover { background: #222; }
+  .mini svg { width: 12px; height: 12px; }
+  .pad .nm { position: relative; display: block; margin-top: 14px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; }
+  .pad.is-empty .nm { color: #3a3a3a; }
+  .viz { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 70px; }
+  .steps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; padding-top: 30px; }
+  .steps i { height: 11px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px #3a3a3a; transition: background-color .15s, box-shadow .15s; }
+  .steps i.on { box-shadow: inset 0 0 0 1.5px var(--c); }
+  .steps i.now { background: #fff; box-shadow: none; }
+  .steps i.on.now { background: var(--c); }
+  .radar { position: absolute; right: 0; bottom: 0; width: 70px; height: 70px; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 9px, #262626 9px 10px); }
+  .radar .sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 300deg, color-mix(in srgb, var(--c) 45%, transparent) 360deg); }
+  .radar .blip { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--c); opacity: .25; transition: opacity .6s; }
+  .count { position: absolute; left: 0; bottom: 30px; width: 48px; font-size: 11px; text-align: center; }
+  .count::after { content: ""; display: block; height: 3px; margin-top: 6px; border-radius: 2px; background: #333; box-shadow: inset 12px 0 0 #fff; }
+  .keycap { position: absolute; right: 0; bottom: 0; width: 50px; height: 50px; border-radius: 10px; background: #2a2a2a; box-shadow: inset 0 -5px 0 #161616, 0 0 0 1px #3a3a3a; display: grid; place-items: center; font-size: 18px; color: #777; padding-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-07.html#ideation" hidden>&larr; Week 07</a>
+  <div class="stage" data-align="center">
+    <div class="row dock">
+      <div class="rack" data-glide>
+        <div class="cap white">
+          <button class="play" type="button" id="play" data-manual><i><svg viewBox="0 0 16 16" aria-hidden="true" id="play-ico"><path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"/></svg></i><span id="play-txt">STOP</span></button>
+          <div class="dial" aria-hidden="true"><span class="dot" id="beatdot"></span></div>
+        </div>
+        <div class="cap black" role="group" aria-label="Tempo">
+          <svg class="metro" viewBox="0 0 26 22" aria-hidden="true"><path d="M9 2h8l5 18H4zM13 16l7-12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <div class="bpm" aria-live="off"><span id="bpm">100</span><small>BPM</small></div>
+          <button class="div" type="button" id="div" data-manual aria-label="Note length">1/4</button>
+          <button class="tap" type="button" id="tap" data-manual>TAP</button>
+        </div>
+        <div class="pads" role="toolbar" aria-label="Effect pads" id="pads"></div>
+      </div>
+    </div>
+    <p class="said" aria-live="polite"></p>
+  </div>
+  <script>
+    const PADS = [
+      ['Flash', 'A', '#3ddc84', 'steps', [1, 0, 0, 0, 0, 0, 0, 0]], ['Spawn', 'S', '#2ec95c', 'radar'],
+      ['Fwd', 'D', '#ff7a1a', 'key'], ['Bwd', 'F', '#ff7a1a', 'key'],
+      ['Pixel', 'H', '#2f7bff', 'steps', [0, 1, 0, 0, 0, 0, 0, 1]], ['PixelXL', 'J', '#2f7bff', 'key'],
+      ['Name', 'K', '#ff3b5c', 'none'], ['Trails', 'L', '#ff3b5c', 'radar']
+    ];
+    const MINI = ['<path d="M4 1h4l3 10H1zM6 9l4-6" fill="none" stroke="currentColor" stroke-width="1.3"/>', '<path d="M5 6V2a1 1 0 0 1 2 0v4l3 .5c1 .2 1.5 1 1.3 2L10.5 11H5L3 8.5a1 1 0 0 1 1.5-1.3z" fill="currentColor"/>', '<circle cx="6" cy="6" r="5" fill="currentColor"/><path d="M3.5 6h1M5.5 4v4M7.5 5v2" stroke="#000" stroke-width="1"/>'];
+    document.getElementById('pads').innerHTML = PADS.map(([n, k, c, v, steps], i) => `
+      <button class="pad${v === 'none' ? ' is-empty' : ''}" type="button" style="--c:${c}" data-i="${i}" data-key="${k}" data-manual ${v === 'none' ? 'aria-disabled="true"' : ''} aria-label="${n}, key ${k}">
+        <span class="top"><span class="badge"><b>${i + 1}</b>${k}</span><span class="mini">${MINI.map((m, j) => `<span role="switch" tabindex="-1" aria-label="${['Follow the beat', 'Hold', 'Sound'][j]}" aria-pressed="${(i + j) % 3 === 0}"><svg viewBox="0 0 12 12" aria-hidden="true">${m}</svg></span>`).join('')}</span></span>
+        <span class="nm">${n}</span>
+        <span class="viz">${v === 'steps' ? `<span class="steps">${Array.from({ length: 16 }, (_, j) => `<i class="${(steps[j % 8] && j < 8) || (j >= 8 && j % 3 === i % 3) ? 'on' : ''}"></i>`).join('')}</span>`
+          : v === 'radar' ? `<span class="count">${i === 1 ? 12 : 8}</span><span class="radar"><span class="sweep"></span>${Array.from({ length: 7 }, () => `<span class="blip" style="left:${15 + Math.random() * 40}px;top:${15 + Math.random() * 40}px"></span>`).join('')}</span>`
+          : v === 'key' ? `<span class="keycap">${k}</span>` : ''}</span>
+      </button>`).join('');
+  </script>
+  <script src="week-07-sketch.js?v=4"></script>
+  <script>
+    (() => {
+      const said = document.querySelector('.said'), pads = [...document.querySelectorAll('.pad')];
+      const bpmEl = document.getElementById('bpm'), dot = document.getElementById('beatdot');
+      let bpm = 100, div = 4, beat = 0, playing = true, timer = null, shownBpm = 100, stopB = () => {};
+      const ms = () => 60000 / bpm * 4 / div;
+
+      // the clock: everything keeps time with it
+      const tick = () => {
+        beat++;
+        const b = beat % div;
+        const a = (beat % 4) / 4 * Math.PI * 2 - Math.PI / 2;
+        dot.style.transform = `translate(${Math.cos(a) * 18}px, ${Math.sin(a) * 18}px)`;
+        if (!M.calm.matches) bpmEl.animate([{ transform: 'scale(1.18)' }, { transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+        document.querySelectorAll('.steps').forEach(st => { const cells = [...st.children]; cells.forEach((c, j) => c.classList.toggle('now', j % 8 === beat % 8)); });
+        // the radar blips light as the sweep passes
+        document.querySelectorAll('.radar').forEach(r => { const blips = [...r.querySelectorAll('.blip')]; const k = beat % blips.length; blips.forEach((bl, j) => bl.style.opacity = j === k ? 1 : .25); });
+        // pads that follow the beat give a small breath
+        pads.forEach(p => { if (p.querySelector('.mini span[aria-pressed="true"]') && !p.classList.contains('is-empty') && !M.calm.matches && beat % 2 === 0) p.querySelector('.nm').animate([{ opacity: .55 }, { opacity: 1 }], { duration: 260 }); });
+      };
+      const sweepSpeed = () => document.querySelectorAll('.sweep').forEach(s => {
+        s.getAnimations().forEach(a => a.cancel());
+        if (!M.calm.matches) s.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 60000 / bpm * 4, iterations: Infinity }).playbackRate = 1;
+        if (!playing) s.getAnimations().forEach(a => a.pause());
+      });
+      const start = () => { clearInterval(timer); timer = setInterval(tick, ms()); };
+      start(); sweepSpeed();
+
+      // play / stop: the icon swaps, the bars stop and the sweeps run down to rest
+      const play = document.getElementById('play');
+      play.addEventListener('click', () => {
+        playing = !playing;
+        document.getElementById('play-txt').textContent = playing ? 'STOP' : 'PLAY';
+        document.getElementById('play-ico').innerHTML = playing ? '<path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"/>' : '<path d="M4 2l10 6-10 6z" fill="currentColor"/>';
+        if (playing) { start(); document.querySelectorAll('.sweep').forEach(s => s.getAnimations().forEach(a => { a.playbackRate = 1; a.play(); })); }
+        else {
+          clearInterval(timer);
+          // run down: the sweeps slow to a stop instead of freezing
+          document.querySelectorAll('.sweep').forEach(s => s.getAnimations().forEach(a => { let r = 1; const slow = setInterval(() => { r *= .8; a.playbackRate = r; if (r < .05) { a.pause(); clearInterval(slow); } }, 60); }));
+        }
+        said.textContent = playing ? 'Playing' : 'Stopped';
+      });
+      document.getElementById('div').addEventListener('click', e => {
+        div = div === 4 ? 8 : div === 8 ? 2 : 4; e.currentTarget.textContent = '1/' + div;
+        if (!M.calm.matches) e.currentTarget.animate([{ transform: 'translateY(6px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+        if (playing) start(); said.textContent = 'Note length 1/' + div;
+      });
+
+      // TAP: four taps set the tempo; the number counts its way there
+      const taps = [];
+      const tap = document.getElementById('tap');
+      tap.addEventListener('click', () => {
+        const now = performance.now(); if (taps.length && now - taps[taps.length - 1] > 2000) taps.length = 0;
+        taps.push(now); if (taps.length > 5) taps.shift();
+        if (!M.calm.matches) { const ring = document.createElement('span'); Object.assign(ring.style, { position: 'absolute', inset: '0', borderRadius: '50%', boxShadow: '0 0 0 2px #1fae5b' }); tap.style.position = 'relative'; tap.append(ring); ring.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.7)', opacity: 0 }], { duration: 500, easing: 'ease-out' }).finished.then(() => ring.remove()); }
+        if (taps.length >= 4) {
+          const gaps = taps.slice(1).map((t, i) => t - taps[i]), avg = gaps.reduce((a, b) => a + b) / gaps.length;
+          const nb = Math.max(40, Math.min(220, Math.round(60000 / avg)));
+          stopB(); stopB = M.spring(shownBpm, nb, 0, v => { shownBpm = v; bpmEl.textContent = Math.round(v); }, { visual: .5, bounce: 0 });
+          bpm = nb; if (playing) start(); sweepSpeed(); said.textContent = 'Tempo ' + nb;
+        } else said.textContent = 'Tap ' + taps.length + ' of 4';
+      });
+
+      // firing a pad: a wash of its colour spreads from the hit and fades; a key cap sinks and springs back
+      const fire = (p, x, y) => {
+        if (p.classList.contains('is-empty')) return;
+        said.textContent = p.querySelector('.nm').textContent;
+        if (M.calm.matches) return;
+        const r = p.getBoundingClientRect(), f = M.fit();
+        const w = document.createElement('span'); w.className = 'wash';
+        w.style.left = (x == null ? r.width / 2 / f : (x - r.left) / f) + 'px'; w.style.top = (y == null ? r.height / 2 / f : (y - r.top) / f) + 'px';
+        p.prepend(w);
+        w.animate([{ transform: 'scale(0)', opacity: .9 }, { transform: 'scale(16)', opacity: .55, offset: .35 }, { transform: 'scale(20)', opacity: 0 }], { duration: 650, easing: 'cubic-bezier(.2, .7, .3, 1)' }).finished.then(() => w.remove());
+        const cap = p.querySelector('.keycap');
+        if (cap) cap.animate([{ transform: 'translateY(0)', boxShadow: 'inset 0 -5px 0 #161616, 0 0 0 1px #3a3a3a' }, { transform: 'translateY(4px)', boxShadow: 'inset 0 -1px 0 #161616, 0 0 0 1px var(--c)', color: '#fff', offset: .15 }, { transform: 'translateY(0)' }], { duration: M.dur.snap, easing: M.ease.snap });
+        p.querySelectorAll('.steps i.on').forEach((c, j) => c.animate([{ background: 'var(--c)' }, { background: 'transparent' }], { duration: 420, delay: j * 20 }));
+        p.querySelectorAll('.blip').forEach(b => b.animate([{ opacity: 1, transform: 'scale(2)' }, { opacity: .25, transform: 'none' }], { duration: 600 }));
+      };
+      document.getElementById('pads').addEventListener('click', e => {
+        const t = e.target.closest('.mini span');
+        if (t) { e.stopPropagation(); const on = t.getAttribute('aria-pressed') !== 'true'; t.setAttribute('aria-pressed', String(on)); if (!M.calm.matches) t.animate([{ transform: 'scale(.6)' }, { transform: 'none' }], { duration: M.dur.pop, easing: M.ease.pop }); said.textContent = t.getAttribute('aria-label') + (on ? ' on' : ' off'); return; }
+        const p = e.target.closest('.pad'); if (p) fire(p, e.detail ? e.clientX : null, e.detail ? e.clientY : null);
+      }, true);
+      addEventListener('keydown', e => {
+        const p = pads.find(x => x.dataset.key === e.key.toUpperCase()); if (!p || e.metaKey || e.ctrlKey) return;
+        p.animate([{ scale: 1 }, { scale: .96 }, { scale: 1 }], { duration: M.dur.snap, easing: M.ease.snap });
+        fire(p);
+      });
+    })();
+  </script>
+</body>
+</html>

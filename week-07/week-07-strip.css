@@ -1,0 +1,55 @@
+/* Strip: the look the five Touch Bar sketches share. A black strip of rounded dark keys, esc at the
+   left, the app's tools in the middle (lined up by the align switch), the system's control strip at
+   the right. Keys light a step on hover, a step more and shrink a touch on press; a key that stays on
+   turns white with a magenta mark. Sub-rows ([data-tier]) open under the strip, each with a label. */
+:root { --w: 1100px; --h: 340px;
+  --bar: #000; --k: #2c2c2e; --k-hover: #3a3a3c; --k-press: #545458; --ink: #f5f5f7; --dim: #8e8e93;
+  --on: #e01ee6; --on-ink: #fff; --ease: cubic-bezier(.22, 1, .36, 1); }
+body { background: #161618; color: var(--ink); font: 500 15px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; }
+
+.said { position: absolute; left: 0; right: 0; top: 18px; margin: 0; text-align: center; font-size: 13px; color: var(--dim); min-height: 1em; }
+.deck { position: absolute; left: 0; right: 0; top: 64px; padding: 10px 12px; border-radius: 14px; background: #0b0b0c; box-shadow: inset 0 0 0 1px #232325; }
+.tbar { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 10px; border-radius: 8px; background: var(--bar); }
+.app { flex: 1; min-width: 0; gap: 8px; }
+.cluster { display: flex; align-items: center; gap: 8px; }
+
+.key { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none;
+  height: 40px; min-width: 44px; padding: 0 14px; border-radius: 8px; background: var(--k); color: var(--ink); white-space: nowrap;
+  transition: background-color .12s ease, color .12s ease, transform .18s var(--ease); }
+.key:hover { background: var(--k-hover); }
+.key:active { background: var(--k-press); transition-duration: 0s; }
+.key.is-picked { background: var(--k-press); }
+.key:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+.key svg { width: 20px; height: 20px; flex: none; }
+.key .chev { width: 8px; height: 12px; color: var(--dim); margin-right: -4px; }
+/* a chevron turns down while its row is out, on a spring */
+.key .chev { transition: rotate var(--snap-t) var(--snap), color .12s; }
+.key[aria-expanded="true"]:not(.close) .chev { rotate: 90deg; }
+.key[aria-pressed="true"], .key[aria-expanded="true"] { background: #fff; color: var(--on); }
+.key[aria-pressed="true"] .chev, .key[aria-expanded="true"] .chev { color: var(--on); }
+.key[aria-pressed="true"]:hover, .key[aria-expanded="true"]:hover { background: #e9e9ee; }
+.key.is-fill[aria-pressed="true"] { background: var(--on); color: var(--on-ink); }
+.key.esc { min-width: 64px; background: #3a3a3c; font-size: 15px; }
+.key.esc:hover { background: #48484a; }
+.key.icon { padding: 0; width: 64px; }
+.key.round { width: 40px; min-width: 40px; padding: 0; border-radius: 50%; }
+
+.seg { display: flex; gap: 2px; }
+.seg > .key { border-radius: 2px; }
+.seg > .key:first-child { border-radius: 8px 2px 2px 8px; }
+.seg > .key:last-child { border-radius: 2px 8px 8px 2px; }
+.seg > .key:only-child { border-radius: 8px; }
+.lbl { color: var(--dim); font-size: 14px; padding: 0 2px 0 4px; white-space: nowrap; }
+
+.ctrl { display: flex; gap: 2px; flex: none; }
+.ctrl .key { width: 64px; padding: 0; border-radius: 2px; }
+.ctrl .key:first-child { width: 28px; min-width: 28px; border-radius: 8px 2px 2px 8px; }
+.ctrl .key:last-child { border-radius: 2px 8px 8px 2px; }
+.ctrl[data-collapsed] .key:not(:first-child):not(:last-child) { display: none; }
+.siri { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 8%, transparent 30%), conic-gradient(from 200deg, #5ac8fa, #af52de, #ff2d55, #ff9f0a, #5ac8fa); }
+
+.tiers { position: absolute; left: 12px; right: 12px; top: 164px; display: grid; gap: 10px; }
+.tier { align-items: center; gap: 8px; }
+.tier .lbl { min-width: 0; }
+.tier-in { display: flex; align-items: center; gap: 2px; padding: 0; }
+@media (prefers-reduced-motion: reduce) { .key { transition: none; } }
