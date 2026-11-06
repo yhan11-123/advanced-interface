@@ -24,8 +24,8 @@
   .ctl input:checked + span { background: var(--ink); color: var(--on-bar); }
   .ctl input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 1px; }
   .stagewrap { margin-top: 70px; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
-  .hint { margin: 30px 0 0; text-align: center; color: var(--dim); font-size: 13px; min-height: 1.5em; }
-  .hint b { color: var(--ink); font-weight: 600; }
+  /* the live line is for screen readers only: nothing on screen announces what was turned on or off */
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .tip { position: absolute; z-index: 9; padding: 6px 10px; border-radius: 999px; background: var(--ink); color: var(--on-bar); font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; pointer-events: none; transform: translate(-50%, -100%); }
 
   .states { padding: 44px 32px 36px; border-top: 1px solid #ddd3c9; overflow-x: auto; }
