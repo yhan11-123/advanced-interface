@@ -1,4 +1,4 @@
-// Week 07, Set 2 · Cascade: the spec, read from the values the prototype runs on.
+// Week 07, Set 2 · Drip: the spec, read from the values the prototype runs on.
 (() => {
   const out = document.querySelector('.spec-grid');
   if (!out) return;

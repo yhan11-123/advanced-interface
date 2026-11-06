@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Week 07 &middot; Set 1</title>
+  <title>Week 07 &middot; Set 1 &middot; Hatch</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="week-07-shy.css?v=12" />
+  <link rel="stylesheet" href="week-07-hatch.css?v=12" />
   <style>
   /* Set 1, in use: nineteen drawing tools in a row with no box round them. The buttons stay where they
      are; a yellow highlight of slanted strokes gathers behind them wherever the pointer is. */
@@ -135,7 +135,7 @@
     const seg = (k, label, tool, on, extra = '', grp = false) => `<button class="seg${grp ? ' grp' : ''}${extra}" type="button" data-k="${k}"${tool ? ` aria-pressed="${on}"` : ''}><svg viewBox="0 0 22 22" aria-hidden="true">${ICON[k]}</svg><span class="lbl">${label}</span></button>`;
     document.getElementById('live').innerHTML = TOOLS.map(([k, l, t, g], i) => seg(k, l, t, i === 0, '', g)).join('');
   </script>
-  <script src="week-07-shy-field.js?v=11"></script>
+  <script src="week-07-hatch-field.js?v=11"></script>
   <script>
     (() => {
       const hero = document.getElementById('hero'), dock = document.getElementById('dock'), bar = document.getElementById('live');
@@ -245,6 +245,6 @@
       document.querySelectorAll('.states .seg').forEach(b => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); });
     })();
   </script>
-  <script src="week-07-shy-spec.js?v=13"></script>
+  <script src="week-07-hatch-spec.js?v=13"></script>
 </body>
 </html>

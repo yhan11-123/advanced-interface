@@ -1,4 +1,4 @@
-// Week 07, Set 2 · Cascade: the folding toolbar, after the user's sketch.
+// Week 07, Set 2 · Drip: the folding toolbar, after the user's sketch.
 //   Step 1: one main toolbar.
 //   Step 2: press a main tool that holds more tools. It stays at the end of its row as a coloured disc;
 //           its tools open in a secondary toolbar of the same colour on the row below (not joined to it), and every main tool
