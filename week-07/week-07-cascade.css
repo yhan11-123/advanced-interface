@@ -79,7 +79,6 @@ button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; backgr
 /* the disc (and its hover) is drawn inside a clear border, so it never touches the bar's edge */
 .sec .btn { border: var(--pick-inset) solid transparent; background-clip: padding-box; }
 .sec .btn[aria-pressed="true"] { background-color: var(--ink); color: var(--on-bar); }
-.sec .btn[aria-pressed="true"]::before { content: ""; position: absolute; left: 50%; bottom: 1px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--c, var(--mark)); }
 .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* content modes */

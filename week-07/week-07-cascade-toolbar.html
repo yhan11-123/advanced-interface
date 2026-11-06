@@ -7,7 +7,7 @@
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="week-07-cascade.css?v=15" />
+  <link rel="stylesheet" href="week-07-cascade.css?v=16" />
   <style>
   /* Set 2, in use: nine tools that each hold more. Press one and the toolbar folds down a row. */
   .hero { position: relative; min-height: 560px; padding: 26px 32px 40px; }
@@ -158,7 +158,8 @@
     (() => {
       const params = new URLSearchParams(location.search);
       const live = document.getElementById('live'), said = document.getElementById('said'), hero = document.getElementById('hero');
-      const pose = params.get('pose');      // ?pose=open or ?pose=two: stills for the week page's frames
+      const pose = params.get('pose');
+      if (pose) document.head.insertAdjacentHTML('beforeend', '<style>.btn, .btn .face { transition: none !important; }</style>');   // stills: no half-faded discs      // ?pose=open or ?pose=two: stills for the week page's frames
       const C = makeCascade(live, { groups: GROUPS, icons: ICON, align: 'left', open: pose === 'open' ? [2] : pose === 'two' ? [2, 6] : [] });
       if (params.get('film') !== null) (document.fonts?.ready || Promise.resolve()).then(() => setTimeout(() => {
         const g = +params.get('film'); __adv(200); C.toggle(g); __adv(+params.get('at') || 0);
@@ -234,7 +235,7 @@
         ['Holds more tools', 'a small dot in its corner', 'icon', 'rect', 'Rectangle', ' more'],
         ['Its tools are out', 'a disc in its pair colour, ink icon', 'icon', 'rect', 'Rectangle', ' more', 'aria-expanded="true" style="--c:var(--pair-1)"'],
         ['A tool in its bar', 'ink icon on the pair colour', 'icon', 'ellipse', 'Ellipse', '', '', true],
-        ['Picked in its bar', 'an ink disc, light icon, a dot in the pair colour', 'icon', 'ellipse', 'Ellipse', '', 'aria-pressed="true"', true]
+        ['Picked in its bar', 'an ink disc, light icon', 'icon', 'ellipse', 'Ellipse', '', 'aria-pressed="true"', true]
       ];
       document.getElementById('state-rows').innerHTML = rows.map(([n, sub, c, k, l, cls, attrs = '', inSec]) => {
         const cell = st => { const btn = b(k, l, cls + st, attrs); return inSec ? `<div class="frame"><div class="pill sec" style="position:relative;opacity:1;background:var(--pair-1)!important">${btn}</div></div>` : pill(c, btn); };
@@ -250,6 +251,6 @@
       document.querySelectorAll('.states .btn').forEach(x => { x.tabIndex = -1; x.setAttribute('aria-hidden', 'true'); });
     })();
   </script>
-  <script src="week-07-cascade-spec.js?v=10"></script>
+  <script src="week-07-cascade-spec.js?v=11"></script>
 </body>
 </html>

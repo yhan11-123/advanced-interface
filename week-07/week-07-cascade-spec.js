@@ -58,7 +58,7 @@
       ['Pressed', 'the circle deepens (26%) and the icon gives to 88%'],
       ['Holds more', 'a small dot in its lower right corner'],
       ['Tools out', 'a disc in its pair colour, ink icon'],
-      ['In its bar', `ink icons on the pair colour; the picked one on an ink disc set ${tok('--pick-inset')} in, so it never touches the bar's edge, its icon light, a dot in the pair colour; the main tool takes its icon`],
+      ['In its bar', `ink icons on the pair colour; the picked one on an ink disc set ${tok('--pick-inset')} in, so it never touches the bar's edge, its icon light; the main tool takes its icon`],
       ['Focus', `a 2px ${hex(tok('--focus'))} ring`],
     ]],
     ['Motion', [
