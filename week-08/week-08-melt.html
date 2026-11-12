@@ -26,6 +26,10 @@
   @media (hover: none) { body { cursor: auto; } }
   .stage { display: grid; place-content: center; gap: 60px; justify-items: center; }
   .goo { position: absolute; inset: 0; filter: url(#goo); pointer-events: none; }
+  /* the pointer itself: a small exact dot on top, drawn in difference so it shows on cream and on black
+     alike; the liquid drop (in .goo) only trails it */
+  .dot { position: absolute; left: 0; top: 0; z-index: 5; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--cream); mix-blend-mode: difference; pointer-events: none; opacity: 0; transition: opacity .2s, scale .2s; }
+  .dot.on { opacity: 1; }
   .goo > * { position: absolute; background: var(--cream); }
   .blob { left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; transition: scale .3s var(--snap); }
   .row { position: relative; display: flex; align-items: center; gap: 30px; }
@@ -36,8 +40,10 @@
 
   /* Contact me */
   .ct { display: inline-flex; align-items: center; gap: 10px; height: 72px; padding: 0 40px; border-radius: 16px; border: 2px solid var(--cream); transition: color .25s; }
-  .ct.is-full { color: #000; }
-  .fill { border-radius: 16px; overflow: hidden; background: transparent !important; }
+  .ct { transition: color .25s, background-color .18s; }
+  /* once the cream has risen, the button's own crisp fill takes over (the liquid layer rounds corners) */
+  .ct.is-full { color: #000; background: var(--cream); }
+  .fill { border-radius: 14px; overflow: hidden; background: transparent !important; }
   .fill i { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; background: var(--cream); scale: 0; }
 
   /* Portfolio: a bead on its lower edge */
@@ -60,17 +66,22 @@
   .grp .r { display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 20px; border-radius: 14px; border: 1.5px solid rgba(246,244,218,.35); font-size: 16px; transition: color .25s, border-color .25s; }
   .grp .r .ic { width: 18px; height: 18px; }
   .grp .r:hover { border-color: var(--cream); }
-  .grp .r[aria-checked="true"] { color: #000; border-color: var(--cream); }
+  .grp .r[aria-checked="true"] { border-color: var(--cream); }
   .grp .r:disabled { opacity: .35; }
   .stage[data-content="icon"] .grp .r { width: 54px; padding: 0; justify-content: center; }
-  .gpick { border-radius: 14px; }
+  .gpick { border-radius: 14px; opacity: 0; }
+  .gpick.moving { opacity: 1; }
+  /* at rest the pick is the button's own crisp fill; the liquid only carries it between options */
+  .grp .r.landed { background: var(--cream); color: #000; }
   </style>
 </head>
 <body>
   <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="7"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
   <div class="stage" data-content="both">
-    <div class="goo" aria-hidden="true"><div class="body"></div><div class="bead"></div><div class="fill"><i></i></div><div class="gpick"></div><div class="blob"></div></div>
+    <div class="goo" aria-hidden="true"><div class="body"></div><div class="bead"></div></div>
+    <div class="goo" aria-hidden="true"><div class="fill"><i></i></div><div class="gpick"></div><div class="blob"></div></div>
+    <span class="dot" aria-hidden="true"></span>
     <div class="row">
       <button class="ct" type="button" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
       <button class="pf" type="button" data-name="Portfolio" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Portfolio</span></button>
@@ -84,14 +95,17 @@
   </div>
   <script src="week-08-sketch.js?v=1"></script>
   <script>
-    const stage = M.stage, goo = document.querySelector('.goo');
-    const blob = goo.querySelector('.blob'), fill = goo.querySelector('.fill'), flood = fill.querySelector('i');
-    const body = goo.querySelector('.body'), bead = goo.querySelector('.bead'), gpick = goo.querySelector('.gpick');
+    const stage = M.stage, q = s => document.querySelector(s);
+    const blob = q('.blob'), fill = q('.fill'), flood = fill.querySelector('i'), dot = q('.dot');
+    const body = q('.body'), bead = q('.bead'), gpick = q('.gpick');
     const ct = document.querySelector('.ct'), pf = document.querySelector('.pf'), rs = document.querySelector('.rs'), grp = document.querySelector('.grp');
     // positions in stage pixels (the stage may be scaled to fit)
     const rel = el => { const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), f = M.fit(); return { x: (r.left - s.left) / f, y: (r.top - s.top) / f, w: r.width / f, h: r.height / f }; };
     const put = (el, r) => Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
-    const layout = () => { put(fill, rel(ct)); put(body, rel(pf)); const c = grp.querySelector('[aria-checked=true]'); put(gpick, rel(c)); };
+    // the liquid fill sits 2px inside the outline so it never spills past it
+    const inset = (r, d) => ({ x: r.x + d, y: r.y + d, w: r.w - 2 * d, h: r.h - 2 * d });
+    const layout = () => { put(fill, inset(rel(ct), 2)); put(body, rel(pf)); };
+    grp.querySelector('[aria-checked=true]').classList.add('landed');
     addEventListener('resize', layout); stage.addEventListener('content', () => { const t0 = performance.now(); const loop = t => { layout(); if (t - t0 < 800) requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
     stage.addEventListener('off', () => { layout(); body.style.opacity = pf.disabled ? .4 : 1; });
     document.fonts.ready.then(layout); layout();
@@ -100,8 +114,13 @@
     let tx = -100, ty = -100, x = -100, y = -100, raf;
     const follow = () => { x += (tx - x) * .22; y += (ty - y) * .22; blob.style.transform = `translate(${x}px, ${y}px)`; raf = requestAnimationFrame(follow); };
     follow();
-    addEventListener('pointermove', e => { const s = stage.getBoundingClientRect(), f = M.fit(); tx = (e.clientX - s.left) / f; ty = (e.clientY - s.top) / f; if (M.calm.matches) { x = tx; y = ty; } });
-    document.documentElement.addEventListener('mouseleave', () => { tx = ty = -100; });
+    addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return;
+      const s = stage.getBoundingClientRect(), f = M.fit(); tx = (e.clientX - s.left) / f; ty = (e.clientY - s.top) / f;
+      dot.style.transform = `translate(${tx}px, ${ty}px)`; dot.classList.add('on');
+      if (M.calm.matches) { x = tx; y = ty; }
+    });
+    document.documentElement.addEventListener('mouseleave', () => { tx = ty = -100; dot.classList.remove('on'); });
 
     // Contact me: cream rises from where the drop came in, drains out where it leaves
     const fr = () => rel(ct);
@@ -113,14 +132,14 @@
       flood.getAnimations().forEach(a => a.cancel());
       Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
       flood.animate([{ scale: 0 }, { scale: reach }], { duration: 620, easing: 'cubic-bezier(.3, .6, .2, 1)', fill: 'forwards' });
-      clearTimeout(full); full = setTimeout(() => ct.classList.add('is-full'), 140);
+      clearTimeout(full); full = setTimeout(() => ct.classList.add('is-full'), 380);
     });
     ct.addEventListener('pointerleave', e => {
       const [px, py] = at(e), r = fr(), reach = Math.hypot(r.w, r.h) / 10 + 1;
       flood.getAnimations().forEach(a => a.cancel());
       Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
       flood.animate([{ scale: reach }, { scale: 0 }], { duration: 480, easing: 'cubic-bezier(.5, 0, .7, .4)', fill: 'forwards' });
-      clearTimeout(full); full = setTimeout(() => ct.classList.remove('is-full'), 200);
+      clearTimeout(full); ct.classList.remove('is-full');
     });
 
     // Portfolio: a bead clings to its lower edge under the pointer
@@ -129,7 +148,9 @@
       const r = rel(pf), [px] = (() => { const b = pf.getBoundingClientRect(); return [(e.clientX - b.left) / M.fit()]; })();
       bead.style.left = (r.x + Math.min(r.w - 24, Math.max(24, px))) + 'px'; bead.style.top = (r.y + r.h + 2) + 'px'; bead.style.scale = pf.classList.contains('is-down') ? 0 : 1;
     });
-    pf.addEventListener('pointerleave', () => { bead.style.scale = 0; });
+    pf.addEventListener('pointerleave', () => { bead.style.scale = 0; blob.style.scale = 1; });
+    // the cream drop dives into the dark pill and comes out as its dark bead (the two colours never mix)
+    pf.addEventListener('pointerenter', () => { if (!pf.disabled) blob.style.scale = 0; });
     pf.addEventListener('down', () => { bead.style.scale = 0; });
     pf.addEventListener('up', () => { if (pf.matches(':hover')) bead.style.scale = 1; });
 
@@ -138,10 +159,15 @@
     rs.addEventListener('pointerleave', () => { blob.style.scale = 1; });
 
     // group: liquid pick, stretched while it travels
+    let landing;
     grp.addEventListener('pick', e => {
       const a = rel(e.detail.from), b = rel(e.detail.to);
+      grp.querySelectorAll('.landed').forEach(x => x.classList.remove('landed'));
       put(gpick, b);
-      if (M.calm.matches) return;
+      clearTimeout(landing);
+      if (M.calm.matches) { e.detail.to.classList.add('landed'); return; }
+      gpick.classList.add('moving');
+      landing = setTimeout(() => { e.detail.to.classList.add('landed'); gpick.classList.remove('moving'); }, 600);
       const L = Math.min(a.x, b.x), R = Math.max(a.x + a.w, b.x + b.w);
       gpick.animate([
         { left: a.x + 'px', width: a.w + 'px', top: a.y + 'px', height: a.h + 'px' },
