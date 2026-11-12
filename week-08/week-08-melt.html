@@ -31,7 +31,7 @@
   .dot { position: absolute; left: 0; top: 0; z-index: 5; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--cream); mix-blend-mode: difference; pointer-events: none; opacity: 0; transition: opacity .2s, scale .2s; }
   .dot.on { opacity: 1; }
   .goo > * { position: absolute; background: var(--cream); }
-  .blob { left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; transition: scale .3s var(--snap); }
+  .blob { left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; transition: scale .22s ease-out; }
   .row { position: relative; display: flex; align-items: center; gap: 30px; }
   .row button, .grp { position: relative; z-index: 1; }
   button { cursor: none; }
@@ -112,13 +112,23 @@
 
     // the drop: trails the pointer
     let tx = -100, ty = -100, x = -100, y = -100, raf;
-    const follow = () => { x += (tx - x) * .22; y += (ty - y) * .22; blob.style.transform = `translate(${x}px, ${y}px)`; raf = requestAnimationFrame(follow); };
-    follow();
+    // only repaint while the drop is still catching up (the liquid filter is costly to redraw)
+    const follow = () => {
+      const dx = tx - x, dy = ty - y;
+      if (Math.abs(dx) < .2 && Math.abs(dy) < .2) { raf = 0; return; }
+      x += dx * .25; y += dy * .25; blob.style.transform = `translate(${x}px, ${y}px)`;
+      raf = requestAnimationFrame(follow);
+    };
+    const wake = () => { if (!raf) raf = requestAnimationFrame(follow); };
+    // the drop sinks out of sight into a button and comes back right under the pointer, never from where it lagged
+    let hidden = false;
+    const hide = () => { hidden = true; blob.style.scale = 0; };
+    const show = () => { hidden = false; x = tx; y = ty; blob.style.transform = `translate(${x}px, ${y}px)`; blob.style.scale = 1; };
     addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse') return;
       const s = stage.getBoundingClientRect(), f = M.fit(); tx = (e.clientX - s.left) / f; ty = (e.clientY - s.top) / f;
       dot.style.transform = `translate(${tx}px, ${ty}px)`; dot.classList.add('on');
-      if (M.calm.matches) { x = tx; y = ty; }
+      if (M.calm.matches || hidden) { x = tx; y = ty; blob.style.transform = `translate(${x}px, ${y}px)`; } else wake();
     });
     document.documentElement.addEventListener('mouseleave', () => { tx = ty = -100; dot.classList.remove('on'); });
 
@@ -148,15 +158,15 @@
       const r = rel(pf), [px] = (() => { const b = pf.getBoundingClientRect(); return [(e.clientX - b.left) / M.fit()]; })();
       bead.style.left = (r.x + Math.min(r.w - 24, Math.max(24, px))) + 'px'; bead.style.top = (r.y + r.h + 2) + 'px'; bead.style.scale = pf.classList.contains('is-down') ? 0 : 1;
     });
-    pf.addEventListener('pointerleave', () => { bead.style.scale = 0; blob.style.scale = 1; });
+    pf.addEventListener('pointerleave', () => { bead.style.scale = 0; show(); });
     // the cream drop dives into the dark pill and comes out as its dark bead (the two colours never mix)
-    pf.addEventListener('pointerenter', () => { if (!pf.disabled) blob.style.scale = 0; });
+    pf.addEventListener('pointerenter', () => { if (!pf.disabled) hide(); });
     pf.addEventListener('down', () => { bead.style.scale = 0; });
     pf.addEventListener('up', () => { if (pf.matches(':hover')) bead.style.scale = 1; });
 
     // Résumé: the line spreads from the touch; the drop sinks into it
-    rs.addEventListener('pointerenter', e => { const b = rs.getBoundingClientRect(); rs.style.setProperty('--ox', ((e.clientX - b.left) / b.width * 100) + '%'); blob.style.scale = .2; });
-    rs.addEventListener('pointerleave', () => { blob.style.scale = 1; });
+    rs.addEventListener('pointerenter', e => { if (rs.disabled) return; const b = rs.getBoundingClientRect(); rs.style.setProperty('--ox', ((e.clientX - b.left) / b.width * 100) + '%'); hide(); });
+    rs.addEventListener('pointerleave', () => { if (hidden) show(); });
 
     // group: liquid pick, stretched while it travels
     let landing;
