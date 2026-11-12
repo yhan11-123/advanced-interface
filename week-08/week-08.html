@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Buttons &middot; Advanced Interface</title>
+  <meta name="description" content="Two sets of buttons, each a tone: three levels of emphasis that take icon and text, text, or an icon alone, and a single-select button group, in enabled, hover, pressed and disabled." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=23" />
+  <style>
+    /* Week 08 diagram kit: one button drawn the same way everywhere.
+       Picts (112 x 68): button 14 tall, icon 5, label line 1.6.
+       Anatomy (px, true size): Material's common button, 40 tall, 24 side padding, 16 before an icon, icon 18, gap 8, label 14/20. */
+    .bt-box { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+    .bt-fill { fill: var(--accent); }
+    .bt-tone { fill: var(--accent); fill-opacity: .16; }
+    .bt-out { fill: none; stroke: var(--fg-muted); stroke-width: 1; }
+    .bt-off { fill: var(--fg); fill-opacity: .12; }
+    .bt-label { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; }
+    .bt-label-on { fill: none; stroke: var(--bg-elev); stroke-width: 1.6; stroke-linecap: round; }
+    .bt-label-acc { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; }
+    .bt-icon { fill: none; stroke: var(--fg); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .bt-icon-on { fill: none; stroke: var(--bg-elev); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .bt-icon-acc { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .bt-meta { fill: var(--fg-muted); font: 7px/1 var(--font); }
+    .bt-txt { font: 500 14px/1 var(--font); }
+    .bt-dim { fill: none; stroke: #e2537d; stroke-width: .8; }
+    .bt-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
+    .bt-pad { fill: #e2537d; opacity: .12; }
+    .rv-anat-fig .an-num text { font-size: 7px; }
+
+    /* Try it: plain buttons that do what the brief asks, live */
+    .bt-try { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 20px; align-items: start; margin: 16px 0 24px; padding: 20px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .bt-try-stage { display: grid; gap: 28px; align-content: center; min-height: 300px; padding: 28px 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+    .bt-try-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .bt-try-cap { margin: 0 0 10px; font-size: 12px; font-weight: 600; color: var(--fg-muted); }
+    .bt-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; height: 40px; margin: 0; padding: 0 24px 0 16px; border: 1px solid transparent; border-radius: 20px; background: none; color: var(--fg); font: inherit; font-size: 14px; font-weight: 500; line-height: 20px; white-space: nowrap; cursor: pointer; transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
+    .bt-btn::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+    .bt-btn:hover::before { opacity: .08; }
+    .bt-btn:active::before { opacity: .12; transition: none; }
+    .bt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .bt-btn svg { flex: none; width: 18px; height: 18px; }
+    .bt-filled { background: var(--accent); color: var(--bg-elev); }
+    .bt-tonal { background: color-mix(in srgb, var(--accent) 16%, var(--bg-elev)); color: var(--accent); }
+    .bt-outlined { border-color: color-mix(in srgb, var(--fg) 30%, transparent); color: var(--accent); }
+    .bt-btn:disabled { cursor: not-allowed; color: color-mix(in srgb, var(--fg) 38%, transparent); }
+    .bt-btn:disabled::before { opacity: 0; }
+    .bt-filled:disabled, .bt-tonal:disabled { background: color-mix(in srgb, var(--fg) 12%, transparent); }
+    .bt-outlined:disabled { border-color: color-mix(in srgb, var(--fg) 12%, transparent); }
+    /* button group, single selection: one connected row, the picked one tinted */
+    .bt-group { display: inline-flex; border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent); border-radius: 20px; overflow: hidden; }
+    .bt-group .bt-btn { height: 38px; border: 0; border-radius: 0; padding: 0 16px 0 12px; color: var(--fg); }
+    .bt-group .bt-btn + .bt-btn { border-left: 1px solid color-mix(in srgb, var(--fg) 30%, transparent); }
+    .bt-group .bt-btn::before { inset: 0; }
+    .bt-group .bt-btn:focus-visible { outline-offset: -3px; }
+    .bt-group .bt-btn[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 16%, var(--bg-elev)); color: var(--accent); }
+    /* content modes: icon and text, text, icon */
+    [data-content="text"] .bt-btn > svg { display: none; }
+    [data-content="text"] .bt-btn { padding: 0 24px; }
+    [data-content="text"] .bt-group .bt-btn { padding: 0 16px; }
+    [data-content="icon"] .bt-btn > span { display: none; }
+    [data-content="icon"] .bt-btn { width: 40px; padding: 0; }
+    [data-content="icon"] .bt-group .bt-btn { width: 48px; }
+    .bt-try-said { margin-top: 14px; font-size: 13px; color: var(--fg-muted); min-height: 1.4em; }
+    .bt-try-side { display: grid; gap: 16px; }
+    .bt-try-seg { margin: 0; padding: 0; border: 0; }
+    .bt-try-seg legend { margin-bottom: 6px; padding: 0; font-size: 12px; font-weight: 600; color: var(--fg-muted); }
+    .bt-try-seg div { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+    .bt-try-seg label { position: relative; flex: 1; }
+    .bt-try-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .bt-try-seg span { display: block; padding: 6px 4px; border-radius: 7px; font-size: 12.5px; text-align: center; color: var(--fg-muted); transition: background-color .15s ease, color .15s ease; }
+    .bt-try-seg input:checked + span { background: var(--bg-elev); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
+    .bt-try-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .prose .bt-try-keylist { display: grid; gap: 12px; margin: 0; padding: 4px 0 0; list-style: none; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .prose .bt-try-keylist li { position: relative; margin: 0; padding-left: 30px; }
+    .bt-try-keylist b { display: block; font-size: 13.5px; color: var(--fg); }
+    .bt-try-keylist i { position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); font-style: normal; font-size: 11px; line-height: 18px; text-align: center; color: var(--fg); }
+    @media (max-width: 720px) { .bt-try { grid-template-columns: minmax(0, 1fr); } }
+    @media (prefers-reduced-motion: reduce) { .bt-btn, .bt-btn::before, .bt-try-seg span { transition: none; } }
+
+    /* Numbers to remember: four tiles */
+    .bt-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .bt-nums div { padding: 16px 16px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .bt-nums b { display: block; margin-bottom: 6px; font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .bt-nums small { font-size: 13px; font-weight: 500; margin-left: 1px; }
+    .bt-nums span { display: block; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+    .bt-dd { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .bt-dd { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 08</div>
+      <h1>Buttons</h1>
+      <div class="meta">
+        <span>Nov 9, 2026</span>
+        <span class="tag">buttons</span>
+        <span class="tag">system</span>
+        <span class="tag">emphasis</span>
+        <span class="tag">button group</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Deliverables</h2>
+
+      <p>Two sets of buttons, each a tone. Each set is one prototype: the buttons in use, at three levels of emphasis, switching between icon and text, text and icon, with a single-select button group; then every configuration laid out in enabled, hover, pressed and disabled; then the spec.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file name (week-08-TONE-button.html, images/process/TONE-button-N.png).
+           Filling the prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe style="height:auto;aspect-ratio:W/H" src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-wide data-src="…">View larger</button>.
+           The prototype page holds the buttons in use first, then a States section, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">Not started yet.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-08-set-1-button.html</span></div>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>Primary, secondary and tertiary buttons with icon and text, text, or an icon; a single-select button group; every state; the spec.</span>
+                    <span class="soon">Coming soon</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time.</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">Not started yet.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-08-set-2-button.html</span></div>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>Primary, secondary and tertiary buttons with icon and text, text, or an icon; a single-select button group; every state; the spec.</span>
+                    <span class="soon">Coming soon</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time.</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <h2>Brief</h2>
+
+      <p>Two sets of buttons, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the button is for and what it lets you do. A button's function is to say plainly that something will happen when you press it, and how much that thing matters next to the buttons around it. So the tone has to live in the shape, the fill and the way the button answers the pointer, while the order of importance still reads at a glance.</p>
+
+      <p>The rule that shapes everything: <strong>at least three button styles, each a different level of emphasis</strong>, built on one structure.</p>
+
+      <h3>Three levels of emphasis</h3>
+
+      <table>
+        <thead>
+          <tr><th>Level</th><th>The brief's example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Primary</td><td>A background fill colour</td></tr>
+          <tr><td>Secondary</td><td>A lower-contrast colour</td></tr>
+          <tr><td>Tertiary</td><td>A transparent fill with an outline</td></tr>
+        </tbody>
+      </table>
+
+      <h3>What the structure has to take</h3>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Has to support</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Icon and text</td><td>An icon with its label</td></tr>
+          <tr><td>Text only</td><td>A label alone</td></tr>
+          <tr><td>Icon only</td><td>An icon alone</td></tr>
+          <tr><td>Button group</td><td>A row of buttons where one is picked at a time (single selection)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>States</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Shows</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Enabled</td><td>The button at rest, ready to press</td></tr>
+          <tr><td>Hover</td><td>The button under the pointer, about to be pressed</td></tr>
+          <tr><td>Pressed</td><td>The press landing</td></tr>
+          <tr><td>Disabled</td><td>The button is there but can't be pressed right now</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief shows two drawings. Apple's: a dark alert with a short title and a one-sentence message, then three full-width capsules stacked: a blue filled Primary, a grey Destructive with red text, and a grey Secondary with white text. Material's: a phone with two travel cards. The first card ends in a filled View entry button beside a text-only Related articles; over the second floats an extended action button, a pencil icon with Add entry.</p>
+
+      <h3>The spec</h3>
+
+      <p>As before, no Figma file: every prototype carries its own spec in a section of the page. At least spacing, font, font size and line height, the size of each button, and every other property that shapes it: roundness, stroke width, icon size, the state layers, the disabled look, how the button group joins. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>What a button is and how it behaves, from Apple's Buttons and Material 3's All buttons. Nothing about tone yet, only the button.</p>
+
+      <h3>The parts</h3>
+
+      <p>One container and what it holds. The emphasis comes from the container alone: fill, tint, outline or nothing.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-34 -34 312 104" role="img" aria-label="Two buttons drawn at true size: a filled button 40 tall with an 18 icon, 16 of padding before it, 8 between icon and label and 24 after the label; and an outlined text button beside it with its hover layer showing, with five numbered parts">
+            <!-- filled, icon and text -->
+            <rect x="0" y="0" width="136" height="40" rx="20" class="bt-fill"/>
+            <rect x="0" y="0" width="16" height="40" class="bt-pad"/><rect x="34" y="0" width="8" height="40" class="bt-pad"/><rect x="112" y="0" width="24" height="40" class="bt-pad"/>
+            <path class="bt-icon-on" d="M19 25 l11 -11 l3 3 l-11 11 h-3 z M27 17 l3 3"/>
+            <text x="42" y="25" class="bt-txt" fill="var(--bg-elev)">Add entry</text>
+            <!-- outlined, text only, hovered -->
+            <rect x="152" y="0" width="104" height="40" rx="20" class="bt-tone" style="fill-opacity:.08"/>
+            <rect x="152.5" y=".5" width="103" height="39" rx="19.5" class="bt-out"/>
+            <text x="204" y="25" text-anchor="middle" class="bt-txt" fill="var(--accent)">Related</text>
+            <!-- dimensions, top -->
+            <path class="bt-dim" d="M0 -8 H16 M0 -11 V-5 M16 -11 V-5 M16 -8 H34 M34 -11 V-5 M34 -8 H42 M42 -11 V-5 M112 -11 V-5 M112 -8 H136 M136 -11 V-5"/>
+            <text x="8" y="-14" class="bt-dim-txt">16</text><text x="25" y="-14" class="bt-dim-txt">18</text><text x="38" y="-23" class="bt-dim-txt">8</text><text x="124" y="-14" class="bt-dim-txt">24</text>
+            <!-- dimensions, left -->
+            <path class="bt-dim" d="M-8 0 V40 M-11 0 H-5 M-11 40 H-5"/>
+            <text x="-19" y="23" class="bt-dim-txt">40</text>
+            <!-- numbered parts -->
+            <g class="an-num"><circle cx="68" cy="40" r="5"/><text x="68" y="40">1</text></g>
+            <g class="an-num"><circle cx="25" cy="34" r="5"/><text x="25" y="34">2</text></g>
+            <g class="an-num"><circle cx="100" cy="8" r="5"/><text x="100" y="8">3</text></g>
+            <g class="an-num"><circle cx="236" cy="8" r="5"/><text x="236" y="8">4</text></g>
+            <g class="an-num"><circle cx="204" cy="40" r="5"/><text x="204" y="40">5</text></g>
+            <text x="68" y="56" text-anchor="middle" class="bt-meta">radius 20 (full) &middot; label 14 / 20, weight 500</text>
+            <text x="204" y="56" text-anchor="middle" class="bt-meta">outline 1</text>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>Fill, tint, outline or nothing; this is what sets the emphasis</span></li>
+          <li><b>Icon</b><span>Optional; before the label, 18 in a 40 button</span></li>
+          <li><b>Label</b><span>A short verb; the one thing the button does</span></li>
+          <li><b>State layer</b><span>Covers the button on hover and press, in the label's colour</span></li>
+          <li><b>Outline</b><span>Only on the outlined style; gives a transparent button an edge</span></li>
+        </ol>
+      </div>
+
+      <h3>The emphasis ladder</h3>
+
+      <p>Material names five common buttons, Apple four styles. They line up as one ladder: the more the container fills, the louder the button. Use the loudest only once per view.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="22" y="27" width="68" height="14" rx="7" class="bt-fill"/>
+            <path class="bt-label-on" d="M38 34 H74"/>
+          </svg>
+          <b>Filled &middot; primary</b>
+          <p>The one action the view is for: save, send, continue. Apple: Prominent.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="22" y="27" width="68" height="14" rx="7" class="bt-tone"/>
+            <path class="bt-label-acc" d="M38 34 H74"/>
+          </svg>
+          <b>Tonal &middot; secondary</b>
+          <p>A softer fill for the action next in line. Apple: Bordered, a grey or tinted capsule.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="22.5" y="27.5" width="67" height="13" rx="6.5" class="bt-out"/>
+            <path class="bt-label-acc" d="M38 34 H74"/>
+          </svg>
+          <b>Outlined &middot; tertiary</b>
+          <p>Transparent with an edge: important, but not the main move. Material only.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <path class="bt-label-acc" d="M38 34 H74"/>
+            <path class="tb-guide" d="M22 27 h68 v14 h-68 z" style="stroke: var(--fg-muted); stroke-dasharray: 2 2; fill: none; opacity: .5"/>
+          </svg>
+          <b>Text &middot; lowest</b>
+          <p>No container until hovered; for the many small actions in cards and dialogs. Apple: Borderless.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="22" y="27" width="68" height="14" rx="7" class="bt-off" style="fill-opacity:.1"/>
+            <path d="M38 34 H74" fill="none" stroke="#e5484d" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <b>Destructive is a colour</b>
+          <p>Not a level: any style with a red label. In Apple's alert it is a grey capsule, not the blue one.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="8" y="10" width="44" height="14" rx="7" class="bt-fill"/><path class="bt-label-on" d="M18 17 H42"/>
+            <rect x="58" y="10" width="44" height="14" rx="7" class="bt-tone"/><path class="bt-label-acc" d="M68 17 H92"/>
+            <rect x="8.5" y="44.5" width="43" height="13" rx="6.5" class="bt-out"/><path class="bt-label-acc" d="M18 51 H42"/>
+            <path class="bt-label-acc" d="M68 51 H92"/>
+          </svg>
+          <b>Same build, same size</b>
+          <p>Only the container changes; height, padding and label stay, so levels can sit side by side.</p>
+        </div>
+      </div>
+
+      <h3>One build, every button</h3>
+
+      <p>What a button holds is a choice apart from its emphasis. Mixing the two gives every button the brief asks for, from one build.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="22" y="27" width="68" height="14" rx="7" class="bt-fill"/>
+            <path class="bt-icon-on" d="M31 32 h4 v4 h-4 z"/><path class="bt-label-on" d="M42 34 H78"/>
+          </svg>
+          <b>Icon and text</b>
+          <p>The icon leads; less padding on the icon side (16 against 24) so the pair looks centred.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="26" y="27" width="60" height="14" rx="7" class="bt-fill"/>
+            <path class="bt-label-on" d="M38 34 H74"/>
+          </svg>
+          <b>Text only</b>
+          <p>The default. Even padding on both sides; the label sets the width.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="49" y="27" width="14" height="14" rx="7" class="bt-fill"/>
+            <path class="bt-icon-on" d="M54 32 h4 v4 h-4 z"/>
+          </svg>
+          <b>Icon only</b>
+          <p>A square (or circle) as tall as the others. It still needs a name: a tooltip and an accessible label.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="14.5" y="27.5" width="83" height="13" rx="6.5" class="bt-out"/>
+            <path d="M14.5 34 a6.5 6.5 0 0 1 6.5 -6.5 h21 v13 h-21 a6.5 6.5 0 0 1 -6.5 -6.5 z" class="bt-tone"/>
+            <path class="bt-out" d="M42 27.5 V40.5 M70 27.5 V40.5"/>
+            <path class="bt-label-acc" d="M23 34 H35"/><path class="bt-label" d="M50 34 H62 M78 34 H90"/>
+          </svg>
+          <b>Button group, single selection</b>
+          <p>Joined buttons for one choice: picking one unpicks the last. Material: connected button group; Apple: segmented control.</p>
+        </div>
+      </div>
+
+      <h3>Try it</h3>
+
+      <p>Plain buttons with no tone, doing everything the brief asks. Change what they hold, turn them off, then point at one and press it. In the group, Tab lands once; the arrow keys move the pick.</p>
+
+      <div class="bt-try">
+        <div>
+          <div class="bt-try-stage" data-content="both">
+            <div>
+              <p class="bt-try-cap">Three levels of emphasis</p>
+              <div class="bt-try-row bt-try-actions">
+                <button class="bt-btn bt-filled" type="button" data-name="Post">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-6-8-2zM12 14l8-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Post</span>
+                </button>
+                <button class="bt-btn bt-tonal" type="button" data-name="Save draft">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Save draft</span>
+                </button>
+                <button class="bt-btn bt-outlined" type="button" data-name="Preview">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Preview</span>
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="bt-try-cap" id="bt-group-cap">Button group, single selection</p>
+              <div class="bt-group" role="radiogroup" aria-labelledby="bt-group-cap">
+                <button class="bt-btn" type="button" role="radio" aria-checked="true" tabindex="0" data-name="List">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>List</span>
+                </button>
+                <button class="bt-btn" type="button" role="radio" aria-checked="false" tabindex="-1" data-name="Grid">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Grid</span>
+                </button>
+                <button class="bt-btn" type="button" role="radio" aria-checked="false" tabindex="-1" data-name="Map">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Map</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="bt-try-said" aria-live="polite"></p>
+        </div>
+        <div class="bt-try-side">
+          <fieldset class="bt-try-seg">
+            <legend>Buttons</legend>
+            <div>
+              <label><input type="radio" name="bt-content" value="both" checked /><span>Both</span></label>
+              <label><input type="radio" name="bt-content" value="text" /><span>Text</span></label>
+              <label><input type="radio" name="bt-content" value="icon" /><span>Icon</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="bt-try-seg">
+            <legend>Actions</legend>
+            <div>
+              <label><input type="radio" name="bt-state" value="on" checked /><span>Enabled</span></label>
+              <label><input type="radio" name="bt-state" value="off" /><span>Disabled</span></label>
+            </div>
+          </fieldset>
+          <ul class="bt-try-keylist">
+            <li><i>&#8629;</i><b>Enter or Space</b>Presses the focused button</li>
+            <li><i>&larr;</i><b>Arrows</b>Move the pick along the group; Tab leaves it</li>
+            <li><i>&#8856;</i><b>Disabled</b>Greyed and skipped by Tab; it can't be pressed</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Four states</h3>
+
+      <p>Hover and press lay a thin layer of the label's colour over the button; disabled drains the colour out of both container and label. Focus, from the keyboard, is a ring on top of any of them.</p>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="14" y="8" width="72" height="24" rx="12" class="bt-fill"/><path class="bt-label-on" d="M34 20 H66"/></svg>
+          <figcaption><b>Enabled</b><span>At rest</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="14" y="8" width="72" height="24" rx="12" class="bt-fill"/><rect x="14" y="8" width="72" height="24" rx="12" fill="var(--bg-elev)" opacity=".14"/><path class="bt-label-on" d="M34 20 H66"/><path d="M60 24 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/></svg>
+          <figcaption><b>Hover</b><span>Layer about 8%</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="14" y="8" width="72" height="24" rx="12" class="bt-fill"/><rect x="14" y="8" width="72" height="24" rx="12" fill="var(--bg-elev)" opacity=".24"/><path class="bt-label-on" d="M34 20 H66"/></svg>
+          <figcaption><b>Pressed</b><span>Layer about 10&ndash;12%, the action runs</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="14" y="8" width="72" height="24" rx="12" class="bt-off"/><path class="bt-label" d="M34 20 H66" opacity=".38"/></svg>
+          <figcaption><b>Disabled</b><span>Container 12%, label 38%</span></figcaption>
+        </figure>
+      </div>
+
+      <h3>Numbers to remember</h3>
+
+      <div class="bt-nums">
+        <div><b>40</b><span>Height of Material's common button; the label is 14 on a 20 line, weight 500.</span></div>
+        <div><b>48 &middot; 44<small>pt</small></b><span>Smallest touch target, Material / Apple; a smaller button keeps a larger hit area.</span></div>
+        <div><b>24 &middot; 16 &middot; 8</b><span>Side padding; padding on the icon side; gap between icon and label.</span></div>
+        <div><b>8 &middot; 10 &middot; 38<small>%</small></b><span>Hover layer, pressed layer, and a disabled label's opacity.</span></div>
+      </div>
+
+      <h3>Do and don't</h3>
+
+      <div class="rv-dd bt-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="64" y="15" width="48" height="14" rx="7" class="bt-fill"/><path class="bt-label-on" d="M76 22 H100"/>
+            <path class="bt-label-acc" d="M20 22 H48"/>
+          </svg>
+          <figcaption><b>Do</b>Give a view one primary button; let everything else step down.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="8" y="15" width="48" height="14" rx="7" class="bt-off" style="fill-opacity:.1"/><path d="M20 22 H44" fill="none" stroke="#e5484d" stroke-width="1.6" stroke-linecap="round"/>
+            <rect x="64" y="15" width="48" height="14" rx="7" class="bt-tone"/><path class="bt-label-acc" d="M76 22 H100"/>
+          </svg>
+          <figcaption><b>Do</b>Mark a destructive action by colour and wording (Delete, not OK), and never make it the default.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="53" y="15" width="14" height="14" rx="7" class="bt-tone"/><path class="bt-icon-acc" d="M58 20 h4 v4 h-4 z"/>
+            <rect x="44" y="0" width="32" height="10" rx="3" class="bt-box"/><path class="bt-label" d="M50 5 H70" style="stroke-width:1.2"/>
+          </svg>
+          <figcaption><b>Do</b>Give an icon-only button a name the pointer and the screen reader can both find.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="8" y="15" width="48" height="14" rx="7" class="bt-fill"/><path class="bt-label-on" d="M20 22 H44"/>
+            <rect x="64" y="15" width="48" height="14" rx="7" class="bt-fill"/><path class="bt-label-on" d="M76 22 H100"/>
+          </svg>
+          <figcaption><b>Don't</b>Put two filled buttons side by side; the eye can't tell which one matters.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="36" y="15" width="48" height="14" rx="7" class="bt-off"/><path class="bt-label" d="M48 22 H72" opacity=".38"/>
+            <path class="bt-label" d="M30 38 H90" opacity=".2" style="stroke-dasharray: 2 3"/>
+          </svg>
+          <figcaption><b>Don't</b>Leave a disabled button unexplained; say nearby what turns it on.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true">
+            <rect x="14.5" y="15.5" width="91" height="13" rx="6.5" class="bt-out"/>
+            <path class="bt-out" d="M45 15.5 V28.5 M75 15.5 V28.5"/>
+            <path class="bt-icon" d="M27 20 h4 v4 h-4 z M58 20 h4 v4 h-4 z M88 20 h4 v4 h-4 z"/>
+            <path class="bt-icon" d="M98 9 l-4 4 M94 9 l4 4" style="stroke: var(--fg-muted)"/>
+          </svg>
+          <figcaption><b>Don't</b>Use a single-select group for actions; it holds a choice that stays picked, not commands.</figcaption>
+        </figure>
+      </div>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-08-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-08-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-08-NAME.html">View larger</button>
+          </figcaption>
+        </figure> -->
+      <div class="idea-grid">
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/buttons">Buttons</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://m3.material.io/components/all-buttons">All buttons</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/components/button-groups/overview">Button groups</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/foundations/interaction/states/state-layers">State layers</a>, Material Design 3</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/button/">Button pattern</a> and <a href="https://www.w3.org/WAI/ARIA/apg/patterns/radio/">Radio group pattern</a>, WAI-ARIA Authoring Practices Guide</li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-07/week-07.html">&larr; Week 07: Toolbars</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=8"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+  <script>
+    // Try it: three emphasis levels that change what they hold and can be turned off,
+    // and a single-select group (radio pattern: one tab stop, arrows move the pick).
+    (() => {
+      const stage = document.querySelector('.bt-try-stage');
+      if (!stage) return;
+      const said = document.querySelector('.bt-try-said');
+      const actions = [...stage.querySelectorAll('.bt-try-actions .bt-btn')];
+      const group = stage.querySelector('.bt-group');
+      const radios = [...group.querySelectorAll('[role="radio"]')];
+
+      // Icon-only buttons need a name; with a visible label the label is the name.
+      const name = () => {
+        const iconOnly = stage.dataset.content === 'icon';
+        [...actions, ...radios].forEach(b => {
+          if (iconOnly) { b.setAttribute('aria-label', b.dataset.name); b.title = b.dataset.name; }
+          else { b.removeAttribute('aria-label'); b.removeAttribute('title'); }
+        });
+      };
+      name();
+
+      actions.forEach(b => b.addEventListener('click', () => { said.textContent = b.dataset.name + '.'; }));
+
+      const pick = (r, focus) => {
+        radios.forEach(x => { const on = x === r; x.setAttribute('aria-checked', String(on)); x.tabIndex = on ? 0 : -1; });
+        if (focus) r.focus();
+        said.textContent = r.dataset.name + ' view.';
+      };
+      group.addEventListener('click', e => { const r = e.target.closest('[role="radio"]'); if (r) pick(r, false); });
+      group.addEventListener('keydown', e => {
+        const i = radios.indexOf(document.activeElement);
+        if (i < 0) return;
+        const n = radios.length;
+        const to = { ArrowRight: (i + 1) % n, ArrowDown: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, ArrowUp: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault(); pick(radios[to], true);
+      });
+
+      document.querySelectorAll('.bt-try-seg input').forEach(input => input.addEventListener('change', () => {
+        if (input.name === 'bt-content') { stage.dataset.content = input.value; name(); }
+        else actions.forEach(b => { b.disabled = input.value === 'off'; });
+      }));
+    })();
+  </script>
+</body>
+</html>
