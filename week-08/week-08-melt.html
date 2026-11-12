@@ -9,9 +9,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" />
   <link rel="stylesheet" href="week-08-sketch.css?v=1" />
   <style>
-  /* Melt: after a "Contact me" outline button on black: the pointer is a white drop that trails behind
-     it; when the drop reaches the button it melts into it, cream rising from where it came in until the
-     button is full and the words turn black; when it leaves, the cream drains back out after it.
+  /* Melt: after a "Contact me" outline button on black: the pointer carries a cream drop, held right
+     under it (it never lags or flies, so it reads as part of the pointer, not a ball). As the drop comes
+     near the button, the button's edge reaches out toward it until the two touch and run together; inside,
+     the cream rises from where it came in until the button is full and the words turn black; on the
+     way out it drains back toward the pointer and the drop pulls free.
      Everything cream lives in one liquid layer (an SVG goo filter), so drops, fills and the pointer
      merge wherever they touch.
        Contact me (primary) the drop melts in from the side it enters and fills the outline; it drains out
@@ -22,19 +24,15 @@
                             the pointer touched; a press thickens it
        Group                the pick is liquid: it stretches out of the old option, necks, and pulls into the new */
   :root { --w: 780px; --h: 420px; --cream: #f6f4da; }
-  body { background: #000; font: 400 19px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: var(--cream); cursor: none; }
-  @media (hover: none) { body { cursor: auto; } }
+  body { background: #000; font: 400 19px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: var(--cream); }
   .stage { display: grid; place-content: center; gap: 60px; justify-items: center; }
   .goo { position: absolute; inset: 0; filter: url(#goo); pointer-events: none; }
-  /* the pointer itself: a small exact dot on top, drawn in difference so it shows on cream and on black
-     alike; the liquid drop (in .goo) only trails it */
-  .dot { position: absolute; left: 0; top: 0; z-index: 5; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--cream); mix-blend-mode: difference; pointer-events: none; opacity: 0; transition: opacity .2s, scale .2s; }
-  .dot.on { opacity: 1; }
   .goo > * { position: absolute; background: var(--cream); }
-  .blob { left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; transition: scale .22s ease-out; }
+  .blob { left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; scale: 0; transition: scale .25s ease-out; }
+  /* the edge of Contact me reaching out to the drop */
+  .lip { left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; scale: 0; }
   .row { position: relative; display: flex; align-items: center; gap: 30px; }
   .row button, .grp { position: relative; z-index: 1; }
-  button { cursor: none; }
   button:focus-visible { outline: 2px solid var(--cream); outline-offset: 5px; }
   .ic { width: 20px; height: 20px; }
 
@@ -77,11 +75,10 @@
 </head>
 <body>
   <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="7"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="goo" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="7"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"/></filter></svg>
   <div class="stage" data-content="both">
     <div class="goo" aria-hidden="true"><div class="body"></div><div class="bead"></div></div>
-    <div class="goo" aria-hidden="true"><div class="fill"><i></i></div><div class="gpick"></div><div class="blob"></div></div>
-    <span class="dot" aria-hidden="true"></span>
+    <div class="goo" aria-hidden="true"><div class="fill"><i></i></div><div class="gpick"></div><div class="lip"></div><div class="blob"></div></div>
     <div class="row">
       <button class="ct" type="button" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
       <button class="pf" type="button" data-name="Portfolio" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Portfolio</span></button>
@@ -96,7 +93,7 @@
   <script src="week-08-sketch.js?v=1"></script>
   <script>
     const stage = M.stage, q = s => document.querySelector(s);
-    const blob = q('.blob'), fill = q('.fill'), flood = fill.querySelector('i'), dot = q('.dot');
+    const blob = q('.blob'), fill = q('.fill'), flood = fill.querySelector('i'), lip = q('.lip');
     const body = q('.body'), bead = q('.bead'), gpick = q('.gpick');
     const ct = document.querySelector('.ct'), pf = document.querySelector('.pf'), rs = document.querySelector('.rs'), grp = document.querySelector('.grp');
     // positions in stage pixels (the stage may be scaled to fit)
@@ -110,27 +107,31 @@
     stage.addEventListener('off', () => { layout(); body.style.opacity = pf.disabled ? .4 : 1; });
     document.fonts.ready.then(layout); layout();
 
-    // the drop: trails the pointer
-    let tx = -100, ty = -100, x = -100, y = -100, raf;
-    // only repaint while the drop is still catching up (the liquid filter is costly to redraw)
-    const follow = () => {
-      const dx = tx - x, dy = ty - y;
-      if (Math.abs(dx) < .2 && Math.abs(dy) < .2) { raf = 0; return; }
-      x += dx * .25; y += dy * .25; blob.style.transform = `translate(${x}px, ${y}px)`;
-      raf = requestAnimationFrame(follow);
-    };
-    const wake = () => { if (!raf) raf = requestAnimationFrame(follow); };
-    // the drop sinks out of sight into a button and comes back right under the pointer, never from where it lagged
-    let hidden = false;
+    // the drop: held right under the pointer, no lag. Position goes in `translate`, not `transform`:
+    // the separate `scale` property is applied outside `transform`, so shrinking the drop would also pull
+    // a transform-translated drop toward the top-left corner
+    let tx = 0, ty = 0, hidden = false, inside = false;
+    const place = () => { blob.style.translate = `${tx}px ${ty}px`; };
     const hide = () => { hidden = true; blob.style.scale = 0; };
-    const show = () => { hidden = false; x = tx; y = ty; blob.style.transform = `translate(${x}px, ${y}px)`; blob.style.scale = 1; };
+    const show = () => { hidden = false; place(); blob.style.scale = 1; };
     addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse') return;
       const s = stage.getBoundingClientRect(), f = M.fit(); tx = (e.clientX - s.left) / f; ty = (e.clientY - s.top) / f;
-      dot.style.transform = `translate(${tx}px, ${ty}px)`; dot.classList.add('on');
-      if (M.calm.matches || hidden) { x = tx; y = ty; blob.style.transform = `translate(${x}px, ${y}px)`; } else wake();
+      place();
+      if (!hidden && blob.style.scale !== '1') blob.style.scale = 1;
+      reach();
     });
-    document.documentElement.addEventListener('mouseleave', () => { tx = ty = -100; dot.classList.remove('on'); });
+    document.documentElement.addEventListener('mouseleave', () => { blob.style.scale = 0; lip.style.scale = 0; });
+
+    // as the drop nears Contact me, a lip of cream swells on its edge at the nearest point, so the two meet
+    const reach = () => {
+      if (inside || ct.disabled) { lip.style.scale = 0; return; }
+      const r = rel(ct), nx = Math.min(r.x + r.w - 10, Math.max(r.x + 10, tx)), ny = Math.min(r.y + r.h - 10, Math.max(r.y + 10, ty));
+      const d = Math.hypot(tx - nx, ty - ny), k = Math.max(0, Math.min(1, 1.25 - d / 56));
+      // the lip sits on the edge and leans out toward the drop as it gets closer
+      const lx = nx + (tx - nx) * k * .45, ly = ny + (ty - ny) * k * .45;
+      lip.style.translate = `${lx}px ${ly}px`; lip.style.scale = (k < .05 ? 0 : .35 + k * .5).toFixed(3);
+    };
 
     // Contact me: cream rises from where the drop came in, drains out where it leaves
     const fr = () => rel(ct);
@@ -138,6 +139,7 @@
     let full;
     ct.addEventListener('pointerenter', e => {
       if (ct.disabled) return;
+      inside = true; lip.style.scale = 0;
       const [px, py] = at(e), r = fr(), reach = Math.hypot(Math.max(px, r.w - px), Math.max(py, r.h - py)) / 10 + 1;
       flood.getAnimations().forEach(a => a.cancel());
       Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
@@ -145,6 +147,7 @@
       clearTimeout(full); full = setTimeout(() => ct.classList.add('is-full'), 380);
     });
     ct.addEventListener('pointerleave', e => {
+      inside = false;
       const [px, py] = at(e), r = fr(), reach = Math.hypot(r.w, r.h) / 10 + 1;
       flood.getAnimations().forEach(a => a.cancel());
       Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
