@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Classy</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* Classy: the "Classy UI" tile. A thin ink capsule on pale grey with a soft serif "Get Started".
+     Nothing bounces here; everything moves like a pen: ease in, ease out, unhurried.
+       Get Started (primary)  ink capsule; on hover the words turn over and come back in italic; a press
+                              draws a fine light line inside the rim
+       Reserve (secondary)    a grey capsule; a press lays ink across it from the left, a release lifts it off
+                              to the right, like a blotter
+       Learn more (outline)   the outline is a pen line: on hover it is drawn again from its start, a press
+                              presses the pen harder (the line thickens)
+       Group                  the ink pick moves like a pen stroke, reaching out to the new option before it
+                              lifts off the old one */
+  body { --page: #dbdbd9;
+    --font: 400 21px/1 "Fraunces", serif; --ls: .005em; --tt: none; --r: 40px; --pen: cubic-bezier(.65, 0, .35, 1);
+    --p-bg: #2b2b2b; --p-fg: #f1f1ec; --p-bd: 0; --p-sh: none;
+    --s-bg: #c9c9c6; --s-fg: #2b2b2b; --s-bd: 0; --s-sh: none;
+    --t-fg: #2b2b2b; --t-bd: 0;
+    --track: transparent; --track-bd: 1.2px solid #2b2b2b; --g-fg: #2b2b2b; --g-on: #f1f1ec; --mark: #2b2b2b; }
+
+  /* Get Started: words turn over into italic; a fine line inside on press */
+  .roll-box { display: inline-block; height: 1.15em; overflow: hidden; vertical-align: middle; }
+  .roll { display: block; position: relative; transition: transform .5s var(--pen); }
+  .roll::after { content: attr(data-t); position: absolute; left: 0; top: 100%; font-style: italic; white-space: nowrap; }
+  .f:hover .roll, .f:focus-visible .roll { transform: translateY(-100%); }
+  .p::after { content: ""; position: absolute; inset: 4px; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(241,241,236,.6); opacity: 0; transform: scale(1.04); transition: opacity .3s var(--pen), transform .3s var(--pen); }
+  .p.is-down::after { opacity: 1; transform: none; transition-duration: .12s; }
+
+  /* Reserve: blotter */
+  .s::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #2b2b2b; transform: scaleX(0); transform-origin: right; transition: transform .45s var(--pen); }
+  .s { transition: color .3s var(--pen); }
+  .s.is-down::before { transform: none; transform-origin: left; transition-duration: .3s; }
+  .s.is-down { color: #f1f1ec; }
+  .s:hover { background: #c1c1be; }
+
+  /* Learn more: the outline is a pen line, drawn again on hover */
+  .t .pen { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .t .pen rect { x: .6px; y: .6px; width: calc(100% - 1.2px); height: calc(100% - 1.2px); rx: 28.4px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-dasharray: 100 100; stroke-dashoffset: 0; transition: stroke-width .15s var(--pen); }
+  .t:hover .pen rect, .t:focus-visible .pen rect { animation: draw .9s var(--pen); }
+  @keyframes draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+  .t.is-down .pen rect { stroke-width: 2.6; }
+  .t:hover { background: rgba(43,43,43,.04); }
+  .t:disabled .pen rect { stroke-dasharray: 2 3; }
+
+  .grp .f.is-down { opacity: .8; }
+  @media (prefers-reduced-motion: reduce) { .roll { transition: none; } .t:hover .pen rect { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Get started" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5l1.6 5.4 5.4 1.6-5.4 1.6L12 17.5l-1.6-5.4L5 10.5l5.4-1.6z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span><span class="lbl roll-box"><span class="roll" data-t="Get Started">Get Started</span></span></button>
+      <button class="f s" type="button" data-name="Reserve" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="lbl roll-box"><span class="roll" data-t="Reserve">Reserve</span></span></button>
+      <button class="f t" type="button" data-name="Learn more" data-off><svg class="pen" aria-hidden="true"><rect pathLength="100"/></svg><span class="lbl roll-box"><span class="roll" data-t="Learn more">Learn more</span></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Table">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="Lunch"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="lbl">Lunch</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Dinner"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span><span class="lbl">Dinner</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Late" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="lbl">Late</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      const right = e.detail.to.offsetLeft > e.detail.from.offsetLeft;
+      M.moveInto(mark, e.detail.to, { duration: 640, easing: 'cubic-bezier(.65, 0, .35, 1)', mid: (t, r, b, l) => right ? `${t}px 0px ${b}px ${l}px` : `${t}px ${r}px ${b}px 0px` });
+    });
+  </script>
+</body>
+</html>

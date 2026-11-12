@@ -1,0 +1,33 @@
+/* Week 08 finish sketches (Chrome, Classy, Shadow, 3D, Glow, Ember): the structure they share, after one
+   reference board of a button in six finishes. Each file sets its tokens on body and gives every
+   button its own motion. Tokens:
+   --page, --font, --ls, --tt, --r                        page, type, roundness
+   --p-bg --p-fg --p-bd --p-sh                            primary
+   --s-bg --s-fg --s-bd --s-sh                            secondary
+   --t-fg --t-bd                                          tertiary (outline)
+   --track --track-bd --g-fg --g-on --mark                group */
+body { margin: 0; background: var(--page); font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
+.stage { display: grid; place-content: center; gap: 56px; justify-items: center; }
+.row { display: flex; align-items: center; gap: 18px; }
+
+.f { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+  height: 58px; padding: 0 32px; border-radius: var(--r); font: var(--font); letter-spacing: var(--ls); text-transform: var(--tt); overflow: hidden; }
+.f .ico { position: relative; display: grid; place-items: center; width: 34px; height: 34px; margin: 0 -8px; border-radius: 50%; }
+.f .ico svg { width: 20px; height: 20px; overflow: visible; }
+.stage[data-content="icon"] .f { width: 58px; padding: 0; }
+.stage[data-content="icon"] .f .ico { margin: 0; }
+.f.p { background: var(--p-bg); color: var(--p-fg); border: var(--p-bd); box-shadow: var(--p-sh); }
+.f.s { background: var(--s-bg); color: var(--s-fg); border: var(--s-bd); box-shadow: var(--s-sh); }
+.f.t { background: transparent; color: var(--t-fg); border: var(--t-bd); }
+.f:focus-visible { outline: 2px solid var(--t-fg); outline-offset: 5px; }
+.f:disabled { filter: grayscale(1) opacity(.38); box-shadow: none; }
+.f:disabled, .f:disabled * { animation: none !important; transform: none !important; translate: none !important; }
+
+.grp { position: relative; display: flex; padding: 5px; gap: 2px; border-radius: var(--r); background: var(--track); border: var(--track-bd); }
+.grp .f { height: 48px; padding: 0 22px; font-size: 14px; color: var(--g-fg); background: none; border: 0; box-shadow: none; overflow: visible; transition: color .25s; }
+.grp .f[aria-checked="true"] { color: var(--g-on); }
+.grp .f .ico { width: 22px; height: 22px; margin: 0 -4px; }
+.grp .f .ico svg { width: 18px; height: 18px; }
+.stage[data-content="icon"] .grp .f { width: 54px; padding: 0; }
+.grp .f:disabled { filter: none; opacity: .35; }
+.mark { position: absolute; inset: 0; z-index: -1; border-radius: calc(var(--r) - 4px); background: var(--mark); }

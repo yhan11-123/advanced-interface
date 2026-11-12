@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Inlay</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Inlay: after a render of a matte grey surface with a long pill-shaped slot cut into it; a white slab
+     sits in one end of the slot, its side edge copper, catching a warm light.
+     Levels are heights: primary is a slab standing proud of the surface on a thick copper edge;
+     secondary is a slab barely raised (a thin edge, low contrast); tertiary is no slab at all, only the
+     slot cut into the surface, with its label engraved.
+     Each slab is a different mechanism in the same surface:
+       Continue (primary)  a plunger: a press pushes it into its slot, the copper edge running out; on
+                           release it rises on a spring, a hair above its rest, and settles; the arrow
+                           leans forward while you are on it
+       Save (secondary)    a rocker: a press tips it down on the side you pressed, the far end lifting;
+                           on release it rocks level with a small wobble
+       Skip (outline)      no slab until you press: then one rises out of the slot to meet your finger,
+                           and sinks back slowly, flush again, after you let go
+       Group               one slab in one long slot: it drops in, slides along, and stands up again
+     Disabled is a slab pressed flush and locked. */
+  :root { --w: 760px; --h: 420px;
+    --surface: #cfcfcd; --slab: #efefed; --edge: #c27245; --edge-dark: #9a5530; --ink: #3b3b3a; --cut: rgba(0,0,0,.22); }
+  body { background: radial-gradient(90% 80% at 30% 20%, #dededc, #c3c3c1 80%); font: 600 16px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: var(--ink); }
+  .stage { display: grid; place-content: center; gap: 64px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 26px; }
+
+  /* the slot: a cut in the surface, as big as the slab plus a hair */
+  .slot { position: relative; display: inline-flex; padding: 3px; border-radius: 34px;
+    box-shadow: inset 0 2px 3px var(--cut), inset 0 -1px 0 rgba(255,255,255,.7), 0 1px 0 rgba(255,255,255,.75); background: rgba(0,0,0,.05); }
+  /* the slab: its edge (--h-edge tall) is drawn under it in copper */
+  .slab { --lift: 7px; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 58px; padding: 0 30px; border-radius: 31px; background: linear-gradient(#f6f6f4, #e7e7e5); color: var(--ink);
+    transform: translateY(calc(var(--lift) * -1));
+    box-shadow: 0 var(--lift) 0 var(--edge), 1px calc(var(--lift) + 1px) 0 var(--edge-dark), 0 calc(var(--lift) + 8px) 14px -4px rgba(60,30,10,.35), inset 0 1px 0 #fff;
+    transition: transform var(--snap-t) var(--snap), box-shadow var(--snap-t) var(--snap), color .2s; }
+  .slab .ic { width: 20px; height: 20px; color: var(--edge-dark); }
+  .slab.p .ic { transition: transform .4s var(--snap); }
+  .slab.p:hover .ic { transform: translateX(3px); }
+  .stage[data-content="icon"] .slab { width: 58px; padding: 0; }
+  .stage[data-content="both"] .slab { padding: 0 30px 0 24px; }
+  .slab:hover { --lift: 9px; }
+  .slab.is-down { --lift: 0px; transition-duration: .1s; transition-timing-function: ease-out; }
+  .slab:focus-visible { outline: 2px solid var(--edge); outline-offset: 6px; }
+  /* secondary: barely raised */
+  .slab.s { --lift: 2px; background: linear-gradient(#e2e2e0, #d8d8d6); color: #5b5b59; }
+  .slab.s:hover { --lift: 3.5px; }
+  .slab.s.is-down { --lift: 1px; transform: perspective(260px) translateY(-1px) rotateY(calc((var(--px, .5) - .5) * -16deg)); transition: transform .12s ease-out, box-shadow .12s ease-out; }
+  .slab.s.is-up { transition: transform var(--pop-t) var(--pop), box-shadow var(--snap-t) var(--snap); }
+  .slab.s .ic { transition: transform .4s var(--snap); }
+  .slab.s:hover .ic { transform: translateY(-1px); }
+  .slab.s .ic { color: #8a8a87; }
+  /* tertiary: no slab, the slot alone; the label is engraved and the slot deepens under a press */
+  .slab.t { --lift: 0px; background: transparent; box-shadow: none; transform: none; color: #7c7c7a; text-shadow: 0 1px 0 rgba(255,255,255,.8); }
+  .slab.t .ic { color: #7c7c7a; filter: drop-shadow(0 1px 0 rgba(255,255,255,.8)); }
+  .slab.t { transition: transform .6s cubic-bezier(.5, 0, .3, 1), box-shadow .6s cubic-bezier(.5, 0, .3, 1), background-color .6s, color .3s; }
+  .slab.t:hover { color: #5d5d5b; }
+  .slab.t.is-down { --lift: 5px; background: #eeeeec; color: var(--ink); text-shadow: none;
+    transform: translateY(calc(var(--lift) * -1));
+    box-shadow: 0 var(--lift) 0 var(--edge), 1px calc(var(--lift) + 1px) 0 var(--edge-dark), 0 calc(var(--lift) + 6px) 12px -4px rgba(60,30,10,.3), inset 0 1px 0 #fff;
+    transition: transform .2s var(--snap), box-shadow .2s var(--snap), color .1s; }
+  .slab.t.is-down .ic { color: var(--edge-dark); filter: none; }
+  /* disabled: pressed flush and locked */
+  .slab:disabled { --lift: 0px; background: #d6d6d4; color: #a6a6a4; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
+  .slab:disabled .ic { color: #b0b0ae; }
+  .slab.t:disabled { background: transparent; box-shadow: none; }
+
+  /* group: one long slot, one slab that travels in it */
+  .grp { position: relative; display: flex; padding: 4px; border-radius: 30px;
+    box-shadow: inset 0 2px 4px var(--cut), inset 0 -1px 0 rgba(255,255,255,.7), 0 1px 0 rgba(255,255,255,.75); background: rgba(0,0,0,.06); }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 24px; border-radius: 26px;
+    color: #7c7c7a; text-shadow: 0 1px 0 rgba(255,255,255,.8); font-weight: 500; font-size: 15px; transition: color .25s; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .stage[data-content="icon"] .grp .r { width: 60px; padding: 0; justify-content: center; }
+  .grp .r:hover { color: #555553; }
+  .grp .r[aria-checked="true"] { color: var(--ink); text-shadow: none; }
+  .grp .r:disabled { color: #b3b3b1; }
+  .grp .r:focus-visible { outline: 2px solid var(--edge); outline-offset: 2px; }
+  .grp .r[aria-checked="true"].is-down .puck { --lift: 0px; transition-duration: .1s; }
+  .puck { --lift: 6px; position: absolute; inset: 0; z-index: -1; border-radius: 26px; background: linear-gradient(#f6f6f4, #e7e7e5);
+    transform: translateY(calc(var(--lift) * -1));
+    box-shadow: 0 var(--lift) 0 var(--edge), 1px calc(var(--lift) + 1px) 0 var(--edge-dark), 0 calc(var(--lift) + 6px) 12px -4px rgba(60,30,10,.3), inset 0 1px 0 #fff;
+    transition: transform var(--snap-t) var(--snap), box-shadow var(--snap-t) var(--snap); }
+  @property --lift { syntax: "<length>"; inherits: true; initial-value: 0px; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <span class="slot"><button class="slab p" type="button" data-name="Continue" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Continue</span></button></span>
+      <span class="slot"><button class="slab s" type="button" data-name="Save" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span class="lbl">Save</span></button></span>
+      <span class="slot"><button class="slab t" type="button" data-name="Skip" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l8 6-8 6zM17 6v12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lbl">Skip</span></button></span>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Light">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Warm"><span class="puck" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Warm</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Neutral"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4.5v15a7.5 7.5 0 0 0 0-15z" fill="currentColor"/></svg><span class="lbl">Neutral</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Cool"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="lbl">Cool</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Off" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v7M7 6.5a7 7 0 1 0 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Off</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // drop, slide, rise: the slab sinks into the long slot, travels along it, and stands up at the new place
+    const grp = document.querySelector('.grp'), puck = grp.querySelector('.puck');
+    grp.addEventListener('pick', e => {
+      if (M.calm.matches) { e.detail.to.prepend(puck); return; }
+      // drop (100ms), then slide while flush; the rise is the slab's own spring once --lift is released
+      puck.style.transition = 'transform .1s ease-out, box-shadow .1s ease-out';
+      puck.style.setProperty('--lift', '0px');
+      clearTimeout(puck.t1); clearTimeout(puck.t2);
+      puck.t1 = setTimeout(() => {
+        M.moveInto(puck, e.detail.to, { duration: 420, easing: 'cubic-bezier(.45, 0, .2, 1)' });
+        puck.t2 = setTimeout(() => { puck.style.transition = ''; puck.style.removeProperty('--lift'); }, 380);
+      }, 100);
+    });
+  </script>
+</body>
+</html>

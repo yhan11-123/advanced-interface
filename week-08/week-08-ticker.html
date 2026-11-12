@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Ticker</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300..700&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Ticker: after a soft cream button on warm off-white whose label runs past its edge ("Everything amo"):
+     a gentle bevel, a shadow that sits close, a plain grotesk. The words are what move here.
+       Everything (primary) a raised cream slab; its sentence is longer than the button, so on hover it runs
+                            through like a ticker and loops; a press turns the bevel inside out
+       Save (secondary)     a flat sand fill; on hover each letter rolls over in turn, a slot-machine wave;
+                            a press squeezes the letters together
+       Details (outline)    a thin line; on hover the letters loosen and the corners round off to a full
+                            pill; a press pulls them both back
+       Group                the pick is a raised cream slab that slides; the picked word gains weight as
+                            the slab arrives and the old one loses it */
+  :root { --w: 760px; --h: 420px; --ink: #26221e; }
+  body { background: radial-gradient(90% 80% at 20% 0%, #f7f4f1, #ece7e2); font: 450 21px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: var(--ink); }
+  .stage { display: grid; place-content: center; gap: 56px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 22px; }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; }
+  .ic { width: 20px; height: 20px; }
+
+  /* Everything: a raised slab with a ticker */
+  .tk { position: relative; display: inline-flex; align-items: center; gap: 12px; height: 72px; padding: 0 30px; border-radius: 18px;
+    background: linear-gradient(#fbfaf8, #efebe7); box-shadow: inset 0 1px 0 #fff, inset 0 -2px 3px rgba(120,100,80,.12), 0 1px 1px rgba(80,60,40,.18), 0 8px 18px -10px rgba(80,60,40,.35);
+    transition: box-shadow .25s ease, transform .25s ease; }
+  .tk .win { display: block; width: 190px; overflow: hidden; white-space: nowrap; -webkit-mask: linear-gradient(90deg, #000 85%, transparent); mask: linear-gradient(90deg, #000 85%, transparent); }
+  .tk .run { display: inline-block; }
+  .tk .run span { padding-right: 40px; }
+  .tk:hover .run, .tk:focus-visible .run { animation: tick 6s linear infinite; }
+  @keyframes tick { to { transform: translateX(-50%); } }
+  .tk.is-down { box-shadow: inset 0 2px 5px rgba(120,100,80,.25), inset 0 -1px 0 #fff, 0 0 0 rgba(80,60,40,0); transform: translateY(1px); transition-duration: .1s; }
+  .stage[data-content="icon"] .tk { width: 72px; padding: 0; justify-content: center; }
+  .stage[data-content="icon"] .tk .win { display: none; }
+
+  /* Save: letters roll over one by one */
+  .rl { display: inline-flex; align-items: center; gap: 10px; height: 60px; padding: 0 26px; border-radius: 14px; background: #e3dcd4; transition: background-color .2s; }
+  .rl:hover { background: #dbd2c8; }
+  .rl .word { display: inline-flex; height: 1.1em; overflow: hidden; transition: letter-spacing .25s ease; }
+  .rl .word i { display: block; font-style: normal; text-shadow: 0 1.1em 0 currentColor; transition: transform .45s var(--glide); transition-delay: calc(var(--k) * 30ms); }
+  .rl:hover .word i, .rl:focus-visible .word i { transform: translateY(-1.1em); }
+  .rl.is-down .word { letter-spacing: -.06em; transition-duration: .1s; }
+  .stage[data-content="icon"] .rl { width: 60px; padding: 0; justify-content: center; }
+
+  /* Details: loosens and rounds */
+  .ls { display: inline-flex; align-items: center; gap: 10px; height: 60px; padding: 0 26px; border-radius: 14px; border: 1.2px solid var(--ink); letter-spacing: 0;
+    transition: border-radius .5s var(--glide), letter-spacing .5s var(--glide), padding .5s var(--glide); }
+  .ls:hover, .ls:focus-visible { border-radius: 30px; letter-spacing: .08em; padding: 0 32px; }
+  .ls.is-down { border-radius: 14px; letter-spacing: -.01em; transition-duration: .12s; }
+  .stage[data-content="icon"] .ls { width: 60px; padding: 0; justify-content: center; }
+
+  .row button:disabled { opacity: .4; box-shadow: none; animation: none; }
+  .row button:disabled * { animation: none !important; transform: none !important; }
+
+  /* group: a raised slab slides; weight follows it */
+  .grp { position: relative; display: flex; padding: 5px; gap: 2px; border-radius: 16px; background: #e3dcd4; box-shadow: inset 0 1px 3px rgba(120,100,80,.2); }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 22px; border-radius: 12px; font-size: 17px; font-weight: 350; color: #6d655d;
+    transition: font-weight .45s ease, color .3s; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .grp .r[aria-checked="true"] { font-weight: 640; color: var(--ink); }
+  .grp .r:disabled { color: #b9b0a6; }
+  .stage[data-content="icon"] .grp .r { width: 54px; padding: 0; justify-content: center; }
+  .grp .pick { position: absolute; inset: 0; z-index: -1; border-radius: 12px; background: linear-gradient(#fbfaf8, #efebe7); box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(80,60,40,.2), 0 6px 12px -8px rgba(80,60,40,.35); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="tk" type="button" data-name="Everything amounts to something" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v17M3.5 12h17M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="lbl win"><span class="run"><span>Everything amounts to something</span><span aria-hidden="true">Everything amounts to something</span></span></span></button>
+      <button class="rl" type="button" data-name="Save" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl word" aria-label="Save"></span></button>
+      <button class="ls" type="button" data-name="Details" data-off><span class="lbl">Details</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Note length">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Short"><span class="pick" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="lbl">Short</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Medium"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14M5 15h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="lbl">Medium</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Long" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="lbl">Long</span></button>
+    </div>
+  </div>
+  <script>
+    // split Save into letters that roll in turn (the copy above each letter is its text-shadow)
+    const w = document.querySelector('.rl .word');
+    [...'Save'].forEach((c, k) => { const i = document.createElement('i'); i.textContent = c; i.style.setProperty('--k', k); i.setAttribute('aria-hidden', 'true'); w.append(i); });
+  </script>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const grp = document.querySelector('.grp'), pick = grp.querySelector('.pick');
+    grp.addEventListener('pick', e => M.moveInto(pick, e.detail.to, { duration: 600, easing: M.ease.glide }));
+  </script>
+</body>
+</html>

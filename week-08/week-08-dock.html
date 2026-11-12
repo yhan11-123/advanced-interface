@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Dock</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Dock: after a light dock on white: soft grey rounded tiles in a white bar with a faint shadow, thin
+     dark line icons (search, stacked notes, a boxed plus, a chat bubble with a dot, a gear), a small dot
+     under the one that is open.
+       New (primary)      a black tile: a press squashes it and a fresh note pops up out of it and floats off
+       Notes (secondary)  a grey tile; on hover its stacked notes fan apart; a press squares them up again
+       Settings (tert.)   a bare gear; on hover it turns a notch on a spring; a press gives it a half turn
+       Group              the dock itself: tiles swell as the pointer passes over them, the nearest most, the
+                          neighbours a little; picking one bounces it twice like an app opening, and the dot
+                          slides under it */
+  :root { --w: 760px; --h: 440px; --ink: #2f3036; --tile: #eff0f4; }
+  body { background: #fbfbfc; font: 500 15px/1 "Inter", -apple-system, system-ui, sans-serif; color: var(--ink); }
+  .stage { display: grid; place-content: center; gap: 64px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 22px; }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+  .ic { width: 24px; height: 24px; overflow: visible; }
+  .ic * { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* New: black tile that makes a note */
+  .nw { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px 0 16px; border-radius: 16px; background: #141418; color: #fff;
+    transition: transform var(--snap-t) var(--snap); }
+  .nw.is-down { transform: scale(1.06, .9); transition: transform .1s ease-out; }
+  .note { position: absolute; left: 50%; top: 0; width: 26px; height: 26px; margin-left: -13px; border-radius: 6px; background: #ffe36e; box-shadow: 0 4px 10px -4px rgba(0,0,0,.3); pointer-events: none; }
+  .stage[data-content="icon"] .nw { width: 56px; padding: 0; justify-content: center; }
+  .stage[data-content="text"] .nw { padding: 0 22px; }
+
+  /* Notes: stacked notes fan out */
+  .nt { display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px 0 16px; border-radius: 16px; background: var(--tile); transition: background-color .2s; }
+  .nt:hover { background: #e6e7ec; }
+  .nt .back, .nt .front { transform-box: fill-box; transform-origin: 30% 90%; transition: transform .45s var(--snap); }
+  .nt:hover .back, .nt:focus-visible .back { transform: rotate(-16deg) translate(-2px, -1px); }
+  .nt:hover .front, .nt:focus-visible .front { transform: rotate(8deg) translate(2px, 0); }
+  .nt.is-down .back, .nt.is-down .front { transform: none; transition-duration: .12s; }
+  .stage[data-content="icon"] .nt { width: 56px; padding: 0; justify-content: center; }
+  .stage[data-content="text"] .nt { padding: 0 22px; }
+
+  /* Settings: a gear on a spring */
+  .st { display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 10px; color: #55565e; }
+  .st:hover { color: var(--ink); }
+  .st .gear { transform-origin: 12px 12px; transition: transform .7s var(--pop); }
+  .st:hover .gear, .st:focus-visible .gear { transform: rotate(60deg); }
+  .st.is-down .gear { transform: rotate(240deg); transition: transform .5s var(--snap); }
+  .stage[data-content="icon"] .st { width: 56px; justify-content: center; padding: 0; }
+
+  .row button:disabled { opacity: .35; }
+  .row button:disabled * { transform: none !important; }
+
+  /* the dock */
+  .dock { position: relative; display: flex; align-items: flex-end; gap: 10px; padding: 10px; border-radius: 22px; background: #fff; box-shadow: 0 0 0 1px #eceef2, 0 12px 30px -16px rgba(30,30,50,.25); }
+  .dock .r { --s: 1; position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    width: calc(60px * var(--s)); height: calc(60px * var(--s)); border-radius: calc(16px * var(--s)); background: var(--tile); color: #6b6c74; font-size: 11px;
+    transition: width .18s ease-out, height .18s ease-out, border-radius .18s, color .2s; }
+  .dock .r .ic { width: calc(24px * var(--s)); height: calc(24px * var(--s)); transition: width .18s ease-out, height .18s ease-out; }
+  .dock .r[aria-checked="true"] { color: #111; }
+  .dock .r[aria-checked="true"] .ic * { stroke-width: 2; }
+  .dock .r:disabled { opacity: .4; }
+  .stage[data-content="both"] .dock .r { width: calc(68px * var(--s)); height: calc(68px * var(--s)); }
+  .stage[data-content="text"] .dock .r { width: calc(72px * var(--s)); font-size: 13px; }
+  .dot { position: absolute; bottom: 3px; left: 0; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #9a9ba3; transition: left .45s var(--flow); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="nw" type="button" data-name="New" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg><span class="lbl">New note</span></button>
+      <button class="nt" type="button" data-name="Notes" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="back" d="M6 7.5 14 5l2.5 9-8 2.5z"/><rect class="front" x="8.5" y="8.5" width="10.5" height="11" rx="2" style="fill:#e6e7ec"/></svg><span class="lbl">Notes</span></button>
+      <button class="st" type="button" data-name="Settings" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g class="gear"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/><circle cx="12" cy="12" r="6.3"/></g></svg><span class="lbl">Settings</span></button>
+    </div>
+    <div class="dock" role="radiogroup" aria-label="Open">
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><span class="lbl">Search</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Notes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7.5 14 5l2.5 9-8 2.5z"/><rect x="8.5" y="8.5" width="10.5" height="11" rx="2"/></svg><span class="lbl">Notes</span></button>
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Create"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg><span class="lbl">Create</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Chat"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 0 0-6.6 11L4.5 19.5l4-1a7.5 7.5 0 1 0 3.5-14z"/><path d="M9 11h6M9 14h4"/><circle cx="18" cy="5.5" r="2" style="fill:#fff"/></svg><span class="lbl">Chat</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Settings" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2"/></svg><span class="lbl">Settings</span></button>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // New: a note pops out of the tile and floats off
+    const nw = document.querySelector('.nw');
+    nw.addEventListener('up', () => {
+      if (M.calm.matches) return;
+      const n = document.createElement('span'); n.className = 'note'; nw.append(n);
+      n.animate([{ transform: 'translateY(20px) scale(.2) rotate(0)', opacity: 0 }, { transform: 'translateY(-46px) scale(1) rotate(-8deg)', opacity: 1, offset: .35 }, { transform: 'translateY(-90px) scale(.9) rotate(6deg)', opacity: 0 }],
+        { duration: 900, easing: 'cubic-bezier(.2, .7, .3, 1)' }).finished.then(() => n.remove());
+    });
+
+    // the dock: magnify by distance, bounce on open, the dot slides under
+    const dock = document.querySelector('.dock'), tiles = [...dock.querySelectorAll('.r')], dot = dock.querySelector('.dot');
+    const place = () => { const c = dock.querySelector('[aria-checked=true]'); dot.style.left = (c.offsetLeft + c.offsetWidth / 2) + 'px'; };
+    dock.addEventListener('pointermove', e => {
+      if (M.calm.matches) return;
+      tiles.forEach(t => { const r = t.getBoundingClientRect(), d = Math.abs(e.clientX - (r.left + r.width / 2)) / M.fit(); t.style.setProperty('--s', (1 + .32 * Math.max(0, 1 - d / 130)).toFixed(3)); });
+      place();
+    });
+    dock.addEventListener('pointerleave', () => { tiles.forEach(t => t.style.setProperty('--s', 1)); setTimeout(place, 200); });
+    dock.addEventListener('pick', e => {
+      place();
+      if (!M.calm.matches) e.detail.to.animate([{ translate: '0 0' }, { translate: '0 -16px', offset: .22 }, { translate: '0 0', offset: .45 }, { translate: '0 -8px', offset: .65 }, { translate: '0 0' }], { duration: 760, easing: 'ease-in-out' });
+    });
+    M.stage.addEventListener('content', () => { const t0 = performance.now(); const loop = t => { place(); if (t - t0 < 800) requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
+    dot.style.transition = 'none'; place(); void dot.offsetWidth; dot.style.transition = ''; document.fonts.ready.then(place);
+  </script>
+</body>
+</html>

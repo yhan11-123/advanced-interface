@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Line</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Line: after a set of thin line icons on deep navy that turn into each other: a square that tips into
+     a diamond and breaks into corner brackets, a circle that draws itself, three lines that become an
+     arrow, a play mark that becomes a pause. One weight of white or slate stroke; no fills.
+     Here the strokes themselves are what move; every button has its own transformation:
+       Play (primary)      a white ring drawn round on hover; a press turns the play mark into pause bars
+                           (and back), the ring tightening under the finger
+       Menu (secondary)    three lines in a slate frame; on hover they gather into an arrow; a press shoots it
+       Back (tertiary)     a bare slate arrow; on hover its head comes apart from the shaft and closes again;
+                           a press pulls it back
+       Group               zoom out, fit, zoom in: the pick is a ring that undraws round the old option and
+                           draws itself round the new one; Fit's square tips into a diamond on hover */
+  :root { --w: 760px; --h: 420px; --navy: #07112a; --slate: #6f7f9e; }
+  body { background: var(--navy); font: 300 15px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: #fff; letter-spacing: .08em; text-transform: uppercase; }
+  .stage { display: grid; place-content: center; gap: 64px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 40px; }
+  button:focus-visible { outline: 1.5px solid #fff; outline-offset: 6px; }
+
+  /* Play: ring + morph */
+  .pl { display: inline-flex; align-items: center; gap: 16px; }
+  .pl .ic { width: 64px; height: 64px; overflow: visible; transition: transform .5s var(--snap); }
+  .pl .ring { fill: none; stroke: #fff; stroke-width: 1.6; stroke-dasharray: 100; stroke-dashoffset: 0; transform-origin: 32px 32px; transform: rotate(-90deg); }
+  .pl:hover .ring, .pl:focus-visible .ring { animation: drawring .8s cubic-bezier(.6, 0, .2, 1); }
+  @keyframes drawring { from { stroke-dashoffset: 100; } }
+  .pl .glyph { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linejoin: round; transition: d .38s cubic-bezier(.6, 0, .2, 1);
+    d: path("M26 22 L33 26.5 L33 37.5 L26 42 Z M33 26.5 L41 32 L41 32 L33 37.5 Z"); }
+  .pl[aria-pressed="true"] .glyph { d: path("M25 22 L29 22 L29 42 L25 42 Z M35 22 L39 22 L39 42 L35 42 Z"); }
+  .pl.is-down .ic { transform: scale(.88); transition-duration: .1s; }
+
+  /* Menu: lines gather into an arrow */
+  .mn { display: inline-flex; align-items: center; gap: 14px; height: 60px; padding: 0 24px 0 18px; border: 1px solid rgba(111,127,158,.6); color: #dfe5f1; transition: border-color .3s; }
+  .mn:hover { border-color: #b8c3d8; }
+  .mn .ic { width: 30px; height: 30px; overflow: visible; }
+  .mn .ic path { fill: none; stroke: #dfe5f1; stroke-width: 1.6; stroke-linecap: square; transition: d .42s cubic-bezier(.6, 0, .2, 1), transform .2s; }
+  .mn .a { d: path("M10 8 L26 8"); } .mn .b { d: path("M4 15 L26 15"); } .mn .c { d: path("M12 22 L26 22"); }
+  .mn:hover .a, .mn:focus-visible .a { d: path("M19 8 L26 15"); }
+  .mn:hover .b, .mn:focus-visible .b { d: path("M4 15 L26 15"); }
+  .mn:hover .c, .mn:focus-visible .c { d: path("M19 22 L26 15"); }
+  .mn.is-down .ic path { transform: translateX(5px); transition-duration: .1s; }
+  .mn.is-up .ic path { transition: d .42s cubic-bezier(.6, 0, .2, 1), transform .5s var(--snap); }
+
+  /* Back: the head comes apart */
+  .bk { display: inline-flex; align-items: center; gap: 12px; height: 60px; color: var(--slate); transition: color .3s; }
+  .bk:hover { color: #b8c3d8; }
+  .bk .ic { width: 34px; height: 34px; overflow: visible; }
+  .bk .ic path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; }
+  .bk .h1, .bk .h2 { transition: transform .4s var(--snap); }
+  .bk .shaft { transition: d .4s cubic-bezier(.6, 0, .2, 1); d: path("M6 17 L29 17"); }
+  .bk:hover .h1, .bk:focus-visible .h1 { animation: split1 .7s cubic-bezier(.6, 0, .2, 1); }
+  .bk:hover .h2, .bk:focus-visible .h2 { animation: split2 .7s cubic-bezier(.6, 0, .2, 1); }
+  .bk:hover .shaft, .bk:focus-visible .shaft { animation: retract .7s cubic-bezier(.6, 0, .2, 1); }
+  @keyframes split1 { 45% { transform: translate(-3px, -5px); } }
+  @keyframes split2 { 45% { transform: translate(-3px, 5px); } }
+  @keyframes retract { 45% { d: path("M14 17 L29 17"); } }
+  .bk.is-down .ic { transform: translateX(-5px); transition: transform .1s; }
+  .bk .ic { transition: transform .5s var(--snap); }
+
+  .row button:disabled { opacity: .3; }
+  .row button:disabled * { animation: none !important; }
+
+  /* content modes */
+  .stage[data-content="icon"] .mn { width: 60px; padding: 0; justify-content: center; }
+  .stage[data-content="icon"] .bk { width: 60px; justify-content: center; }
+
+  /* group: rings that draw and undraw */
+  .grp { display: flex; gap: 22px; }
+  .grp .r { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; color: var(--slate); font-size: 12px; transition: color .3s; }
+  .grp .r[aria-checked="true"] { color: #fff; }
+  .grp .r:hover { color: #b8c3d8; }
+  .grp .r:disabled { opacity: .3; }
+  .grp .r .ic { width: 56px; height: 56px; overflow: visible; }
+  .grp .r .ic .base { fill: none; stroke: rgba(111,127,158,.55); stroke-width: 1.4; }
+  .grp .r .ic .on { fill: none; stroke: #fff; stroke-width: 1.6; stroke-dasharray: 100; stroke-dashoffset: 100; transform-origin: 28px 28px; transform: rotate(-90deg); transition: stroke-dashoffset .6s cubic-bezier(.6, 0, .2, 1); }
+  .grp .r[aria-checked="true"] .ic .on { stroke-dashoffset: 0; transition-delay: .15s; }
+  .grp .r .ic .g { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; }
+  .grp .r .sq { transform-origin: 28px 28px; transition: transform .5s var(--snap); }
+  .grp .r:hover .sq { transform: rotate(45deg); }
+  .grp .r.is-down .ic { transform: scale(.92); }
+  .grp .r .ic { transition: transform .4s var(--snap); }
+  .stage[data-content="icon"] .grp .r .lbl { display: none; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="pl" type="button" aria-pressed="false" data-name="Play" data-off><svg class="ic keep" viewBox="0 0 64 64" aria-hidden="true"><circle class="ring" cx="32" cy="32" r="30" pathLength="100"/><path class="glyph"/></svg><span class="lbl">Play</span></button>
+      <button class="mn" type="button" data-name="Menu" data-off><svg class="ic keep" viewBox="0 0 30 30" aria-hidden="true"><path class="a"/><path class="b"/><path class="c"/></svg><span class="lbl">Menu</span></button>
+      <button class="bk" type="button" data-name="Back" data-off><svg class="ic keep" viewBox="0 0 34 34" aria-hidden="true"><path class="shaft"/><path class="h1" d="M14 9 L6 17"/><path class="h2" d="M14 25 L6 17"/></svg><span class="lbl">Back</span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Zoom">
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Zoom out"><svg class="ic keep" viewBox="0 0 56 56" aria-hidden="true"><circle class="base" cx="28" cy="28" r="22"/><circle class="on" cx="28" cy="28" r="22" pathLength="100"/><path class="g" d="M21 28h14"/></svg><span class="lbl">Out</span></button>
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Fit"><svg class="ic keep" viewBox="0 0 56 56" aria-hidden="true"><circle class="base" cx="28" cy="28" r="22"/><circle class="on" cx="28" cy="28" r="22" pathLength="100"/><rect class="g sq" x="21" y="21" width="14" height="14"/></svg><span class="lbl">Fit</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Zoom in"><svg class="ic keep" viewBox="0 0 56 56" aria-hidden="true"><circle class="base" cx="28" cy="28" r="22"/><circle class="on" cx="28" cy="28" r="22" pathLength="100"/><path class="g" d="M21 28h14M28 21v14"/></svg><span class="lbl">In</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Actual size" data-off><svg class="ic keep" viewBox="0 0 56 56" aria-hidden="true"><circle class="base" cx="28" cy="28" r="22"/><circle class="on" cx="28" cy="28" r="22" pathLength="100"/><path class="g" d="M22 23l3-2v14M31 23l3-2v14"/></svg><span class="lbl">1:1</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const pl = document.querySelector('.pl');
+    pl.addEventListener('click', () => {
+      const on = pl.getAttribute('aria-pressed') !== 'true';
+      pl.setAttribute('aria-pressed', String(on));
+      pl.querySelector('.lbl').textContent = on ? 'Pause' : 'Play'; pl.dataset.name = on ? 'Pause' : 'Play';
+      if (M.stage.dataset.content === 'icon') pl.setAttribute('aria-label', pl.dataset.name);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Glow</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* Glow: the "Start Now" tile. A pill running from electric blue to copper, inside a wide smoky halo,
+     on near-black, with a glowing wide-set label. Light is the material here.
+       Start Now (primary)  the gradient leans after the pointer; a press pulls the halo in tight, and on
+                            release a ring of light rings out from the pill and fades
+       Join (secondary)     a dark lamp: its faint halo breathes while you are on it; a press lights it from
+                            the middle out, and the light dies away slowly after you let go
+       Learn (outline)      a thin gradient line; on hover the colour flows along it; a press makes the
+                            label bloom
+       Group                the pick takes its colour from where it stands: blue at one end, copper at the
+                            other, changing as it moves */
+  body { --page: #161514;
+    --font: 600 16px/1 "Unbounded", sans-serif; --ls: .02em; --tt: none; --r: 40px; --grad: linear-gradient(90deg, #3940c8, #8a5aa0 50%, #cf7a5c);
+    --p-bg: var(--grad); --p-fg: #fff; --p-bd: 0; --p-sh: 0 0 0 9px rgba(120,96,130,.32), 0 0 34px 6px rgba(150,110,200,.22);
+    --s-bg: #2b2826; --s-fg: #e9e2dc; --s-bd: 0; --s-sh: 0 0 0 9px rgba(255,255,255,.04);
+    --t-fg: #ecd2c5; --t-bd: 0;
+    --track: #221f1d; --track-bd: 0; --g-fg: #a39a92; --g-on: #fff; --mark: var(--grad); }
+  .f { text-shadow: 0 0 10px rgba(255,255,255,.25); }
+
+  /* Start Now */
+  .p { overflow: visible; background-size: 180% 100%; background-position: calc(var(--px, .5) * 100%) 0;
+    transition: background-position .6s var(--glide), box-shadow var(--snap-t) var(--snap), transform var(--snap-t) var(--snap); }
+  .p.is-down { box-shadow: 0 0 0 3px rgba(120,96,130,.5), 0 0 12px 0 rgba(150,110,200,.3); transform: scale(.97); transition-duration: .12s; }
+  .p.is-up::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; animation: ring .8s cubic-bezier(.2, .7, .3, 1) forwards; }
+  @keyframes ring { from { box-shadow: 0 0 0 0 rgba(214,160,215,.9); } to { box-shadow: 0 0 0 24px rgba(214,160,215,0); } }
+
+  /* Join: a lamp */
+  .s { overflow: visible; transition: box-shadow .4s ease, transform .3s var(--snap); }
+  .s:hover { animation: breathe 2.2s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 12px rgba(255,255,255,.07), 0 0 24px 4px rgba(233,180,150,.12); } }
+  .s::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: 0;
+    background: radial-gradient(60% 90% at 50% 50%, rgba(255,190,140,.75), rgba(207,122,92,.25) 60%, transparent 85%); transform: scale(.4); transition: opacity 1.1s ease-out, transform 1.1s ease-out; }
+  .s.is-down::before { opacity: 1; transform: none; transition: opacity .18s ease-out, transform .25s var(--snap); }
+  .s.is-down { transform: scale(.98); }
+
+  /* Learn: colour flows along the line; the label blooms */
+  .t::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; background: linear-gradient(90deg, #3940c8, #cf7a5c, #3940c8, #cf7a5c); background-size: 300% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .t:hover::before, .t:focus-visible::before { animation: flow 2.4s linear infinite; }
+  @keyframes flow { to { background-position: -150% 0; } }
+  .t .lbl, .t .ico { transition: text-shadow .6s ease, filter .6s ease; }
+  .t.is-down .lbl { text-shadow: 0 0 6px #fff, 0 0 18px rgba(214,160,215,.9), 0 0 36px rgba(207,122,92,.8); transition-duration: .1s; }
+  .t.is-down .ico { filter: drop-shadow(0 0 6px rgba(214,160,215,.9)); transition-duration: .1s; }
+
+  /* group: the pick's colour comes from the track */
+  .mark { background-size: var(--tw, 300px) 100%; background-position: var(--bx, 0px) 0; box-shadow: 0 0 14px rgba(150,110,200,.35); }
+  .grp .f.is-down { transform: scale(.96); }
+  @media (prefers-reduced-motion: reduce) { .s:hover, .t:hover::before { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Start now" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></span><span class="lbl">Start Now</span></button>
+      <button class="f s" type="button" data-name="Join" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c1-3.6 3.6-5.5 7-5.5s6 1.9 7 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="lbl">Join</span></button>
+      <button class="f t" type="button" data-name="Learn" data-off><span class="lbl">Learn</span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Speed">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="Calm"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12c2.5-3 5.5-3 8 0s5.5 3 8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="lbl">Calm</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Warm"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12c1.5-3 3-3 4.5 0s3 3 4.5 0 3-3 4.5 0 3 3 4.5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="lbl">Warm</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Bright" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h3l2-5 3 10 3-10 2 5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">Bright</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // the pick's gradient is the width of the whole track, shifted to where the pick stands
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    const place = () => { mark.style.setProperty('--tw', grp.offsetWidth + 'px'); mark.style.setProperty('--bx', -mark.parentElement.offsetLeft + 'px'); };
+    place(); M.stage.addEventListener('content', () => setTimeout(place, 0));
+    grp.addEventListener('pick', e => {
+      const from = -e.detail.from.offsetLeft, to = -e.detail.to.offsetLeft;
+      M.moveInto(mark, e.detail.to, { duration: 640, easing: M.ease.flow });
+      place();
+      if (!M.calm.matches) mark.animate([{ backgroundPosition: from + 'px 0' }, { backgroundPosition: to + 'px 0' }], { duration: 640, easing: M.ease.flow });
+    });
+  </script>
+</body>
+</html>

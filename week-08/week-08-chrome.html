@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Chrome</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* Chrome: the "Dark Chrome UI" tile of the finishes board. A polished metal capsule in wide capitals
+     on a night-violet floor, a gloss along its top and a violet glow pooled under it.
+     Each button moves in its own way, all of them metal:
+       Explore (primary)    the gloss leans after the pointer; a press slides it down and the glow under
+                            the capsule shrinks as it settles; on release a glint runs across the metal once
+       Download (secondary) a reflection band tracks the pointer; a press sends the arrow diving and chrome
+                            rises inside from the bottom; on release the arrow springs back and it drains
+       Read more (outline)  a point of light runs round the rim while you are on it; a press stretches the
+                            arrow forward like wire, and it snaps back
+       Group                the pick is a chrome bead that stretches along the track to the next option */
+  body { --page: radial-gradient(70% 60% at 50% 70%, #2a2468, #0b0a18 70%);
+    --font: 600 15px/1 "Unbounded", sans-serif; --ls: .14em; --tt: uppercase; --r: 18px;
+    --p-bg: linear-gradient(#e6e6f2, #a9a9c6 44%, #6c6b8e 52%, #c4c3dc); --p-fg: #1b1a3a; --p-bd: 1px solid rgba(255,255,255,.6);
+    --p-sh: 0 0 0 4px rgba(150,140,255,.28), 0 24px 40px -10px rgba(120,110,255,.75);
+    --s-bg: linear-gradient(#34325a, #1f1d3c); --s-fg: #d6d4f6; --s-bd: 1px solid rgba(190,185,255,.3); --s-sh: 0 12px 24px -12px rgba(120,110,255,.5);
+    --t-fg: #c9c6f2; --t-bd: 1.5px solid rgba(201,198,242,.35);
+    --track: rgba(255,255,255,.05); --track-bd: 1px solid rgba(190,185,255,.18); --g-fg: #9d9ac8; --g-on: #1b1a3a;
+    --mark: linear-gradient(#e6e6f2, #a9a9c6 44%, #6c6b8e 52%, #c4c3dc); }
+  @property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  @property --gx { syntax: "<number>"; inherits: true; initial-value: .5; }
+
+  /* Explore: gloss, glow, glint */
+  .p { transition: transform var(--snap-t) var(--snap), box-shadow var(--snap-t) var(--snap); }
+  .p::before { content: ""; position: absolute; left: 7%; right: 7%; top: 3px; height: 42%; z-index: -1; border-radius: 16px 16px 40% 40%;
+    background: linear-gradient(rgba(255,255,255,.85), transparent); translate: calc((var(--px, .5) - .5) * 24%) 0; transition: translate .5s var(--glide), transform var(--snap-t) var(--snap); }
+  .p::after { content: ""; position: absolute; inset: -2px; z-index: 2; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.95) 50%, transparent 62%); transform: translateX(-130%); }
+  .p.is-down { transform: translateY(2px) scale(.985); box-shadow: 0 0 0 3px rgba(150,140,255,.2), 0 8px 16px -8px rgba(120,110,255,.6); transition-duration: .09s; transition-timing-function: ease-out; }
+  .p.is-down::before { transform: translateY(32%); transition: transform .09s ease-out; }
+  .p.is-up::after { animation: glint .55s cubic-bezier(.3, 0, .2, 1); }
+  @keyframes glint { to { transform: translateX(130%); } }
+
+  /* Download: reflection band, dive and fill */
+  .s { transition: transform var(--snap-t) var(--snap); }
+  .s .band { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: linear-gradient(100deg, transparent calc(var(--gx) * 100% - 22%), rgba(220,215,255,.22) calc(var(--gx) * 100%), transparent calc(var(--gx) * 100% + 22%)); }
+  .s:hover .band { opacity: 1; }
+  .s { --gx: var(--px, .5); transition: --gx .4s var(--glide), transform var(--snap-t) var(--snap); }
+  .s .fill { position: absolute; inset: 0; z-index: -1; background: linear-gradient(#c4c3dc, #6c6b8e); transform: scaleY(0); transform-origin: bottom; transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
+  .s.is-down .fill { transform: scaleY(.4); transition-duration: .35s; }
+  .s .arrow { transition: transform var(--snap-t) var(--snap); }
+  .s.is-down .arrow { transform: translateY(5px); transition: transform .12s ease-in; }
+  .s.is-down { transform: scale(.985); transition-duration: .1s; }
+
+  /* Read more: light runs the rim; arrow stretches */
+  .t::before { content: ""; position: absolute; inset: -1.5px; border-radius: inherit; padding: 1.5px; opacity: 0; transition: opacity .3s;
+    background: conic-gradient(from var(--a), transparent 0 70%, #fff 82%, transparent 94%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .t:hover::before, .t:focus-visible::before { opacity: 1; animation: run 1.6s linear infinite; }
+  @keyframes run { to { --a: 360deg; } }
+  .t .shaft { transform-origin: 5px 12px; transition: transform var(--pop-t) var(--pop); }
+  .t .head { transition: transform var(--pop-t) var(--pop); }
+  .t.is-down .shaft { transform: scaleX(1.7); transition: transform .14s ease-out; }
+  .t.is-down .head { transform: translateX(10px); transition: transform .14s ease-out; }
+
+  /* group: a chrome bead */
+  .mark { border: 1px solid rgba(255,255,255,.6); box-shadow: 0 6px 14px -6px rgba(120,110,255,.7); }
+  .grp .f.is-down { transform: scale(.96); }
+  @media (prefers-reduced-motion: reduce) { .t:hover::before { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Explore" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 8.5-2 5-5 2 2-5z" fill="currentColor"/></svg></span><span class="lbl">Explore</span></button>
+      <button class="f s" type="button" data-name="Download" data-off><span class="band" aria-hidden="true"></span><span class="fill" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 18.5h-.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.6 8.6 4.5 4.5 0 0 1 17.5 18.5H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="arrow" d="M12 11v8M9 16l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">Download</span></button>
+      <button class="f t" type="button" data-name="Read more" data-off><span class="lbl">Read more</span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="shaft" d="M5 12h13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="head" d="M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Quality">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="Draft"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="lbl">Draft</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="High"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="lbl">High</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Ultra" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="lbl">Ultra</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      const right = e.detail.to.offsetLeft > e.detail.from.offsetLeft;
+      M.moveInto(mark, e.detail.to, { duration: 620, easing: M.ease.flow, mid: (t, r, b, l) => right ? `3px 0px 3px ${l}px` : `3px ${r}px 3px 0px` });
+    });
+  </script>
+</body>
+</html>

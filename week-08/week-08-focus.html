@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Focus</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Focus: after a thick white "Select" pill floating over a grey gradient, its label soft, out of focus,
+     like a photograph with a shallow depth of field. Here a lens is the material.
+       Select (primary)     comes into focus as the pointer comes near: the closer you are, the sharper the
+                            label and the further it rises toward you; a press pushes it back out of focus,
+                            and on release it snaps sharp
+       Filter (secondary)   frosted glass over soft shapes; on hover the glass thickens (the shapes behind it
+                            blur away); a press clears it for a moment
+       Compare (outline)    seen double: the outline and label carry a ghost a few pixels off; on hover the two
+                            images slide together into one; a press splits them again
+       Group                only the pick is in focus; picking another pulls focus across, the old option
+                            softening as the new one sharpens */
+  :root { --w: 760px; --h: 420px; --ink: #34363b; }
+  body { background: linear-gradient(110deg, #e6e7e9, #b9bcc2 60%, #9a9ea6); font: 500 22px/1 "Inter", -apple-system, system-ui, sans-serif; color: var(--ink); }
+  .stage { display: grid; place-content: center; gap: 56px; justify-items: center; }
+  .shapes { position: absolute; inset: 0; pointer-events: none; }
+  .shapes i { position: absolute; border-radius: 50%; filter: blur(2px); }
+  .row { position: relative; display: flex; align-items: center; gap: 26px; }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
+  .ic { width: 22px; height: 22px; }
+
+  /* Select: depth of field by distance (--d, 0 near .. 1 far, set by script) */
+  .sel { --d: 1; display: inline-flex; align-items: center; gap: 12px; height: 86px; padding: 0 44px; border-radius: 43px;
+    background: linear-gradient(#ffffff, #eceef1); box-shadow: inset 0 2px 0 #fff, inset 0 -6px 10px rgba(150,155,165,.25), 0 calc(14px - var(--d) * 6px) calc(30px - var(--d) * 10px) -12px rgba(40,44,52,.45);
+    transform: translateY(calc((1 - var(--d)) * -4px)) scale(calc(1 + (1 - var(--d)) * .03)); transition: transform .3s var(--glide), box-shadow .3s; }
+  .sel .lbl, .sel .ic { filter: blur(calc(var(--d) * 2.6px)); transition: filter .25s ease; }
+  .sel.is-down { transform: scale(.96); }
+  .sel.is-down .lbl, .sel.is-down .ic { filter: blur(2px); transition-duration: .1s; }
+  .sel.is-up .lbl, .sel.is-up .ic { animation: snapfocus .5s var(--pop); }
+  @keyframes snapfocus { 0% { filter: blur(2px); scale: .96; } 100% { filter: blur(0); scale: 1; } }
+  .stage[data-content="icon"] .sel { width: 86px; padding: 0; justify-content: center; }
+
+  /* Filter: frosted glass */
+  .fr { display: inline-flex; align-items: center; gap: 10px; height: 68px; padding: 0 32px; border-radius: 34px; background: rgba(255,255,255,.32);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8), inset 0 0 0 1px rgba(255,255,255,.4); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+    font-size: 19px; transition: backdrop-filter .5s ease, -webkit-backdrop-filter .5s ease, background-color .5s; }
+  .fr:hover, .fr:focus-visible { -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); background: rgba(255,255,255,.45); }
+  .fr.is-down { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); background: rgba(255,255,255,.12); transition-duration: .12s; }
+  .stage[data-content="icon"] .fr { width: 68px; padding: 0; justify-content: center; }
+
+  /* Compare: double vision */
+  .cmp { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 68px; padding: 0 30px; border-radius: 34px; border: 1.5px solid rgba(52,54,59,.7); font-size: 19px;
+    text-shadow: 4px -3px 0 rgba(52,54,59,.35); transition: text-shadow .5s var(--glide); }
+  .cmp::before { content: ""; position: absolute; inset: -1.5px; border-radius: inherit; border: 1.5px solid rgba(52,54,59,.3); transform: translate(4px, -3px); transition: transform .5s var(--glide), opacity .5s; }
+  .cmp .ic { filter: drop-shadow(4px -3px 0 rgba(52,54,59,.35)); transition: filter .5s var(--glide); }
+  .cmp:hover, .cmp:focus-visible { text-shadow: 0 0 0 rgba(52,54,59,0); }
+  .cmp:hover::before, .cmp:focus-visible::before { transform: none; opacity: 0; }
+  .cmp:hover .ic, .cmp:focus-visible .ic { filter: drop-shadow(0 0 0 rgba(52,54,59,0)); }
+  .cmp.is-down { text-shadow: -5px 3px 0 rgba(52,54,59,.35); transition-duration: .1s; }
+  .cmp.is-down::before { transform: translate(-5px, 3px); opacity: 1; transition-duration: .1s; }
+  .stage[data-content="icon"] .cmp { width: 68px; padding: 0; justify-content: center; }
+
+  .row button:disabled { opacity: .45; }
+  .sel:disabled .lbl, .sel:disabled .ic { filter: blur(3px); }
+
+  /* group */
+  .grp { position: relative; display: flex; padding: 6px; gap: 2px; border-radius: 30px; background: rgba(255,255,255,.3); box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 22px; border-radius: 25px; font-size: 16px; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .grp .r .lbl, .grp .r .ic { filter: blur(1.6px); opacity: .7; transition: filter .45s ease, opacity .45s ease; }
+  .grp .r:hover .lbl, .grp .r:hover .ic { filter: blur(.8px); }
+  .grp .r[aria-checked="true"] .lbl, .grp .r[aria-checked="true"] .ic { filter: none; opacity: 1; }
+  .grp .r:disabled { opacity: .45; }
+  .stage[data-content="icon"] .grp .r { width: 56px; padding: 0; justify-content: center; }
+  .grp .pick { position: absolute; inset: 0; z-index: -1; border-radius: 25px; background: linear-gradient(#fff, #eef0f2); box-shadow: inset 0 -3px 5px rgba(150,155,165,.2), 0 6px 12px -8px rgba(40,44,52,.4); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="shapes" aria-hidden="true"><i data-at="-34,-40" style="width:64px;height:64px;background:#8f949c"></i><i data-at="30,-6" style="width:44px;height:44px;background:#f4f5f7"></i><i data-at="-58,10" style="width:26px;height:26px;background:#6f747c"></i></div>
+    <div class="row">
+      <button class="sel" type="button" data-name="Select" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Select</span></button>
+      <button class="fr" type="button" data-name="Filter" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Filter</span></button>
+      <button class="cmp" type="button" data-name="Compare" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="10.5" y="5" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lbl">Compare</span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Aperture">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Portrait"><span class="pick" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c1-3.5 3.6-5.5 7-5.5s6 2 7 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lbl">Portrait</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Landscape"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18l6-8 4 5 3-3 5 6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="lbl">Landscape</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Macro" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20c-4 0-6-3-6-6 3 0 5 1 6 3 1-2 3-3 6-3 0 3-2 6-6 6zM12 17V9M12 9c-2 0-3-2-3-4 2 0 3 1 3 2 0-1 1-2 3-2 0 2-1 4-3 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Macro</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // depth of field: the Select pill sharpens as the pointer comes within reach
+    const sel = document.querySelector('.sel');
+    addEventListener('pointermove', e => {
+      const r = sel.getBoundingClientRect();
+      const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right), dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+      sel.style.setProperty('--d', Math.min(1, Math.hypot(dx, dy) / (180 * M.fit())).toFixed(3));
+    });
+    document.documentElement.addEventListener('mouseleave', () => sel.style.setProperty('--d', 1));
+    sel.addEventListener('focus', () => sel.style.setProperty('--d', 0));
+    sel.addEventListener('blur', () => sel.style.setProperty('--d', 1));
+    // soft shapes sit right behind the Filter glass, so its blur has something to blur
+    const fr = document.querySelector('.fr');
+    const shapes = () => { const s = M.stage.getBoundingClientRect(), r = fr.getBoundingClientRect(), f = M.fit(), cx = (r.left + r.width / 2 - s.left) / f, cy = (r.top + r.height / 2 - s.top) / f;
+      document.querySelectorAll('.shapes i').forEach(i => { const [dx, dy] = i.dataset.at.split(',').map(Number), w = parseFloat(i.style.width); i.style.left = (cx + dx - w / 2) + 'px'; i.style.top = (cy + dy - w / 2) + 'px'; }); };
+    document.fonts.ready.then(shapes); shapes(); addEventListener('resize', shapes);
+    M.stage.addEventListener('content', () => { const t0 = performance.now(); const loop = t => { shapes(); if (t - t0 < 800) requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
+    const grp = document.querySelector('.grp'), pick = grp.querySelector('.pick');
+    grp.addEventListener('pick', e => M.moveInto(pick, e.detail.to, { duration: 620, easing: M.ease.glide }));
+  </script>
+</body>
+</html>

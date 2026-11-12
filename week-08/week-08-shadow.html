@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Shadow</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* Shadow: the "Shadow UI" tile. A lighter lavender pill floating over a lavender page, its arrow in a
+     round well, a long soft shadow under it. Everything here is about height above the page.
+       Read more (primary)  floats: on hover it rises and its shadow spreads and softens, the arrow's well
+                            rolls forward; a press lands it on the page; on release it floats back up
+       Save (secondary)     a glass sheet that tilts toward the pointer, its shadow sliding the other way;
+                            a press lays it flat
+       Share (outline)      on hover a shadow copy of the outline appears just below it; a press drops the
+                            button onto its own shadow, and on release it lifts off
+       Group                the pick lifts off the track while it travels and settles at the new option */
+  body { --page: #7c73ea;
+    --font: 600 18px/1 "Plus Jakarta Sans", sans-serif; --ls: -.01em; --tt: none; --r: 40px;
+    --p-bg: #958def; --p-fg: #fff; --p-bd: 0; --p-sh: 0 22px 30px -14px rgba(40,26,140,.55), 0 4px 8px -2px rgba(40,26,140,.2);
+    --s-bg: rgba(255,255,255,.16); --s-fg: #fff; --s-bd: 0; --s-sh: none;
+    --t-fg: #fff; --t-bd: 1.5px solid rgba(255,255,255,.6);
+    --track: rgba(40,26,140,.18); --track-bd: 0; --g-fg: rgba(255,255,255,.75); --g-on: #fff; --mark: #958def; }
+  .stage { perspective: 700px; }
+
+  /* Read more: float */
+  .p { transition: transform var(--snap-t) var(--snap), box-shadow var(--snap-t) var(--snap); }
+  .p .ico { background: rgba(255,255,255,.22); transition: transform .6s var(--snap); }
+  .p:hover { transform: translateY(-5px); box-shadow: 0 34px 40px -16px rgba(40,26,140,.5), 0 6px 12px -4px rgba(40,26,140,.15); }
+  .p:hover .ico { transform: translateX(3px) rotate(360deg); }
+  .p.is-down { transform: translateY(2px); box-shadow: 0 3px 4px -2px rgba(40,26,140,.55); transition-duration: .1s; transition-timing-function: ease-out; }
+
+  /* Save: tilting glass */
+  .s { --tx: calc((var(--py, .5) - .5) * -14deg); --ty: calc((var(--px, .5) - .5) * 16deg);
+    transform: rotateX(var(--tx)) rotateY(var(--ty)); box-shadow: calc((var(--px, .5) - .5) * -16px) calc(14px + (var(--py, .5) - .5) * -10px) 24px -12px rgba(40,26,140,.5);
+    transition: transform .45s var(--glide), box-shadow .45s var(--glide); backdrop-filter: blur(4px); }
+  .s::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.18); pointer-events: none; }
+  .s.is-down { transform: scale(.97); box-shadow: 0 2px 4px -2px rgba(40,26,140,.4); transition-duration: .12s; }
+
+  /* Share: its own shadow */
+  .t::before { content: ""; position: absolute; inset: -1.5px; z-index: -1; border-radius: inherit; border: 1.5px solid rgba(40,26,140,.45); filter: blur(1.5px);
+    opacity: 0; transform: translate(0, 0); transition: opacity .3s, transform var(--snap-t) var(--snap); }
+  .t { overflow: visible; transition: transform var(--pop-t) var(--pop); }
+  .t:hover::before, .t:focus-visible::before { opacity: 1; transform: translate(5px, 7px); }
+  .t.is-down { transform: translate(5px, 7px); transition: transform .1s ease-in; }
+  .t.is-down::before { transform: translate(0, 0); transition: transform .1s ease-in; }
+  .t .ico svg { transition: transform .5s var(--snap); }
+  .t:hover .ico svg { transform: translate(2px, -2px); }
+
+  /* group */
+  .mark { box-shadow: 0 6px 10px -6px rgba(40,26,140,.5); }
+  .grp .f.is-down { transform: translateY(1px); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Read more" data-off><span class="lbl">Read more</span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <button class="f s" type="button" data-name="Save" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span><span class="lbl">Save</span></button>
+      <button class="f t" type="button" data-name="Share" data-off><span class="lbl">Share</span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Reading">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="Article"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14M5 10h14M5 15h14M5 20h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="lbl">Article</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Listen"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H4zM17 14h3v6h-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="lbl">Listen</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Watch" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 10.5 5-3v9l-5-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="lbl">Watch</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // the pick lifts off while it travels: higher shadow, a touch bigger, then it lands
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      M.moveInto(mark, e.detail.to, { duration: 640, easing: M.ease.glide });
+      if (!M.calm.matches) mark.animate([
+        { boxShadow: '0 6px 10px -6px rgba(40,26,140,.5)', scale: 1 },
+        { boxShadow: '0 22px 26px -10px rgba(40,26,140,.45)', scale: 1.06, offset: .4 },
+        { boxShadow: '0 6px 10px -6px rgba(40,26,140,.5)', scale: 1 }], { duration: 640, easing: 'ease-in-out' });
+    });
+  </script>
+</body>
+</html>

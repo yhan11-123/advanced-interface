@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Tab</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Tab: after a stack of profile pills: near-black capsules on pale grey, each with a bright blue
+     rounded-square key carrying a chevron, the key sitting in a different place on each (hanging off the
+     left end, popped up over the top corner, tucked in at the right with the chevron turned up), and a
+     blue Follow button with a glow round it.
+     Levels: primary is the glowing blue Follow; secondary is the dark pill with its blue key; tertiary is
+     an outline pill whose key is hidden until you come near.
+     Every button moves in its own way:
+       Follow (primary)    the glow breathes while you are on it; a press sucks the glow in, and on release
+                           it bursts out once and the label becomes Following, the pill easing to the new width
+       Profile (secondary) the blue key hangs off the left end; a press sends it sliding along the pill to the
+                           right end, its chevron turning up; press again and it slides home
+       Share (outline)     its key hides behind the top-left corner and pops up when you come near, the way
+                           it sits on the fourth pill; a press taps it down
+       Group               the pick is the blue key itself: it hops up over the pill's edge and drops onto
+                           the new option */
+  :root { --w: 780px; --h: 420px; --ink: #1b1c1f; --blue: #0d5cf6; }
+  body { background: #e6e7ea; font: 600 17px/1 "Inter", -apple-system, system-ui, sans-serif; color: #fff; }
+  .stage { display: grid; place-content: center; gap: 56px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 26px; }
+  button:focus-visible { outline: 2px solid var(--blue); outline-offset: 5px; }
+  .key { position: absolute; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 17px; background: var(--blue); color: #fff; }
+  .key svg { width: 22px; height: 22px; transition: transform .45s var(--snap); }
+
+  /* Follow: glowing blue */
+  .fol { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 26px; border-radius: 16px; background: var(--blue);
+    box-shadow: 0 0 0 0 rgba(13,92,246,.0), 0 0 18px 2px rgba(13,92,246,.55); transition: box-shadow .4s ease, transform var(--snap-t) var(--snap); }
+  .fol .ic { width: 20px; height: 20px; }
+  .fol:hover { animation: breathe 1.8s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 4px rgba(13,92,246,.18), 0 0 30px 6px rgba(13,92,246,.6); } }
+  .fol.is-down { animation: none; transform: scale(.96); box-shadow: 0 0 0 0 rgba(13,92,246,0), 0 0 4px 0 rgba(13,92,246,.4); transition-duration: .1s; }
+  .fol.is-up { animation: burst .6s ease-out; }
+  @keyframes burst { 0% { box-shadow: 0 0 0 0 rgba(13,92,246,.6), 0 0 18px 2px rgba(13,92,246,.55); } 100% { box-shadow: 0 0 0 22px rgba(13,92,246,0), 0 0 18px 2px rgba(13,92,246,.55); } }
+  .fol[aria-pressed="true"] { background: #0a3fae; }
+  .stage[data-content="icon"] .fol { width: 52px; padding: 0; justify-content: center; }
+  .stage[data-content="text"] .fol { padding: 0 28px; }
+
+  /* Profile: the dark pill and its travelling key */
+  .pro { position: relative; display: inline-flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 6px; height: 64px; padding: 0 30px 0 66px;
+    border-radius: 24px; background: var(--ink); text-align: left; transition: padding .5s var(--glide); }
+  .pro .lbl small { display: block; margin-top: 5px; font-weight: 500; font-size: 12.5px; color: #c9cbd2; }
+  .pro .key { left: -8px; top: 7px; transition: left .55s var(--flow), transform var(--snap-t) var(--snap); }
+  .pro[aria-expanded="true"] { padding: 0 66px 0 30px; }
+  .pro[aria-expanded="true"] .key { left: calc(100% - 57px); }
+  .pro[aria-expanded="true"] .key svg { transform: rotate(-90deg); }
+  .pro.is-down .key { transform: scale(.9); transition-duration: .1s; }
+  .pro:hover .key svg { transform: translateX(2px); }
+  .pro[aria-expanded="true"]:hover .key svg { transform: rotate(-90deg) translateX(2px); }
+  .stage[data-content="text"] .pro .key { display: none; }
+  .stage[data-content="text"] .pro, .stage[data-content="text"] .pro[aria-expanded="true"] { padding: 0 30px; }
+  .stage[data-content="icon"] .pro { width: 64px; padding: 0; background: transparent; }
+  .stage[data-content="icon"] .pro .key, .stage[data-content="icon"] .pro[aria-expanded="true"] .key { left: 7px; }
+
+  /* Share: an outline pill with a hidden key */
+  .sh { position: relative; display: inline-flex; align-items: center; height: 60px; padding: 0 30px 0 34px; border-radius: 22px; border: 1.5px solid #9a9ca3; color: var(--ink); transition: border-color .3s; }
+  .sh .key { left: 4px; top: 4px; width: 44px; height: 44px; border-radius: 15px; z-index: -1; opacity: 0; transform: translate(6px, 6px) scale(.6);
+    transition: transform .5s var(--pop), opacity .2s, left .5s var(--glide); }
+  .sh { isolation: isolate; }
+  .sh:hover, .sh:focus-visible { border-color: var(--ink); }
+  .sh:hover .key, .sh:focus-visible .key { z-index: 1; opacity: 1; transform: translate(-14px, -22px); }
+  .sh:hover, .sh:focus-visible { padding-left: 46px; }
+  .sh { transition: border-color .3s, padding .4s var(--glide); }
+  .sh.is-down .key { transform: translate(-10px, -16px) scale(.9); transition: transform .1s ease-out; }
+  .stage[data-content="icon"] .sh { width: 60px; padding: 0; justify-content: center; }
+  .stage[data-content="icon"] .sh .key { position: static; opacity: 1; transform: none; background: none; color: var(--ink); width: auto; height: auto; }
+  .stage[data-content="text"] .sh .key { display: none; }
+  .stage[data-content="text"] .sh { padding: 0 30px; }
+
+  /* disabled */
+  .row button:disabled { opacity: .38; animation: none; box-shadow: none; }
+  .row button:disabled .key { background: #6b6d75; transform: none; }
+  .fol:disabled { background: #6b6d75; }
+
+  /* group: dark segments; the key is the pick */
+  .grp { position: relative; display: flex; gap: 6px; padding: 7px; border-radius: 24px; background: var(--ink); }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 20px; border-radius: 17px; color: #9da0a8; font-size: 15px; transition: color .25s; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .grp .r:hover { color: #fff; }
+  .grp .r[aria-checked="true"] { color: #fff; }
+  .grp .r:disabled { color: #4c4e55; }
+  .stage[data-content="icon"] .grp .r { width: 50px; padding: 0; justify-content: center; }
+  .grp .pick { position: absolute; inset: 0; z-index: -1; border-radius: 17px; background: var(--blue); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="fol" type="button" aria-pressed="false" data-name="Follow" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 19.5c.9-3.3 3.3-5 6.5-5 1.6 0 3 .4 4.1 1.2M18 13v7M14.5 16.5h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="lbl">Follow</span></button>
+      <button class="pro" type="button" aria-expanded="false" data-name="Profile" data-off><span class="key ic keep" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 5.5 6.5 6.5L9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">David Bakalow<small>Motion designer</small></span></button>
+      <button class="sh" type="button" data-name="Share" data-off><span class="key ic keep" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">Share</span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Show">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Posts"><span class="pick" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="lbl">Posts</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Reels"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9v6l5-3z" fill="currentColor"/></svg><span class="lbl">Reels</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Tagged" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c1-3.5 3.6-5.5 7-5.5s6 2 7 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="lbl">Tagged</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // Follow toggles to Following, the pill easing to its new width
+    const fol = document.querySelector('.fol');
+    fol.addEventListener('click', () => {
+      const w = fol.offsetWidth, on = fol.getAttribute('aria-pressed') !== 'true';
+      fol.setAttribute('aria-pressed', String(on));
+      fol.querySelector('.lbl').textContent = on ? 'Following' : 'Follow';
+      fol.dataset.name = on ? 'Following' : 'Follow';
+      if (!M.calm.matches) fol.animate([{ width: w + 'px' }, { width: fol.offsetWidth + 'px' }], { duration: M.dur.glide, easing: M.ease.glide });
+    });
+    // Profile: the key travels to the other end and back
+    const pro = document.querySelector('.pro');
+    pro.addEventListener('click', () => pro.setAttribute('aria-expanded', String(pro.getAttribute('aria-expanded') !== 'true')));
+    // the key hops over the edge onto the new option
+    const grp = document.querySelector('.grp'), pick = grp.querySelector('.pick');
+    grp.addEventListener('pick', e => {
+      M.moveInto(pick, e.detail.to, { duration: 520, easing: 'cubic-bezier(.45, 0, .25, 1)' });
+      if (!M.calm.matches) pick.animate([{ translate: '0 0', scale: 1 }, { translate: '0 -26px', scale: .92, offset: .45, easing: 'ease-in' }, { translate: '0 0', scale: 1.06, offset: .8 }, { translate: '0 0', scale: 1 }], { duration: 560 });
+    });
+  </script>
+</body>
+</html>

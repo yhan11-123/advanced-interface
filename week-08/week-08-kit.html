@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Kit</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Kit: after a sheet of web buttons on deep navy: flat colour, no shine. A blue pill with its arrow in
+     a circle of its own beside it, a lime block with a plus, an orange outline in tracked capitals with
+     an up-right arrow, an underlined link with a circled arrow, a hexagon around an arrow.
+     Levels: primary is the blue split pill; secondary the lime block; tertiary the orange outline; and a
+     fourth, lowest, the underlined link.
+     Motion, "parts that click together": crisp and quick, no bounce, like flat graphics. The icon is
+     its own part. Point at the blue pill and its circle slides in to meet it while the arrow leaves to
+     the right and comes back from the left. The lime block stands on a hard shadow and presses down
+     onto it. The outline fills from the bottom with orange and the arrow shoots out and back. The link's
+     line draws itself from the left. In the group, the lime block wipes across: its front edge runs to
+     the new option before its back edge follows. */
+  :root { --w: 800px; --h: 420px; --navy: #0d1030; --blue: #3a7bf0; --lime: #c4f25e; --orange: #ef6b3b; --step: cubic-bezier(.2, .9, .1, 1); }
+  body { background: var(--navy); font: 500 15px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: #fff; }
+  .stage { display: grid; place-content: center; gap: 60px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 22px; }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+  /* primary: a pill and its circle; the circle is the icon part */
+  .split { display: inline-flex; align-items: center; gap: 6px; height: 54px; transition: gap .22s var(--step); }
+  .split .pill { display: grid; place-items: center; height: 54px; padding: 0 28px; border-radius: 27px; background: var(--blue); transition: background-color .15s, translate .1s; }
+  .split .dot { position: relative; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: var(--blue); overflow: hidden; transition: background-color .15s, translate .1s; }
+  .split .dot svg { width: 20px; height: 20px; }
+  .split:hover, .split:focus-visible { gap: 0; }
+  .split:hover .dot svg, .split:focus-visible .dot svg { animation: through .42s var(--step); }
+  @keyframes through { 0% { transform: none; } 45% { transform: translateX(26px); } 46% { transform: translateX(-26px); } 100% { transform: none; } }
+  .split.is-down .pill, .split.is-down .dot { background: #2b63cc; translate: 0 2px; }
+  .stage[data-content="text"] .split .dot { display: none; }
+  .stage[data-content="icon"] .split .pill { display: none; }
+
+  /* secondary: a lime block standing on a hard shadow */
+  .blk { display: inline-flex; align-items: center; gap: 22px; height: 54px; padding: 0 22px 0 26px; border-radius: 6px; background: var(--lime); color: #12142e;
+    box-shadow: 4px 4px 0 #6f9a1e; transition: transform .08s ease-out, box-shadow .08s ease-out; }
+  .blk .ic { width: 18px; height: 18px; transition: transform .3s var(--step); }
+  .blk:hover .ic { transform: rotate(90deg); }
+  .blk.is-down { transform: translate(4px, 4px); box-shadow: 0 0 0 #6f9a1e; }
+  .blk.is-up { transition: transform .22s var(--step), box-shadow .22s var(--step); }
+  .stage[data-content="text"] .blk { padding: 0 26px; }
+  .stage[data-content="icon"] .blk { width: 54px; padding: 0; justify-content: center; }
+
+  /* tertiary: an orange outline; fills from the bottom */
+  .out { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 18px; height: 54px; padding: 0 20px 0 24px; border: 1.5px solid var(--orange); border-radius: 6px;
+    color: var(--orange); text-transform: uppercase; letter-spacing: .1em; font-size: 14px; font-weight: 600; overflow: hidden; transition: color .2s; }
+  .out::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--orange); transform: scaleY(0); transform-origin: bottom; transition: transform .26s var(--step); }
+  .out:hover, .out:focus-visible { color: var(--navy); }
+  .out:hover::before, .out:focus-visible::before { transform: none; }
+  .out .ic { width: 18px; height: 18px; overflow: visible; }
+  .out:hover .ic, .out:focus-visible .ic { animation: shoot .44s var(--step); }
+  @keyframes shoot { 0% { transform: none; } 45% { transform: translate(14px, -14px); opacity: 0; } 46% { transform: translate(-14px, 14px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .out.is-down::before { background: #c9512a; }
+  .stage[data-content="text"] .out { padding: 0 24px; }
+  /* icon only: the outline becomes a hexagon, as on the sheet */
+  .stage[data-content="icon"] .out { width: 58px; height: 64px; padding: 0; justify-content: center; border: 0; border-radius: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 58 64'%3E%3Cpath d='M29 1 57 16.5v31L29 63 1 47.5v-31z' fill='none' stroke='%23ef6b3b' stroke-width='1.5'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+  .stage[data-content="icon"] .out::before { clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .stage[data-content="icon"] .out:disabled { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 58 64'%3E%3Cpath d='M29 1 57 16.5v31L29 63 1 47.5v-31z' fill='none' stroke='%23343866' stroke-width='1.5'/%3E%3C/svg%3E"); }
+
+  /* lowest: a link with a line that draws itself */
+  .lnk { position: relative; display: inline-flex; align-items: center; gap: 12px; height: 54px; color: #6f9bff; font-weight: 500; }
+  .lnk::after { content: ""; position: absolute; left: 0; right: 0; bottom: 10px; height: 2px; background: currentColor; transform: scaleX(.0001); transform-origin: left; transition: transform .3s var(--step), height .08s; }
+  .lnk:hover::after, .lnk:focus-visible::after { transform: none; }
+  .lnk.is-down::after { height: 3px; transform: none; }
+  .lnk .ic { width: 24px; height: 24px; transition: transform .3s var(--step); }
+  .lnk:hover .ic { transform: rotate(-45deg); }
+  .stage[data-content="icon"] .lnk::after { display: none; }
+  .stage[data-content="icon"] .lnk { width: 54px; justify-content: center; }
+
+  /* disabled: flat grey, no shadow, nothing moves */
+  .row button:disabled { animation: none !important; }
+  .split:disabled .pill, .split:disabled .dot { background: #262a50; color: #5a5f8a; translate: none; }
+  .split:disabled { gap: 6px; }
+  .split:disabled svg { animation: none; }
+  .blk:disabled { background: #262a50; color: #5a5f8a; box-shadow: none; transform: none; }
+  .blk:disabled .ic { transform: none; }
+  .out:disabled { border-color: #343866; color: #4d527c; }
+  .out:disabled::before { transform: scaleY(0); }
+  .lnk:disabled { color: #3e4371; }
+  .lnk:disabled::after { transform: scaleX(.0001); }
+  .lnk:disabled .ic { transform: none; }
+
+  /* group: tabs on a strip; a lime block marks the pick and wipes across */
+  .grp { display: flex; padding: 4px; gap: 0; background: #1a1e4a; border-radius: 6px; }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 22px; border-radius: 4px; color: #a8acd6; font-weight: 500; transition: color .2s; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .grp .r:hover { color: #fff; }
+  .grp .r[aria-checked="true"] { color: #12142e; }
+  .grp .r:disabled { color: #43487a; }
+  .grp .r.is-down { translate: 0 1px; }
+  .stage[data-content="icon"] .grp .r { width: 52px; padding: 0; justify-content: center; }
+  .mark { position: absolute; inset: 0; z-index: -1; border-radius: 4px; background: var(--lime); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="split" type="button" data-name="Read more" data-off><span class="pill"><span class="lbl">Read more</span></span><span class="dot"><svg class="ic keep" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <button class="blk" type="button" data-name="Add to list" data-off><span class="lbl">Add to list</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="out" type="button" data-name="View more" data-off><span class="lbl">View more</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M8 6h10v10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="lnk" type="button" data-name="All projects" data-off><span class="lbl">view all projects</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 12h9M13 8.5l3.5 3.5-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Layout">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Grid"><span class="mark" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lbl">Grid</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="List"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lbl">List</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Board"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h4.5v16H4zM10 4h4.5v10H10zM16 4h4v13h-4z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lbl">Board</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Timeline" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M8 12h12M6 18h8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg><span class="lbl">Timeline</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // the wipe: the front edge runs ahead to the new tab, then the back edge catches up. No bounce.
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      const right = e.detail.to.offsetLeft > e.detail.from.offsetLeft;
+      M.moveInto(mark, e.detail.to, { duration: 340, easing: 'cubic-bezier(.6, 0, .2, 1)',
+        mid: (t, r, b, l) => right ? `0px 0px 0px ${l}px` : `0px ${r}px 0px 0px` });
+    });
+  </script>
+</body>
+</html>

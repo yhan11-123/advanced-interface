@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; 3D</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* 3D: the "3D UI" tile. A deep indigo capsule with a thick black rim, standing on a black ledge, under
+     a violet light falling down the page. These are keys with weight; each one is a different mechanism.
+       Download (primary)  a plunger key: a press sinks it into its rim (the ledge runs out) while the arrow
+                           drops into the cloud; on release it comes back up and the arrow follows
+       Upload (secondary)  a rocker: it tips toward the half you press, top or bottom, and rocks back level
+       Cancel (outline)    a rubber ring: a press squashes it wide, and it boings back with a few wobbles
+       Group               the pick is a key that hops from slot to slot and lands with a squash */
+  body { --page: linear-gradient(#7066d9, #2a2659 55%, #0f0e22);
+    --font: 600 18px/1 "Plus Jakarta Sans", sans-serif; --ls: 0; --tt: none; --r: 40px;
+    --p-bg: linear-gradient(#45418a, #2f2c62); --p-fg: #b9b3ff; --p-bd: 3px solid #0b0a18;
+    --p-sh: 0 7px 0 #0b0a18, 0 18px 40px -8px rgba(140,130,255,.45), inset 0 2px 0 rgba(255,255,255,.18);
+    --s-bg: linear-gradient(#2e2b5c, #23214a); --s-fg: #a29ce9; --s-bd: 3px solid #0b0a18; --s-sh: 0 5px 0 #0b0a18, inset 0 2px 0 rgba(255,255,255,.1);
+    --t-fg: #b9b3ff; --t-bd: 3px solid #0b0a18;
+    --track: #1a1838; --track-bd: 3px solid #0b0a18; --g-fg: #8c86d6; --g-on: #d0ccff; --mark: linear-gradient(#45418a, #2f2c62);
+    --boing: linear(0, 0.22 4%, 0.84 11%, 1.18 17%, 1.22 20%, 1.1 26%, 0.9 33%, 0.86 36%, 0.92 42%, 1.05 50%, 1.07 54%, 1.02 61%, 0.97 69%, 0.98 76%, 1.01 84%, 1); }
+  .stage { perspective: 600px; }
+  .f.p, .f.s, .f.t { overflow: visible; }
+
+  /* Download: plunger */
+  .p { transition: transform var(--snap-t) var(--snap), box-shadow var(--snap-t) var(--snap); }
+  .p:hover { transform: translateY(-1px); box-shadow: 0 8px 0 #0b0a18, 0 22px 44px -8px rgba(140,130,255,.55), inset 0 2px 0 rgba(255,255,255,.22); }
+  .p.is-down { transform: translateY(6px); box-shadow: 0 1px 0 #0b0a18, 0 8px 18px -8px rgba(140,130,255,.35), inset 0 2px 0 rgba(255,255,255,.08); transition-duration: .08s; transition-timing-function: ease-in; }
+  .p .arrow { transition: transform .5s var(--snap) .06s; }
+  .p.is-down .arrow { transform: translateY(5px); transition: transform .1s ease-in; }
+
+  /* Upload: rocker */
+  .s { transform-origin: 50% 50%; transition: transform var(--pop-t) var(--pop), box-shadow .3s; }
+  .s.is-down { transform: rotateX(calc((var(--py, .5) - .5) * -36deg)) translateY(2px); box-shadow: 0 3px 0 #0b0a18; transition: transform .1s ease-out, box-shadow .1s; }
+  .s .arrow { transition: transform .5s var(--snap); }
+  .s:hover .arrow { transform: translateY(-2px); }
+
+  /* Cancel: rubber ring */
+  .t { box-shadow: 0 5px 0 #0b0a18, inset 0 0 0 1px rgba(185,179,255,.15); transition: transform .9s var(--boing); }
+  .t.is-down { transform: scale(1.06, .88) translateY(3px); transition: transform .12s ease-out; }
+  .t .ico svg { transition: transform .9s var(--boing); }
+  .t.is-down .ico svg { transform: rotate(45deg) scale(.85); transition: transform .12s ease-out; }
+
+  /* group: a key that hops */
+  .mark { border: 2px solid #0b0a18; box-shadow: 0 3px 0 #0b0a18, inset 0 2px 0 rgba(255,255,255,.15); }
+  .grp .f.is-down { transform: translateY(2px); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Download" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17.5h-.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.6 7.6 4.5 4.5 0 0 1 17.5 17.5H17" fill="currentColor" fill-opacity=".35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="arrow" d="M12 10v8M9 15l3 3 3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">Download</span></button>
+      <button class="f s" type="button" data-name="Upload" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="arrow" d="M12 19V7M7.5 11.5 12 7l4.5 4.5M5 4h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lbl">Upload</span></button>
+      <button class="f t" type="button" data-name="Cancel" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" transform="rotate(45 12 12)"/></svg></span><span class="lbl">Cancel</span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Format">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="PNG"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 16 5-5 4 4 2.5-2.5L20 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="lbl">PNG</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="SVG"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19 19 5M5 19h4M5 19v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="lbl">SVG</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="PDF" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="lbl">PDF</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // the key hops: up off the track, across, and down with a squash
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      M.moveInto(mark, e.detail.to, { duration: 520, easing: 'cubic-bezier(.45, 0, .25, 1)' });
+      if (!M.calm.matches) mark.animate([
+        { translate: '0 0', scale: '1 1' }, { translate: '0 -14px', scale: '1 1', offset: .45, easing: 'ease-in' },
+        { translate: '0 0', scale: '1.08 .85', offset: .82 }, { translate: '0 0', scale: '1 1' }], { duration: 620 });
+    });
+  </script>
+</body>
+</html>

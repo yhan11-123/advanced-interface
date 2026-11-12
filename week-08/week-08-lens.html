@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Lens</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Lens: after a "Create" button sitting in the corner of a dark panel: a thick glass gel, bright blue
+     in the middle and paling to white at the edges, a white rim, navy type. Its corners follow the panel:
+     round on the left, tight at the top right, and the bottom right bends with the panel's own corner.
+     Levels: primary is the blue gel; secondary is clear glass; tertiary is only a rim of light.
+     Every button is glass, and each answers differently:
+       Create (primary)    gel with a light inside: the blue core follows the pointer; a press squashes the
+                           gel and spreads the light; on release it wobbles back and the plus pops
+       Preview (secondary) clear glass: a streak of reflection slides with the pointer; a press fogs the
+                           glass like breath, and on release the fog clears slowly and the eye blinks
+       Discard (outline)   a rim of light that brightens only on the side nearest the pointer; a press
+                           pulls the rim in tight and turns the cross; on release it shakes its head once
+       Group               the blue gel is the pick and pours along the row into the new option */
+  :root { --w: 760px; --h: 440px; }
+  body { background: radial-gradient(120% 90% at 100% 100%, #0b1a33, #05070c 60%); font: 600 18px/1 "Inter", -apple-system, system-ui, sans-serif; color: #e6eefc; }
+  .panel { position: absolute; left: 40px; top: 36px; right: 40px; bottom: 36px; border-radius: 40px; background: #15161a;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 30px 60px -30px rgba(0,0,0,.8); }
+  .head { position: absolute; left: 40px; top: 36px; }
+  .head i { display: block; height: 12px; margin-bottom: 12px; border-radius: 6px; background: #22242a; }
+
+  /* every button is the same glass; --c is the colour of its core */
+  .g { --c: #3b82f6; --core: .95; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 64px; padding: 0 34px; border-radius: 32px 12px 32px 32px; color: #1c3150; letter-spacing: -.01em;
+    background:
+      radial-gradient(60% 70% at calc(var(--px, .5) * 100%) calc(var(--py, .3) * 100%), color-mix(in srgb, var(--c) calc(var(--core) * 100%), transparent), transparent 70%),
+      radial-gradient(70% 60% at 50% 115%, rgba(255,255,255,.95), transparent 70%),
+      linear-gradient(#a9c8ff, #dbe8ff);
+    box-shadow: inset 0 0 0 3px rgba(240,246,255,.9), inset 0 4px 6px rgba(255,255,255,.9), inset 0 -10px 18px rgba(255,255,255,.55), 0 10px 26px -12px rgba(59,130,246,.6);
+    transition: --px .5s var(--glide), --py .5s var(--glide), --core .35s ease, color .3s ease, box-shadow .3s ease; }
+  .g .ic { width: 20px; height: 20px; }
+  .stage[data-content="icon"] .g { width: 64px; padding: 0; }
+  .stage[data-content="both"] .g { padding: 0 34px 0 28px; }
+  /* Create: squash, spread, wobble, turn */
+  .g.p:hover { --core: 1; }
+  .g.p.is-down { transform: scale(1.025, .93); transition: transform .1s ease-out, --core .1s ease-out; --core: .55; background:
+      radial-gradient(95% 100% at calc(var(--px, .5) * 100%) calc(var(--py, .3) * 100%), color-mix(in srgb, var(--c) 100%, transparent), transparent 75%),
+      radial-gradient(90% 80% at 50% 115%, #fff, transparent 70%),
+      linear-gradient(#a9c8ff, #dbe8ff); }
+  .g.p.is-up { animation: wob var(--pop-t) var(--pop); }
+  @keyframes wob { 0% { transform: scale(1.025, .93); } 100% { transform: none; } }
+  .g.p.is-up .ic { animation: plus var(--pop-t) var(--pop); }
+  @keyframes plus { 0% { transform: scale(.6) rotate(-45deg); } 100% { transform: none; } }
+  .g:focus-visible { outline: 2px solid #9cc1ff; outline-offset: 4px; }
+
+  /* Preview: clear glass, a reflection streak, breath on the glass */
+  .g.s { color: #eaf1ff; overflow: hidden; isolation: isolate;
+    background: radial-gradient(70% 60% at 50% 115%, rgba(255,255,255,.16), transparent 70%), rgba(255,255,255,.06);
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), inset 0 3px 5px rgba(255,255,255,.22), inset 0 -8px 14px rgba(255,255,255,.06); }
+  .g.s::before { content: ""; position: absolute; top: -20%; bottom: -20%; width: 34px; left: calc(var(--px, .5) * 100% - 17px); z-index: -1;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent); transform: skewX(-18deg); opacity: 0; transition: opacity .3s, left .45s var(--glide); }
+  .g.s:hover::before { opacity: 1; }
+  .g.s::after { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; background: rgba(225,235,255,.55); opacity: 0; transition: opacity 1.1s ease-out; }
+  .g.s.is-down::after { opacity: 1; transition: opacity .18s ease-out; }
+  .g.s.is-down { color: #1c3150; transition: color .15s; }
+  .g.s .lid { transform-box: fill-box; transform-origin: center; }
+  .g.s.is-up .lid { animation: blink .35s ease-in-out .2s; }
+  @keyframes blink { 50% { transform: scaleY(.1); } }
+
+  /* Discard: a rim lit near the pointer; pulls in; shakes its head */
+  .g.t { color: #b9d2ff; background: transparent; box-shadow: inset 0 0 0 1px rgba(185,210,255,.22); transition: box-shadow .2s, transform .2s; }
+  .g.t::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(90px 70px at calc(var(--px, .5) * 100%) calc(var(--py, .5) * 100%), #e2ecff, rgba(156,193,255,.3) 60%, transparent);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .g.t:hover::before, .g.t:focus-visible::before { opacity: 1; }
+  .g.t.is-down { box-shadow: inset 0 0 0 1px rgba(185,210,255,.5), inset 0 0 0 6px rgba(156,193,255,.12); transform: scale(.96); }
+  .g.t .ic { transition: transform .5s var(--snap); }
+  .g.t.is-down .ic { transform: rotate(90deg); transition-duration: .14s; }
+  .g.t.is-up { animation: no .42s ease-out; }
+  @keyframes no { 20% { translate: -5px 0; } 45% { translate: 4px 0; } 70% { translate: -2px 0; } 100% { translate: 0 0; } }
+
+  /* disabled: smoke, no light */
+  .g:disabled::before, .g:disabled::after { display: none; }
+  .g:disabled { --core: 0; color: rgba(230,238,252,.3); transform: none; animation: none; background: rgba(255,255,255,.04);
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.08); }
+
+  .acts { position: absolute; right: 40px; bottom: 40px; display: flex; gap: 12px; align-items: center; }
+  /* the last button sits in the panel's corner: its bottom right bends with the panel */
+  .acts .g:last-child { border-bottom-right-radius: 26px; }
+
+  /* group: three glass cells in one rim; the blue gel is the pick */
+  .grp { position: absolute; left: 40px; top: 120px; display: flex; padding: 5px; gap: 4px; border-radius: 30px 12px 12px 30px;
+    background: rgba(255,255,255,.03); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.12); }
+  .grp .r { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 22px; border-radius: 25px 8px 8px 25px;
+    color: #9aa6bc; font-weight: 500; font-size: 15px; transition: color .3s ease; }
+  .grp .r + .r { border-radius: 8px; }
+  .grp .r:last-child { border-radius: 8px 8px 8px 8px; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .stage[data-content="icon"] .grp .r { width: 56px; padding: 0; justify-content: center; }
+  .grp .r:hover { color: #dce6f7; }
+  .grp .r[aria-checked="true"] { color: #1c3150; }
+  .grp .r:disabled { color: rgba(154,166,188,.3); }
+  .grp .r:focus-visible { outline: 2px solid #9cc1ff; outline-offset: 2px; }
+  .grp .r.is-down { transform: scale(.96); transition: transform .1s; }
+  .grp .r.is-up { transition: transform var(--snap-t) var(--snap); }
+  .gel { position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+    background: radial-gradient(70% 80% at 50% 30%, #3b82f6, transparent 75%), radial-gradient(70% 60% at 50% 120%, #fff, transparent 70%), linear-gradient(#a9c8ff, #dbe8ff);
+    box-shadow: inset 0 0 0 2px rgba(240,246,255,.9), inset 0 3px 5px rgba(255,255,255,.9); }
+  @property --px { syntax: "<number>"; inherits: true; initial-value: .5; }
+  @property --py { syntax: "<number>"; inherits: true; initial-value: .3; }
+  @property --core { syntax: "<number>"; inherits: true; initial-value: .95; }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="panel" aria-hidden="true"></div>
+    <div class="head" aria-hidden="true"><i style="width:220px;height:18px;background:#2a2c33"></i><i style="width:320px"></i></div>
+    <div class="grp" role="radiogroup" aria-label="Visibility">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Private"><span class="gel" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="lbl">Private</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Team"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M15.5 6.2a3 3 0 0 1 0 5.6M17.5 14.8c1.4.6 2.4 2 2.9 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Team</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Public" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lbl">Public</span></button>
+    </div>
+    <div class="acts">
+      <button class="g t" type="button" data-name="Discard" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span class="lbl">Discard</span></button>
+      <button class="g s" type="button" data-name="Preview" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g class="lid"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></g></svg><span class="lbl">Preview</span></button>
+      <button class="g p" type="button" data-name="Create" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="lbl">Create</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // the light pours along the row: the gel reaches out to the new cell first, then lets go of the old one
+    const grp = document.querySelector('.grp'), gel = grp.querySelector('.gel');
+    grp.addEventListener('pick', e => {
+      const right = e.detail.to.offsetLeft > e.detail.from.offsetLeft;
+      M.moveInto(gel, e.detail.to, { duration: 720, easing: M.ease.flow,
+        mid: (t, r, b, l) => right ? `${t}px 0px ${b}px ${l}px` : `${t}px ${r}px ${b}px 0px` });
+      // the gel takes on the shape of the cell it lands in
+      gel.style.borderRadius = getComputedStyle(e.detail.to).borderRadius;
+    });
+    gel.style.borderRadius = getComputedStyle(grp.querySelector('[aria-checked=true]')).borderRadius;
+  </script>
+</body>
+</html>

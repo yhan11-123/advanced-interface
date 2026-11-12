@@ -1,0 +1,32 @@
+/* Week 08 sketches: the mechanics every button sketch shares, so each file only carries its look.
+   .stage is the whole picture, --w by --h, centred and shrunk as one picture when the window is smaller.
+   .stage[data-content] = both | text | icon; inside a button, .ic is the icon and .lbl the label.
+   The switch at the bottom right (content + disabled) is added by week-08-sketch.js. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { overflow: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; text-align: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+svg { display: block; }
+
+:root { --w: 760px; --h: 420px; --fit: 1; }
+.stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h);
+  transform: translate(-50%, -50%) scale(var(--fit)); transform-origin: 50% 50%; }
+
+.ic { flex: none; }
+.lbl { white-space: nowrap; }
+.stage[data-content="text"] .ic:not(.keep) { display: none; }
+.stage[data-content="icon"] .lbl { display: none; }
+
+/* the switch: neutral, so it never reads as part of a sketch */
+.ctl-pill { position: fixed; right: 10px; bottom: 10px; z-index: 9; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px;
+  background: rgba(20, 20, 20, .72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font: 600 11px/1 system-ui, sans-serif; }
+.ctl-pill button { height: 24px; padding: 0 9px; border-radius: 999px; display: grid; place-items: center; color: rgba(255,255,255,.6); }
+.ctl-pill button:hover { color: #fff; background: rgba(255,255,255,.12); }
+.ctl-pill button[aria-pressed="true"] { color: #111; background: #fff; }
+.ctl-pill button:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.ctl-pill i { width: 1px; height: 14px; margin: 0 3px; background: rgba(255,255,255,.25); }
+
+.back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20, 20, 20, .72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+/* in the small grid preview the switch would cover the sketch; it shows in View larger */
+@media (max-width: 520px) { .ctl-pill { display: none; } }

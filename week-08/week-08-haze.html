@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Haze</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Haze: after a "Get Started" pill on black, filled with out-of-focus colour, blue on the left melting
+     into cream on the right, a white rim, dark rounded type and a solid paper plane.
+     Levels: primary is the full haze; secondary is the haze behind smoke (low contrast, light type);
+     tertiary is clear, only a thin rim of the haze's colours.
+     Every button moves its own way, all of them made of the same soft colour:
+       Get Started (primary)  the blobs drift; on hover they gather toward the pointer; a press pulls them
+                              in under the finger as the pill sinks; on release the haze blooms back out
+                              and the plane takes off and lands
+       Watch demo (secondary) smoke: the pointer wipes a clear patch in it where the colour shows through;
+                              a press shrinks the play mark, and on release rings ripple out of it
+       Read the docs (outline) the rim of colour turns round the pill while you are on it; a press lights it
+                              from inside; on release the book turns a page
+       Group                  the haze is the pick: it stretches out of the old option and pours into the new */
+  @property --a { syntax: "<angle>"; inherits: false; initial-value: 100deg; }
+  body { background: #000; font: 600 16px/1 "Poppins", -apple-system, system-ui, sans-serif; color: #e9edf5; }
+  .stage { display: grid; place-content: center; gap: 56px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 18px; }
+
+  .b { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    height: 60px; padding: 0 30px; border-radius: 30px; overflow: hidden; color: #182033; letter-spacing: -.005em;
+    transition: transform .14s ease-out, color .3s ease; }
+  .b .ic { width: 20px; height: 20px; }
+  .stage[data-content="icon"] .b { width: 60px; padding: 0; }
+  .stage[data-content="both"] .b { padding: 0 26px 0 30px; }
+
+  /* the haze: three soft blobs on a pale ground, drifting */
+  .haze { position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: #e3e8f2; overflow: hidden;
+    transition: opacity .4s ease, filter .4s ease; }
+  .haze i { position: absolute; border-radius: 50%; filter: blur(16px); transition: translate .7s var(--glide), scale .5s var(--snap); }
+  .haze i:nth-child(1) { left: -12%; top: -30%; width: 62%; height: 160%; background: #3f8cff; animation: d1 9s ease-in-out infinite alternate; }
+  .haze i:nth-child(2) { left: 30%; top: -40%; width: 46%; height: 120%; background: #a9cbff; animation: d2 11s ease-in-out infinite alternate; }
+  .haze i:nth-child(3) { right: -14%; top: -20%; width: 48%; height: 150%; background: #f0e0cc; animation: d3 10s ease-in-out infinite alternate; }
+  .haze b { position: absolute; left: 34%; bottom: -60%; width: 30%; height: 90%; border-radius: 50%; background: #fff; filter: blur(14px); opacity: .75; animation: d2 7s ease-in-out infinite alternate-reverse; }
+  @keyframes d1 { to { transform: translate(10%, 8%); } }
+  @keyframes d2 { to { transform: translate(-16%, 10%); } }
+  @keyframes d3 { to { transform: translate(-8%, -6%); } }
+  .b::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55), inset 0 2px 8px rgba(255,255,255,.7), inset 0 -6px 14px rgba(255,255,255,.25); }
+
+  /* Get Started: gather, pull in, bloom, take off */
+  .b.p:hover .haze i, .b.p:focus-visible .haze i { translate: calc((var(--px, .5) - .5) * 40%) calc((var(--py, .5) - .5) * 30%); }
+  .b.p.is-down { transform: scale(.965); transition-duration: .09s; }
+  .b.p.is-down .haze i { scale: .7; transition: scale .12s ease-out, translate .12s ease-out; translate: calc((var(--px, .5) - .5) * 70%) calc((var(--py, .5) - .5) * 50%); }
+  .b.p.is-up { transition: transform var(--snap-t) var(--snap); }
+  .b.p.is-up .haze { animation: bloom var(--pop-t) var(--pop); }
+  @keyframes bloom { 0% { transform: scale(.92); filter: saturate(1.6) brightness(1.08); } 100% { transform: none; filter: none; } }
+  .b.p.is-up .ic { animation: fly .62s cubic-bezier(.5, 0, .3, 1); }
+  @keyframes fly { 0% { transform: none; opacity: 1; } 38% { transform: translate(22px, -16px) rotate(-8deg); opacity: 0; }
+    39% { transform: translate(-18px, 10px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+  /* Watch demo: smoke you wipe clear; ripples from the play mark */
+  .b.s { color: #dfe5f0; background: #1d2028; }
+  .b.s .haze { background: transparent; opacity: .3;
+    -webkit-mask: radial-gradient(circle 64px at calc(var(--px, .5) * 100%) calc(var(--py, .5) * 100%), #000 20%, transparent 100%);
+    mask: radial-gradient(circle 64px at calc(var(--px, .5) * 100%) calc(var(--py, .5) * 100%), #000 20%, transparent 100%); }
+  .b.s:hover .haze, .b.s:focus-visible .haze { opacity: .95; }
+  .b.s:hover { color: #fff; }
+  .b.s::after { box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), inset 0 2px 8px rgba(255,255,255,.08); }
+  .b.s .ic { transition: transform .5s var(--snap); }
+  .b.s.is-down .ic { transform: scale(.78); transition: transform .1s ease-out; }
+  .b.s.is-down { transform: scale(.985); }
+  .ripple { position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(169,203,255,.9); pointer-events: none; translate: -50% -50%; }
+
+  /* Read the docs: a turning rim, a light inside, a page turned */
+  .b.t { color: #e6ecf6; }
+  .b.t .haze { background: transparent; opacity: 0; }
+  .b.t::after { padding: 1.5px; box-shadow: none; background: conic-gradient(from var(--a), #3f8cff, #a9cbff, #f0e0cc, #a9cbff, #3f8cff);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .b.t:hover::after, .b.t:focus-visible::after { animation: turn 2.4s linear infinite; }
+  @keyframes turn { from { --a: 100deg; } to { --a: 460deg; } }
+  .b.t::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: 0; transition: opacity .5s ease;
+    box-shadow: inset 0 0 18px rgba(63,140,255,.55), inset 0 0 40px rgba(240,224,204,.25); }
+  .b.t.is-down::before { opacity: 1; transition-duration: .12s; }
+  .b.t .page { transform-box: fill-box; transform-origin: left center; }
+  .b.t.is-up .page { animation: page .55s cubic-bezier(.4, 0, .2, 1); }
+  @keyframes page { 0% { transform: none; } 50% { transform: scaleX(-1); opacity: .4; } 100% { transform: none; } }
+
+  /* disabled: the colour drains and stops */
+  .b:disabled { color: rgba(233, 237, 245, .32); transform: none; }
+  .b:disabled .haze { background: #16181d; }
+  .b:disabled .haze i, .b:disabled .haze b { opacity: 0; animation-play-state: paused; }
+  .b:disabled::after { background: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+
+  .b:focus-visible { outline: 2px solid #a9cbff; outline-offset: 4px; }
+
+  /* group: a smoky track; the haze is the pick and pours between options */
+  .grp { position: relative; display: flex; padding: 5px; gap: 2px; border-radius: 32px; background: #101217; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+  .grp .b { height: 50px; padding: 0 22px; gap: 9px; color: #8c96a8; font-weight: 500; font-size: 15px; overflow: visible; }
+  .grp .b .ic { width: 18px; height: 18px; }
+  .stage[data-content="icon"] .grp .b { width: 58px; }
+  .grp .b::after { display: none; }
+  .grp .b:hover { color: #d4dae6; }
+  .grp .b[aria-checked="true"] { color: #182033; }
+  .grp .b:disabled { color: rgba(140,150,168,.3); }
+  .grp .pick { position: absolute; inset: 0; z-index: -1; border-radius: 25px; overflow: hidden; background: #e3e8f2; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55), inset 0 2px 8px rgba(255,255,255,.7); }
+  .grp .pick i { position: absolute; border-radius: 50%; filter: blur(12px); }
+  .grp .pick i:nth-child(1) { left: -20%; top: -30%; width: 70%; height: 160%; background: #3f8cff; animation: d1 8s ease-in-out infinite alternate; }
+  .grp .pick i:nth-child(2) { right: -20%; top: -20%; width: 60%; height: 150%; background: #f0e0cc; animation: d3 9s ease-in-out infinite alternate; }
+  .grp .b.is-down { transform: scale(.95); }
+  @media (prefers-reduced-motion: reduce) { .haze i, .haze b, .grp .pick i { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="b p" type="button" data-name="Get started" data-off><span class="haze" aria-hidden="true"><i></i><i></i><i></i><b></b></span><span class="lbl">Get Started</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 20.5 3.5 13 20.5l-2-7.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+      <button class="b s" type="button" data-name="Watch demo" data-off><span class="haze" aria-hidden="true"><i></i><i></i><i></i><b></b></span><span class="lbl">Watch demo</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.6v6.8l5.4-3.4z" fill="currentColor"/></svg></button>
+      <button class="b t" type="button" data-name="Read the docs" data-off><span class="haze" aria-hidden="true"><i></i><i></i><i></i><b></b></span><span class="lbl">Read the docs</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5A2 2 0 0 1 7 3.5h12v15H7a2 2 0 0 0-2 2zM5 20.5V5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path class="page" d="M12 3.5v15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Plan">
+      <button class="b" type="button" role="radio" aria-checked="true" data-name="Photo"><span class="pick" aria-hidden="true"><i></i><i></i></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 16 5-5 4 4 2.5-2.5L20 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="lbl">Photo</span></button>
+      <button class="b" type="button" role="radio" aria-checked="false" data-name="Video"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 10.5 5-3v9l-5-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="lbl">Video</span></button>
+      <button class="b" type="button" role="radio" aria-checked="false" data-name="Audio" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Audio</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // Watch demo: on release, rings ripple out of the play mark
+    const demo = document.querySelector('.b.s');
+    demo.addEventListener('up', () => {
+      if (M.calm.matches) return;
+      const ic = demo.querySelector('.ic'), x = ic.getBoundingClientRect(), r = demo.getBoundingClientRect(), f = M.fit();
+      const cx = (x.left + x.width / 2 - r.left) / f, cy = (x.top + x.height / 2 - r.top) / f;
+      for (let i = 0; i < 3; i++) {
+        const ring = document.createElement('span'); ring.className = 'ripple';
+        ring.style.left = cx + 'px'; ring.style.top = cy + 'px'; demo.append(ring);
+        ring.animate([{ scale: .6, opacity: 1 }, { scale: 9, opacity: 0 }], { duration: 900, delay: i * 140, easing: 'cubic-bezier(.2, .6, .3, 1)', fill: 'backwards' }).finished.then(() => ring.remove());
+      }
+    });
+    // the haze pours: it stretches to cover both options on the way, then lets go of the old one
+    const grp = document.querySelector('.grp'), pick = grp.querySelector('.pick');
+    grp.addEventListener('pick', e => {
+      const right = e.detail.to.offsetLeft > e.detail.from.offsetLeft;
+      M.moveInto(pick, e.detail.to, { duration: 640, easing: M.ease.flow,
+        mid: (t, r, b, l) => right ? `${t * .4}px 0px ${b * .4}px ${l}px` : `${t * .4}px ${r}px ${b * .4}px 0px` });
+    });
+  </script>
+</body>
+</html>

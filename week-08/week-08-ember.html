@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Ember</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <link rel="stylesheet" href="week-08-finish.css?v=1" />
+  <style>
+  /* Ember: the "Buy now" tile. A copper pill on warm blush, with a softer knob at its left end holding a
+     small flame, a pale copper ring around the whole. Heat is the material.
+       Buy now (primary)      the flame flickers when you come near; a press slides the knob along and the
+                              flame flares; on release a few sparks lift off it and fade
+       Add to cart (second.)  warmth gathers under the pointer like a hand on a stove; a press cools it
+       Details (outline)      a fuse: on hover a spark runs once round the outline; a press scorches the
+                              arrow forward
+       Group                  the pick is a coal that leaves a short trail of sparks as it moves */
+  body { --page: radial-gradient(80% 70% at 50% 50%, #f2e3dc, #dcc4b8);
+    --font: 700 18px/1 "Plus Jakarta Sans", sans-serif; --ls: 0; --tt: none; --r: 40px;
+    --p-bg: linear-gradient(#c47052, #a3553b); --p-fg: #fdeee6; --p-bd: 0; --p-sh: 0 0 0 7px rgba(196,112,82,.22), 0 16px 24px -12px rgba(120,50,20,.6), inset 0 1px 0 rgba(255,255,255,.3);
+    --s-bg: #e8cbbd; --s-fg: #8a3f27; --s-bd: 0; --s-sh: inset 0 1px 0 rgba(255,255,255,.6);
+    --t-fg: #a3553b; --t-bd: 0;
+    --track: rgba(163,85,59,.12); --track-bd: 0; --g-fg: #8a5a48; --g-on: #fdeee6; --mark: linear-gradient(#c47052, #a3553b); }
+
+  /* Buy now: knob and flame */
+  .p { overflow: visible; transition: transform var(--snap-t) var(--snap), box-shadow .3s; }
+  .p .ico { margin: 0 4px 0 -22px; width: 50px; height: 44px; border-radius: 22px; background: rgba(255,230,215,.2); transition: transform var(--snap-t) var(--snap), box-shadow .3s; }
+  .stage[data-content="icon"] .p .ico { margin: 0; width: 44px; }
+  .flame { transform-origin: 50% 90%; transition: transform .3s var(--snap); }
+  .p:hover .flame, .p:focus-visible .flame { animation: flick .45s ease-in-out infinite alternate; }
+  @keyframes flick { from { transform: scale(1, 1) rotate(-4deg); } to { transform: scale(1.08, 1.2) rotate(4deg); } }
+  .p.is-down .ico { transform: translateX(7px); box-shadow: 0 0 16px rgba(255,180,92,.8); transition-duration: .14s; }
+  .stage[data-content="icon"] .p.is-down .ico { transform: none; }
+  .p.is-down .flame { animation: none; transform: scale(1.4); }
+  .p.is-down { transform: scale(.98); }
+  .spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffcf7a; box-shadow: 0 0 6px #ffb45c; pointer-events: none; }
+
+  /* Add to cart: warmth under the pointer */
+  .s::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .5s ease;
+    background: radial-gradient(40% 90% at calc(var(--px, .5) * 100%) calc(var(--py, .5) * 100%), rgba(240,140,95,.7), transparent 75%); }
+  .s:hover::before { opacity: 1; }
+  .s { transition: filter .4s ease, transform .3s var(--snap); }
+  .s.is-down { filter: saturate(.4) brightness(.95); transform: scale(.98); transition-duration: .1s; }
+  .s.is-down::before { opacity: .2; transition-duration: .1s; }
+
+  /* Details: a fuse round the outline */
+  .t .line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .t .line rect { x: .75px; y: .75px; width: calc(100% - 1.5px); height: calc(100% - 1.5px); rx: 28.25px; fill: none; }
+  .t .line .base { stroke: #c47052; stroke-width: 1.5; }
+  .t .line .fuse { stroke: #ffb45c; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 6 94; stroke-dashoffset: 6; opacity: 0; filter: drop-shadow(0 0 3px #ff8a3c); }
+  .t:hover .fuse, .t:focus-visible .fuse { animation: fuse 1.3s linear; }
+  @keyframes fuse { 0% { stroke-dashoffset: 6; opacity: 1; } 95% { opacity: 1; } 100% { stroke-dashoffset: -94; opacity: 0; } }
+  .t .ico svg { transition: transform .5s var(--snap), color .4s; }
+  .t.is-down .ico svg { transform: translateX(6px); color: #e8641e; transition: transform .1s ease-out; }
+  .t:hover { background: rgba(196,112,82,.06); }
+
+  .mark { box-shadow: 0 0 12px rgba(255,150,80,.5), inset 0 1px 0 rgba(255,255,255,.3); }
+  .grp .f.is-down { transform: scale(.96); }
+  @media (prefers-reduced-motion: reduce) { .p:hover .flame, .t:hover .fuse { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="f p" type="button" data-name="Buy now" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><g class="flame"><path d="M12 2.5c.6 3.2 5.5 5.5 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.6-5.2.3 1.6 1 2.4 1.8 2.8C10.6 7.8 11 5.2 12 2.5z" fill="#ffb45c"/><path d="M12 11c.4 1.8 2.6 2.8 2.6 5.2a2.6 2.6 0 0 1-5.2 0c0-1.4.8-2.2 1.4-2.8.2.7.5 1 .9 1.2-.2-1.4 0-2.4.3-3.6z" fill="#ffe7a8"/></g></svg></span><span class="lbl">Buy now</span></button>
+      <button class="f s" type="button" data-name="Add to cart" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 4.5h2.5l2 11h10l2-8H7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/><circle cx="9.5" cy="19" r="1.4" fill="currentColor"/><circle cx="16.5" cy="19" r="1.4" fill="currentColor"/></svg></span><span class="lbl">Add to cart</span></button>
+      <button class="f t" type="button" data-name="Details" data-off><svg class="line" aria-hidden="true"><rect class="base" pathLength="100"/><rect class="fuse" pathLength="100"/></svg><span class="lbl">Details</span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Roast">
+      <button class="f" type="button" role="radio" aria-checked="true" data-name="Light"><span class="mark" aria-hidden="true"></span><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="5.5" ry="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4c-1.5 3-1.5 13 0 16" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="lbl">Light</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Medium"><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="5.5" ry="8" fill="currentColor" fill-opacity=".35" stroke="currentColor" stroke-width="1.8"/><path d="M12 4c-1.5 3-1.5 13 0 16" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><span class="lbl">Medium</span></button>
+      <button class="f" type="button" role="radio" aria-checked="false" data-name="Dark" data-off><span class="ico ic" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="5.5" ry="8" fill="currentColor" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const fit = () => M.fit();
+    // sparks: a few small embers lift off a point and fade
+    const sparks = (host, x, y, n = 4, spread = 18) => {
+      if (M.calm.matches) return;
+      for (let i = 0; i < n; i++) {
+        const s = document.createElement('span'); s.className = 'spark';
+        s.style.left = x + 'px'; s.style.top = y + 'px'; host.append(s);
+        const dx = (Math.random() - .5) * spread, dy = -14 - Math.random() * 18;
+        s.animate([{ transform: 'translate(-50%, -50%)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.3)`, opacity: 0 }],
+          { duration: 500 + Math.random() * 300, easing: 'cubic-bezier(.2, .6, .4, 1)', delay: i * 40, fill: 'backwards' }).finished.then(() => s.remove());
+      }
+    };
+    const buy = document.querySelector('.p');
+    buy.addEventListener('up', () => { const ico = buy.querySelector('.ico'); sparks(buy, ico.offsetLeft + ico.offsetWidth / 2, ico.offsetTop + 8); });
+
+    // the coal leaves a trail of sparks along the track
+    const grp = document.querySelector('.grp'), mark = grp.querySelector('.mark');
+    grp.addEventListener('pick', e => {
+      const a = e.detail.from.offsetLeft + e.detail.from.offsetWidth / 2, b = e.detail.to.offsetLeft + e.detail.to.offsetWidth / 2;
+      M.moveInto(mark, e.detail.to, { duration: 560, easing: M.ease.flow });
+      for (let i = 1; i <= 4; i++) setTimeout(() => sparks(grp, a + (b - a) * i / 5, grp.offsetHeight / 2, 2, 10), i * 70);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Flood</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Flood: after "I'm ready to grow": a cream pill on near-black with a small acid-lime dot at its right
+     end. As the pointer comes in, the dot swells and floods the whole pill with lime from that end, and
+     an arrow takes the dot's place, drawn in on the diagonal; as it leaves, the lime runs back into the dot.
+       Grow (primary)    exactly that: the dot floods the pill and becomes an arrow; it all runs back
+       Join (secondary)  a dark pill with the dot at its right; on hover the dot runs to the front and the
+                         words step aside for it, so the dot leads; a press squeezes the dot flat
+       Read (tertiary)   cream words with a dot after them; on hover the dot drops under the words and
+                         stretches into a line; a press thickens it
+       Group             the dot marks the pick and leaps in an arc to the new option, landing with a squash */
+  :root { --w: 760px; --h: 420px; --lime: #d9f21b; --cream: #fbfbee; --ink: #121212; }
+  body { background: #11140f; font: 400 19px/1 "Inter Tight", -apple-system, system-ui, sans-serif; color: var(--cream); }
+  .stage { display: grid; place-content: center; gap: 62px; justify-items: center; }
+  .row { display: flex; align-items: center; gap: 26px; }
+  button:focus-visible { outline: 2px solid var(--lime); outline-offset: 5px; }
+
+  /* Grow */
+  .gr { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 30px; height: 70px; padding: 0 22px 0 40px; border-radius: 35px; background: var(--cream); color: var(--ink); overflow: hidden; }
+  .gr .spot { position: relative; display: grid; place-items: center; width: 26px; height: 26px; }
+  .gr .spot::before { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--lime); z-index: -1;
+    transition: transform .55s cubic-bezier(.5, 0, .2, 1); }
+  .gr:hover .spot::before, .gr:focus-visible .spot::before { transform: scale(26); transition-duration: .6s; }
+  .gr .arrow { width: 22px; height: 22px; opacity: 0; transform: translate(-8px, 8px); transition: opacity .2s, transform .45s var(--snap); }
+  .gr .arrow path { stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .4s ease .15s; }
+  .gr:hover .arrow, .gr:focus-visible .arrow { opacity: 1; transform: none; transition-delay: .2s; }
+  .gr:hover .arrow path, .gr:focus-visible .arrow path { stroke-dashoffset: 0; }
+  .gr.is-down { transform: scale(.97); transition: transform .1s; }
+  .gr.is-up { transition: transform var(--snap-t) var(--snap); }
+  .gr.is-down .arrow { transform: translate(4px, -4px); }
+  .stage[data-content="icon"] .gr { width: 70px; padding: 0; justify-content: center; }
+  .stage[data-content="text"] .gr { padding: 0 40px; }
+  .stage[data-content="text"] .gr .spot { position: absolute; right: 22px; width: 0; }
+  .stage[data-content="text"] .gr .arrow { display: none; }
+
+  /* Join: the dot runs to the front */
+  .jn { position: relative; display: inline-flex; align-items: center; gap: 18px; height: 60px; padding: 0 22px 0 30px; border-radius: 30px; background: #262922; }
+  .jn .lbl { transition: transform .5s var(--glide); }
+  .jn .bead { width: 14px; height: 14px; border-radius: 50%; background: var(--lime); transition: transform .5s var(--glide), scale .12s; }
+  .jn:hover .bead, .jn:focus-visible .bead { transform: translateX(var(--to, -90px)); }
+  .jn:hover .lbl, .jn:focus-visible .lbl { transform: translateX(16px); }
+  .jn.is-down .bead { scale: 1.5 .55; }
+  .stage[data-content="icon"] .jn { width: 60px; padding: 0; justify-content: center; }
+  .stage[data-content="icon"] .jn .bead { transform: none; }
+  .stage[data-content="text"] .jn .bead { display: none; }
+  .stage[data-content="text"] .jn { padding: 0 30px; }
+
+  /* Read: the dot drops into a line */
+  .rd { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 60px; padding: 0 22px 0 4px; }
+  .rd .bead { position: absolute; right: 4px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 5px; background: var(--lime);
+    transition: right .45s cubic-bezier(.6, 0, .2, 1), width .45s cubic-bezier(.6, 0, .2, 1), top .3s cubic-bezier(.6, 0, .2, 1), height .2s; }
+  .rd:hover .bead, .rd:focus-visible .bead { top: calc(100% - 14px); right: 22px; width: calc(100% - 26px); height: 2px; }
+  .rd.is-down .bead { height: 5px; }
+  .stage[data-content="icon"] .rd { width: 60px; padding: 0; justify-content: center; }
+  .stage[data-content="icon"] .rd .bead { right: 50%; margin-right: -4.5px; width: 9px; top: 50%; height: 9px; }
+
+  .row button:disabled { opacity: .35; }
+  .row button:disabled * { transform: none !important; transition: none !important; }
+  .row button:disabled .spot::before { transform: none !important; }
+
+  /* group: the dot leaps */
+  .grp { position: relative; display: flex; gap: 4px; padding: 6px; border-radius: 30px; background: #1d201a; }
+  .grp .r { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px 0 34px; border-radius: 24px; font-size: 16px; color: #8d9284; transition: color .25s; }
+  .grp .r:hover { color: var(--cream); }
+  .grp .r[aria-checked="true"] { color: var(--cream); }
+  .grp .r:disabled { opacity: .35; }
+  .grp .r .ic { width: 18px; height: 18px; }
+  .stage[data-content="icon"] .grp .r { width: 64px; padding: 0 0 0 16px; justify-content: center; }
+  .stage[data-content="text"] .grp .r .ic { display: none; }
+  .gdot { position: absolute; left: 16px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--lime); }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="row">
+      <button class="gr" type="button" data-name="I'm ready to grow" data-off><span class="lbl">I'm ready to grow</span><span class="spot ic keep" aria-hidden="true"><svg class="arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <button class="jn" type="button" data-name="Join" data-off><span class="lbl">Join</span><span class="bead ic keep" aria-hidden="true"></span></button>
+      <button class="rd" type="button" data-name="Read" data-off><span class="lbl">Read the story</span><span class="bead ic keep" aria-hidden="true"></span></button>
+    </div>
+    <div class="grp" role="radiogroup" aria-label="Plan">
+      <button class="r" type="button" role="radio" aria-checked="true" data-name="Seed"><span class="gdot" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20v-7M12 13c-3.5 0-6-2-6-6 3.5 0 6 2 6 6zM12 13c0-3 2-5 6-5 0 3-2 5-6 5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Seed</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Sprout"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V9M12 12c-4 0-6.5-2.5-6.5-7 4 0 6.5 2.5 6.5 7zM12 9c0-3.5 2.5-6 6.5-6 0 3.5-2.5 6-6.5 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Sprout</span></button>
+      <button class="r" type="button" role="radio" aria-checked="false" data-name="Bloom" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 11.5V21M12 6.5c0-2 1-3 2.5-3 0 2-1 3-2.5 3zM12 6.5c0-2-1-3-2.5-3 0 2 1 3 2.5 3zM14.5 9c2 0 3 1 3 2.5-2 0-3-1-3-2.5zM9.5 9c-2 0-3 1-3 2.5 2 0 3-1 3-2.5z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="lbl">Bloom</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    // Join: how far the dot must run to reach the front
+    const jn = document.querySelector('.jn');
+    const reach = () => { const b = jn.querySelector('.bead'), l = jn.querySelector('.lbl'); jn.style.setProperty('--to', -(b.offsetLeft - l.offsetLeft + 4) + 'px'); };
+    document.fonts.ready.then(reach); reach(); M.stage.addEventListener('content', () => setTimeout(reach, 750));
+
+    // the dot leaps in an arc and lands with a squash
+    const grp = document.querySelector('.grp'), dot = grp.querySelector('.gdot');
+    grp.addEventListener('pick', e => {
+      const a = dot.getBoundingClientRect();
+      e.detail.to.prepend(dot);
+      if (M.calm.matches) return;
+      const b = dot.getBoundingClientRect(), dx = (a.left - b.left) / M.fit();
+      dot.animate([
+        { transform: `translate(${dx}px, 0)` },
+        { transform: `translate(${dx * .5}px, -34px)`, offset: .5, easing: 'ease-in' },
+        { transform: 'translate(0, 0) scale(1.5, .6)', offset: .85 },
+        { transform: 'none' }], { duration: 560, easing: 'ease-out' });
+    });
+  </script>
+</body>
+</html>
