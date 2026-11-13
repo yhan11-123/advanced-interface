@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Set 1 &middot; Melt</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" />
+  <style>
+  /* Week 08, Set 1 · Melt. Tone: Fluid.
+     A cream-on-black button system in which the pointer carries a small cream drop and the buttons
+     are made of the same liquid: they reach out to the drop, take it in, and let it go.
+     Three levels of emphasis:
+       Primary    an outline that fills with cream from where the drop comes in, and drains out where it leaves
+       Secondary  a dim filled pill: the drop sinks into it and beads on its lower edge under the pointer
+       Tertiary   an outline pill: the drop sinks in and a bright outline is drawn round it from where it touched
+       Group      single selection: the cream pick necks and pulls from one option into the next
+     Every number in the Spec section is read from these tokens. */
+  :root {
+    --page: #000; --cream: #f6f4da; --body: #2b2a20; --body-down: #3a3928; --cream-down: #e3dfba; --dim: #8f8c78; --rule: #24231c;
+    --font: "Inter Tight", -apple-system, system-ui, sans-serif;
+    --gap: 10px; --icon: 20px; --stroke: 1.6;
+    --p-h: 64px; --p-r: 32px; --p-line: 2px; --p-pad: 36px;
+    --s-h: 56px; --s-pad: 26px;
+    --t-h: 52px; --t-pad: 24px; --t-line: 1.5px; --t-line-down: 3px; --t-rest: .32;
+    --g-h: 48px; --g-r: 24px; --g-line: 1.5px; --g-gap: 6px; --g-pad: 20px;
+    --drop: 14px; --reach: 70px; --lean: 4px; --bump-w: 64px; --bump-h: 15px;
+    --flood-in: 820ms; --flood-out: 640ms; --hand-off: 520ms; --travel: 860ms; --spread: 600ms;
+    --press-scale: .97;
+    --d-h: 44px; --d-h-sm: 38px; --d-r: 22px; --d-gap: 10px; --d-drop: 22px; --d-fall: 900ms; --d-stagger: 130ms; --d-grow: 420ms; --d-back: 620ms; --room: 150px;
+    --snap: linear(0, 0.075, 0.261, 0.466, 0.666, 0.836, 0.977, 1.061, 1.106, 1.122, 1.115, 1.096, 1.071, 1.046, 1.022, 1.006, 0.994, 0.988, 0.985, 0.986, 0.988, 0.991, 0.994, 0.997, 0.999, 1.001, 1.001, 1.002, 1.002, 1.002, 1.001, 1.001, 1, 1, 1);
+    --glide: cubic-bezier(.3, .7, .2, 1);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--cream); font: 400 18px/1 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  svg { display: block; }
+  button:focus-visible { outline: 2px solid var(--cream); outline-offset: 5px; }
+
+  /* ---- the button system ----------------------------------------------------------------------------- */
+  .ic { flex: none; width: var(--icon); height: var(--icon); }
+  .ic * { fill: none; stroke: currentColor; stroke-width: var(--stroke); stroke-linecap: round; stroke-linejoin: round; }
+  .lbl { white-space: nowrap; }
+  [data-content="text"] .ic { display: none; }
+  [data-content="icon"] .lbl { display: none; }
+
+  /* primary: an outline that fills */
+  .ct { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--p-h); padding: 0 var(--p-pad);
+    border-radius: var(--p-r); border: var(--p-line) solid var(--cream); transition: color .25s, background-color .18s, transform .5s var(--snap); }
+  .ct.is-full, .ct.st-hover, .ct:focus-visible { background: var(--cream); color: var(--page); }
+  .ct.is-down, .ct.st-down { background: var(--cream-down); color: var(--page); transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .ct { --gk: 0; --gx: 50%; --gy: 50%; }
+  .ct::before { content: ""; position: absolute; inset: calc(var(--p-line) * -1); border-radius: inherit; padding: calc(var(--p-line) + 1px); pointer-events: none;
+    background: radial-gradient(120px 80px at var(--gx) var(--gy), #fffef0, rgba(255,254,240,0) 70%); opacity: var(--gk);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  [data-live] .ct, [data-live] .pf { transition: color .25s, background-color .2s, transform .5s var(--snap), translate .45s cubic-bezier(.25, .7, .25, 1); }
+  .ct:disabled { border-color: rgba(246,244,218,.28); color: rgba(246,244,218,.32); background: none; transform: none; }
+  [data-content="icon"] .ct { width: var(--p-h); padding: 0; }
+
+  /* secondary: a dim pill with a bead */
+  .pf { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--s-h); padding: 0 var(--s-pad);
+    border-radius: calc(var(--s-h) / 2); background: var(--body); transition: background-color .2s, transform .5s var(--snap); }
+  .pf.is-down, .pf.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .pf.st-down, .pf[aria-expanded="true"] { background: var(--body-down); }
+  .pf.st-hover::after { content: ""; position: absolute; left: 50%; bottom: -11px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--body);
+    box-shadow: 0 -8px 0 -3px var(--body); }
+  .pf:disabled { color: rgba(246,244,218,.32); background: #17160f; transform: none; }
+  [data-content="icon"] .pf { width: var(--s-h); padding: 0; }
+
+
+  /* tertiary: an outline pill. At rest a faint line; pointed at, a bright line is drawn round it from
+     the point the pointer touched, both ways at once, until it closes on the far side */
+  @property --len { syntax: "<number>"; inherits: true; initial-value: 0; }
+  .rs { --len: 0; --p: 25; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--t-h); padding: 0 var(--t-pad);
+    border-radius: calc(var(--t-h) / 2); transition: --len var(--spread) var(--glide), transform .5s var(--snap); }
+  .rs .ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .rs .ring rect { x: .75px; y: .75px; width: calc(100% - 1.5px); height: calc(100% - 1.5px); rx: calc(var(--t-h) / 2 - .75px); fill: none; stroke: var(--cream); stroke-width: var(--t-line); }
+  .rs .ring .base { opacity: var(--t-rest); }
+  .rs .ring .hi { stroke-dasharray: var(--len) calc(100 - var(--len)); stroke-dashoffset: calc(var(--len) / 2 - var(--p)); transition: stroke-width .12s; }
+  .rs:hover, .rs:focus-visible, .rs.st-hover, .rs[aria-expanded="true"] { --len: 100; }
+  .rs.is-down, .rs.st-down { --len: 100; transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .rs.is-down .ring .hi, .rs.st-down .ring .hi { stroke-width: var(--t-line-down); }
+  /* the arrow travels with the line: as the line spreads it flies out up and right and comes back in from
+     below left; pressed it leans further out; opened, it turns to point down at what opened */
+  .rs .ic { transition: transform .55s var(--snap); }
+  .rs .ic path { transform-box: fill-box; transform-origin: center; }
+  .rs:hover .ic path, .rs:focus-visible .ic path { animation: arrow-through var(--spread) cubic-bezier(.5, 0, .3, 1); }
+  @keyframes arrow-through { 0% { transform: none; opacity: 1; } 42% { transform: translate(9px, -9px); opacity: 0; } 43% { transform: translate(-9px, 9px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .rs.is-down .ic, .rs.st-down .ic { transform: translate(3px, -3px); transition-duration: .12s; }
+  .rs[aria-expanded="true"] .ic { transform: rotate(135deg); }
+  .rs[aria-expanded="true"]:hover .ic path { animation: none; }
+  .rs:disabled { color: rgba(246,244,218,.32); }
+  .rs:disabled { --len: 0; }
+  .rs:disabled .ring .base { opacity: .14; }
+  [data-content="icon"] .rs { width: var(--t-h); padding: 0; }
+
+  /* group: single selection */
+  .grp { position: relative; display: flex; gap: var(--g-gap); }
+  .r { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: var(--g-h); padding: 0 var(--g-pad);
+    border-radius: var(--g-r); border: var(--g-line) solid rgba(246,244,218,.35); font-size: 16px; transition: color .25s, border-color .25s, background-color .2s, transform .5s var(--snap); }
+  .r .ic { width: 18px; height: 18px; }
+  .r:hover, .r.st-hover { border-color: var(--cream); }
+  .r[aria-checked="true"] { border-color: var(--cream); }
+  .r.landed { background: var(--cream); }
+  /* the words are drawn in difference, so they read dark wherever the cream is under them, even while it travels */
+  .r .lbl, .r .ic { mix-blend-mode: difference; }
+  [data-live] .grp { z-index: auto; }
+  .r.is-down, .r.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .r.landed.st-down, .r.landed.is-down { background: var(--cream-down); }
+  .r:disabled { border-color: rgba(246,244,218,.14); color: rgba(246,244,218,.3); }
+  [data-content="icon"] .r { width: 54px; padding: 0; }
+
+  /* ---- page --------------------------------------------------------------------------------------------- */
+  .hero { position: relative; padding: 26px 32px 36px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .head p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.5; max-width: 52ch; }
+  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cream); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; background: #1a1a14; }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--dim); }
+  .ctl input:checked + span { background: var(--cream); color: var(--page); }
+  .ctl input:focus-visible + span { outline: 2px solid var(--cream); outline-offset: 1px; }
+
+  .scene { position: relative; display: grid; justify-items: center; align-content: center; gap: 30px; min-height: 560px; margin-top: 10px; }
+  .who { text-align: center; }
+  .who h1 { margin: 0 0 8px; font-size: 34px; font-weight: 400; letter-spacing: -.02em; }
+  .who p { margin: 0; color: var(--dim); font-size: 15px; }
+  .row { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; }
+  .grp-wrap { display: grid; justify-items: center; gap: 12px; }
+  .grp-wrap small { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .row button, .grp { position: relative; z-index: 1; }
+
+  /* the liquid layers: one for cream, one for the dark pill, never mixed */
+  /* the liquid is drawn with plain, crisp shapes (no blur filter): nothing is left behind as they move */
+  .goo { position: absolute; inset: 0; pointer-events: none; }
+  .goo > * { position: absolute; left: 0; top: 0; background: var(--cream); }
+  .blob { width: var(--drop); height: var(--drop); margin: calc(var(--drop) / -2) 0 0 calc(var(--drop) / -2); border-radius: 50%; scale: 0; transition: scale .22s ease-out; }
+  .fill { border-radius: calc(var(--p-r) - 2px); overflow: hidden; background: transparent !important; }
+  .fill i { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; background: var(--cream); scale: 0; }
+  .gpick { border-radius: var(--g-r); opacity: 0; }
+  .gpick.moving { opacity: 1; }
+  /* the bead hangs outward from a point on the pill's edge: drawn hanging down, turned to face out; it sits behind
+     the pill, so only the part past the edge shows */
+  .bead { width: var(--bump-w); height: calc(var(--bump-h) + 8px); margin: -8px 0 0 calc(var(--bump-w) / -2); overflow: visible; background: none !important; fill: var(--body);
+    transform-origin: 50% 8px; transform: scaleX(var(--ws, 1)); scale: 0; transition: scale .45s cubic-bezier(.3, .7, .3, 1); }
+
+  /* depth: the options that drip out of a button */
+  .room { height: var(--room); }
+  .drips { position: absolute; z-index: 1; display: flex; gap: var(--d-gap); }
+  .drips[hidden] { display: none; }
+  .c { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--d-h); padding: 0 18px; border-radius: var(--d-r); font-size: 15px; white-space: nowrap;
+    transition: background-color .2s, color .2s, transform .45s var(--snap), opacity .16s; }
+  .c .ic { width: 18px; height: 18px; }
+  [data-content="icon"] .c { width: var(--d-h); padding: 0; }
+  .c.is-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .c.fillc { background: var(--cream); color: var(--page); }
+  .c.fillc:hover, .c.fillc.st-hover { background: #fffde9; box-shadow: 0 0 0 3px rgba(246,244,218,.22); }
+  .c.fillc.is-down, .c.fillc[aria-expanded="true"] { background: var(--cream-down); }
+  .c.ringc { box-shadow: inset 0 0 0 1.5px var(--cream); color: var(--cream); }
+  .c.ringc:hover, .c.ringc.st-hover { background: rgba(246,244,218,.12); }
+  .c.darkc { background: var(--body); color: var(--cream); }
+  .c.darkc:hover, .c.darkc.st-hover { background: #37362a; }
+  .c.darkc.is-down, .c.darkc[aria-expanded="true"] { background: var(--body-down); box-shadow: inset 0 0 0 1.5px rgba(246,244,218,.3); }
+  .c.sm { height: var(--d-h-sm); padding: 0 14px; font-size: 14px; border-radius: calc(var(--d-h-sm) / 2); }
+  [data-content="icon"] .c.sm { width: var(--d-h-sm); }
+  .c.linec { height: 40px; padding: 0 4px; border-radius: 0; }
+  .c.linec::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: 7px; height: var(--t-under); background: currentColor; transition: height .12s; }
+  .c.linec:hover::after { height: 3px; }
+  .c.linec.is-down::after { height: var(--t-under-down); }
+  [data-content="icon"] .c.linec { width: 40px; padding: 0; }
+  .ct[aria-expanded="true"] { background: var(--cream); color: var(--page); }
+  .twin { position: absolute; }
+  .goo.cream .twin { background: var(--cream); }
+  .goo.dark .twin { background: var(--body) !important; }
+
+  body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
+  body.shot .hero { padding: 0; }
+  body.shot .scene { min-height: 0; margin: 0; padding-top: 36px; }
+  body.shot .who, body.shot .dish, body.shot .grp-wrap, body.shot .room { display: none; }
+  body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; }
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* states */
+  .states, .spec { padding: 44px 32px 40px; border-top: 1px solid var(--rule); }
+  .states h2, .spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+  .states > p, .spec > p { margin: 0 0 22px; color: var(--dim); max-width: 72ch; font-size: 14px; line-height: 1.5; }
+  .tbl { overflow-x: auto; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 12px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .states td { padding: 10px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  .states td:first-child { width: 190px; min-width: 160px; font-size: 14px; font-weight: 500; }
+  .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--dim); font-size: 12.5px; }
+  .frame { display: flex; align-items: center; justify-content: center; width: 220px; height: 104px; border-radius: 16px; background: #0b0b08; }
+  .frame button { pointer-events: none; }
+  .frame * { transition: none !important; }
+
+  .shotbox { position: relative; width: 300px; height: 186px; border-radius: 16px; overflow: hidden; background: #0b0b08; }
+  .shotbox iframe { position: absolute; left: 0; top: 0; width: 560px; height: 346px; border: 0; transform: scale(.536); transform-origin: 0 0; pointer-events: none; }
+  .shotbox.none { display: grid; place-items: center; color: var(--dim); }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .spec-card { padding: 16px 18px 14px; border-radius: 16px; background: #0f0f0b; border: 1px solid var(--rule); }
+  .spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+  .spec-card dt { color: var(--dim); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+  .spec-measure { position: absolute; left: -9999px; top: 0; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(40,40,40,.8); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (max-width: 760px) { .hero, .states, .spec { padding-left: 16px; padding-right: 16px; } .row { gap: 16px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  
+  <section class="hero" aria-label="The buttons in use">
+    <div class="head">
+      <p><b>Week 08 &middot; Set 1 &middot; Melt &middot; Fluid</b>A designer&rsquo;s contact card. Your pointer carries a small cream drop, and every button is made of the same cream: Contact me reaches out to meet the drop, takes it in and fills; Portfolio swallows it and beads under your pointer; R&eacute;sum&eacute; draws its outline round from where the drop touched; the pick runs from option to option. Press a button and its options drip out of it as drops that land as buttons on the row below; some open one row deeper.</p>
+      <form class="ctl" onsubmit="return false">
+        <fieldset><legend>Buttons</legend><div class="opts">
+          <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
+          <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+          <label><input type="radio" name="content" value="icon" /><span>Icon</span></label>
+        </div></fieldset>
+        <fieldset><legend>State</legend><div class="opts">
+          <label><input type="checkbox" name="off" /><span>Disabled</span></label>
+        </div></fieldset>
+      </form>
+    </div>
+
+    <div class="scene" data-buttons data-live data-content="both">
+      <div class="goo dark" aria-hidden="true"><svg class="bead" viewBox="0 -8 64 23" preserveAspectRatio="none"><path d="M0 0 C17 0 20 15 32 15 C44 15 47 0 64 0 L64 -8 L0 -8 Z"/></svg></div>
+      <div class="goo cream" aria-hidden="true"><div class="fill"><i></i></div><div class="gpick"></div><div class="blob"></div></div>
+      <div class="who"><h1>Mina Oh</h1><p>Motion and interaction designer, Seoul</p></div>
+      <div class="row">
+        <button class="ct" type="button" aria-expanded="false" data-opens="d-ct" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></button>
+        <button class="pf" type="button" aria-expanded="false" data-opens="d-pf" data-name="Portfolio" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2"/></svg><span class="lbl">Portfolio</span></button>
+        <button class="rs" type="button" aria-expanded="false" data-opens="d-rs" data-name="Résumé" data-off><svg class="ring" aria-hidden="true"><rect class="base" pathLength="100"/><rect class="hi" pathLength="100"/></svg><span class="lbl">Résumé</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button>
+      </div>
+      <!-- depth: each opens out of the button above it as drops of the same liquid -->
+      <div class="drips" id="d-ct" role="group" aria-label="Contact" hidden><button class="c fillc" type="button" data-name="Email" aria-expanded="false" data-opens="d-email"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg><span class="lbl">Email</span></button><button class="c fillc" type="button" data-name="Call"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h3l1.5 4-2 1.5a10 10 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2z"/></svg><span class="lbl">Call</span></button><button class="c fillc" type="button" data-name="Message"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="lbl">Message</span></button></div>
+      <div class="drips" id="d-email" role="group" aria-label="Email" hidden><button class="c ringc" type="button" data-name="Copy address"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h10v11H9zM5 15V4h10"/></svg><span class="lbl">Copy address</span></button><button class="c ringc" type="button" data-name="Open Mail"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg><span class="lbl">Open Mail</span></button></div>
+      <div class="drips" id="d-pf" role="group" aria-label="Portfolio" hidden><button class="c darkc" type="button" data-name="Case studies" aria-expanded="false" data-opens="d-case"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16"/></svg><span class="lbl">Case studies</span></button><button class="c darkc" type="button" data-name="Experiments" aria-expanded="false" data-opens="d-exp"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 10h14L14 9V3"/></svg><span class="lbl">Experiments</span></button><button class="c darkc" type="button" data-name="Archive" aria-expanded="false" data-opens="d-arc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM3 4h18v3H3zM10 11h4"/></svg><span class="lbl">Archive</span></button></div>
+      <div class="drips" id="d-case" role="group" aria-label="Case studies" hidden><button class="c darkc sm" type="button" data-name="Hollow Bank"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Hollow Bank</span></button><button class="c darkc sm" type="button" data-name="Tidal Radio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Tidal Radio</span></button><button class="c darkc sm" type="button" data-name="Ember Stove"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ember Stove</span></button></div>
+      <div class="drips" id="d-exp" role="group" aria-label="Experiments" hidden><button class="c darkc sm" type="button" data-name="Goo Cursor"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Goo Cursor</span></button><button class="c darkc sm" type="button" data-name="Drift Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Drift Type</span></button><button class="c darkc sm" type="button" data-name="Pulse Grid"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Pulse Grid</span></button></div>
+      <div class="drips" id="d-arc" role="group" aria-label="Archive" hidden><button class="c darkc sm" type="button" data-name="Night Market"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Night Market</span></button><button class="c darkc sm" type="button" data-name="Field Notes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Field Notes</span></button><button class="c darkc sm" type="button" data-name="Paper Moon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Paper Moon</span></button></div>
+      <div class="drips" id="d-rs" role="group" aria-label="Résumé" hidden><button class="c ringc" type="button" data-name="View online"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/></svg><span class="lbl">View online</span></button><button class="c ringc" type="button" data-name="Download PDF"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span class="lbl">Download PDF</span></button></div>
+      <div class="room" aria-hidden="true"></div>
+      <div class="grp-wrap">
+        <small id="g-cap">Show work in</small>
+        <div class="grp" role="radiogroup" aria-labelledby="g-cap">
+          <button class="r landed" type="button" role="radio" aria-checked="true" data-name="Motion"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M10 9v6l5-3z" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Motion</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13"/></svg><span class="lbl">Type</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="3D" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19.5 8v8L12 20.5 4.5 16V8zM4.5 8 12 12.5 19.5 8M12 12.5v8"/></svg><span class="lbl">3D</span></button>
+        </div>
+      </div>
+      <p class="hint" aria-live="polite" id="said"></p>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Contact me full of cream, Portfolio with its bump, R&eacute;sum&eacute; outlined in full. Turned off, the cream drains to a faint outline and nothing reaches for the pointer. Then the depth: each button closed, opened, and one level deeper.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table></div>
+    <div class="tbl" style="margin-top:26px"><table><thead><tr><th>Depth</th><th>Step 1 &middot; closed</th><th>Step 2 &middot; opened</th><th>Step 3 &middot; one level deeper</th></tr></thead><tbody><tr><td>Primary &middot; Contact me<small>Email, Call, Message; Email opens Copy address and Open Mail</small></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=base" title="Primary &middot; Contact me, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=ct2" title="Primary &middot; Contact me, ct2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=ct3" title="Primary &middot; Contact me, ct3" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr><tr><td>Secondary &middot; Portfolio<small>Case studies, Experiments, Archive; each opens its project titles</small></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=base" title="Secondary &middot; Portfolio, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=pf2" title="Secondary &middot; Portfolio, pf2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=pf3" title="Secondary &middot; Portfolio, pf3" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr><tr><td>Tertiary &middot; R&eacute;sum&eacute;<small>View online and Download PDF</small></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=base" title="Tertiary &middot; R&eacute;sum&eacute;, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-melt-button.html?shot=rs2" title="Tertiary &middot; R&eacute;sum&eacute;, rs2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr></tbody></table></div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: sizes from the buttons as the browser lays them out, colours and motion from the same tokens the buttons above use.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <script>
+    // the depth stills are this same page in ?shot mode; a still never loads stills of its own
+    if (!/[?&]shot=/.test(location.search)) document.querySelectorAll('.shotbox iframe[data-src]').forEach(f => { f.src = f.dataset.src; });
+  </script>
+  <a class="back-pill" href="week-08.html#deliverables" hidden>&larr; Week 08</a>
+
+  <script>
+    // States table: one row per level and configuration, the button copied from the live one
+    (() => {
+      const live = document.querySelector('[data-live]'), rows = document.getElementById('state-rows');
+      const src = { ct: live.querySelector('.ct'), pf: live.querySelector('.pf'), rs: live.querySelector('.rs'), r: live.querySelectorAll('.r')[1], rp: live.querySelector('.r') };
+      const confs = [
+        ['ct', 'Primary', 'Contact me'], ['pf', 'Secondary', 'Portfolio'], ['rs', 'Tertiary', 'Résumé'],
+      ];
+      const contents = [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']];
+      const cell = (key, content, st) => {
+        const b = src[key].cloneNode(true); b.classList.remove('is-down', 'is-up', 'is-full');
+        if (st === 'hover') b.classList.add('st-hover');
+        if (st === 'down') b.classList.add(key === 'ct' ? 'st-down' : 'st-down');
+        if (st === 'off') b.disabled = true;
+        if (key === 'rp' && st !== 'off') b.classList.add('landed');
+        if (key === 'rp' && st === 'off') b.classList.remove('landed');
+        return `<td><div class="frame" data-static data-content="${content}">${b.outerHTML}</div></td>`;
+      };
+      const row = (key, title, sub, content) => `<tr><td>${title}<small>${sub}</small></td>${['', 'hover', 'down', 'off'].map(st => cell(key, content, st)).join('')}</tr>`;
+      let html = '';
+      confs.forEach(([k, lvl, nm]) => contents.forEach(([c, cn]) => { html += row(k, `${lvl} · ${cn}`, nm, c); }));
+      contents.forEach(([c, cn]) => { html += row('r', `Group option · ${cn}`, 'not picked', c); });
+      contents.forEach(([c, cn]) => { html += row('rp', `Group option · ${cn}`, 'picked', c); });
+      rows.innerHTML = html;
+      rows.querySelectorAll('button').forEach(b => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); b.removeAttribute('data-off'); b.removeAttribute('role'); b.removeAttribute('aria-checked'); });
+    })();
+  </script>
+  <script src="week-08-proto.js?v=1"></script>
+  <script>
+    // The liquid, in use
+    const scene = P.live, q = s => scene.querySelector(s);
+    const blob = q('.blob'), fill = q('.fill'), flood = fill.querySelector('i'), gpick = q('.gpick'), bead = q('.bead');
+    const ct = q('.ct'), pf = q('.pf'), rs = q('.rs'), grp = q('.grp'), said = q('#said');
+    const tok = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
+    const rel = el => { const s = scene.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height }; };
+    const put = (el, r) => Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+    const inset = (r, d) => ({ x: r.x + d, y: r.y + d, w: r.w - 2 * d, h: r.h - 2 * d });
+    const layout = () => { put(fill, inset(rel(ct), tok('--p-line'))); };
+    const settle = () => { const t0 = performance.now(); const loop = t => { layout(); if (t - t0 < 700) requestAnimationFrame(loop); }; requestAnimationFrame(loop); };
+    addEventListener('resize', layout); P.onContent(settle); document.fonts.ready.then(layout); layout();
+    scene.addEventListener('off', e => { if (e.detail) { ct.style.translate = pf.style.translate = ''; ct.style.setProperty('--gk', 0); ct.classList.remove('is-full'); flood.getAnimations().forEach(a => a.cancel()); } });
+
+    // the drop: held right under the pointer (position in `translate`, so shrinking it never moves it)
+    let tx = 0, ty = 0, inside = false;
+    const place = () => { blob.style.translate = `${tx}px ${ty}px`; };
+    // near Portfolio or Résumé the drop shrinks with distance (gone by the time it touches), so it is
+    // drawn in continuously rather than switched off; it grows back the same way as you move away
+    const near = (el, R) => { if (el.disabled) return 1; const r = still(el); const dx = Math.max(r.x - tx, 0, tx - r.x - r.w), dy = Math.max(r.y - ty, 0, ty - r.y - r.h); const t = Math.min(1, Math.hypot(dx, dy) / R); return t * t * (3 - 2 * t); };
+    const size = () => Math.min(near(pf, 44), near(rs, 30)).toFixed(3);
+    scene.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return;
+      const s = scene.getBoundingClientRect(); tx = e.clientX - s.left; ty = e.clientY - s.top;
+      place(); blob.style.scale = size();
+      reach(); reachPf();
+    });
+    scene.addEventListener('pointerleave', () => { blob.style.scale = 0; ct.style.setProperty('--gk', 0); ct.style.translate = ''; pf.style.translate = ''; });
+
+    // a button notices the pointer before it arrives: within reach it leans a few pixels toward it (and
+    // Contact me's outline lights up on the side nearest it); both ease, so they follow without jitter
+    const lean = (el, k, nx, ny) => {
+      const d = Math.hypot(tx - nx, ty - ny) || 1, L = tok('--lean') * k;
+      el.style.translate = k > 0 ? `${((tx - nx) / d * L).toFixed(2)}px ${((ty - ny) / d * L).toFixed(2)}px` : '';
+    };
+    // measured without the lean (offsets ignore translate), so leaning never feeds back into where it leans
+    const still = el => { const p = rel(el.offsetParent); return { x: p.x + el.offsetLeft, y: p.y + el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }; };
+    const nearest = el => { const r = still(el); return [r, Math.min(r.x + r.w, Math.max(r.x, tx)), Math.min(r.y + r.h, Math.max(r.y, ty))]; };
+    const reach = () => {
+      if (ct.disabled) return;
+      const [r, nx, ny] = nearest(ct), d = Math.hypot(tx - nx, ty - ny), k = inside ? 0 : Math.max(0, 1 - d / tok('--reach'));
+      ct.style.setProperty('--gk', k.toFixed(3)); ct.style.setProperty('--gx', (tx - r.x) + 'px'); ct.style.setProperty('--gy', (ty - r.y) + 'px');
+      lean(ct, k, nx, ny);
+    };
+
+    // Contact me fills from where the drop came in and drains where it leaves; then its own crisp fill takes over
+    const at = e => { const r = ct.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    let full;
+    ct.addEventListener('pointerenter', e => {
+      if (ct.disabled || e.pointerType !== 'mouse') return;
+      inside = true; ct.style.setProperty('--gk', 0); ct.style.translate = '';
+      const [px, py] = at(e), r = rel(ct), reach = Math.hypot(Math.max(px, r.w - px), Math.max(py, r.h - py)) / 10 + 1;
+      flood.getAnimations().forEach(a => a.cancel());
+      Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
+      if (!P.calm.matches) flood.animate([{ scale: 0 }, { scale: reach }], { duration: tok('--flood-in'), easing: 'cubic-bezier(.3, .6, .2, 1)', fill: 'forwards' });
+      clearTimeout(full); full = setTimeout(() => ct.classList.add('is-full'), P.calm.matches ? 0 : tok('--hand-off'));
+    });
+    ct.addEventListener('pointerleave', e => {
+      inside = false;
+      if (ct.disabled || ct.getAttribute('aria-expanded') === 'true') return;
+      const [px, py] = at(e), r = rel(ct), reach = Math.hypot(r.w, r.h) / 10 + 1;
+      flood.getAnimations().forEach(a => a.cancel());
+      Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
+      clearTimeout(full); ct.classList.remove('is-full');
+      if (!P.calm.matches) flood.animate([{ scale: reach }, { scale: 0 }], { duration: tok('--flood-out'), easing: 'cubic-bezier(.5, 0, .7, .4)', fill: 'forwards' });
+    });
+
+    // Portfolio reaches out with a dark lip as the drop comes near and draws it in; inside, a bead of the
+    // pill hangs from its lower edge and glides after the pointer
+    const reachPf = () => {
+      if (pf.disabled) return;
+      const [, nx, ny] = nearest(pf), d = Math.hypot(tx - nx, ty - ny), k = inPf ? 0 : Math.max(0, 1 - d / tok('--reach'));
+      lean(pf, k, nx, ny);
+    };
+    // the bead grows from the point of the pill's edge nearest the pointer, on any side: the top, the bottom
+    // or round either end. The pill is a straight middle with two half circles, so the nearest edge point
+    // is the nearest point on its middle line, pushed out by the radius toward the pointer.
+    let inPf = false, braf = 0, ex = 0, ey = 0, ea = 0, lastDy = 1;
+    const edge = () => {
+      const r = still(pf), R = r.h / 2, cy = r.y + R, sx = Math.min(r.x + r.w - R, Math.max(r.x + R, tx));
+      let vx = tx - sx, vy = ty - cy;
+      if (Math.abs(vy) > 1.5) lastDy = Math.sign(vy);
+      if (Math.hypot(vx, vy) < 1.5) { vx = 0; vy = lastDy; }          // dead centre: keep the side it was on
+      const d = Math.hypot(vx, vy);
+      const t = Math.abs(vx) / d;                                    // 0 on the straight edge, 1 at the very end
+      return { x: sx + vx / d * R, y: cy + vy / d * R, a: Math.atan2(vy, vx) * 180 / Math.PI - 90, ws: 1 - .45 * t };
+    };
+    let ews = 1;
+    const set = () => { bead.style.left = ex + 'px'; bead.style.top = ey + 'px'; bead.style.rotate = ea + 'deg'; bead.style.setProperty('--ws', ews.toFixed(3)); };
+    const glide = () => {
+      const t = edge();
+      ex += (t.x - ex) * .22; ey += (t.y - ey) * .22;
+      let da = ((t.a - ea + 540) % 360) - 180; ea += da * .22;               // turn the short way round
+      ews += (t.ws - ews) * .22;
+      set();
+      braf = inPf || Math.hypot(t.x - ex, t.y - ey) > .3 ? requestAnimationFrame(glide) : 0;
+    };
+    pf.addEventListener('pointerenter', e => {
+      if (pf.disabled || e.pointerType !== 'mouse') return;
+      inPf = true; pf.style.translate = '';
+      const t = edge(); ex = t.x; ey = t.y; ea = t.a; ews = t.ws; set();
+      bead.style.scale = pf.getAttribute('aria-expanded') === 'true' ? 0 : 1;
+      if (!braf && !P.calm.matches) braf = requestAnimationFrame(glide);
+    });
+    pf.addEventListener('pointermove', () => { if (inPf && P.calm.matches) { const t = edge(); ex = t.x; ey = t.y; ea = t.a; ews = t.ws; set(); } });
+    pf.addEventListener('pointerleave', () => { inPf = false; bead.style.scale = 0; });
+    pf.addEventListener('down', () => { bead.style.scale = 0; });
+    pf.addEventListener('up', () => { if (inPf && pf.getAttribute('aria-expanded') !== 'true') bead.style.scale = 1; });
+
+    // Résumé draws its outline round from where the drop touched
+    // where along its outline the pointer came in, so the line is drawn round from there (the rect's
+    // path starts at the top edge, just after the left end's curve, and runs clockwise)
+    const along = (el, x, y) => {
+      const w = el.offsetWidth, h = el.offsetHeight, r = h / 2, L = Math.max(0, w - 2 * r), P = 2 * L + 2 * Math.PI * r, cy = r;
+      let s;
+      if (x >= r && x <= w - r) s = y < cy ? x - r : L + Math.PI * r + (w - r - x);
+      else if (x > w - r) { const a = Math.atan2(y - cy, x - (w - r)); s = L + r * (a + Math.PI / 2); }
+      else { let a = Math.atan2(y - cy, x - r); if (a < 0) a += 2 * Math.PI; s = 2 * L + Math.PI * r + r * (a - Math.PI / 2); }
+      return (s / P * 100 + 100) % 100;
+    };
+    rs.addEventListener('pointerenter', e => { if (rs.disabled || e.pointerType !== 'mouse') return; const b = rs.getBoundingClientRect(); rs.style.setProperty('--p', along(rs, e.clientX - b.left, e.clientY - b.top).toFixed(2)); });
+
+    // the pick necks and pulls from one option into the next; at rest it is the option's own crisp fill
+    let landing;
+    grp.addEventListener('pick', e => {
+      const a = rel(e.detail.from), b = rel(e.detail.to);
+      grp.querySelectorAll('.landed').forEach(x => x.classList.remove('landed'));
+      said.textContent = 'Showing ' + e.detail.to.dataset.name + ' work';
+      clearTimeout(landing);
+      if (P.calm.matches) { e.detail.to.classList.add('landed'); return; }
+      put(gpick, b); gpick.classList.add('moving');
+      const L = Math.min(a.x, b.x), R = Math.max(a.x + a.w, b.x + b.w), T = tok('--travel');
+      gpick.animate([
+        { left: a.x + 'px', width: a.w + 'px', top: a.y + 'px', height: a.h + 'px' },
+        { left: L + 'px', width: (R - L) + 'px', top: (b.y + b.h * .3) + 'px', height: (b.h * .4) + 'px', offset: .45 },
+        { left: b.x + 'px', width: b.w + 'px', top: b.y + 'px', height: b.h + 'px' }], { duration: T, easing: 'cubic-bezier(.5, 0, .3, 1)' });
+      landing = setTimeout(() => { e.detail.to.classList.add('landed'); gpick.classList.remove('moving'); }, T * .94);
+    });
+    // ---- depth: options drip out of the button that opened them -------------------------------------
+    // A press on a button with data-opens lets its options fall out of it as drops (in the same liquid,
+    // so they stay joined to it on the way) and spread into buttons on the row below. An option can open
+    // a third row the same way. Closing pulls them back up into the button, last first, quicker.
+    const layer = { cream: q('.goo.cream'), dark: q('.goo.dark') };
+    const kindOf = c => c.classList.contains('darkc') ? 'dark' : 'cream';
+    const shapeOf = c => {                     // what the drop becomes: the button, or the line under it
+      const r = rel(c);
+      if (c.classList.contains('linec')) return { x: r.x + 4, y: r.y + r.h - 8.5, w: r.w - 8, h: 2, rad: 1 };
+      return { ...r, rad: parseFloat(getComputedStyle(c).borderRadius) || 12 };
+    };
+    const spout = parent => { const r = rel(parent); return { x: r.x + r.w / 2, y: r.y + r.h - 4 }; };
+    const placeBox = (box, parent) => {
+      box.hidden = false;
+      const r = rel(parent), sw = scene.clientWidth, bw = box.offsetWidth;
+      box.style.left = Math.max(12, Math.min(sw - bw - 12, r.x + r.w / 2 - bw / 2)) + 'px';
+      box.style.top = (r.y + r.h + (parent.classList.contains('c') ? 12 : 18)) + 'px';
+    };
+    const openerOf = box => scene.querySelector(`[data-opens="${box.id}"]`);
+    const openBoxes = () => [...scene.querySelectorAll('.drips:not([hidden])')];
+    const depthOf = box => { let d = 1, o = openerOf(box); while (o && o.closest('.drips')) { d++; o = openerOf(o.closest('.drips')); } return d; };
+    const drop = (k, from) => { const t = document.createElement('div'); t.className = 'twin'; layer[k].append(t); Object.assign(t.style, { left: from.x - 8 + 'px', top: from.y - 8 + 'px', width: '16px', height: '16px', borderRadius: '8px' }); return t; };
+
+    const expand = parent => {
+      const box = document.getElementById(parent.dataset.opens);
+      // close anything open at this depth or deeper first
+      const d = parent.closest('.drips') ? depthOf(parent.closest('.drips')) + 1 : 1;
+      openBoxes().filter(b => depthOf(b) >= d).forEach(b => collapse(b, true));
+      parent.setAttribute('aria-expanded', 'true');
+      if (parent === pf) bead.style.scale = 0;
+      placeBox(box, parent);
+      const kids = [...box.children], sp = spout(parent);
+      kids.forEach(c => { c.getAnimations().forEach(x => x.cancel()); c.style.opacity = 1; c.style.clipPath = 'circle(0px at 50% 50%)'; });
+      if (P.calm.matches) { kids.forEach(c => { c.style.clipPath = ''; }); return; }
+      const fall = tok('--d-fall'), stag = tok('--d-stagger'), dd = tok('--d-drop'), grow = tok('--d-grow');
+      kids.forEach((c, i) => {
+        // 1. a drop falls out of the button to the middle of where the option will be
+        const r = rel(c), cx = r.x + r.w / 2, cy = r.y + r.h / 2, t = drop(kindOf(c), sp);
+        const fallA = t.animate([
+          { left: sp.x - 6 + 'px', top: sp.y - 6 + 'px', width: '12px', height: '12px', borderRadius: '6px' },
+          { left: sp.x - dd * .4 + 'px', top: sp.y + 2 + 'px', width: dd * .8 + 'px', height: dd * 1.3 + 'px', borderRadius: dd / 2 + 'px', offset: .3 },
+          { left: cx - dd / 2 + 'px', top: cy - dd / 2 + 'px', width: dd + 'px', height: dd + 'px', borderRadius: dd / 2 + 'px' }],
+          { duration: fall, delay: i * stag, easing: 'cubic-bezier(.45, 0, .25, 1)', fill: 'forwards' });
+        fallA.finished.then(() => {
+          if (parent.getAttribute('aria-expanded') !== 'true') { t.remove(); return; }
+          // 2. the option opens out of the drop, a circle growing from its middle, while the drop melts away into it
+          const R = Math.hypot(r.w, r.h) / 2 + 2;
+          c.animate([{ clipPath: `circle(${dd / 2}px at 50% 50%)` }, { clipPath: `circle(${R}px at 50% 50%)` }], { duration: grow, easing: 'cubic-bezier(.25, .7, .25, 1)' })
+            .finished.then(() => { c.style.clipPath = ''; }).catch(() => {});
+          c.style.clipPath = '';
+          t.animate([{ opacity: 1, scale: 1 }, { opacity: 0, scale: .6 }], { duration: grow * .6, easing: 'ease-out', fill: 'forwards' }).finished.then(() => t.remove());
+        }).catch(() => t.remove());
+      });
+    };
+    const collapse = (box, quick) => {
+      if (box.hidden) return;
+      openBoxes().filter(b => b !== box && depthOf(b) > depthOf(box)).forEach(b => collapse(b, true));
+      const parent = openerOf(box);
+      parent.setAttribute('aria-expanded', 'false');
+      if (parent === ct && !ct.matches(':hover')) {
+        // the cream drains out of the bottom of Contact me instead of vanishing
+        const r = rel(ct), reach = Math.hypot(r.w, r.h) / 10 + 1;
+        flood.getAnimations().forEach(a => a.cancel());
+        Object.assign(flood.style, { left: r.w / 2 + 'px', top: r.h + 'px' });
+        ct.classList.remove('is-full');
+        if (!P.calm.matches) flood.animate([{ scale: reach }, { scale: 0 }], { duration: tok('--flood-out'), easing: 'cubic-bezier(.5, 0, .7, .4)', fill: 'forwards' });
+      }
+      const kids = [...box.children], sp = spout(parent);
+      if (P.calm.matches) { box.hidden = true; return; }
+      const back = tok('--d-back') * (quick ? .6 : 1), dd = tok('--d-drop'), n = kids.length;
+      let left = n;
+      kids.forEach((c, i) => {
+        const r = rel(c), cx = r.x + r.w / 2, cy = r.y + r.h / 2, R = Math.hypot(r.w, r.h) / 2 + 2, wait = (n - 1 - i) * 60;
+        c.getAnimations().forEach(x => x.cancel());
+        // 1. the option closes into a drop at its middle
+        c.animate([{ clipPath: `circle(${R}px at 50% 50%)` }, { clipPath: `circle(${dd / 2}px at 50% 50%)` }], { duration: back * .45, delay: wait, easing: 'cubic-bezier(.5, 0, .75, .4)', fill: 'forwards' })
+          .finished.then(() => {
+            c.style.clipPath = 'circle(0px at 50% 50%)'; c.getAnimations().forEach(x => x.cancel());
+            // 2. the drop rises back into the button that let it go
+            const t = drop(kindOf(c), sp);
+            Object.assign(t.style, { left: cx - dd / 2 + 'px', top: cy - dd / 2 + 'px', width: dd + 'px', height: dd + 'px', borderRadius: dd / 2 + 'px' });
+            t.animate([
+              { left: cx - dd / 2 + 'px', top: cy - dd / 2 + 'px', width: dd + 'px', height: dd + 'px' },
+              { left: sp.x - 6 + 'px', top: sp.y - 10 + 'px', width: '12px', height: '12px' }],
+              { duration: back * .55, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' }).finished.then(() => {
+                t.remove();
+                if (--left === 0 && parent.getAttribute('aria-expanded') !== 'true') { box.hidden = true; kids.forEach(k => { k.style.clipPath = ''; }); }
+              });
+          }).catch(() => {});
+      });
+    };
+    const toggle = b => {
+      const box = document.getElementById(b.dataset.opens);
+      if (b.getAttribute('aria-expanded') === 'true') { collapse(box); said.textContent = b.dataset.name + ' closed'; }
+      else { expand(b); said.textContent = b.dataset.name + ' opened'; }
+    };
+    scene.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled || b.getAttribute('role') === 'radio') return;
+      if (b.dataset.opens) {
+        toggle(b);
+        // opened from the keyboard: move into the new row so Tab and arrows reach it at once
+        if (e.detail === 0 && b.getAttribute('aria-expanded') === 'true') document.getElementById(b.dataset.opens).querySelector('button')?.focus();
+        return;
+      }
+      if (b.classList.contains('c')) {
+        // a final choice: say what it does, then everything drains back up into the button it came from
+        said.textContent = b.dataset.name;
+        const root = openBoxes().sort((x, y) => depthOf(x) - depthOf(y))[0];
+        setTimeout(() => root && collapse(root), 260);
+      }
+    });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const deepest = openBoxes().sort((x, y) => depthOf(y) - depthOf(x))[0];
+      if (deepest) { const o = openerOf(deepest); collapse(deepest); o.focus(); }
+    });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('.scene button')) openBoxes().filter(b => depthOf(b) === 1).forEach(b => collapse(b)); });
+    const replace = () => openBoxes().forEach(b => placeBox(b, openerOf(b)));
+    addEventListener('resize', replace); P.onContent(() => { const t0 = performance.now(); const loop = t => { replace(); if (t - t0 < 700) requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
+    scene.addEventListener('off', e => { if (e.detail) openBoxes().forEach(b => collapse(b, true)); });
+
+    // ?shot=…: a still of one step of the depth, for the States table and the week page
+    const qd = new URLSearchParams(location.search), shot = qd.get('shot') || qd.get('deep');
+    if (shot) {
+      if (qd.get('shot')) document.body.classList.add('shot'); else { document.body.classList.add('still'); }
+      const go = () => {
+        const calm = P.calm; const steps = { 'ct2': [ct], 'ct3': [ct, q('[data-opens="d-email"]')], 'pf2': [pf], 'pf3': [pf, q('[data-opens="d-case"]')], 'rs2': [rs] }[shot] || [];
+        Object.defineProperty(P, 'calm', { value: { matches: true } });
+        steps.forEach(b => expand(b));
+        if (steps[0] === ct) ct.classList.add('is-full');
+      };
+      document.fonts.ready.then(() => requestAnimationFrame(go));
+    }
+    // ?pose=full: a still with Contact me full and Résumé outlined (for the week page's frames)
+    if (new URLSearchParams(location.search).get('pose') === 'full') { ct.classList.add('is-full'); rs.classList.add('st-hover'); }
+  </script>
+  <script>
+    // Spec: read from the tokens and the buttons as laid out
+    (() => {
+      const out = document.querySelector('.spec-grid');
+      const root = getComputedStyle(document.documentElement);
+      const tok = n => root.getPropertyValue(n).trim();
+      const m = document.createElement('div'); m.className = 'spec-measure';
+      const live = document.querySelector('[data-live]');
+      m.innerHTML = ['both', 'text', 'icon'].map(c => `<div data-content="${c}">${['.ct', '.pf', '.rs', '.r'].map(s => live.querySelector(s).outerHTML).join('')}</div>`).join('');
+      document.body.append(m);
+      const w = (c, s) => Math.round(m.querySelector(`[data-content="${c}"] ${s}`).getBoundingClientRect().width) + 'px';
+      const hex = c => c.startsWith('#') ? c : c;
+      const sw = c => `<i style="background:${c}"></i>${hex(c)}`;
+      const lbl = getComputedStyle(live.querySelector('.ct .lbl'));
+      const fam = lbl.fontFamily.split(',')[0].replace(/"/g, '');
+      const cards = [
+        ['Colour', [
+          ['Page', sw(tok('--page'))],
+          ['Cream', `${sw(tok('--cream'))} the one material: drop, fills, outline, words`],
+          ['Pressed cream', sw(tok('--cream-down'))],
+          ['Dim pill', `${sw(tok('--body'))}, pressed ${tok('--body-down')}`],
+          ['Off', 'cream at about 30%, outlines at 14 to 28%'],
+        ]],
+        ['Type and icon', [
+          ['Label', `${fam} ${lbl.fontWeight}, ${lbl.fontSize}, line height 1`],
+          ['Group label', `${fam} ${lbl.fontWeight}, 16px`],
+          ['Icon', `${tok('--icon')} square, ${tok('--stroke')} stroke, round caps (18px in the group)`],
+          ['Icon to label', tok('--gap')],
+        ]],
+        ['Primary · Contact me', [
+          ['Height', tok('--p-h')], ['Corners', `${tok('--p-r')}, half its height: a pill, like every button in the set`], ['Outline', `${tok('--p-line')} cream`],
+          ['Sides', tok('--p-pad')],
+          ['Width', `${w('both', '.ct')} icon + text, ${w('text', '.ct')} text, ${w('icon', '.ct')} icon`],
+          ['Hover', 'fills with cream from the entry point; words turn black'],
+          ['Pressed', `pressed cream, scaled to ${tok('--press-scale')}`],
+        ]],
+        ['Secondary · Portfolio', [
+          ['Height', tok('--s-h')], ['Corners', 'fully round'], ['Fill', tok('--body')], ['Sides', tok('--s-pad')],
+          ['Width', `${w('both', '.pf')} icon + text, ${w('text', '.pf')} text, ${w('icon', '.pf')} icon`],
+          ['Approach', 'within 44px a dark lip swells on its nearest edge toward the drop, while the drop shrinks with distance, so it is drawn in'],
+          ['Hover', `a gentle bump (${tok('--bump-w')} wide, ${tok('--bump-h')} high, a bell whose feet run into the edge) swells from the point of its edge nearest the pointer, on any side, facing out, and glides round after it; on the round ends it narrows so it stays on the curve`],
+          ['Pressed', `the bead is drawn back in; the pill darkens and scales to ${tok('--press-scale')}`],
+        ]],
+        ['Tertiary · Résumé', [
+          ['Height', tok('--t-h')], ['Corners', 'fully round'], ['Sides', tok('--t-pad')],
+          ['Outline', `${tok('--t-line')} cream at ${Math.round(parseFloat(tok('--t-rest')) * 100)}% at rest`],
+          ['Width', `${w('both', '.rs')} icon + text, ${w('text', '.rs')} text, ${w('icon', '.rs')} icon`],
+          ['Hover', `the drop sinks in; a full-strength outline is drawn round from the point it touched, both ways at once, closing on the far side (${tok('--spread')}); the arrow flies out and back in with it`],
+          ['Pressed', `the outline thickens to ${tok('--t-line-down')}; the pill scales to ${tok('--press-scale')}`],
+          ['Open', 'the outline stays drawn and the arrow turns to point down'],
+        ]],
+        ['Group · single selection', [
+          ['Option', `${tok('--g-h')} high, fully round, ${tok('--g-line')} outline at 35% (cream when picked or pointed at)`],
+          ['Between', tok('--g-gap')], ['Sides', tok('--g-pad')],
+          ['Picked', 'filled with cream, words black'],
+          ['Keys', 'one tab stop; arrows move the pick'],
+          ['Moving', `the cream stretches over both options, necks to 40% of its height, and pulls into the new one (${tok('--travel')})`],
+        ]],
+        ['Depth', [
+          ['Levels', 'Contact me and Portfolio open two rows deep (3 levels); Résumé opens one (2 levels)'],
+          ['Portfolio', 'Portfolio → the kind of work (Case studies, Experiments, Archive) → the project titles in that kind; each kind opens its own row'],
+          ['Options', `${tok('--d-h')} high, fully round, ${tok('--d-gap')} apart; the third row is ${tok('--d-h-sm')}; each row 18px below its button, centred under it`],
+          ['Kinds', 'under Contact me: cream fills, then cream rings; under Portfolio: dim pills; under Résumé: cream rings'],
+          ['Opening', `each option falls out of the bottom of its button as a ${tok('--d-drop')} drop of the same liquid (so it stays joined on the way), lands, and spreads into its shape: a fill, a ring or the line under a word (${tok('--d-fall')}, ${tok('--d-stagger')} apart)`],
+          ['Closing', `the shapes gather back into drops and are drawn up into the button, last first (${tok('--d-back')})`],
+          ['A final choice', 'says what it does, then the whole tree drains back into the first button'],
+          ['Keys', 'Enter opens and moves focus into the new row; Escape closes the deepest row and returns focus'],
+        ]],
+        ['Motion', [
+          ['The drop', `${tok('--drop')} cream circle held exactly under the pointer; no lag, so it reads as part of the pointer`],
+          ['Noticing', `within ${tok('--reach')} a button leans up to ${tok('--lean')} toward the pointer, and Contact me's outline lights on the side nearest it`],
+          ['Reaching', `within ${tok('--reach')} of Contact me a lip swells on its nearest edge and leans toward the drop`],
+          ['Fill in / out', `${tok('--flood-in')} in from the entry point, ${tok('--flood-out')} out toward the exit; after ${tok('--hand-off')} the button's own crisp fill takes over`],
+          ['Release', 'a spring with a small overshoot (about 12%)'],
+          ['Reduced motion', 'states change at once; no liquid'],
+          ['Touch', 'no drop; hover looks never show, press and pick still do'],
+        ]],
+      ];
+      out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+      m.remove();
+    })();
+  </script>
+</body>
+</html>
