@@ -199,7 +199,27 @@
 
   /* secondary: a plan, opening in place (level 3) */
   .plans { display: grid; gap: 8px; padding-top: 14px; }
-  .plan { border-radius: var(--s-r); background: var(--row); transition: background-color .2s, box-shadow var(--fold) var(--ease); }
+  /* the row is a lit panel: light falls in from the left edge (where the time is) and from the top edge,
+     over a faint matrix of light points; --lit sets how strongly. Pointed at, it brightens and one beam
+     of light sweeps across it left to right; open, it stays brightest. */
+  @property --lit { syntax: '<number>'; inherits: false; initial-value: .7; }
+  @property --bx { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  .plan { --lit: .7; border-radius: var(--s-r); background-color: var(--row);
+    background-image:
+      linear-gradient(100deg, transparent 38%, rgb(122 244 255 / .1) 47%, rgb(233 253 255 / .16) 50%, rgb(122 244 255 / .1) 53%, transparent 62%),
+      radial-gradient(90% 160% at 0% 50%, rgb(122 244 255 / calc(.1 * var(--lit))), transparent 62%),
+      linear-gradient(180deg, rgb(122 244 255 / calc(.07 * var(--lit))), transparent 42%),
+      radial-gradient(circle at 1px 1px, rgb(122 244 255 / calc(.11 * var(--lit))) 1px, transparent 1.6px);
+    background-size: 300% 100%, 100% 100%, 100% 100%, 12px 12px;
+    background-position: var(--bx) 0, 0 0, 0 0, 6px 6px;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    transition: background-color .2s, box-shadow var(--fold) var(--ease), --lit .5s var(--ease); }
+  .plan:hover, .plan.st-hover { --lit: 1; }
+  .plan:hover { animation: sweep 1.1s var(--sharp) 1; }
+  .plan.st-hover { --bx: 45%; }
+  .plan.open { --lit: 1.5; }
+  @keyframes sweep { from { --bx: 100%; } to { --bx: -10%; } }
+  .plan:has(.tg:disabled) { --lit: .25; animation: none; }
   .plan > .tg { display: grid; grid-template-columns: 58px 1fr 38px auto; align-items: center; gap: 12px; width: 100%; padding: 14px var(--s-pad); border-radius: var(--s-r); transition: transform .45s var(--spring); }
   .plan .time { font: 500 13px/1 var(--grid); letter-spacing: .06em; color: var(--mute); }
   .plan .what { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
@@ -217,14 +237,14 @@
   .plan.st-hover .esc i { translate: 0 3.5px; }
   @keyframes escalate { to { translate: 0 7px; } }
   .plan:has(.tg:disabled) .esc i { animation: none; }
-  .plan:hover, .plan.st-hover { background: var(--row-h); }
+  .plan:hover, .plan.st-hover { background-color: var(--row-h); }
   .plan > .tg.is-down, .plan.st-down > .tg { transform: scale(.985); transition-duration: .1s; }
-  .plan.open { background: rgba(122,244,255,.06); }
+  .plan.open { background-color: rgba(122,244,255,.06); }
   /* the plans are also .fade (their entrance); this keeps that entrance and adds the ring and fill, which the
      .day.open .fade rule would otherwise override */
   .day.open .plan.fade { transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .7s var(--spring) calc(180ms + var(--k, 0) * var(--stagger)),
-    background-color .2s, box-shadow var(--fold) var(--ease); }
-  .day.open .plan.fade.open { transition: opacity .5s var(--ease), translate .7s var(--spring), background-color .4s var(--ease), box-shadow .5s var(--ease); }
+    background-color .2s, box-shadow var(--fold) var(--ease), --lit .5s var(--ease); }
+  .day.open .plan.fade.open { transition: opacity .5s var(--ease), translate .7s var(--spring), background-color .4s var(--ease), box-shadow .5s var(--ease), --lit .6s var(--ease); }
   .plan.open .esc { rotate: 180deg; }
   .plan .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--fold) var(--ease); }
   .plan.open .more { grid-template-rows: 1fr; transition: grid-template-rows var(--unfold) cubic-bezier(.4, 0, .2, 1); }
@@ -786,7 +806,7 @@
           ['Pressed', 'scaled to 90%'],
         ]],
         ['Secondary · a set', [
-          ['Row', `${tok('--s-r')} corners, ${tok('--s-pad')} sides, ${tok('--row')}`], ['Hover', `${tok('--row-h')}, the streak runs round; the chevron escalator starts climbing down (700ms a step)`], ['Pressed', 'scaled to 98.5%'],
+          ['Row', `${tok('--s-r')} corners, ${tok('--s-pad')} sides, ${tok('--row')}`], ['Light', 'a lit panel: light from the left edge and the top edge over a 12px matrix of faint light points; brighter pointed at (and one beam sweeps across left to right, 1.1s), brightest open'], ['Hover', `${tok('--row-h')}, the streak runs round; the chevron escalator starts climbing down (700ms a step)`], ['Pressed', 'scaled to 98.5%'],
           ['Open', `the line thickens to 2px and the streak runs round it once; the chevron escalator turns over and keeps running the other way, slower; the row unfolds (${tok('--unfold')}) and the details flicker on after it; it folds back in ${tok('--fold')}`],
         ]],
         ['Tertiary · weather, dismiss', [
