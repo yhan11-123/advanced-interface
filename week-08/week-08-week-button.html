@@ -6,28 +6,31 @@
   <title>Week 08 &middot; Set 2 &middot; Week</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;800&display=swap" />
   <style>
-  /* Week 08, Set 2 · Week. Tone: Calm.
-     A week on a blue card in coral ink, after a reference of seven date columns under a big day name: the
-     picked date sits on a raised coral tile with blue words. Every date is a button; pressed, the
-     day opens under the strip: its weather, its plans, and for some plans a link out.
+  /* Week 08, Set 2 · Week. Tone: Electric.
+     A festival week drawn as a grid of light: black ground, every button a chamfered line of cyan light,
+     orange for what is yours or chosen, and a lit cyan panel for the one thing to do. Motion is light
+     behaving like light: streaks race round edges, walls of light trail behind a move, parts switch on with
+     a flicker, and a closed day derezzes into scanlines. Every date is a button; pressed, the
+     day opens under the strip: its weather, its sets, and for some a link out.
        Group      the seven dates, single selection: the raised tile slides to the new date and the big day
                   name rolls over to it
        Tertiary   the weather icon (hover shows the forecast, and the icon acts out its weather) and the
                   dismiss, an X alone whose four arms pop out to the corners as the day folds away
        Secondary  each set in the day's list, a faint white row: pressed, it opens in place to its details
-       Primary    the link out from a set (Gate map, Listen, Watch live, Tickets): coral, no leading icon; the arrow
-                  in its blue square leaves and comes back on hover
+       Primary    the link out from a set (Gate map, Listen, Watch live, Tickets): a lit cyan panel, no leading
+                  icon; the arrow in its black square leaves and comes back on hover
      Depth: a date (1) opens its day (2), whose plans open to their details and links (3).
      Every number in the Spec section is read from these tokens. */
   :root {
-    /* coral on flat blue: the page is blue, the card a step lighter; coral carries the words and the accents,
-       pale lavender the quiet text; anything coral-filled has blue words cut into it */
-    --page: #4056b2; --card: #4a60be; --ink: #f85c5c; --mute: #c9d0f2; --line: rgba(255,255,255,.12); --tile: #f85c5c; --on-tile: #4056b2; --row: rgba(255,255,255,.07); --row-h: rgba(255,255,255,.13);
-    --m-dark: #7884c8; --m-mid: #9ba6dc; --m-hi: #dfe4ff; --m-warm: #ffc2b8;
-    --violet: #f85c5c; --violet-d: #e54848; --violet-l: rgba(248,92,92,.22); --off: #8792cc; --shadow: rgba(18,28,80,.45); --tipbg: #2b3b88;
-    --font: "Inter", -apple-system, system-ui, sans-serif;
+    /* the grid: a black world drawn in light. Cyan is the system (every line, every word); orange is what is
+       yours or chosen (the picked date, a picked stage, a saved set); a lit cyan panel is the one thing to do */
+    --page: #010407; --card: #02070b; --ink: #7af4ff; --mute: #7ea7b4; --line: rgba(122,244,255,.16); --tile: transparent; --on-tile: #02070b;
+    --row: rgba(122,244,255,.045); --row-h: rgba(122,244,255,.1);
+    --lc: rgba(122,244,255,.62); --hot: #e9fdff; --org: #ff6a2c; --org-l: rgba(255,106,44,.12);
+    --violet: #7af4ff; --violet-d: #c4fbff; --violet-l: rgba(122,244,255,.14); --off: #34505a; --shadow: rgba(0,0,0,.7); --tipbg: #02090e;
+    --font: "Inter", -apple-system, system-ui, sans-serif; --grid: "Orbitron", "Inter", sans-serif;
     --card-r: 16px; --card-pad: 44px;
     --day-w: 74px; --day-h: 96px; --day-r: 8px; --day-gap: 13px;
     --title: 64px;
@@ -37,13 +40,14 @@
     --gap: 8px; --icon: 18px;
     --slide: 820ms; --roll: 640ms; --open: 820ms; --stagger: 90ms; --close: 520ms; --unfold: 680ms; --fold: 480ms; --t-r: 8px;
     --press-scale: .96;
-    --spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.067, 1.087 23.7%, 1.083 26%, 1.06 28.7%, 0.994 37.3%, 0.981 41%, 0.982 46.4%, 1.002 58.1%, 1.005 63.6%, 1);
+    --sharp: cubic-bezier(.16, 1, .3, 1);
+    --spring: cubic-bezier(.2, 1, .3, 1);   /* the grid does not bounce: everything arrives fast and stops dead */
     --ease: cubic-bezier(.25, .8, .25, 1);
     interpolate-size: allow-keywords;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
-  body { background: var(--page); color: var(--ink); font: 500 15px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
+  body { background: radial-gradient(ellipse 80% 60% at 50% 32%, #04161e 0, var(--page) 70%) fixed, var(--page); color: var(--ink); font: 500 15px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
   button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; text-align: inherit; }
   button:disabled { cursor: not-allowed; }
   svg { display: block; }
@@ -54,55 +58,71 @@
   [data-content="text"] .ic:not(.keep) { display: none; }
   [data-content="icon"] .lbl:not(.keep) { display: none; }
 
-  /* ---- metal: every button wears a thin chrome outline that catches the light ----
-     the ring is a conic gradient cut to a hairline by a mask; --sheen turns it, so the highlight travels
-     round the edge. At rest it holds still; pointed at, the light runs slowly round and the glow comes up. */
-  @property --sheen { syntax: '<angle>'; inherits: false; initial-value: 210deg; }
-  .date, .wx, .dismiss, .plan, .go, .chip, .save, .split { position: relative; --ring: 1.25px; --glow: rgba(205,214,255,.22); }
+  /* ---- light lines: every button is drawn in a line of light with chamfered corners ----
+     the line is a ring cut by a mask from two layers: a steady cyan line, and over it a short white-hot
+     streak (a conic gradient) that sits hidden until pointed at, then races round the edge like a light
+     cycle; --sheen is its angle. Glow is a halo outside and a faint one inside. */
+  @property --sheen { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  .date, .wx, .dismiss, .plan, .go, .chip, .save, .split { position: relative; --ring: 1.5px; --lc-now: var(--lc); --streak: transparent; --head: transparent; --glow: rgba(122,244,255,.18); }
   :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split)::before {
     content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: var(--ring); pointer-events: none;
-    background: conic-gradient(from var(--sheen), var(--m-dark) 0deg, var(--m-mid) 40deg, var(--m-hi) 70deg, #fff 82deg, var(--m-hi) 96deg, var(--m-mid) 130deg,
-      var(--m-dark) 175deg, var(--m-mid) 215deg, var(--m-warm) 250deg, #fff 262deg, var(--m-warm) 276deg, var(--m-mid) 315deg, var(--m-dark) 360deg);
+    background: conic-gradient(from var(--sheen), transparent 0deg 290deg, var(--streak) 340deg, var(--head) 356deg, transparent 360deg), var(--lc-now);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-    opacity: .8; transition: opacity .5s var(--ease), padding .5s var(--ease); }
-  :is(.date, .wx, .dismiss, .go, .chip, .save, .split) { box-shadow: 0 0 14px -4px var(--glow); }
-  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, :focus-visible, :focus-within)::before { opacity: 1; animation: sheen 3.6s linear infinite; }
-  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, .st-hover) { --glow: rgba(225,232,255,.55); }
-  .st-hover::before, .st-down::before, .is-down::before { opacity: 1; }
-  .date[aria-checked="true"], .date.st-on, .chip[aria-pressed="true"], .save[aria-pressed="true"] { --glow: rgba(255,170,160,.5); }
-  .plan.open { --ring: 2px; --glow: rgba(225,232,255,.5); }
-  .plan.open::before { opacity: 1; animation: sheen 9s linear infinite; }
-  @keyframes sheen { to { --sheen: 570deg; } }
-  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled, .plan:has(.tg:disabled), .split:has(button:disabled) { --glow: transparent; }
-  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled::before, .plan:has(.tg:disabled)::before, .split:has(button:disabled)::before { opacity: .3; filter: grayscale(1); animation: none; }
-  .go.done::before { opacity: .5; }
-
+    transition: padding .3s var(--sharp); }
+  :is(.date, .wx, .dismiss, .go, .chip, .save, .split, .plan) { box-shadow: 0 0 12px -2px var(--glow), inset 0 0 10px -4px var(--glow); }
+  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, :focus-visible, :focus-within, .st-hover) { --lc-now: var(--ink); --streak: rgba(122,244,255,.9); --head: var(--hot); --glow: rgba(122,244,255,.42); }
+  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, :focus-visible, :focus-within)::before { animation: run 1.6s linear infinite; }
+  .st-hover::before { --sheen: 120deg; }
+  :is(.is-down, .st-down) { --glow: rgba(200,252,255,.7); }
+  @keyframes run { to { --sheen: 360deg; } }
+  .date[aria-checked="true"]::before { opacity: 0; }   /* the orange slide draws the picked date */
+  .chip[aria-pressed="true"], .save[aria-pressed="true"] { --lc-now: var(--org); --glow: rgba(255,106,44,.4); }
+  :is(.chip, .save)[aria-pressed="true"]:is(:hover, :focus-visible, .st-hover) { --lc-now: var(--org); --streak: #ffb48f; --head: #fff3ec; --glow: rgba(255,106,44,.55); }
+  .plan.open { --ring: 2px; --lc-now: var(--ink); --streak: rgba(122,244,255,.9); --head: var(--hot); --glow: rgba(122,244,255,.38); }
+  .plan.open:not(:hover)::before { --sheen: 359.9deg; }
+  .plan.open::before { animation: run 1.1s var(--sharp) 1; }
+  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled, .plan:has(.tg:disabled), .split:has(button:disabled) { --lc-now: rgba(122,244,255,.18); --streak: transparent; --head: transparent; --glow: transparent; }
+  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled::before, .plan:has(.tg:disabled)::before, .split:has(button:disabled)::before { animation: none; }
+  /* chamfers where the browser can cut them (corner-shape); elsewhere the corners stay small and round */
+  @supports (corner-shape: bevel) {
+    :root { --day-r: 12px; --p-r: 9px; --s-r: 12px; --t-r: 8px; --card-r: 26px; }
+    :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split, .slide, .card, .menu, .tip, .frame, .spec-card, .shotbox, .split > button, .arw),
+    :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split, .card)::before, .card::after { corner-shape: bevel; }
+  }
+  @supports not (corner-shape: bevel) { :root { --day-r: 3px; --p-r: 3px; --s-r: 3px; --t-r: 3px; --card-r: 6px; } }
+  /* boot: a part of the day switches on like a tube, two quick flickers then steady */
+  @keyframes boot { 0% { opacity: 0; } 8% { opacity: .9; } 14% { opacity: .15; } 26% { opacity: 1; } 34% { opacity: .45; } 46%, 100% { opacity: 1; } }
   /* ---- the card ---- */
   .card { position: relative; width: min(680px, calc(100vw - 32px)); padding: 34px var(--card-pad) 30px; border-radius: var(--card-r); background: var(--card);
-    box-shadow: 0 0 0 1px var(--line), 0 24px 50px -30px var(--shadow); }
+    border: 1.5px solid rgba(122,244,255,.7); box-shadow: 0 0 22px -4px rgba(122,244,255,.35), inset 0 0 26px -10px rgba(122,244,255,.3), 0 30px 60px -30px var(--shadow); }
+  /* a second, fainter line just inside the frame, as on a circuit board */
+  .card::after { content: ''; position: absolute; inset: 7px; border-radius: calc(var(--card-r) - 6px); border: 1px solid rgba(122,244,255,.16); pointer-events: none; }
+  .card > * { position: relative; z-index: 1; }
   /* the clip runs to the card's own edges, so a pushed word slides out past the card, not into its margin */
-  .title { position: relative; height: calc(var(--title) * 1.05); margin: 0 calc(var(--card-pad) * -1) 22px; overflow: hidden; font: 700 var(--title)/1 var(--font); letter-spacing: -.03em; }
+  .title { position: relative; height: calc(var(--title) * 1.12); margin: 0 calc(var(--card-pad) * -1) 22px; overflow: hidden; font: 800 var(--title)/1.05 var(--grid); letter-spacing: .04em; text-transform: uppercase; }
+  /* the day name is drawn, not filled: an orange outline with its own glow */
+  .title span { color: transparent; -webkit-text-stroke: 1.6px var(--org); filter: drop-shadow(0 0 6px rgba(255,106,44,.7)); }
   .title span { position: absolute; left: var(--card-pad); top: 0; white-space: nowrap; }
 
   /* ---- group: the seven dates ---- */
   .days { position: relative; display: flex; gap: var(--day-gap); }
-  .slide { position: absolute; z-index: 0; top: 0; left: 0; width: var(--day-w); height: var(--day-h); border-radius: var(--day-r); background: var(--tile);
-    box-shadow: 0 8px 18px -10px var(--shadow); pointer-events: none; }
+  .slide { position: absolute; z-index: 0; top: 0; left: 0; width: var(--day-w); height: var(--day-h); border-radius: var(--day-r); background: var(--org-l);
+    border: 1.5px solid var(--org); box-shadow: 0 0 16px -2px rgba(255,106,44,.6), inset 0 0 14px -4px rgba(255,106,44,.5); pointer-events: none; }
+  /* the light-cycle wall: picking a date leaves an orange trail under the strip from the old date to the new */
+  .trail { position: absolute; z-index: 0; top: calc(var(--day-h) + 7px); height: 2px; border-radius: 2px; background: var(--org); box-shadow: 0 0 8px 1px rgba(255,106,44,.7); pointer-events: none; transform-origin: var(--from) 50%; }
   .date { position: relative; z-index: 1; display: grid; justify-items: center; align-content: center; gap: 4px; width: var(--day-w); height: var(--day-h); border-radius: var(--day-r);
     color: var(--mute); transition: color .35s, background-color .3s, transform .6s var(--spring), box-shadow .5s var(--ease); }
-  .date .m { font-size: 13px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
-  .date .n { font-size: 22px; font-weight: 700; color: inherit; font-variant-numeric: tabular-nums; }
-  .date .w { font-size: 14px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
-  .date .dot { position: absolute; bottom: 6px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .5; }
-  .date:hover:not([aria-checked="true"]), .date.st-hover { background: rgba(255,255,255,.08); color: var(--ink); }
-  .date[aria-checked="true"], .date.st-on { color: var(--on-tile); }
-  .date[aria-checked="true"] .w, .date.st-on .w { color: var(--on-tile); }
-  .date.st-on { background: var(--tile); box-shadow: 0 0 14px -4px var(--glow), 0 8px 18px -10px var(--shadow); }
+  .date .m { font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  .date .n { font: 700 22px/1 var(--grid); color: inherit; }
+  .date .w { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .date:hover:not([aria-checked="true"]), .date.st-hover { background: var(--row); color: var(--ink); }
+  .date[aria-checked="true"], .date.st-on { color: var(--org); text-shadow: 0 0 8px rgba(255,106,44,.6); }
+  .date[aria-checked="true"] .w, .date.st-on .w { color: var(--org); }
+  .date.st-on { background: var(--org-l); --lc-now: var(--org); --glow: rgba(255,106,44,.5); }
   .date.is-down, .date.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
   .date:disabled { color: var(--off); }
-  .date:disabled .dot { display: none; }
-  .date.st-on:disabled { background: rgba(255,255,255,.1); box-shadow: none; color: var(--off); }
+  .date.st-on:disabled { background: none; --lc-now: rgba(122,244,255,.18); --glow: transparent; color: var(--off); text-shadow: none; }
   .date.st-on:disabled .w { color: var(--off); }
 
   /* ---- level 2: the day ---- */
@@ -110,26 +130,42 @@
   .day.open { height: auto; transition: height var(--open) var(--ease); }
   .day.open.settled { overflow: visible; }   /* once open, nothing inside is clipped (the forecast card can hang below) */
   .day-in { padding-top: 26px; }
-  .day-head { position: relative; z-index: 3; display: flex; align-items: center; gap: 14px; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
-  .day-head h3 { margin: 0; flex: 1; font-size: 15px; font-weight: 600; }
-  .day-head h3 small { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--mute); }
+  .day-head { position: relative; z-index: 3; display: flex; align-items: center; gap: 14px; padding: 0 2px 16px; }
+  /* rules are drawn as lines of light, left to right, when the day switches on */
+  .day-head::after, .day-foot::before { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--ink), rgba(122,244,255,.15)); box-shadow: 0 0 6px rgba(122,244,255,.5); transform-origin: 0 50%; scale: 0 1; }
+  .day-head::after { bottom: 0; } .day-foot::before { top: 0; }
+  .day.open :is(.day-head, .day-foot)::after, .day.open .day-foot::before { scale: 1 1; transition: scale .7s var(--sharp) .15s; }
+  .day-head h3 { margin: 0; flex: 1; font: 700 14px/1.2 var(--grid); letter-spacing: .08em; text-transform: uppercase; }
+  .day-head h3 small { display: block; margin-top: 5px; font: 500 13px/1.3 var(--font); letter-spacing: 0; text-transform: none; color: var(--mute); }
   .fade { opacity: 0; translate: 0 8px; transition: opacity .2s, translate .2s; }
-  .day.open .fade { opacity: 1; translate: 0 0; transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .7s var(--spring) calc(180ms + var(--k, 0) * var(--stagger)); }
+  .day.open .fade { opacity: 1; translate: 0 0; transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .6s var(--sharp) calc(180ms + var(--k, 0) * var(--stagger));
+    animation: boot .55s linear both calc(180ms + var(--k, 0) * var(--stagger)); }
+  /* derez: closing, the day breaks into scanlines that thin to nothing as it folds */
+  @property --bar { syntax: '<length>'; inherits: false; initial-value: 4px; }
+  .day.derez .day-in { -webkit-mask: repeating-linear-gradient(#000 0 var(--bar), transparent var(--bar) 4px); mask: repeating-linear-gradient(#000 0 var(--bar), transparent var(--bar) 4px); animation: derez .42s steps(7) forwards; }
+  @keyframes derez { to { --bar: 0px; } }
 
   /* tertiary: weather icon (with its forecast on hover) */
   .wx { position: relative; display: inline-flex; align-items: center; gap: 6px; height: var(--t-size); padding: 0 12px 0 8px; border-radius: var(--t-r); color: var(--ink); transition: background-color .2s, box-shadow .5s var(--ease); }
   .wx .ic { width: 26px; height: 26px; overflow: visible; }
   .wx .ic * { stroke-width: 1.6; }
-  .wx .t { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wx .t { font: 600 14px/1 var(--grid); }
   .wx:hover, .wx:focus-visible, .wx.st-hover { background: var(--row); }
   .wx.is-down, .wx.st-down { background: var(--row-h); }
-  .wx .tip { position: absolute; z-index: 5; right: 0; top: calc(100% + 8px); width: 200px; padding: 12px 14px; border-radius: 8px; background: var(--tipbg); color: #fff; font-size: 13px; font-weight: 500; line-height: 1.45;
+  .wx .tip { position: absolute; z-index: 5; right: 0; top: calc(100% + 8px); width: 200px; padding: 12px 14px; border-radius: var(--t-r); background: var(--tipbg); border: 1px solid rgba(122,244,255,.6); box-shadow: 0 0 16px -4px rgba(122,244,255,.45); color: var(--mute); font-size: 13px; font-weight: 500; line-height: 1.45;
     opacity: 0; translate: 0 -4px; pointer-events: none; transition: opacity .3s, translate .45s var(--ease); text-align: left; }
-  .wx .tip b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .wx .tip b { display: block; margin-bottom: 4px; color: var(--ink); font: 700 12px/1.3 var(--grid); letter-spacing: .1em; text-transform: uppercase; }
   .wx:hover .tip, .wx:focus-visible .tip, .wx.st-hover .tip { opacity: 1; translate: 0 0; transition-delay: .25s; }
   .frame .wx .tip { display: none; }
   /* each weather acts itself out while pointed at */
-  .wx .rays { transform-origin: 12px 12px; } .wx:hover .rays, .wx:focus-visible .rays { animation: spin 6s linear infinite; }
+  /* the sun moves as one light: its rays turn round the sun's own centre while the core breathes with them;
+     where a cloud covers half the sun, the rays beam out and back instead of turning into the cloud */
+  .wx .rays, .wx .core { transform-origin: var(--o); }
+  .wx:hover .rays, .wx:focus-visible .rays { animation: spin 6s linear infinite; }
+  .wx:hover .core, .wx:focus-visible .core { animation: breathe 1.5s ease-in-out infinite alternate; }
+  .wx:hover .rays.beam, .wx:focus-visible .rays.beam { animation: beam 1.5s ease-in-out infinite alternate; }
+  @keyframes breathe { to { scale: 1.14; } }
+  @keyframes beam { to { scale: 1.22; } }
   @keyframes spin { to { rotate: 360deg; } }
   .wx .cloud { transition: translate .6s var(--ease); } .wx:hover .cloud, .wx:focus-visible .cloud { animation: drift 2.4s ease-in-out infinite alternate; }
   @keyframes drift { to { translate: 2px 0; } }
@@ -163,23 +199,33 @@
 
   /* secondary: a plan, opening in place (level 3) */
   .plans { display: grid; gap: 8px; padding-top: 14px; }
-  .plan { border-radius: var(--s-r); background: var(--row); box-shadow: 0 0 14px -4px var(--glow);
-    transition: background-color .2s, box-shadow var(--fold) var(--ease); }
+  .plan { border-radius: var(--s-r); background: var(--row); transition: background-color .2s, box-shadow var(--fold) var(--ease); }
   .plan > .tg { display: grid; grid-template-columns: 58px 1fr 38px auto; align-items: center; gap: 12px; width: 100%; padding: 14px var(--s-pad); border-radius: var(--s-r); transition: transform .45s var(--spring); }
-  .plan .time { font-size: 13px; font-weight: 600; color: var(--mute); font-variant-numeric: tabular-nums; }
-  .plan .what { font-size: 15px; font-weight: 600; }
+  .plan .time { font: 500 13px/1 var(--grid); letter-spacing: .06em; color: var(--mute); }
+  .plan .what { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
   .plan .what small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--mute); }
-  .plan .chev { width: 16px; height: 16px; color: var(--mute); transition: rotate 1s var(--spring); }
-  .plan .chev * { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* the escalator: a window onto a column of chevrons that keeps moving the way the row will go (down to
+     open, up to close); it runs while the row is pointed at or open, and stands still otherwise */
+  .esc { position: relative; display: block; width: 16px; height: 22px; overflow: hidden; color: var(--mute); transition: rotate .6s var(--sharp), color .3s;
+    -webkit-mask: linear-gradient(transparent, #000 35%, #000 65%, transparent); mask: linear-gradient(transparent, #000 35%, #000 65%, transparent); }
+  .esc i { position: absolute; left: 0; top: -14px; display: grid; gap: 0; }
+  .esc svg { width: 16px; height: 7px; overflow: visible; }
+  .esc svg * { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .plan:is(:hover, .st-hover, .open) .esc, .tg:focus-visible .esc { color: var(--ink); }
+  .plan:is(:hover, .open) .esc i, .tg:focus-visible .esc i { animation: escalate .7s linear infinite; }
+  .plan.open:not(:hover) .esc i { animation-duration: 1.4s; }
+  .plan.st-hover .esc i { translate: 0 3.5px; }
+  @keyframes escalate { to { translate: 0 7px; } }
+  .plan:has(.tg:disabled) .esc i { animation: none; }
   .plan:hover, .plan.st-hover { background: var(--row-h); }
   .plan > .tg.is-down, .plan.st-down > .tg { transform: scale(.985); transition-duration: .1s; }
-  .plan.open { background: transparent; }
+  .plan.open { background: rgba(122,244,255,.06); }
   /* the plans are also .fade (their entrance); this keeps that entrance and adds the ring and fill, which the
      .day.open .fade rule would otherwise override */
   .day.open .plan.fade { transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .7s var(--spring) calc(180ms + var(--k, 0) * var(--stagger)),
     background-color .2s, box-shadow var(--fold) var(--ease); }
   .day.open .plan.fade.open { transition: opacity .5s var(--ease), translate .7s var(--spring), background-color .4s var(--ease), box-shadow .5s var(--ease); }
-  .plan.open .chev { rotate: 180deg; }
+  .plan.open .esc { rotate: 180deg; }
   .plan .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--fold) var(--ease); }
   .plan.open .more { grid-template-rows: 1fr; transition: grid-template-rows var(--unfold) cubic-bezier(.4, 0, .2, 1); }
   .more-clip { min-height: 0; overflow: hidden; }
@@ -187,22 +233,22 @@
   .more-in p { margin: 0; font-size: 13.5px; font-weight: 450; color: var(--mute); line-height: 1.5; }
   .more-in p b { color: var(--ink); font-weight: 600; }
   .more-in { opacity: 0; translate: 0 12px; transition: opacity .3s, translate .3s; }
-  .plan.open .more-in { opacity: 1; translate: 0 0; transition: opacity .45s var(--ease) .12s, translate .55s var(--ease) .12s; }
+  .plan.open .more-in { opacity: 1; translate: 0 0; transition: opacity .45s var(--ease) .12s, translate .55s var(--sharp) .12s; animation: boot .5s linear both .18s; }
   .plan:has(.tg:disabled) { opacity: .45; }
   .empty { padding: 22px 4px 6px; color: var(--mute); font-size: 14px; }
 
   /* group: stage filter chips, multi-select (All clears the rest); a filtered-out set folds away */
   .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 0 2px; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; color: var(--mute); font-size: 13px; font-weight: 600;
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--t-r); color: var(--mute); font: 600 11px/1 var(--grid); letter-spacing: .12em; text-transform: uppercase;
     transition: background-color .3s var(--ease), color .3s, box-shadow .5s var(--ease), transform .45s var(--spring); }
   .chip .ic { width: 0; height: 14px; margin-right: -6px; opacity: 0; transition: width .45s var(--ease), margin .45s var(--ease), opacity .3s; }
   .chip .ic * { stroke-width: 2.6; }
   .chip:hover, .chip.st-hover { background: var(--row); color: var(--ink); }
   .chip.is-down, .chip.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
-  .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-tile); }
+  .chip[aria-pressed="true"] { background: var(--org-l); color: var(--org); text-shadow: 0 0 8px rgba(255,106,44,.6); }
   .chip[aria-pressed="true"] .ic { width: 14px; margin-right: 0; opacity: 1; }
   .chip:disabled { color: var(--off); background: none; }
-  .chip[aria-pressed="true"]:disabled { background: rgba(255,255,255,.1); color: var(--off); }
+  .chip[aria-pressed="true"]:disabled { background: none; color: var(--off); text-shadow: none; }
   .slot { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .55s var(--ease), opacity .4s var(--ease); }
   .slot > div { min-height: 0; padding-top: 8px; }
   .slot.busy > div { overflow: hidden; }
@@ -212,13 +258,14 @@
   .none > span { min-height: 0; overflow: hidden; } .none.on { grid-template-rows: 1fr; opacity: 1; } .none.on > span { padding-top: 16px; }
 
   /* tertiary toggle: save a set to My lineup (always an icon: the row has no room for a word) */
-  .save { position: absolute; z-index: 3; top: 14px; right: calc(var(--s-pad) + 26px); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 6px; color: var(--mute);
+  .save { position: absolute; z-index: 3; top: 14px; right: calc(var(--s-pad) + 26px); display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--t-r); color: var(--mute);
     transition: background-color .2s, color .3s, box-shadow .5s var(--ease), transform .45s var(--spring); }
   .save .ic { width: 18px; height: 18px; transition: rotate .8s var(--spring), scale .8s var(--spring); }
   .save .ic * { stroke-width: 1.9; transition: fill .3s; }
   .save:hover, .save.st-hover { background: var(--row-h); color: var(--ink); }
   .save.is-down, .save.st-down { transform: scale(.9); transition-duration: .1s; }
-  .save[aria-pressed="true"] { color: var(--ink); }
+  .save[aria-pressed="true"] { color: var(--org); background: var(--org-l); }
+  .save[aria-pressed="true"] .ic { filter: drop-shadow(0 0 4px rgba(255,106,44,.8)); }
   .save[aria-pressed="true"] .ic { rotate: 72deg; scale: 1.08; }
   .save[aria-pressed="true"] .ic * { fill: currentColor; }
   .save:disabled { color: var(--off); background: none; }
@@ -226,35 +273,37 @@
   .frame .save.solo { position: relative; top: auto; right: auto; translate: none; width: 36px; height: 36px; }
 
   /* primary split: the ticket (main action) and its pass (a menu) */
-  .day-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 16px 2px 0; border-top: 1px solid var(--line); }
-  .day-foot p { margin: 0; font-size: 13px; color: var(--mute); line-height: 1.4; } .day-foot p b { display: block; color: var(--ink); font-size: 14px; }
-  .split { display: inline-flex; height: var(--p-h); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile); transition: box-shadow .5s var(--ease); }
-  .split > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 100%; font-size: 14px; font-weight: 600; transition: background-color .2s, transform .45s var(--spring); }
+  .day-foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 16px 2px 0; }
+  .day-foot p { margin: 0; font-size: 13px; color: var(--mute); line-height: 1.4; } .day-foot p b { display: block; color: var(--ink); font: 700 12px/1.6 var(--grid); letter-spacing: .1em; text-transform: uppercase; }
+  .split { display: inline-flex; height: var(--p-h); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile); transition: box-shadow .5s var(--ease); --glow: rgba(122,244,255,.5); }
+  .split > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 100%; font: 700 12px/1 var(--grid); letter-spacing: .1em; text-transform: uppercase; transition: background-color .2s, transform .45s var(--spring); }
   .split-main { padding: 0 14px 0 16px; border-radius: var(--p-r) 0 0 var(--p-r); }
-  .split-more { width: 40px; border-radius: 0 var(--p-r) var(--p-r) 0; box-shadow: inset 1px 0 0 rgba(64,86,178,.35); }
+  .split-more { width: 40px; border-radius: 0 var(--p-r) var(--p-r) 0; box-shadow: inset 1px 0 0 rgba(0,0,0,.4); }
   .split .ic { width: 18px; height: 18px; } .split .ic * { stroke-width: 2.1; }
   .split-more .ic { width: 16px; transition: rotate .6s var(--spring); }
   .split > button:hover, .split > button:focus-visible, .split.st-hover .split-main { background: var(--violet-d); }
   .split > button.is-down, .split.st-down .split-main { transform: scale(.95); transition-duration: .1s; }
   .split-more[aria-expanded="true"] { background: var(--violet-d); } .split-more[aria-expanded="true"] .ic { rotate: 180deg; }
   .split-main.done { background: var(--violet-l); color: var(--violet); }
-  .split:has(button:disabled) { background: var(--row); color: var(--off); }
+  .split:has(button:disabled) { background: none; color: var(--off); }
+  .split:has(button:disabled) .split-more { box-shadow: inset 1px 0 0 var(--line); }
   [data-content="icon"] .split-main { width: var(--p-h); padding: 0; }
   [data-content="text"] .split-main { padding: 0 16px; }
-  .menu { position: absolute; z-index: 6; right: 0; top: calc(100% + 8px); width: 230px; padding: 6px; border-radius: 8px; background: var(--tipbg); box-shadow: 0 18px 40px -16px var(--shadow), 0 0 0 1px var(--line);
-    opacity: 0; translate: 0 -6px; scale: .97; transform-origin: top right; pointer-events: none; transition: opacity .25s, translate .35s var(--ease), scale .35s var(--ease); }
-  .menu.on { opacity: 1; translate: 0 0; scale: 1; pointer-events: auto; transition: opacity .35s var(--ease), translate .55s var(--spring), scale .55s var(--spring); }
-  .menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 10px; border-radius: 6px; color: #fff; font-size: 13.5px; font-weight: 500; text-align: left; }
+  .menu { position: absolute; z-index: 6; right: 0; top: calc(100% + 8px); width: 230px; padding: 6px; border-radius: var(--t-r); background: var(--tipbg); border: 1px solid rgba(122,244,255,.6);
+    box-shadow: 0 0 18px -4px rgba(122,244,255,.4), 0 18px 40px -16px var(--shadow);
+    clip-path: inset(0 0 100% 0); pointer-events: none; transition: clip-path .25s var(--sharp); }
+  /* the menu is scanned down, top to bottom, like a line of light painting it in */
+  .menu.on { clip-path: inset(-30px -30px -30px -30px); pointer-events: auto; transition: clip-path .5s var(--sharp); }
+  .menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 10px; border-radius: 6px; color: var(--ink); font-size: 13.5px; font-weight: 500; text-align: left; }
   .menu button small { color: var(--mute); font-size: 12.5px; }
-  .menu button:hover, .menu button:focus-visible { background: rgba(255,255,255,.08); outline: none; }
-  .menu button[aria-checked="true"] { color: var(--ink); font-weight: 600; }
-  .menu.on button { animation: item .45s var(--ease) both; animation-delay: calc(var(--k) * 50ms + 60ms); }
-  @keyframes item { from { opacity: 0; translate: 0 -4px; } }
+  .menu button:hover, .menu button:focus-visible { background: var(--row-h); outline: none; }
+  .menu button[aria-checked="true"] { color: var(--org); font-weight: 600; text-shadow: 0 0 8px rgba(255,106,44,.5); }
+  .menu.on button { animation: boot .45s linear both; animation-delay: calc(var(--k) * 70ms + 120ms); }
 
   /* primary: the link out */
-  .go { display: inline-flex; align-items: center; gap: 10px; height: var(--p-h); padding: 0 7px 0 calc(var(--p-pad) + 2px); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile);
-    font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: background-color .2s, transform .45s var(--spring), box-shadow .5s var(--ease); }
-  /* the arrow sits in a blue square of its own, so it reads at a glance and has a stage to leave from */
+  .go { display: inline-flex; align-items: center; gap: 10px; height: var(--p-h); padding: 0 7px 0 calc(var(--p-pad) + 2px); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile); --glow: rgba(122,244,255,.5);
+    font: 700 12px/1 var(--grid); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; transition: background-color .2s, transform .45s var(--spring), box-shadow .5s var(--ease); }
+  /* the arrow sits in a black square of its own, so it reads at a glance and has a stage to leave from */
   .go .arw { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 5px; background: var(--on-tile); color: var(--ink); overflow: hidden; flex: none; }
   .go .ic { width: 16px; height: 16px; }
   .go .ic * { stroke-width: 2.6; }
@@ -264,11 +313,12 @@
   .go.is-down, .go.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
   .go.done { background: var(--violet-l); color: var(--violet); }
   .go.done .arw { background: transparent; color: var(--violet); }
-  .go:disabled { background: var(--row); color: var(--off); transform: none; }
-  .go:disabled .arw { background: rgba(255,255,255,.08); color: var(--off); }
+  .go:disabled { background: none; color: var(--off); transform: none; }
+  .go:disabled .arw { background: var(--row); color: var(--off); }
   [data-content="icon"] .go { width: var(--p-h); padding: 0; justify-content: center; }
   [data-content="icon"] .go .arw { background: none; color: var(--on-tile); }
   [data-content="icon"] .go .ic { width: 20px; height: 20px; }
+  [data-content="icon"] .go:disabled .arw { background: none; color: var(--off); }
   [data-content="text"] .go .arw { display: none; }
   [data-content="text"] .go { padding: 0 var(--p-pad); }
 
@@ -276,15 +326,15 @@
   .hero { padding: 26px 32px 40px; }
   .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
   .head p { margin: 0; color: var(--mute); font-size: 14px; line-height: 1.5; max-width: 54ch; }
-  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--violet); }
+  .head b { display: block; margin-bottom: 8px; font: 700 11px/1.3 var(--grid); letter-spacing: .16em; text-transform: uppercase; color: var(--org); }
   .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
   .ctl fieldset { margin: 0; padding: 0; border: 0; }
   .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
-  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; background: var(--row); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 4px; background: var(--row); box-shadow: inset 0 0 0 1px var(--line); }
   .ctl label { position: relative; }
   .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--mute); }
-  .ctl input:checked + span { background: var(--ink); color: var(--page); }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 3px; font-size: 12px; font-weight: 500; color: var(--mute); }
+  .ctl input:checked + span { background: var(--org-l); color: var(--org); box-shadow: inset 0 0 0 1px var(--org); }
   .ctl input:focus-visible + span { outline: 2px solid var(--violet); outline-offset: 1px; }
   .scene { display: grid; justify-items: center; align-content: start; min-height: 640px; padding-top: 34px; }
   .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -298,15 +348,15 @@
   .states td { padding: 10px; border-top: 1px solid var(--line); vertical-align: middle; }
   .states td:first-child { width: 190px; min-width: 160px; font-size: 14px; font-weight: 600; }
   .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--mute); font-size: 12.5px; }
-  .frame { display: flex; align-items: center; justify-content: center; width: 230px; min-height: 110px; padding: 10px; border-radius: 16px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
+  .frame { display: flex; align-items: center; justify-content: center; width: 230px; min-height: 110px; padding: 10px; border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
   .frame .plan { width: 210px; }
   .frame .plan > .tg { grid-template-columns: 42px 1fr 34px auto; gap: 8px; padding: 12px; }
   .frame button { pointer-events: none; }
   .frame * { transition: none !important; animation: none !important; }
-  .shotbox { position: relative; width: 300px; height: 210px; border-radius: 16px; overflow: hidden; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
+  .shotbox { position: relative; width: 300px; height: 210px; border-radius: 10px; overflow: hidden; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
   .shotbox iframe { position: absolute; left: 0; top: 0; width: 760px; height: 532px; border: 0; transform: scale(.395); transform-origin: 0 0; pointer-events: none; }
   .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
-  .spec-card { padding: 16px 18px 14px; border-radius: 16px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
+  .spec-card { padding: 16px 18px 14px; border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
   .spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
   .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
   .spec-card dt { color: var(--mute); }
@@ -324,7 +374,7 @@
 <body>
   <section class="hero" aria-label="The buttons in use">
     <div class="head">
-      <p><b>Week 08 &middot; Set 2 &middot; Week &middot; Calm</b>A festival week on a card: Tidelight, seven days by the water. Pick a date and the raised tile slides to it; press it and the day opens with its weather, stage chips, its list of sets and the pass. Chips filter the list by stage (any mix); the star saves a set to My lineup; open a set for its details and a link out; the split ticket buys a pass or opens a menu to choose one; dismiss folds the day away. Every button wears a thin metallic outline that catches the light.</p>
+      <p><b>Week 08 &middot; Set 2 &middot; Week &middot; Electric</b>A festival week drawn in light: Tidelight, seven days by the water. Pick a date and an orange frame slides to it, leaving a light trail; press it and the day switches on with its weather, stage chips, its list of sets and the pass. Chips filter the list by stage (any mix); the star saves a set to My lineup; open a set for its details and a link out; the split ticket buys a pass or opens a menu to choose one; the X closes the day, which derezzes. Every button is a chamfered line of light; pointed at, a streak races round it.</p>
       <form class="ctl" onsubmit="return false">
         <fieldset><legend>Buttons</legend><div class="opts">
           <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
@@ -401,10 +451,10 @@
                  { t: '21:00', what: 'Mira Vance, encore', where: 'Main Stage', note: 'Added this morning. Free for wristbands.', link: ['Watch live', 'video'] } ] },
     ];
     const ICONS = {
-      sun: '<g class="rays"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M5.3 18.7l1.5-1.5M17.2 6.8l1.5-1.5"/></g><circle cx="12" cy="12" r="4.2"/>',
+      sun: '<g class="rays" style="--o:12px 12px"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M5.3 18.7l1.5-1.5M17.2 6.8l1.5-1.5"/></g><circle class="core" style="--o:12px 12px" cx="12" cy="12" r="4.2"/>',
       cloud: '<path class="cloud" d="M7 18h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.7 1.4A3.4 3.4 0 0 0 7 18z"/>',
       rain: '<path class="cloud" d="M7 14.5h10a3.8 3.8 0 0 0 .5-7.5 5.2 5.2 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14.5z"/><path class="drop" style="--k:0" d="M9 17.5l-.7 2"/><path class="drop" style="--k:1" d="M12.5 17.5l-.7 2"/><path class="drop" style="--k:2" d="M16 17.5l-.7 2"/>',
-      part: '<g class="rays"><path d="M8.5 3v1.6M3 8.5h1.6M4.6 4.6l1.1 1.1M12.4 4.6l-1.1 1.1"/></g><circle cx="8.5" cy="8.5" r="2.8"/><path class="cloud" d="M9 19h8.5a3.5 3.5 0 0 0 .4-7 4.8 4.8 0 0 0-9.3 1.2A2.9 2.9 0 0 0 9 19z"/>',
+      part: '<g class="rays beam" style="--o:8.5px 8.5px"><path d="M8.5 3v1.6M3 8.5h1.6M4.6 4.6l1.1 1.1M12.4 4.6l-1.1 1.1"/></g><circle class="core" style="--o:8.5px 8.5px" cx="8.5" cy="8.5" r="2.8"/><path class="cloud" d="M9 19h8.5a3.5 3.5 0 0 0 .4-7 4.8 4.8 0 0 0-9.3 1.2A2.9 2.9 0 0 0 9 19z"/>',
       wind: '<path class="gust" style="--k:0" d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5"/><path class="gust" style="--k:1" d="M3 13h15a2.5 2.5 0 1 1-2.5 2.5"/><path class="gust" style="--k:2" d="M3 17h7"/>',
       map: '<path d="M12 21s-6-5.4-6-10.5a6 6 0 0 1 12 0C18 15.6 12 21 12 21z"/><circle cx="12" cy="10.5" r="2"/>',
       video: '<rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="m15 11 6-3.5v9L15 13"/>',
@@ -415,6 +465,7 @@
       out: '<path d="M7 17 17 7M9 7h8v8"/>',
       x: '<path d="M12 12 6 6" pathLength="1" style="--dx:-1;--dy:-1"/><path d="M12 12l6-6" pathLength="1" style="--dx:1;--dy:-1"/><path d="M12 12l-6 6" pathLength="1" style="--dx:-1;--dy:1"/><path d="M12 12l6 6" pathLength="1" style="--dx:1;--dy:1"/>',
       chev: '<path d="m6 9 6 6 6-6"/>',
+      step: '<path d="M3 1.5l5 4 5-4"/>',
     };
     const days = document.querySelector('.days');
     WEEK.forEach((d, i) => {
@@ -422,9 +473,10 @@
       b.className = 'date'; b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(i === 0));
       b.dataset.i = i; b.setAttribute('aria-label', `${d.name}, April ${d.d}${d.plans.length ? `, ${d.plans.length} set${d.plans.length > 1 ? 's' : ''}` : ''}`);
       if (i === 4) b.dataset.off = '';
-      b.innerHTML = `<span class="m" aria-hidden="true">April</span><span class="n" aria-hidden="true">${d.d}</span><span class="w" aria-hidden="true">${d.w}</span>${d.plans.length ? '<span class="dot" aria-hidden="true"></span>' : ''}`;
+      b.innerHTML = `<span class="m" aria-hidden="true">April</span><span class="n" aria-hidden="true">${d.d}</span><span class="w" aria-hidden="true">${d.w}</span>`;
       days.append(b);
     });
+    const ESC = '<span class="esc" aria-hidden="true"><i>' + ('<svg viewBox="0 0 16 7">' + ICONS.step + '</svg>').repeat(5) + '</i></span>';
     const svg = (k, cls = 'ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
     // the day's panel (level 2), and its plans (level 3)
     const STAGES = [['all', 'All'], ['main', 'Main'], ['shore', 'Shore'], ['grove', 'Grove']];
@@ -448,7 +500,7 @@
       <div class="plans">${d.plans.map((p, j) => `
         <div class="slot" data-stage="${stageOf(p.where)}"><div>
         <div class="plan fade" style="--k:${j + 2}">
-          <button class="tg" type="button" aria-expanded="false" aria-controls="more-${j}" data-off><span class="time">${p.t}</span><span class="what">${p.what}<small>${p.where}</small></span><span></span>${svg('chev', 'chev')}</button>
+          <button class="tg" type="button" aria-expanded="false" aria-controls="more-${j}" data-off><span class="time">${p.t}</span><span class="what">${p.what}<small>${p.where}</small></span><span></span>${ESC}</button>
           <button class="save" type="button" aria-pressed="${saved.has(`${i}-${j}`)}" aria-label="Save ${p.what} to My lineup" title="Save to My lineup" data-key="${i}-${j}" data-off>${svg('star', 'ic keep')}</button>
           <div class="more" id="more-${j}"><div class="more-clip"><div class="more-in"><p><b>${p.where}</b><br>${p.note}</p>${p.link ? `<button class="go" type="button" data-name="${p.link[0]}" data-off><span class="lbl">${p.link[0]}</span><span class="arw">${svg('out', 'ic out')}</span></button>` : ''}</div></div></div>
         </div></div></div>`).join('')}
@@ -468,10 +520,10 @@
       const rows = document.getElementById('state-rows'), D = WEEK[1];
       const sv = (k, c = 'ic') => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
       const make = {
-        date: on => `<button class="date${on ? ' st-on' : ''}" type="button"><span class="m">April</span><span class="n">21</span><span class="w">Mon</span><span class="dot"></span></button>`,
+        date: on => `<button class="date${on ? ' st-on' : ''}" type="button"><span class="m">April</span><span class="n">21</span><span class="w">Mon</span></button>`,
         wx: () => `<button class="wx" type="button">${sv('part', 'ic keep')}<span class="t">16°</span></button>`,
         dismiss: () => `<button class="dismiss" type="button">${sv('x', 'ic keep')}</button>`,
-        plan: () => `<div class="plan"><button class="tg" type="button"><span class="time">19:00</span><span class="what">Opal Sound<small>Grove Tent</small></span><span></span>${sv('chev', 'chev')}</button><button class="save" type="button" aria-pressed="false">${sv('star', 'ic keep')}</button></div>`,
+        plan: () => `<div class="plan"><button class="tg" type="button"><span class="time">19:00</span><span class="what">Opal Sound<small>Grove Tent</small></span><span></span>${ESC}</button><button class="save" type="button" aria-pressed="false">${sv('star', 'ic keep')}</button></div>`,
         chip: on => `<button class="chip" type="button" aria-pressed="${on}">${sv('check')}<span class="lbl keep">Grove</span></button>`,
         save: on => `<button class="save solo" type="button" aria-pressed="${on}">${sv('star', 'ic keep')}</button>`,
         split: () => `<div class="split"><button class="split-main" type="button">${sv('ticket')}<span class="lbl">Day pass</span></button><button class="split-more" type="button">${sv('chev', 'ic keep')}</button></div>`,
@@ -530,16 +582,29 @@
     };
     const openDay = i => {
       fillDay(i, 0);
-      day.classList.remove('open', 'settled'); void day.offsetHeight; day.classList.add('open');
+      clearTimeout(day._d); day.classList.remove('open', 'settled', 'derez'); void day.offsetHeight; day.classList.add('open');
       clearTimeout(day._t); day._t = setTimeout(() => day.classList.add('settled'), P.calm.matches ? 0 : ms('--open'));
       said.textContent = `${WEEK[i].name} opened. ${WEEK[i].plans.length || 'No'} plans.`;
     };
-    const closeDay = () => { if (!day.classList.contains('open')) return; clearTimeout(day._t); day.classList.remove('settled', 'open'); said.textContent = 'Day closed'; days.querySelector('[aria-checked=true]').focus({ preventScroll: true }); };
+    const closeDay = () => { if (!day.classList.contains('open')) return; clearTimeout(day._t);
+      if (!P.calm.matches) { day.classList.add('derez'); clearTimeout(day._d); day._d = setTimeout(() => day.classList.remove('derez'), ms('--close') + 60); }
+      day.classList.remove('settled', 'open'); said.textContent = 'Day closed'; days.querySelector('[aria-checked=true]').focus({ preventScroll: true }); };
 
     // picking a date (click, or arrows inside the group): the tile slides, the name rolls; if a day is open it follows
     let justPicked = false;
+    // the light-cycle wall: an orange line drawn under the strip from the date left to the date picked, then it fades
+    const trail = (from, to) => {
+      if (P.calm.matches || !from || from === to) return;
+      const a = from.offsetLeft + from.offsetWidth / 2, b = to.offsetLeft + to.offsetWidth / 2;
+      const t = document.createElement('span'); t.className = 'trail'; t.setAttribute('aria-hidden', 'true');
+      t.style.left = Math.min(a, b) + 'px'; t.style.width = Math.abs(b - a) + 'px'; t.style.setProperty('--from', a < b ? '0%' : '100%');
+      days.append(t);
+      t.animate([{ transform: 'scaleX(0)', opacity: 1 }, { transform: 'scaleX(1)', opacity: 1, offset: .55 }, { transform: 'scaleX(1)', opacity: 0 }],
+        { duration: ms('--slide') + 700, easing: 'linear' }).finished.then(() => t.remove()).catch(() => t.remove());
+    };
     days.addEventListener('pick', e => {
       const i = +e.detail.to.dataset.i, dir = i - cur; cur = i; justPicked = true;
+      trail(e.detail.from, e.detail.to);
       placeTile(e.detail.to, true); roll(WEEK[i].w, dir);
       if (day.classList.contains('open')) fillDay(i, Math.sign(dir));
       setTimeout(() => { justPicked = false; }, 0);   // a pick made with the arrow keys has no click after it
@@ -671,68 +736,70 @@
       const sw = c => `<i style="background:${c}"></i>${c}`;
       const cards = [
         ['Colour', [
-          ['Page / card', `${sw(tok('--page'))} ${sw(tok('--card'))}`], ['Ink', sw(tok('--ink'))], ['Muted', sw(tok('--mute'))],
-          ['Accent', `${sw(tok('--violet'))}, pressed ${tok('--violet-d')}`], ['Rows', `${sw(tok('--row'))}, hover ${tok('--row-h')}`], ['Off', sw(tok('--off'))],
+          ['Page / card', `${sw(tok('--page'))} ${sw(tok('--card'))}`], ['Light (system)', sw(tok('--ink'))], ['Line at rest', sw(tok('--lc'))],
+          ['Yours (picked, saved)', sw(tok('--org'))], ['Muted', sw(tok('--mute'))], ['Off', sw(tok('--off'))],
+          ['Rule', 'cyan is the system, orange is what you chose; a solid cyan panel is the one thing to do'],
         ]],
         ['Type', [
-          ['Family', 'Inter'], ['Day name', `700, ${tok('--title')}, letter-spacing -3%`],
-          ['Date', 'month 13 / 500 caps, number 22 / 700, weekday 14 / 500 caps'],
-          ['Plans', 'title 15 / 600, place and time 13 / 500–600'], ['Link', '14 / 600'],
+          ['Display', 'Orbitron: the day name (800, outlined), dates, times, labels in caps with wide tracking'],
+          ['Text', 'Inter for anything read as a sentence: places, notes, the day count'],
+          ['Day name', `${tok('--title')}, a 1.6px orange outline with no fill, its own glow`],
+        ]],
+        ['Light lines', [
+          ['Ring', '1.5px on every button (2px on an open set), cut from a steady cyan line by a mask'],
+          ['Corners', 'chamfered with corner-shape: bevel where the browser can; small and round where it cannot'],
+          ['Glow', 'a halo outside and a faint one inside, both from the line colour'],
+          ['Hover', 'a white-hot streak races round the edge once every 1.6s, like a light cycle; the line goes full cyan'],
+          ['Disabled', 'the line drops to 18%, no glow, no streak'],
         ]],
         ['Group · dates', [
           ['Size', `${Math.round(date.width)} × ${Math.round(date.height)}px, ${tok('--day-gap')} apart`], ['Corners', tok('--day-r')],
-          ['Picked', 'a raised coral tile with a soft shadow, blue words'],
-          ['Hover', 'an 8% white tint, words turn coral'], ['Pressed', `scaled to ${tok('--press-scale')}`], ['Has sets', 'a 4px dot under the weekday'],
-          ['Moving', `the tile slides to the new date on a spring (${tok('--slide')}); the new day name comes down from above and pushes the old one out below, both together on one ease-in-out (${tok('--roll')})`],
+          ['Picked', 'an orange-lit frame (its own line hidden under it), orange words'],
+          ['Hover', 'a faint cyan wash, words go full cyan'], ['Pressed', `scaled to ${tok('--press-scale')}`],
+          ['Moving', `the orange frame slides to the new date (${tok('--slide')}) and leaves a light-cycle wall under the strip that draws from the old date to the new, then fades; the day name pushes the old one down (${tok('--roll')})`],
           ['Keys', 'one tab stop; arrows move the pick; Enter opens the day'],
         ]],
         ['Primary · link out', [
-          ['Height', tok('--p-h')], ['Corners', tok('--p-r')], ['Fill', `coral ${tok('--violet')}, blue words; the arrow coral in a 30px blue square, 5px corners`],
+          ['Height', tok('--p-h')], ['Corners', tok('--p-r')], ['Fill', `a lit cyan panel ${tok('--violet')}, black words in caps; the arrow cyan in a black square`],
           ['Width', go ? `${Math.round(go.getBoundingClientRect().width)}px for “${go.textContent.trim()}”` : '—'],
-          ['Hover', 'deeper coral; only the arrow moves: it flies out of its square to the top right and comes back in from the bottom left'], ['Pressed', `scaled to ${tok('--press-scale')}`],
-          ['After', 'a pale coral “Opening…” for a moment'],
+          ['Hover', 'whiter; only the arrow moves: it flies out of its square to the top right and back in from the bottom left'], ['Pressed', `scaled to ${tok('--press-scale')}`],
+          ['After', 'a dim “Opening…” for a moment'],
         ]],
         ['Primary · split ticket', [
-          ['Parts', `the pass to buy (ticket icon and its name) and a ${40}px chevron that opens the pass menu; one ${tok('--p-h')} coral block, a hairline between`],
-          ['Hover', 'each half deepens on its own'], ['Pressed', 'the half pressed scales to 95%'],
-          ['Menu', 'Day pass, Weekend pass, Full week: drops from under the chevron on a spring, items 50ms apart; picking one renames the main half, which rises in'],
+          ['Parts', `the pass to buy (ticket icon and its name) and a 40px chevron that opens the pass menu; one ${tok('--p-h')} lit panel, a black hairline between`],
+          ['Hover', 'each half whitens on its own'], ['Pressed', 'the half pressed scales to 95%'],
+          ['Menu', 'scanned down from the top in 500ms; items switch on one after another (70ms apart) with a tube flicker; the chosen pass is orange'],
           ['Keys', 'Enter on the chevron opens it on the current pass; arrows move; Escape closes and returns'],
         ]],
         ['Group · stage chips', [
-          ['Size', '32px high, 6px corners, 13 / 600'], ['Selection', 'multi-select: any mix of Main, Shore, Grove; All clears them; none left means All'],
-          ['Picked', 'coral fill, blue words; a check slides in from zero width'],
+          ['Size', '32px high, 11 / 600 caps'], ['Selection', 'multi-select: any mix of Main, Shore, Grove; All clears them; none left means All'],
+          ['Picked', 'orange line, orange words, a faint orange wash; a check slides in from zero width'],
           ['Filtering', 'sets on other stages fold their row to nothing (550ms) and fade; if none are left, a line says so'],
         ]],
         ['Tertiary · save toggle', [
-          ['Size', '36px square, 6px corners, inside the set row'], ['Content', 'always the star: the row has no room for a word, so it is named by its label'],
-          ['On', 'the star fills coral and turns a fifth (72°) on a spring; the day counts it (“· 1 in my lineup”)'],
+          ['Size', '36px square, inside the set row'], ['Content', 'always the star: the row has no room for a word, so it is named by its label'],
+          ['On', 'its line turns orange; the star fills orange with a glow and turns a fifth (72°); the day counts it (“· 1 in my lineup”)'],
           ['Pressed', 'scaled to 90%'],
         ]],
         ['Secondary · a set', [
-          ['Row', `${tok('--s-r')} corners, ${tok('--s-pad')} sides, ${tok('--row')}`], ['Hover', tok('--row-h')], ['Pressed', 'scaled to 98.5%'],
-          ['Open', `its fill drops away, the metal ring thickens to 2px and its light keeps travelling round; the chevron turns over; the list row unfolds (${tok('--unfold')}) and the details rise in after it; it folds back in ${tok('--fold')}`],
+          ['Row', `${tok('--s-r')} corners, ${tok('--s-pad')} sides, ${tok('--row')}`], ['Hover', `${tok('--row-h')}, the streak runs round; the chevron escalator starts climbing down (700ms a step)`], ['Pressed', 'scaled to 98.5%'],
+          ['Open', `the line thickens to 2px and the streak runs round it once; the chevron escalator turns over and keeps running the other way, slower; the row unfolds (${tok('--unfold')}) and the details flicker on after it; it folds back in ${tok('--fold')}`],
         ]],
         ['Tertiary · weather, dismiss', [
-          ['Size', `${tok('--t-size')} high, ${tok('--t-r')} corners`], ['Hover', `${tok('--row')} behind it`],
-          ['Weather', 'its icon acts the weather out (sun rays turn, clouds drift, rain falls, wind blows) and a dark forecast card appears after 250ms'],
-          ['Dismiss', `the X alone, ${tok('--t-size')} square, in every content mode (named “Close” for screen readers); its four arms are drawn from the centre: on hover they ease 1.6px apart on a spring, held they draw in, and on release they pop out 12px to the four corners, thinning to nothing (600ms) while the day folds away 220ms later`],
+          ['Size', `${tok('--t-size')} high, ${tok('--t-r')} corners`], ['Hover', `${tok('--row')} behind it, the streak runs round`],
+          ['Weather', 'its icon acts the weather out (the sun turns its rays round its own centre while its core breathes; half-hidden by cloud, its rays beam out and back; clouds drift, rain falls, wind blows) and a black forecast panel in a cyan line appears after 250ms'],
+          ['Dismiss', `the X alone, ${tok('--t-size')} square, in every content mode (named “Close” for screen readers); four arms from the centre: on hover they ease apart, held they draw in, released they pop out 12px to the corners and thin to nothing (600ms) while the day derezzes 220ms later`],
         ]],
         ['Depth', [
           ['Levels', 'a date (1) opens its day (2): weather, stage chips, the list of sets, the pass, dismiss; a set opens to its details and link, and the pass to its menu (3)'],
-          ['Opening', `the card grows to fit the day (${tok('--open')}); the day's parts come up one after another, ${tok('--stagger')} apart`],
+          ['Opening', `the card grows to fit the day (${tok('--open')}); its rules draw left to right; each part switches on like a tube (two flickers, then steady), ${tok('--stagger')} apart`],
           ['Switching', 'picking another date while a day is open slides the new day in from the side you moved to'],
-          ['Closing', `dismiss, Escape, or pressing the picked date again: it folds up quicker (${tok('--close')}); Escape closes the pass menu first, then an open set`],
-        ]],
-        ['Metal outline', [
-          ['Ring', '1.25px on every button (2px on an open set), a conic gradient of chrome tones cut to a hairline by a mask'],
-          ['Tones', `${sw(tok('--m-dark'))} ${sw(tok('--m-mid'))} ${sw(tok('--m-hi'))} ${sw(tok('--m-warm'))} and two white highlights`],
-          ['Glow', 'a soft 14px halo; brighter when pointed at, coral under the picked date, none when off'],
-          ['Hover', 'the highlight travels once round the edge every 3.6s; an open set keeps a slow 9s turn'],
-          ['Disabled', 'the ring goes grey and faint, and stops'],
+          ['Closing', `derez: the day breaks into 4px scanlines that thin to nothing in seven steps while it folds (${tok('--close')}); Escape closes the pass menu first, then an open set`],
         ]],
         ['Motion', [
-          ['Spring', 'one soft spring (about 9% past) for slides, rolls and lifts'], ['Ease', tok('--ease') + ' for heights'],
-          ['Reduced motion', 'nothing moves; everything is simply in its new place'],
+          ['Ease', `${tok('--sharp')}: fast in, dead stop; the grid does not bounce`],
+          ['Steps', 'flickers and derez are stepped, not eased, so they read as switching rather than fading'],
+          ['Reduced motion', 'nothing moves or flickers; everything is simply in its new place'],
         ]],
       ];
       out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
