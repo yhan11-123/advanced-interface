@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Festival</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;800&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Festival (the user's idea): the buttons are speakers at a music festival. Every one of them moves to
+     the same beat (124 bpm), each like a different driver in a speaker stack.
+       Get tickets (primary)  the subwoofer: on every beat it thumps out and a shockwave ring leaves it;
+                              pointed at, the volume goes up and it thumps harder; pressed, the drop: one
+                              huge thump and the whole stage shakes
+       Lineup (secondary)     the mid driver: it buzzes on the offbeats, between the kicks
+       Map (tertiary)         the tweeter: its outline shimmers on every sixteenth, fine and fast
+       Group (day)            Fri, Sat, Sun with three level bars each; the picked day's bars dance to the
+                              bass, mids and highs, the others sit low; picking a day drops its bars in
+     Sound is off until you turn it on (top right); then a kick and hi-hat play on the same clock the
+     buttons move to. */
+  :root { --w: 780px; --h: 460px; --pink: #ff2e88; --pink-d: #c4136a; --lime: #c6ff3d; --ink: #0b0714; }
+  body { background: var(--ink); font: 800 17px/1 "Archivo", system-ui, sans-serif; color: #fff; }
+  .stage { overflow: visible; }
+  .lights { position: absolute; inset: -40px -80px 0; pointer-events: none; overflow: hidden; }
+  .lights i { position: absolute; top: -60px; width: 220px; height: 560px; transform-origin: 50% 0; opacity: .16;
+    background: linear-gradient(rgba(255,46,136,.9), transparent 75%); clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%); }
+  .lights i:nth-child(1) { left: 18%; animation: sweep 7s ease-in-out infinite alternate; }
+  .lights i:nth-child(2) { right: 18%; background: linear-gradient(rgba(198,255,61,.8), transparent 75%); animation: sweep 9s ease-in-out infinite alternate-reverse; }
+  @keyframes sweep { from { rotate: -22deg; } to { rotate: 22deg; } }
+  .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 140px; background: radial-gradient(60% 100% at 50% 100%, rgba(255,46,136,calc(.10 + var(--bass, 0) * .22)), transparent 70%); pointer-events: none; }
+  .bill { position: absolute; left: 0; right: 0; top: 34px; text-align: center; pointer-events: none; }
+  .bill h1 { margin: 0; font: 400 56px/0.9 "Anton", sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+  .bill p { margin: 10px 0 0; font: 600 12px/1 "Archivo"; letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+  .stack { position: absolute; left: 0; right: 0; top: 190px; display: flex; justify-content: center; align-items: center; gap: 26px; }
+  .ic { width: 20px; height: 20px; }
+  .ic * { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* the subwoofer */
+  .sub { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 66px; padding: 0 32px; border-radius: 33px; background: var(--pink); color: var(--ink);
+    box-shadow: 0 0 0 calc(var(--push, 0) * 12px) rgba(255,46,136,.22), 0 12px 30px -12px rgba(255,46,136,.8); scale: calc(1 + var(--push, 0) * .06); }
+  .sub::before { content: ""; position: absolute; inset: 6px; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(60% 120% at 50% 50%, transparent 55%, rgba(0,0,0,.14) 56%, transparent 62%, rgba(0,0,0,.1) 70%, transparent 76%); }
+  .wave { position: absolute; z-index: -1; border-radius: 40px; border: 2px solid var(--pink); pointer-events: none; }
+  .stage[data-content="icon"] .sub { width: 66px; padding: 0; justify-content: center; }
+  /* the mid */
+  .mid { display: inline-flex; align-items: center; gap: 9px; height: 56px; padding: 0 26px; border-radius: 28px; background: #1d1430; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,46,136,.7);
+    translate: var(--jx, 0px) var(--jy, 0px); }
+  .mid:hover { background: #271a42; }
+  .stage[data-content="icon"] .mid { width: 56px; padding: 0; justify-content: center; }
+  /* the tweeter */
+  .tw { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 22px; border-radius: 26px; color: var(--lime);
+    box-shadow: inset 0 0 0 1.5px rgba(198,255,61,calc(.35 + var(--hi, 0) * .65)), 0 0 calc(var(--hi, 0) * 14px) rgba(198,255,61,.35); }
+  .tw:hover { color: #e6ff9e; }
+  .stage[data-content="icon"] .tw { width: 52px; padding: 0; justify-content: center; }
+  .row-btn:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
+  .row-btn.is-down { scale: .95; }
+  .row-btn:disabled { filter: grayscale(1) brightness(.6); box-shadow: none; scale: 1; translate: 0 0; }
+
+  /* the day group */
+  .days { position: absolute; left: 50%; top: 318px; translate: -50% 0; display: flex; gap: 8px; padding: 6px; border-radius: 30px; background: #160f26; }
+  .day { display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px 0 14px; border-radius: 23px; color: rgba(255,255,255,.6); font-size: 15px; transition: background-color .25s, color .25s; }
+  .day:hover { color: #fff; }
+  .day[aria-checked="true"] { background: #fff; color: var(--ink); }
+  .day:disabled { opacity: .35; }
+  .day:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .day.is-down { scale: .95; }
+  .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .eq i { width: 3px; height: 4px; border-radius: 2px; background: currentColor; }
+  .stage[data-content="text"] .day .eq { display: none; }
+  .stage[data-content="icon"] .day { padding: 0 14px; }
+
+  .sound { position: fixed; right: 12px; top: 12px; z-index: 9; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 999px;
+    background: rgba(255,255,255,.1); color: #fff; font: 600 11px/1 system-ui, sans-serif; }
+  .sound[aria-pressed="true"] { background: var(--lime); color: var(--ink); }
+  @media (max-width: 520px) { .sound { display: none; } }
+  .stage.shake { animation: shake .5s cubic-bezier(.3, .7, .3, 1); }
+  @keyframes shake { 10% { translate: -6px 3px; } 25% { translate: 5px -4px; } 40% { translate: -4px 2px; } 60% { translate: 2px -1px; } }
+  @media (prefers-reduced-motion: reduce) { .lights i { animation: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <button class="sound" type="button" aria-pressed="false">Sound off</button>
+  <div class="stage" data-content="both">
+    <div class="lights" aria-hidden="true"><i></i><i></i></div>
+    <div class="floor" aria-hidden="true"></div>
+    <div class="bill" aria-hidden="true"><h1>Neon Field</h1><p>Three days &middot; 124 bpm</p></div>
+    <div class="stack">
+      <button class="row-btn mid" type="button" data-name="Lineup" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span class="lbl">Lineup</span></button>
+      <button class="row-btn sub" type="button" data-name="Get tickets" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8a2 2 0 0 0 0 4v4h16v-4a2 2 0 0 0 0-4V4H4zM10 4v12" /></svg><span class="lbl">Get tickets</span></button>
+      <button class="row-btn tw" type="button" data-name="Map" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span class="lbl">Map</span></button>
+    </div>
+    <div class="days" role="radiogroup" aria-label="Day">
+      <button class="day" type="button" role="radio" aria-checked="true" data-name="Friday"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="lbl">Fri</span></button>
+      <button class="day" type="button" role="radio" aria-checked="false" data-name="Saturday"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="lbl">Sat</span></button>
+      <button class="day" type="button" role="radio" aria-checked="false" data-name="Sunday" data-off><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="lbl">Sun</span></button>
+    </div>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const stage = M.stage, sub = stage.querySelector('.sub'), mid = stage.querySelector('.mid'), tw = stage.querySelector('.tw'), days = stage.querySelector('.days');
+    const BPM = 124, BEAT = 60000 / BPM;
+    let t0 = performance.now(), lastBeat = -1, dropUntil = 0;
+    const hot = el => el.matches(':hover') || el.matches(':focus-visible');
+
+    // one clock for everything: kicks on the beat, mids on the offbeat eighths, highs on the sixteenths
+    const frame = now => {
+      const t = (now - t0) / BEAT, beat = Math.floor(t), ph = t - beat;
+      const kick = Math.exp(-ph * 7), off = (t * 2) % 2 >= 1 ? Math.exp(-((t * 2) % 1) * 9) : 0, hat = Math.exp(-((t * 4) % 1) * 14);
+      const drop = now < dropUntil ? 2.6 : 1;
+      const gSub = sub.disabled ? 0 : (hot(sub) ? 1.7 : 1) * drop, gMid = mid.disabled ? 0 : hot(mid) ? 1.8 : 1, gTw = tw.disabled ? 0 : hot(tw) ? 1.6 : 1;
+      if (!M.calm.matches) {
+        sub.style.setProperty('--push', (kick * gSub).toFixed(3));
+        const a = off * 2.2 * gMid; mid.style.setProperty('--jx', (Math.sin(now * .09) * a).toFixed(2) + 'px'); mid.style.setProperty('--jy', (Math.cos(now * .13) * a * .6).toFixed(2) + 'px');
+        tw.style.setProperty('--hi', (hat * gTw).toFixed(3));
+        stage.style.setProperty('--bass', (kick * (gSub || 1)).toFixed(3));
+        // the picked day's bars: bass, mids and highs; the others rest low
+        days.querySelectorAll('.day').forEach(d => {
+          const on = d.getAttribute('aria-checked') === 'true' && !d.disabled, bars = d.querySelectorAll('.eq i');
+          const lv = on ? [kick, off * .9 + .15, hat * .8 + .1] : [.18, .12, .15];
+          bars.forEach((b, i) => { b.style.height = (3 + lv[i] * 13).toFixed(1) + 'px'; });
+        });
+        if (beat !== lastBeat) { lastBeat = beat; if (!sub.disabled) wave(gSub); }
+      }
+      requestAnimationFrame(frame);
+    };
+    // a shockwave ring leaves the subwoofer on every beat; louder, wider
+    const wave = g => {
+      const r = document.createElement('span'); r.className = 'wave'; r.setAttribute('aria-hidden', 'true');
+      r.style.inset = '0px';
+      sub.append(r);
+      r.animate([{ inset: '0px', opacity: .55 * Math.min(1, g) }, { inset: `${-18 * g}px`, opacity: 0 }], { duration: 640, easing: 'cubic-bezier(.2, .7, .3, 1)' }).finished.then(() => r.remove());
+    };
+    requestAnimationFrame(frame);
+
+    // the drop: one big thump, the stage shakes
+    sub.addEventListener('click', () => {
+      dropUntil = performance.now() + BEAT; if (sound.on) sound.boom();
+      if (!M.calm.matches) { stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); }
+    });
+    days.addEventListener('pick', e => {
+      // the new day's bars jump up all at once before they find the beat
+      if (M.calm.matches) return;
+      e.detail.to.querySelectorAll('.eq i').forEach((b, i) => b.animate([{ height: '16px' }, { height: '4px' }], { duration: 300 + i * 80, easing: 'ease-out' }));
+    });
+
+    // sound: a kick and a hi-hat, synthesised, scheduled on the same clock
+    const sound = { on: false, ctx: null, timer: 0, next: 0, step: 0,
+      start() {
+        this.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+        this.ctx.resume(); this.on = true;
+        // line the beat up with the buttons: the next beat as the buttons count it
+        const now = performance.now(), t = (now - t0) / BEAT, wait = (Math.ceil(t * 4) / 4 - t) * BEAT / 1000;
+        this.step = Math.ceil(t * 4); this.next = this.ctx.currentTime + wait;
+        this.timer = setInterval(() => this.schedule(), 25);
+      },
+      stop() { this.on = false; clearInterval(this.timer); },
+      schedule() {
+        while (this.next < this.ctx.currentTime + .12) {
+          if (this.step % 4 === 0) this.kick(this.next, hot(sub) ? 1 : .7);
+          if (this.step % 2 === 1) this.hat(this.next, hot(tw) ? .22 : .12);
+          this.next += BEAT / 4000; this.step++;
+        }
+      },
+      kick(at, v) { const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(150, at); o.frequency.exponentialRampToValueAtTime(42, at + .14);
+        g.gain.setValueAtTime(v, at); g.gain.exponentialRampToValueAtTime(.001, at + .35); o.connect(g).connect(c.destination); o.start(at); o.stop(at + .4); },
+      hat(at, v) { const c = this.ctx, n = c.createBufferSource(), b = c.createBuffer(1, c.sampleRate * .06, c.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000; const g = c.createGain();
+        g.gain.setValueAtTime(v, at); g.gain.exponentialRampToValueAtTime(.001, at + .05); n.buffer = b; n.connect(f).connect(g).connect(c.destination); n.start(at); },
+      boom() { const c = this.ctx, at = c.currentTime + .01, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(90, at); o.frequency.exponentialRampToValueAtTime(30, at + .6);
+        g.gain.setValueAtTime(1, at); g.gain.exponentialRampToValueAtTime(.001, at + .9); o.connect(g).connect(c.destination); o.start(at); o.stop(at + 1); },
+    };
+    const soundBtn = document.querySelector('.sound');
+    soundBtn.addEventListener('click', () => {
+      const on = soundBtn.getAttribute('aria-pressed') !== 'true';
+      soundBtn.setAttribute('aria-pressed', String(on)); soundBtn.textContent = on ? 'Sound on' : 'Sound off';
+      on ? sound.start() : sound.stop();
+    });
+  </script>
+</body>
+</html>

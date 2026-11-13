@@ -12,8 +12,9 @@
      A cream-on-black button system in which the pointer carries a small cream drop and the buttons
      are made of the same liquid: they reach out to the drop, take it in, and let it go.
      Three levels of emphasis:
-       Primary    an outline that fills with cream from where the drop comes in, and drains out where it leaves
-       Secondary  a dim filled pill: the drop sinks into it and beads on its lower edge under the pointer
+       Primary    an outline that holds liquid: pointed at, cream rises to half and sloshes as you move; held down,
+                  it rises to the top and the options pour out
+       Secondary  a dim filled pill: the drop sinks into it and its outline swells out toward the pointer
        Tertiary   an outline pill: the drop sinks in and a bright outline is drawn round it from where it touched
        Group      single selection: the cream pick necks and pulls from one option into the next
      Every number in the Spec section is read from these tokens. */
@@ -26,7 +27,7 @@
     --t-h: 52px; --t-pad: 24px; --t-line: 1.5px; --t-line-down: 3px; --t-rest: .32;
     --g-h: 48px; --g-r: 24px; --g-line: 1.5px; --g-gap: 6px; --g-pad: 20px;
     --drop: 14px; --reach: 70px; --lean: 4px; --bump-w: 64px; --bump-h: 15px;
-    --flood-in: 820ms; --flood-out: 640ms; --hand-off: 520ms; --travel: 860ms; --spread: 600ms;
+    --travel: 860ms; --spread: 600ms; --hover-level: .46; --hold: 850ms; --stretch: .9; --splash-speed: 1.6;
     --press-scale: .97;
     --d-h: 44px; --d-h-sm: 38px; --d-r: 22px; --d-gap: 10px; --d-drop: 22px; --d-fall: 900ms; --d-stagger: 130ms; --d-grow: 420ms; --d-back: 620ms; --room: 150px;
     --snap: linear(0, 0.075, 0.261, 0.466, 0.666, 0.836, 0.977, 1.061, 1.106, 1.122, 1.115, 1.096, 1.071, 1.046, 1.022, 1.006, 0.994, 0.988, 0.985, 0.986, 0.988, 0.991, 0.994, 0.997, 0.999, 1.001, 1.001, 1.002, 1.002, 1.002, 1.001, 1.001, 1, 1, 1);
@@ -60,13 +61,12 @@
   .ct:disabled { border-color: rgba(246,244,218,.28); color: rgba(246,244,218,.32); background: none; transform: none; }
   [data-content="icon"] .ct { width: var(--p-h); padding: 0; }
 
-  /* secondary: a dim pill with a bead */
+  /* secondary: a dim pill whose outline swells toward the pointer */
   .pf { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--s-h); padding: 0 var(--s-pad);
     border-radius: calc(var(--s-h) / 2); background: var(--body); transition: background-color .2s, transform .5s var(--snap); }
   .pf.is-down, .pf.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
   .pf.st-down, .pf[aria-expanded="true"] { background: var(--body-down); }
-  .pf.st-hover::after { content: ""; position: absolute; left: 50%; bottom: -11px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--body);
-    box-shadow: 0 -8px 0 -3px var(--body); }
+  .pf.st-hover::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 70px; height: 26px; margin-left: -35px; border-radius: 50%; background: var(--body); z-index: -1; }
   .pf:disabled { color: rgba(246,244,218,.32); background: #17160f; transform: none; }
   [data-content="icon"] .pf { width: var(--s-h); padding: 0; }
 
@@ -146,10 +146,8 @@
   .fill i { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; background: var(--cream); scale: 0; }
   .gpick { border-radius: var(--g-r); opacity: 0; }
   .gpick.moving { opacity: 1; }
-  /* the bead hangs outward from a point on the pill's edge: drawn hanging down, turned to face out; it sits behind
-     the pill, so only the part past the edge shows */
-  .bead { width: var(--bump-w); height: calc(var(--bump-h) + 8px); margin: -8px 0 0 calc(var(--bump-w) / -2); overflow: visible; background: none !important; fill: var(--body);
-    transform-origin: 50% 8px; transform: scaleX(var(--ws, 1)); scale: 0; transition: scale .45s cubic-bezier(.3, .7, .3, 1); }
+  /* Portfolio's swell: its own outline pushed out near the pointer, drawn as one path behind the pill */
+  .swell { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; background: none !important; fill: var(--body); pointer-events: none; }
 
   /* depth: the options that drip out of a button */
   .room { height: var(--room); }
@@ -175,7 +173,17 @@
   .c.linec:hover::after { height: 3px; }
   .c.linec.is-down::after { height: var(--t-under-down); }
   [data-content="icon"] .c.linec { width: 40px; padding: 0; }
-  .ct[aria-expanded="true"] { background: var(--cream); color: var(--page); }
+  /* in use, Contact me holds a level of liquid (drawn by script) instead of a flat fill, and its words are
+     drawn in difference so they read wherever the surface cuts across them */
+  [data-live] .ct.is-full, [data-live] .ct:focus-visible { background: none; color: var(--cream); }
+  [data-live] .ct.is-down { background: none; color: var(--cream); }
+  [data-live] .ct .lbl, [data-live] .ct .ic { position: relative; mix-blend-mode: difference; }
+  .ct .tank { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
+  .ct .tank svg { width: 100%; height: 100%; fill: var(--cream); }
+  .ct .holdtip { position: absolute; left: 50%; top: calc(100% + 10px); translate: -50% 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim);
+    opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; mix-blend-mode: normal; }
+  .ct .holdtip.on { opacity: 1; }
+  .splash { position: absolute; border-radius: 50%; background: var(--cream); pointer-events: none; }
   .twin { position: absolute; }
   .goo.cream .twin { background: var(--cream); }
   .goo.dark .twin { background: var(--body) !important; }
@@ -221,7 +229,7 @@
   
   <section class="hero" aria-label="The buttons in use">
     <div class="head">
-      <p><b>Week 08 &middot; Set 1 &middot; Melt &middot; Fluid</b>A designer&rsquo;s contact card. Your pointer carries a small cream drop, and every button is made of the same cream: Contact me reaches out to meet the drop, takes it in and fills; Portfolio swallows it and beads under your pointer; R&eacute;sum&eacute; draws its outline round from where the drop touched; the pick runs from option to option. Press a button and its options drip out of it as drops that land as buttons on the row below; some open one row deeper.</p>
+      <p><b>Week 08 &middot; Set 1 &middot; Melt &middot; Fluid</b>A designer&rsquo;s contact card. Your pointer carries a small cream drop, and every button is made of the same cream: Contact me fills halfway with cream that sloshes as you move, and, held down, fills to the top and pours out its options; Portfolio swallows it and its outline swells out toward your pointer; R&eacute;sum&eacute; draws its outline round from where the drop touched; the pick runs from option to option. Press a button and its options drip out of it as drops that land as buttons on the row below; some open one row deeper.</p>
       <form class="ctl" onsubmit="return false">
         <fieldset><legend>Buttons</legend><div class="opts">
           <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
@@ -235,11 +243,11 @@
     </div>
 
     <div class="scene" data-buttons data-live data-content="both">
-      <div class="goo dark" aria-hidden="true"><svg class="bead" viewBox="0 -8 64 23" preserveAspectRatio="none"><path d="M0 0 C17 0 20 15 32 15 C44 15 47 0 64 0 L64 -8 L0 -8 Z"/></svg></div>
-      <div class="goo cream" aria-hidden="true"><div class="fill"><i></i></div><div class="gpick"></div><div class="blob"></div></div>
+      <div class="goo dark" aria-hidden="true"><svg class="swell"><path d=""/></svg></div>
+      <div class="goo cream" aria-hidden="true"><div class="gpick"></div><div class="blob"></div></div>
       <div class="who"><h1>Mina Oh</h1><p>Motion and interaction designer, Seoul</p></div>
       <div class="row">
-        <button class="ct" type="button" aria-expanded="false" data-opens="d-ct" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></button>
+        <button class="ct" type="button" aria-expanded="false" data-opens="d-ct" data-name="Contact me" data-off><span class="tank" aria-hidden="true"><svg preserveAspectRatio="none"><path d=""/></svg></span><span class="holdtip" aria-hidden="true">Hold to open</span><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></button>
         <button class="pf" type="button" aria-expanded="false" data-opens="d-pf" data-name="Portfolio" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2"/></svg><span class="lbl">Portfolio</span></button>
         <button class="rs" type="button" aria-expanded="false" data-opens="d-rs" data-name="Résumé" data-off><svg class="ring" aria-hidden="true"><rect class="base" pathLength="100"/><rect class="hi" pathLength="100"/></svg><span class="lbl">Résumé</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button>
       </div>
@@ -266,7 +274,7 @@
 
   <section class="states" aria-labelledby="states-title">
     <h2 id="states-title">Every state</h2>
-    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Contact me full of cream, Portfolio with its bump, R&eacute;sum&eacute; outlined in full. Turned off, the cream drains to a faint outline and nothing reaches for the pointer. Then the depth: each button closed, opened, and one level deeper.</p>
+    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Contact me full of cream (in use it fills halfway and fills to the top only while held), Portfolio with its bump, R&eacute;sum&eacute; outlined in full. Turned off, the cream drains to a faint outline and nothing reaches for the pointer. Then the depth: each button closed, opened, and one level deeper.</p>
     <div class="tbl"><table>
       <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
       <tbody id="state-rows"></tbody>
@@ -317,16 +325,16 @@
   <script>
     // The liquid, in use
     const scene = P.live, q = s => scene.querySelector(s);
-    const blob = q('.blob'), fill = q('.fill'), flood = fill.querySelector('i'), gpick = q('.gpick'), bead = q('.bead');
+    const blob = q('.blob'), gpick = q('.gpick'), creamLayer = q('.goo.cream'), swellPath = q('.swell path');
     const ct = q('.ct'), pf = q('.pf'), rs = q('.rs'), grp = q('.grp'), said = q('#said');
     const tok = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
     const rel = el => { const s = scene.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height }; };
     const put = (el, r) => Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
     const inset = (r, d) => ({ x: r.x + d, y: r.y + d, w: r.w - 2 * d, h: r.h - 2 * d });
-    const layout = () => { put(fill, inset(rel(ct), tok('--p-line'))); };
+    const layout = () => {};
     const settle = () => { const t0 = performance.now(); const loop = t => { layout(); if (t - t0 < 700) requestAnimationFrame(loop); }; requestAnimationFrame(loop); };
     addEventListener('resize', layout); P.onContent(settle); document.fonts.ready.then(layout); layout();
-    scene.addEventListener('off', e => { if (e.detail) { ct.style.translate = pf.style.translate = ''; ct.style.setProperty('--gk', 0); ct.classList.remove('is-full'); flood.getAnimations().forEach(a => a.cancel()); } });
+    scene.addEventListener('off', e => { if (e.detail) { ct.style.translate = pf.style.translate = ''; ct.style.setProperty('--gk', 0); tank.to(0); } });
 
     // the drop: held right under the pointer (position in `translate`, so shrinking it never moves it)
     let tx = 0, ty = 0, inside = false;
@@ -335,11 +343,43 @@
     // drawn in continuously rather than switched off; it grows back the same way as you move away
     const near = (el, R) => { if (el.disabled) return 1; const r = still(el); const dx = Math.max(r.x - tx, 0, tx - r.x - r.w), dy = Math.max(r.y - ty, 0, ty - r.y - r.h); const t = Math.min(1, Math.hypot(dx, dy) / R); return t * t * (3 - 2 * t); };
     const size = () => Math.min(near(pf, 44), near(rs, 30)).toFixed(3);
+    // 1. the drop has weight: it stretches along the way it is moving (faster, longer and thinner) and,
+    // when you stop, springs back round with a wobble; flung fast, it throws off a few droplets
+    let vx = 0, vy = 0, lastT = 0, st = 0, stv = 0, ang = 0, wob = 0, lastSplash = 0, moved = 0;
+    const SPLASH = tok('--splash-speed'), STRETCH = tok('--stretch');
+    const wobble = () => {
+      const now = performance.now(), idle = now - moved > 60, speed = idle ? 0 : Math.hypot(vx, vy);
+      const target = Math.min(STRETCH, speed * .35);
+      stv += (180 * (target - st) - 9 * stv) / 60; st += stv / 60;      // an underdamped spring: overshoots, then settles
+      blob.style.rotate = ang + 'rad';
+      blob.style.transform = `scale(${(1 + st).toFixed(3)}, ${(1 / (1 + st * .6)).toFixed(3)})`;
+      wob = Math.abs(st) > .002 || Math.abs(stv) > .002 || !idle ? requestAnimationFrame(wobble) : 0;
+    };
+    const splash = () => {
+      for (let i = 0; i < 3; i++) {
+        const d = document.createElement('span'), r = 2 + Math.random() * 3;
+        d.className = 'splash'; Object.assign(d.style, { left: tx - r + 'px', top: ty - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px' });
+        creamLayer.append(d);
+        // thrown on along the way it was going, spreading a little, falling as it goes
+        const sp = Math.hypot(vx, vy) || 1, ux = vx / sp, uy = vy / sp, k = 18 + Math.random() * 26, side = (Math.random() - .5) * 26;
+        const ex = ux * k - uy * side, ey = uy * k + ux * side;
+        d.animate([{ transform: 'translate(0, 0) scale(1)', opacity: 1 }, { transform: `translate(${ex * .6}px, ${ey * .6 - 6}px) scale(.9)`, opacity: .9, offset: .45 }, { transform: `translate(${ex}px, ${ey + 14}px) scale(.3)`, opacity: 0 }],
+          { duration: 520 + Math.random() * 200, easing: 'cubic-bezier(.2, .6, .4, 1)' }).finished.then(() => d.remove());
+      }
+    };
     scene.addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse') return;
-      const s = scene.getBoundingClientRect(); tx = e.clientX - s.left; ty = e.clientY - s.top;
+      const s = scene.getBoundingClientRect(), nx = e.clientX - s.left, ny = e.clientY - s.top, now = performance.now(), dt = Math.max(8, now - (lastT || now - 16));
+      // velocity in px per ms, smoothed so a single jumpy event does not snap the drop
+      vx += ((nx - tx) / dt - vx) * .35; vy += ((ny - ty) / dt - vy) * .35;
+      tx = nx; ty = ny; lastT = now; moved = now;
+      if (Math.hypot(vx, vy) > .05) ang = Math.atan2(vy, vx);
       place(); blob.style.scale = size();
-      reach(); reachPf();
+      if (!P.calm.matches) {
+        if (!wob) wob = requestAnimationFrame(wobble);
+        if (Math.hypot(vx, vy) > SPLASH && now - lastSplash > 70 && parseFloat(blob.style.scale) > .6) { lastSplash = now; splash(); }
+      }
+      reach(); reachPf(); tank.stir(vx);
     });
     scene.addEventListener('pointerleave', () => { blob.style.scale = 0; ct.style.setProperty('--gk', 0); ct.style.translate = ''; pf.style.translate = ''; });
 
@@ -359,27 +399,67 @@
       lean(ct, k, nx, ny);
     };
 
-    // Contact me fills from where the drop came in and drains where it leaves; then its own crisp fill takes over
-    const at = e => { const r = ct.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    let full;
+    // 2. Contact me holds liquid. Pointed at, cream rises from the bottom to about half; its surface tilts
+    // as the pointer moves across and ripples, then settles. 3. Hold it down and the cream keeps rising;
+    // when it reaches the top the options pour out. Let go early and it falls back.
+    const tank = (() => {
+      const path = ct.querySelector('.tank path'), svg = ct.querySelector('.tank svg'), hint = ct.querySelector(".holdtip");
+      let level = 0, lv = 0, target = 0, tilt = 0, tv = 0, push = 0, amp = 0, phase = 0, raf = 0, hold = null;
+      const draw = () => {
+        const w = ct.clientWidth, h = ct.clientHeight;
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        if (level < .004) { path.setAttribute('d', ''); return; }
+        const base = h * (1 - level), pts = [];
+        for (let x = 0; x <= w; x += 6) pts.push(`${x} ${(base + tilt * (x - w / 2) + amp * Math.sin(x / w * Math.PI * 2.4 + phase)).toFixed(2)}`);
+        pts.push(`${w} ${(base + tilt * (w / 2) + amp * Math.sin(Math.PI * 2.4 + phase)).toFixed(2)}`);
+        path.setAttribute('d', `M0 ${h + 2}L${pts.join('L')}L${w} ${h + 2}Z`);
+      };
+      const step = () => {
+        if (hold) {                                    // rising steadily while held
+          const t = Math.min(1, (performance.now() - hold.t0) / tok('--hold'));
+          level = hold.from + (1 - hold.from) * (t * t * (3 - 2 * t)); lv = 0; amp = Math.max(amp, 1.2 + 2 * t);
+          if (t >= 1) { const done = hold.done; hold = null; target = 1; done(); }
+        } else { lv += (70 * (target - level) - 13 * lv) / 60; level += lv / 60; }
+        tv += (150 * (push - tilt) - 7 * tv) / 60; tilt += tv / 60; push *= .9;   // the surface leans with the stir and rocks back
+        amp *= .965; phase += .16;
+        draw();
+        const busy = hold || Math.abs(target - level) > .002 || Math.abs(lv) > .002 || Math.abs(tilt) > .002 || Math.abs(tv) > .002 || amp > .15;
+        raf = busy ? requestAnimationFrame(step) : 0;
+        if (!busy) { level = target; tilt = 0; amp = 0; draw(); }
+        ct.classList.toggle('is-full', level > .9);
+      };
+      const wake = () => { if (P.calm.matches) { level = target; tilt = 0; amp = 0; draw(); ct.classList.toggle('is-full', level > .9); return; } if (!raf) raf = requestAnimationFrame(step); };
+      return {
+        to(v, kick = 0) { target = v; amp += kick; wake(); },
+        stir(v) { if (!level || P.calm.matches) return; push = Math.max(-.22, Math.min(.22, -v * .09)); amp = Math.min(6, amp + Math.abs(v) * .6); wake(); },
+        hold(done) { hold = { t0: performance.now(), from: level, done }; hint.classList.remove('on'); if (P.calm.matches) { hold = null; target = level = 1; draw(); done(); } else wake(); },
+        release() { if (!hold) return false; hold = null; target = hoverLevel(); amp += 3; wake(); return true; },
+        hint() { hint.classList.add('on'); clearTimeout(hint.t); hint.t = setTimeout(() => hint.classList.remove('on'), 1400); },
+        get level() { return level; },
+      };
+    })();
+    const hoverLevel = () => ct.getAttribute('aria-expanded') === 'true' ? 1 : (ct.matches(':hover') || ct.matches(':focus-visible')) ? tok('--hover-level') : 0;
     ct.addEventListener('pointerenter', e => {
       if (ct.disabled || e.pointerType !== 'mouse') return;
       inside = true; ct.style.setProperty('--gk', 0); ct.style.translate = '';
-      const [px, py] = at(e), r = rel(ct), reach = Math.hypot(Math.max(px, r.w - px), Math.max(py, r.h - py)) / 10 + 1;
-      flood.getAnimations().forEach(a => a.cancel());
-      Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
-      if (!P.calm.matches) flood.animate([{ scale: 0 }, { scale: reach }], { duration: tok('--flood-in'), easing: 'cubic-bezier(.3, .6, .2, 1)', fill: 'forwards' });
-      clearTimeout(full); full = setTimeout(() => ct.classList.add('is-full'), P.calm.matches ? 0 : tok('--hand-off'));
+      tank.to(Math.max(tok('--hover-level'), ct.getAttribute('aria-expanded') === 'true' ? 1 : 0), 3);
     });
-    ct.addEventListener('pointerleave', e => {
+    ct.addEventListener('pointerleave', () => {
       inside = false;
-      if (ct.disabled || ct.getAttribute('aria-expanded') === 'true') return;
-      const [px, py] = at(e), r = rel(ct), reach = Math.hypot(r.w, r.h) / 10 + 1;
-      flood.getAnimations().forEach(a => a.cancel());
-      Object.assign(flood.style, { left: px + 'px', top: py + 'px' });
-      clearTimeout(full); ct.classList.remove('is-full');
-      if (!P.calm.matches) flood.animate([{ scale: reach }, { scale: 0 }], { duration: tok('--flood-out'), easing: 'cubic-bezier(.5, 0, .7, .4)', fill: 'forwards' });
+      if (ct.disabled) return;
+      tank.release();
+      if (ct.getAttribute('aria-expanded') !== 'true') tank.to(0, 2);
     });
+    ct.addEventListener('focus', () => { if (ct.matches(':focus-visible') && ct.getAttribute('aria-expanded') !== 'true') tank.to(tok('--hover-level'), 2); });
+    ct.addEventListener('blur', () => { if (!ct.matches(':hover') && ct.getAttribute('aria-expanded') !== 'true') tank.to(0, 1); });
+    // hold to open (pointer); a click on the keyboard opens at once
+    let poured = false;
+    ct.addEventListener('pointerdown', e => {
+      if (ct.disabled || ct.getAttribute('aria-expanded') === 'true' || e.button !== 0) return;
+      poured = false;
+      tank.hold(() => { poured = true; toggle(ct); said.textContent = 'Contact me opened'; });
+    });
+    addEventListener('pointerup', () => { if (tank.release()) tank.hint(); });
 
     // Portfolio reaches out with a dark lip as the drop comes near and draws it in; inside, a bead of the
     // pill hangs from its lower edge and glides after the pointer
@@ -388,40 +468,58 @@
       const [, nx, ny] = nearest(pf), d = Math.hypot(tx - nx, ty - ny), k = inPf ? 0 : Math.max(0, 1 - d / tok('--reach'));
       lean(pf, k, nx, ny);
     };
-    // the bead grows from the point of the pill's edge nearest the pointer, on any side: the top, the bottom
-    // or round either end. The pill is a straight middle with two half circles, so the nearest edge point
-    // is the nearest point on its middle line, pushed out by the radius toward the pointer.
-    let inPf = false, braf = 0, ex = 0, ey = 0, ea = 0, lastDy = 1;
-    const edge = () => {
-      const r = still(pf), R = r.h / 2, cy = r.y + R, sx = Math.min(r.x + r.w - R, Math.max(r.x + R, tx));
-      let vx = tx - sx, vy = ty - cy;
-      if (Math.abs(vy) > 1.5) lastDy = Math.sign(vy);
-      if (Math.hypot(vx, vy) < 1.5) { vx = 0; vy = lastDy; }          // dead centre: keep the side it was on
-      const d = Math.hypot(vx, vy);
-      const t = Math.abs(vx) / d;                                    // 0 on the straight edge, 1 at the very end
-      return { x: sx + vx / d * R, y: cy + vy / d * R, a: Math.atan2(vy, vx) * 180 / Math.PI - 90, ws: 1 - .45 * t };
+    // The swell: Portfolio's own outline pushed outward around the point nearest the pointer, by a bell
+    // curve along the outline. It follows the outline exactly, straight edge or round end, so it never
+    // shows a corner. The pill is a straight middle with two half circles; s runs round it clockwise from
+    // the top edge just after the left curve.
+    const perim = r => { const R = r.h / 2, L = Math.max(0, r.w - 2 * R); return { R, L, P: 2 * L + 2 * Math.PI * R }; };
+    const pt = (r, s) => {                          // point and outward normal at distance s round the outline
+      const { R, L, P } = perim(r); s = ((s % P) + P) % P;
+      if (s < L) return [r.x + R + s, r.y, 0, -1];
+      if (s < L + Math.PI * R) { const a = (s - L) / R - Math.PI / 2; return [r.x + r.w - R + R * Math.cos(a), r.y + R + R * Math.sin(a), Math.cos(a), Math.sin(a)]; }
+      if (s < 2 * L + Math.PI * R) return [r.x + r.w - R - (s - L - Math.PI * R), r.y + r.h, 0, 1];
+      const a = (s - 2 * L - Math.PI * R) / R + Math.PI / 2; return [r.x + R + R * Math.cos(a), r.y + R + R * Math.sin(a), Math.cos(a), Math.sin(a)];
     };
-    let ews = 1;
-    const set = () => { bead.style.left = ex + 'px'; bead.style.top = ey + 'px'; bead.style.rotate = ea + 'deg'; bead.style.setProperty('--ws', ews.toFixed(3)); };
-    const glide = () => {
-      const t = edge();
-      ex += (t.x - ex) * .22; ey += (t.y - ey) * .22;
-      let da = ((t.a - ea + 540) % 360) - 180; ea += da * .22;               // turn the short way round
-      ews += (t.ws - ews) * .22;
-      set();
-      braf = inPf || Math.hypot(t.x - ex, t.y - ey) > .3 ? requestAnimationFrame(glide) : 0;
+    const sAt = (r, x, y) => {                      // nearest point on the outline to (x, y), as s
+      const { R, L } = perim(r), cy = r.y + R;
+      if (x >= r.x + R && x <= r.x + r.w - R) return y < cy ? x - r.x - R : L + Math.PI * R + (r.x + r.w - R - x);
+      if (x > r.x + r.w - R) return L + R * (Math.atan2(y - cy, x - (r.x + r.w - R)) + Math.PI / 2);
+      let a = Math.atan2(y - cy, x - (r.x + R)); if (a < 0) a += 2 * Math.PI; return 2 * L + Math.PI * R + R * (a - Math.PI / 2);
     };
+    const H = tok('--bump-h'), SIG = tok('--bump-w') / 5;   // height of the swell, and how wide it spreads
+    let inPf = false, braf = 0, s0 = 0, amp = 0, ampTo = 0, sTo = 0;
+    const draw = () => {
+      const r = still(pf);
+      if (amp < .05) { swellPath.setAttribute('d', ''); return; }
+      const pts = [], n = 36, span = SIG * 3.2;
+      for (let i = 0; i <= n; i++) {
+        const d = -span + 2 * span * i / n, [x, y, nx, ny] = pt(r, s0 + d), out = amp * Math.exp(-d * d / (2 * SIG * SIG));
+        pts.push([x + nx * out, y + ny * out]);
+      }
+      for (let i = n; i >= 0; i--) { const d = -span + 2 * span * i / n, [x, y, nx, ny] = pt(r, s0 + d); pts.push([x - nx * 6, y - ny * 6]); }  // back along the inside, hidden by the pill
+      swellPath.setAttribute('d', 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z');
+    };
+    const tick = () => {
+      const { P } = perim(still(pf));
+      let ds = ((sTo - s0) % P + P * 1.5) % P - P / 2;           // round the short way
+      s0 += ds * .2; amp += (ampTo - amp) * .16;
+      draw();
+      braf = Math.abs(ds) > .3 || Math.abs(ampTo - amp) > .05 ? requestAnimationFrame(tick) : 0;
+      if (!braf && ampTo === 0) { amp = 0; draw(); }
+    };
+    const wake = () => { if (P.calm.matches) { s0 = sTo; amp = ampTo; draw(); return; } if (!braf) braf = requestAnimationFrame(tick); };
+    const swellTo = a => { ampTo = a; wake(); };
     pf.addEventListener('pointerenter', e => {
       if (pf.disabled || e.pointerType !== 'mouse') return;
       inPf = true; pf.style.translate = '';
-      const t = edge(); ex = t.x; ey = t.y; ea = t.a; ews = t.ws; set();
-      bead.style.scale = pf.getAttribute('aria-expanded') === 'true' ? 0 : 1;
-      if (!braf && !P.calm.matches) braf = requestAnimationFrame(glide);
+      const r = still(pf), b = pf.getBoundingClientRect(), sc = scene.getBoundingClientRect();
+      s0 = sTo = sAt(r, e.clientX - sc.left, e.clientY - sc.top);
+      swellTo(pf.getAttribute('aria-expanded') === 'true' ? 0 : H);
     });
-    pf.addEventListener('pointermove', () => { if (inPf && P.calm.matches) { const t = edge(); ex = t.x; ey = t.y; ea = t.a; ews = t.ws; set(); } });
-    pf.addEventListener('pointerleave', () => { inPf = false; bead.style.scale = 0; });
-    pf.addEventListener('down', () => { bead.style.scale = 0; });
-    pf.addEventListener('up', () => { if (inPf && pf.getAttribute('aria-expanded') !== 'true') bead.style.scale = 1; });
+    pf.addEventListener('pointermove', e => { if (!inPf) return; const sc = scene.getBoundingClientRect(); sTo = sAt(still(pf), e.clientX - sc.left, e.clientY - sc.top); wake(); });
+    pf.addEventListener('pointerleave', () => { inPf = false; swellTo(0); });
+    pf.addEventListener('down', () => swellTo(0));
+    pf.addEventListener('up', () => { if (inPf && pf.getAttribute('aria-expanded') !== 'true') swellTo(H); });
 
     // Résumé draws its outline round from where the drop touched
     // where along its outline the pointer came in, so the line is drawn round from there (the rect's
@@ -481,7 +579,7 @@
       const d = parent.closest('.drips') ? depthOf(parent.closest('.drips')) + 1 : 1;
       openBoxes().filter(b => depthOf(b) >= d).forEach(b => collapse(b, true));
       parent.setAttribute('aria-expanded', 'true');
-      if (parent === pf) bead.style.scale = 0;
+      if (parent === pf) swellTo(0);
       placeBox(box, parent);
       const kids = [...box.children], sp = spout(parent);
       kids.forEach(c => { c.getAnimations().forEach(x => x.cancel()); c.style.opacity = 1; c.style.clipPath = 'circle(0px at 50% 50%)'; });
@@ -511,14 +609,7 @@
       openBoxes().filter(b => b !== box && depthOf(b) > depthOf(box)).forEach(b => collapse(b, true));
       const parent = openerOf(box);
       parent.setAttribute('aria-expanded', 'false');
-      if (parent === ct && !ct.matches(':hover')) {
-        // the cream drains out of the bottom of Contact me instead of vanishing
-        const r = rel(ct), reach = Math.hypot(r.w, r.h) / 10 + 1;
-        flood.getAnimations().forEach(a => a.cancel());
-        Object.assign(flood.style, { left: r.w / 2 + 'px', top: r.h + 'px' });
-        ct.classList.remove('is-full');
-        if (!P.calm.matches) flood.animate([{ scale: reach }, { scale: 0 }], { duration: tok('--flood-out'), easing: 'cubic-bezier(.5, 0, .7, .4)', fill: 'forwards' });
-      }
+      if (parent === ct) tank.to(ct.matches(':hover') ? tok('--hover-level') : 0, 3);   // the cream settles back down
       const kids = [...box.children], sp = spout(parent);
       if (P.calm.matches) { box.hidden = true; return; }
       const back = tok('--d-back') * (quick ? .6 : 1), dd = tok('--d-drop'), n = kids.length;
@@ -551,6 +642,12 @@
     scene.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || b.disabled || b.getAttribute('role') === 'radio') return;
       if (b.dataset.opens) {
+        if (b === ct && e.detail > 0) {               // with a pointer, Contact me opens by being held full
+          if (poured) { poured = false; return; }
+          if (ct.getAttribute('aria-expanded') === 'true') { toggle(ct); return; }
+          return;
+        }
+        if (b === ct && b.getAttribute('aria-expanded') !== 'true') tank.to(1, 3);
         toggle(b);
         // opened from the keyboard: move into the new row so Tab and arrows reach it at once
         if (e.detail === 0 && b.getAttribute('aria-expanded') === 'true') document.getElementById(b.dataset.opens).querySelector('button')?.focus();
@@ -581,12 +678,12 @@
         const calm = P.calm; const steps = { 'ct2': [ct], 'ct3': [ct, q('[data-opens="d-email"]')], 'pf2': [pf], 'pf3': [pf, q('[data-opens="d-case"]')], 'rs2': [rs] }[shot] || [];
         Object.defineProperty(P, 'calm', { value: { matches: true } });
         steps.forEach(b => expand(b));
-        if (steps[0] === ct) ct.classList.add('is-full');
+        if (steps[0] === ct) tank.to(1);
       };
       document.fonts.ready.then(() => requestAnimationFrame(go));
     }
     // ?pose=full: a still with Contact me full and Résumé outlined (for the week page's frames)
-    if (new URLSearchParams(location.search).get('pose') === 'full') { ct.classList.add('is-full'); rs.classList.add('st-hover'); }
+    if (new URLSearchParams(location.search).get('pose') === 'full') { Object.defineProperty(P, 'calm', { value: { matches: true } }); tank.to(tok('--hover-level')); rs.classList.add('st-hover'); }
   </script>
   <script>
     // Spec: read from the tokens and the buttons as laid out
@@ -621,15 +718,16 @@
           ['Height', tok('--p-h')], ['Corners', `${tok('--p-r')}, half its height: a pill, like every button in the set`], ['Outline', `${tok('--p-line')} cream`],
           ['Sides', tok('--p-pad')],
           ['Width', `${w('both', '.ct')} icon + text, ${w('text', '.ct')} text, ${w('icon', '.ct')} icon`],
-          ['Hover', 'fills with cream from the entry point; words turn black'],
+          ['Hover', `cream rises from the bottom to ${Math.round(tok('--hover-level') * 100)}%; its surface tilts against the pointer's movement and ripples, then settles; the words are drawn in difference, so they stay readable where the surface cuts them`],
+          ['Hold', `held down, the cream keeps rising and reaches the top in ${tok('--hold')}; full, the options pour out. Let go early and it falls back to half and says Hold to open. Enter or Space opens at once`],
           ['Pressed', `pressed cream, scaled to ${tok('--press-scale')}`],
         ]],
         ['Secondary · Portfolio', [
           ['Height', tok('--s-h')], ['Corners', 'fully round'], ['Fill', tok('--body')], ['Sides', tok('--s-pad')],
           ['Width', `${w('both', '.pf')} icon + text, ${w('text', '.pf')} text, ${w('icon', '.pf')} icon`],
           ['Approach', 'within 44px a dark lip swells on its nearest edge toward the drop, while the drop shrinks with distance, so it is drawn in'],
-          ['Hover', `a gentle bump (${tok('--bump-w')} wide, ${tok('--bump-h')} high, a bell whose feet run into the edge) swells from the point of its edge nearest the pointer, on any side, facing out, and glides round after it; on the round ends it narrows so it stays on the curve`],
-          ['Pressed', `the bead is drawn back in; the pill darkens and scales to ${tok('--press-scale')}`],
+          ['Hover', `its own outline swells outward round the point nearest the pointer (${tok('--bump-h')} high, a bell curve about ${tok('--bump-w')} wide measured along the outline), on any side, and glides round after it; because it follows the outline, it is just as smooth on the round ends`],
+          ['Pressed', `the swell sinks back in; the pill darkens and scales to ${tok('--press-scale')}`],
         ]],
         ['Tertiary · Résumé', [
           ['Height', tok('--t-h')], ['Corners', 'fully round'], ['Sides', tok('--t-pad')],
@@ -657,10 +755,10 @@
           ['Keys', 'Enter opens and moves focus into the new row; Escape closes the deepest row and returns focus'],
         ]],
         ['Motion', [
-          ['The drop', `${tok('--drop')} cream circle held exactly under the pointer; no lag, so it reads as part of the pointer`],
+          ['The drop', `${tok('--drop')} cream circle held exactly under the pointer; it stretches along the way it moves (up to ${Math.round(tok('--stretch') * 100)}% longer, thinner as it lengthens) and, when the pointer stops, springs back round with a wobble; moved faster than ${tok('--splash-speed')} px/ms it throws off small droplets that fall away`],
           ['Noticing', `within ${tok('--reach')} a button leans up to ${tok('--lean')} toward the pointer, and Contact me's outline lights on the side nearest it`],
           ['Reaching', `within ${tok('--reach')} of Contact me a lip swells on its nearest edge and leans toward the drop`],
-          ['Fill in / out', `${tok('--flood-in')} in from the entry point, ${tok('--flood-out')} out toward the exit; after ${tok('--hand-off')} the button's own crisp fill takes over`],
+          ['The level', 'a spring (stiff 70, damping 13) toward half on hover, full when open, empty when the pointer leaves; the surface tilt is a looser spring, so it rocks before it settles'],
           ['Release', 'a spring with a small overshoot (about 12%)'],
           ['Reduced motion', 'states change at once; no liquid'],
           ['Touch', 'no drop; hover looks never show, press and pick still do'],

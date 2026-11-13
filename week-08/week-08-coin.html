@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 sketch &middot; Disc</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="week-08-sketch.css?v=1" />
+  <style>
+  /* Disc (the user's idea, first drawn as a coin): a large red disc follows the pointer round the screen,
+     turning over slowly as it goes, heavy, like a record turning on its edge; it keeps turning a moment
+     after you stop. Bring it to the ring in the middle and it slows, comes to rest face up, and opens into
+     a button. Move well away and everything folds back into the disc, which lifts off and follows again.
+       Play (primary)     the disc itself, opened into a red pill; a press sends one slow ring out of it,
+                          like a groove catching the light
+       Listen (secondary) a small red-ringed disc that rolls out from behind to the left, then unrolls into
+                          an outline pill; on hover its ring fills with a faint red
+       Details (tertiary) a small disc that rolls out to the right and unrolls into plain words; on hover a
+                          line draws under them
+     Folding back is the same, reversed: the pills roll up into discs and roll back in behind Play, which
+     closes to a disc. */
+  :root { --w: 760px; --h: 440px; --red: #e0342b; --red-d: #a8211a; --red-l: #ff6a5c; --ink: #f3ece6; --bg: #121012; --dim: rgba(243,236,230,.45);
+    --disc: 112px; --pill-h: 60px; --roll: 640ms; interpolate-size: allow-keywords; }
+  body { background: radial-gradient(70% 70% at 50% 46%, #1d1a1d, var(--bg)); font: 500 17px/1 "Inter Tight", system-ui, sans-serif; color: var(--ink); }
+  .ring { position: absolute; left: 50%; top: 50%; width: 176px; height: 176px; margin: -88px 0 0 -88px; border-radius: 50%; border: 1px solid rgba(243,236,230,.16);
+    transition: border-color .4s, scale .6s var(--glide), opacity .4s; }
+  .ring small { position: absolute; left: 50%; top: calc(100% + 14px); translate: -50% 0; white-space: nowrap; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+  .stage.near .ring { border-color: rgba(224,52,43,.6); scale: 1.04; }
+  .stage.landed .ring { opacity: 0; scale: .9; }
+
+  /* the disc: one button with two faces, turned in 3D; it opens into a pill */
+  .disc { position: absolute; left: 0; top: 0; z-index: 3; width: var(--disc); height: var(--disc); perspective: 700px; pointer-events: none; }
+  .landed .disc { pointer-events: auto; }
+  .disc .body { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .disc .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 999px; backface-visibility: hidden;
+    background:
+      radial-gradient(circle at 50% 50%, var(--red-l) 0 9%, transparent 9.5%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.07) 3px 4px),
+      radial-gradient(circle at 38% 30%, #ef5246, var(--red) 55%, var(--red-d));
+    color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 18px 34px -14px rgba(0,0,0,.8); }
+  .disc .face.back { transform: rotateY(180deg); background: radial-gradient(circle at 62% 30%, #c92d24, var(--red-d) 70%); }
+  .disc .face .ic, .disc .lbl { opacity: 0; transition: opacity .25s; }
+  .disc .face .ic { width: 22px; height: 22px; }
+  .disc .face .ic * { fill: currentColor; }
+  .opened .disc .face.front { background: var(--red); }        /* opened: a flat red pill, the grooves gone */
+  .opened .disc .face .ic, .opened .disc .lbl { opacity: 1; transition-delay: .18s; }
+  .stage[data-content="text"] .disc .face .ic { display: none; }
+  .stage[data-content="icon"] .disc .lbl { display: none; }
+  .disc:focus-visible { outline: none; }
+  .disc:focus-visible .face.front { outline: 2px solid var(--ink); outline-offset: 5px; }
+  .disc.is-down .body { scale: .95; transition: scale .1s; }
+  .disc .body { transition: scale .5s var(--snap); }
+  .disc:disabled .face { background: #3a3537; color: #7d7578; }
+  .groove { position: absolute; z-index: 2; border-radius: 999px; border: 1px solid rgba(224,52,43,.7); pointer-events: none; }
+
+  /* secondary and tertiary roll out from behind the disc as small discs, then unroll into pills */
+  .side { position: absolute; z-index: 2; top: 50%; height: 52px; margin-top: -26px; width: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border-radius: 26px; overflow: hidden; white-space: nowrap; opacity: 0; pointer-events: none; font-size: 16px;
+    transition: translate var(--roll) cubic-bezier(.3, .7, .2, 1), rotate var(--roll) cubic-bezier(.3, .7, .2, 1), width .4s cubic-bezier(.3, .7, .2, 1), opacity .2s, padding .4s; }
+  .side .ic { width: 18px; height: 18px; }
+  .side .ic * { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .side > * { opacity: 0; transition: opacity .2s; }
+  .listen { right: 50%; translate: 50% 0; rotate: 360deg; box-shadow: inset 0 0 0 1.5px var(--red); color: var(--ink); }
+  .details { left: 50%; translate: -50% 0; rotate: -360deg; color: var(--ink); background: rgba(243,236,230,.06); }
+  .opened .side { opacity: 1; pointer-events: auto; rotate: 0deg; }
+  .opened .listen { translate: calc(var(--half, 56px) * -1 - 18px) 0; }
+  .opened .details { translate: calc(var(--half, 56px) + 18px) 0; }
+  .unrolled .side { width: auto; padding: 0 22px; }
+  .unrolled .side > * { opacity: 1; transition-delay: .12s; }
+  .unrolled .details { background: transparent; }
+  .stage[data-content="icon"].unrolled .side { width: 52px; padding: 0; }
+  .listen:hover { background: rgba(224,52,43,.16); }
+  .details::after { content: ""; position: absolute; left: 22px; right: 22px; bottom: 13px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .45s var(--glide); }
+  .details:hover::after { transform: none; }
+  .stage[data-content="icon"] .details::after { display: none; }
+  .side.is-down { scale: .95; }
+  .side:disabled { opacity: .35 !important; }
+  .side:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .side, .side > * { transition: none; } }
+  </style>
+</head>
+<body>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+  <div class="stage" data-content="both">
+    <div class="ring" aria-hidden="true"><small>Bring the disc here</small></div>
+    <button class="side listen" type="button" data-name="Listen" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H4zM17 14h3v6h-3z"/></svg><span class="lbl">Listen</span></button>
+    <button class="disc" type="button" aria-label="Play" data-off>
+      <span class="body"><span class="face front"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg><span class="lbl">Play</span></span><span class="face back" aria-hidden="true"></span></span>
+    </button>
+    <button class="side details" type="button" data-name="Details" data-off><span class="lbl">Details</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+  <script src="week-08-sketch.js?v=1"></script>
+  <script>
+    const stage = M.stage, disc = stage.querySelector('.disc'), body = disc.querySelector('.body'), sides = [...stage.querySelectorAll('.side')];
+    const tok = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
+    const centre = () => ({ x: stage.offsetWidth / 2, y: stage.offsetHeight / 2 });
+    const D = tok('--disc'), PH = tok('--pill-h'), SNAP = 70, LEAVE = 210;
+    let px = centre().x - 220, py = centre().y + 30, x = px, y = py, vx = 0, vy = 0, flip = 0, fv = 0, mode = 'fly', away = 0;
+    let w = D, h = D, wTo = D, hTo = D;
+
+    const pillWidth = () => {
+      const c = stage.dataset.content; if (c === 'icon') return PH;
+      const m = document.createElement('span'); m.style.cssText = 'position:absolute;visibility:hidden;font:500 17px "Inter Tight"'; m.textContent = 'Play'; stage.append(m);
+      const t = m.offsetWidth; m.remove(); return Math.round(t + 64 + (c === 'both' ? 32 : 0));
+    };
+    const draw = () => {
+      disc.style.translate = `${x - w / 2}px ${y - h / 2}px`;
+      disc.style.width = w + 'px'; disc.style.height = h + 'px';
+      body.style.transform = `rotateY(${flip}deg)`;
+    };
+
+    // its life: follow and turn; come to rest in the ring; open; fold up and follow again
+    const tick = () => {
+      const c = centre(), dist = Math.hypot(px - c.x, py - c.y);
+      if (mode === 'fly') {
+        const nx = x + (px - x) * .12, ny = y + (py - y) * .12;
+        vx = nx - x; vy = ny - y; x = nx; y = ny;
+        // heavy: the turning speed follows the travel speed slowly, so it keeps turning after you stop
+        fv += (Math.hypot(vx, vy) * 2.6 - fv) * .05;
+        flip += fv;
+        stage.classList.toggle('near', dist < SNAP * 1.7);
+        if (dist < SNAP && Math.hypot(vx, vy) < 4) { mode = 'landing'; stage.classList.remove('near'); stage.classList.add('landed'); }
+      } else {
+        x += (c.x - x) * .1; y += (c.y - y) * .1;
+        const to = Math.round(flip / 360) * 360; flip += (to - flip) * .06;   // slows to a stop, face up
+        if (mode === 'landing' && Math.abs(to - flip) < .6 && Math.hypot(c.x - x, c.y - y) < 1) { flip = to; open(); }
+        if (dist > LEAVE) { away = away || performance.now(); if (performance.now() - away > 280) fold(); } else away = 0;
+      }
+      w += (wTo - w) * .14; h += (hTo - h) * .14;
+      if (Math.abs(wTo - w) < .3) w = wTo; if (Math.abs(hTo - h) < .3) h = hTo;
+      draw();
+      requestAnimationFrame(tick);
+    };
+    let timers = [];
+    const later = (f, ms) => timers.push(setTimeout(f, ms));
+    const open = () => {
+      mode = 'open'; wTo = pillWidth(); hTo = PH;
+      stage.style.setProperty('--half', wTo / 2 + 'px');   // the side buttons aim for where Play will end, once
+      stage.classList.add('opened');
+      later(() => stage.classList.add('unrolled'), tok('--roll') * .8);       // rolled out, then unrolled
+      sides.forEach(b => b.tabIndex = 0);
+    };
+    const fold = () => {
+      timers.forEach(clearTimeout); timers = []; away = 0;
+      stage.classList.remove('unrolled'); sides.forEach(b => b.tabIndex = -1);
+      later(() => { stage.classList.remove('opened'); wTo = hTo = D; }, 280);   // roll back in, then close to a disc
+      later(() => { stage.classList.remove('landed'); mode = 'fly'; }, 280 + tok('--roll'));
+    };
+    stage.addEventListener('pointermove', e => { const r = stage.getBoundingClientRect(), f = M.fit(); px = (e.clientX - r.left) / f; py = (e.clientY - r.top) / f; });
+    sides.forEach(b => b.tabIndex = -1);
+    disc.addEventListener('focus', () => { if (mode === 'fly') { const c = centre(); px = c.x; py = c.y; mode = 'landing'; stage.classList.add('landed'); } });
+    stage.addEventListener('content', () => { if (mode === 'open') { wTo = pillWidth(); stage.style.setProperty('--half', wTo / 2 + 'px'); } });
+
+    // Play: one slow ring leaves it, like light running round a groove
+    disc.addEventListener('click', () => {
+      if (mode !== 'open' || disc.disabled || M.calm.matches) return;
+      const g = document.createElement('span'); g.className = 'groove';
+      Object.assign(g.style, { left: x - w / 2 + 'px', top: y - h / 2 + 'px', width: w + 'px', height: h + 'px' }); stage.append(g);
+      g.animate([{ scale: 1, opacity: .9 }, { scale: 1.35, opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.2, .7, .3, 1)' }).finished.then(() => g.remove());
+    });
+    if (M.calm.matches) { const c = centre(); x = px = c.x; y = py = c.y; stage.classList.add('landed'); open(); stage.classList.add('unrolled'); }
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

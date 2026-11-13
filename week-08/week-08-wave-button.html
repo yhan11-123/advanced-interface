@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Set 2 &middot; Wave</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" />
+  <style>
+  /* Week 08, Set 2 · Wave. Tone: Playful.
+     A track in a music app, coral on flat blue. The track's waveform is the material: every button's motion
+     is something you do to sound, so it says what the button does.
+       Primary    Add to playlist: its icon is five bars of the track; pointed at, they play (and the big
+                  waveform above lights up, a preview); the options rise like level meters; added, the bars
+                  settle flat and the words become the playlist (In Night drive)
+       Secondary  Save: a red REC dot; pointed at, it blinks and the waveform is written into the button from
+                  the left, as if recorded; saved, it stays written
+       Tertiary   Skip: a fast-forward mark over a strip of tape; pointed at, the strip races past
+       Group      Quality: each option is the waveform at its resolution (coarse steps, fine bars, a smooth
+                  curve); picked, it plays, and a new pick resolves from nothing into its shape
+     Every number in the Spec section is read from these tokens. */
+  :root {
+    --blue: #4056b2; --coral: #f85c5c; --coral-tint: rgba(248,92,92,.22); --coral-deep: #d94545; --off: #8792cc; --off-fill: rgba(135,146,204,.18);
+    --ink-on-coral: #4056b2; --dim: #c9d0f2; --rule: rgba(255,255,255,.14); --card: #3a4fa8;
+    --font: "Rubik", -apple-system, system-ui, sans-serif;
+    --gap: 10px; --icon: 22px;
+    --p-h: 60px; --p-ring: 3px; --p-pad: 30px; --p-pad-icon: 24px;
+    --s-h: 56px; --s-pad: 26px;
+    --t-h: 56px;
+    --g-h: 52px; --g-ring: 2.5px; --g-gap: 14px; --g-pad: 22px;
+    --bar: 2.5px; --beat: 420ms; --record: 900ms; --ffwd: 520ms; --resolve: 60ms;
+    --press-scale: .96;
+    --d-h: 44px; --d-gap: 10px; --d-rise: 380ms; --d-stagger: 70ms; --d-close: 200ms; --room: 140px;
+    --snap: linear(0, 0.075, 0.261, 0.466, 0.666, 0.836, 0.977, 1.061, 1.106, 1.122, 1.115, 1.096, 1.071, 1.046, 1.022, 1.006, 0.994, 0.988, 0.985, 0.986, 0.988, 0.991, 0.994, 0.997, 0.999, 1.001, 1.001, 1.002, 1.002, 1.002, 1.001, 1.001, 1, 1, 1);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--blue); color: var(--coral); font: 600 18px/1 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  svg { display: block; }
+  button:focus-visible { outline: 2.5px solid #fff; outline-offset: 5px; }
+
+  /* ---- the button system ----------------------------------------------------------------------------- */
+  .ic { flex: none; width: var(--icon); height: var(--icon); }
+  .lbl { white-space: nowrap; }
+  [data-content="text"] .ic { display: none; }
+  [data-content="icon"] .lbl { display: none; }
+  /* a waveform: bars (filled in by script from the track), each its own height; they play by breathing */
+  .wv { display: inline-flex; align-items: center; justify-content: center; gap: 2px; }
+  .wv i { flex: none; width: var(--bar); height: calc(var(--h, .5) * 100%); border-radius: 2px; background: currentColor; }
+  .play .wv i, .wv.play i { animation: beat var(--beat) ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -53ms); }
+  @keyframes beat { from { transform: scaleY(1); } to { transform: scaleY(.3); } }
+
+  /* primary: five bars of the track */
+  .ad { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--p-h); padding: 0 var(--p-pad) 0 var(--p-pad-icon);
+    border-radius: calc(var(--p-h) / 2); background: var(--coral); color: var(--ink-on-coral); box-shadow: inset 0 0 0 var(--p-ring) var(--coral);
+    transition: background-color .3s, color .3s, transform .45s var(--snap); }
+  .ad .ic.wv { height: 22px; width: 24px; }
+  .ad .wv i { transition: transform .4s var(--snap); }
+  .ad:hover .wv i, .ad:focus-visible .wv i, .ad.st-hover .wv i, .ad[aria-expanded="true"] .wv i { animation: beat var(--beat) ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -53ms); }
+  .ad[aria-pressed="true"], .ad.st-on { background: transparent; color: var(--coral); }
+  .ad[aria-pressed="true"] .wv i, .ad.st-on .wv i { animation: none; transform: scaleY(.18); }      /* in the playlist: the bars settle flat */
+  .ad[aria-pressed="true"]:hover { background: rgba(248,92,92,.12); }
+  .ad.is-down, .ad.st-down { transform: scale(var(--press-scale)); transition-duration: .08s; }
+  .ad:disabled { background: transparent; color: var(--off); box-shadow: inset 0 0 0 var(--p-ring) var(--off); transform: none; }
+  .ad:disabled .wv i { animation: none; transform: scaleY(.18); }
+  [data-content="text"] .ad { padding: 0 var(--p-pad); }
+  [data-content="icon"] .ad { width: var(--p-h); padding: 0; }
+
+  /* secondary: a REC dot; the waveform is written in from the left */
+  .sv { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--s-h); padding: 0 var(--s-pad);
+    border-radius: calc(var(--s-h) / 2); background: var(--coral-tint); color: var(--coral); transition: background-color .3s, color .3s, transform .45s var(--snap); }
+  .sv .rec { width: 10px; height: 10px; margin: 0 4px; border-radius: 50%; background: currentColor; }
+  .sv .tape { position: absolute; inset: 14px 18px; z-index: -1; height: auto; color: var(--coral); opacity: .55; clip-path: inset(0 100% 0 0); transition: clip-path .25s ease-in; }
+  .sv:hover .tape, .sv:focus-visible .tape, .sv.st-hover .tape, .sv[aria-expanded="true"] .tape, .sv.saved .tape { clip-path: inset(0 0 0 0); transition: clip-path var(--record) linear; }
+  .sv:hover .rec, .sv:focus-visible .rec, .sv[aria-expanded="true"] .rec { animation: blink .8s steps(2, jump-none) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .sv.saved { background: var(--coral); color: var(--ink-on-coral); }
+  .sv.saved .tape { color: var(--ink-on-coral); opacity: .28; }
+  .sv.is-down, .sv.st-down { transform: scale(var(--press-scale)); transition-duration: .08s; }
+  .sv:disabled { color: var(--off); background: var(--off-fill); transform: none; }
+  .sv:disabled .tape { clip-path: inset(0 100% 0 0); }
+  [data-content="icon"] .sv { width: var(--s-h); padding: 0; }
+
+  /* tertiary: fast-forward over a strip of tape */
+  .sk { position: relative; display: inline-flex; align-items: center; gap: var(--gap); height: var(--t-h); padding: 0 6px; overflow: hidden; }
+  .sk .ic * { fill: currentColor; }
+  .sk .tape { position: absolute; left: 6px; right: 6px; bottom: 7px; height: 10px; overflow: hidden; opacity: .55; transition: opacity .2s; }
+  .sk .tape .wv { width: 200%; height: 100%; justify-content: flex-start; }
+  .sk:hover .tape, .sk:focus-visible .tape, .sk.st-hover .tape, .sk[aria-expanded="true"] .tape { opacity: 1; }
+  .sk:hover .tape .wv, .sk:focus-visible .tape .wv, .sk[aria-expanded="true"] .tape .wv { animation: ffwd var(--ffwd) linear infinite; }
+  @keyframes ffwd { to { transform: translateX(-50%); } }
+  .sk .ic { transition: transform .3s var(--snap); }
+  .sk:hover .ic { transform: translateX(3px); }
+  .sk.is-down, .sk.st-down { transform: translateY(1px); }
+  .sk:disabled { color: var(--off); }
+  .sk:disabled .tape { opacity: .2; }
+  [data-content="icon"] .sk { width: var(--t-h); justify-content: center; padding: 0; }
+  [data-content="icon"] .sk .tape { left: 10px; right: 10px; }
+
+  /* group: the waveform at three resolutions */
+  .grp { display: flex; gap: var(--g-gap); flex-wrap: wrap; justify-content: center; }
+  .r { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: var(--g-h); padding: 0 var(--g-pad) 0 18px; border-radius: calc(var(--g-h) / 2);
+    font-size: 16px; color: var(--coral); box-shadow: inset 0 0 0 var(--g-ring) var(--coral); transition: background-color .25s, color .25s, transform .45s var(--snap); }
+  .r .ic { width: 30px; height: 20px; }
+  .r .wv.coarse { gap: 3px; } .r .wv.coarse i { width: 5px; border-radius: 1px; }
+  .r .curve path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .r.lit, .r.st-on { background: var(--coral); color: var(--ink-on-coral); }
+  .r.lit .wv i { animation: beat var(--beat) ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -53ms); }
+  .r.lit .curve path { animation: sway calc(var(--beat) * 2) ease-in-out infinite alternate; }
+  @keyframes sway { to { transform: scaleY(.5); } }
+  .r .curve path { transform-origin: 50% 50%; transform-box: fill-box; }
+  .r:hover:not(.lit), .r.st-hover:not(.st-on) { background: rgba(248,92,92,.12); }
+  .r.is-down, .r.st-down { transform: scale(var(--press-scale)); transition-duration: .08s; }
+  .r:disabled { color: var(--off); box-shadow: inset 0 0 0 var(--g-ring) var(--off); }
+  [data-content="text"] .r { padding: 0 var(--g-pad); }
+  [data-content="icon"] .r { width: var(--g-h); padding: 0; }
+
+  /* ---- page --------------------------------------------------------------------------------------------- */
+  .hero { position: relative; padding: 26px 32px 40px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .head p { margin: 0; color: var(--dim); font: 400 14px/1.5 var(--font); max-width: 52ch; }
+  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--coral); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; background: #3448a0; }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--dim); }
+  .ctl input:checked + span { background: var(--coral); color: var(--blue); }
+  .ctl input:focus-visible + span { outline: 2px solid #fff; outline-offset: 1px; }
+
+  .scene { position: relative; display: grid; justify-items: center; align-content: center; gap: 30px; min-height: 560px; margin-top: 8px; }
+  .dish { text-align: center; }
+  .dish .plate { width: 92px; height: 92px; margin: 0 auto 18px; border-radius: 14px; box-shadow: inset 0 0 0 3px var(--coral); display: grid; place-items: center; }
+  .dish h1 { margin: 0 0 8px; font-size: 32px; font-weight: 600; letter-spacing: -.01em; }
+  .dish p { margin: 0; color: var(--dim); font: 400 15px/1.4 var(--font); }
+  .row { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .grp-wrap { display: grid; justify-items: center; gap: 12px; }
+  .grp-wrap small { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  /* ---- depth: options rise like level meters, one after another; closing, they drop back ---- */
+  .room { height: var(--room); }
+  .drow { position: absolute; z-index: 1; display: flex; align-items: center; gap: var(--d-gap); }
+  .drow[hidden] { display: none; }
+  .drow small { margin-right: 6px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); opacity: 0; transition: opacity .2s; }
+  .drow.in small { opacity: 1; }
+  .rise { clip-path: inset(100% 0 0 0 round 22px); transition: clip-path var(--d-close) ease-in calc((var(--n, 3) - var(--k)) * 25ms); }
+  .drow.in .rise { clip-path: inset(0 0 0 0 round 22px); transition: clip-path var(--d-rise) cubic-bezier(.2, .8, .3, 1.15) calc(var(--k) * var(--d-stagger)); }
+  .opt { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--d-h); padding: 0 18px 0 14px; border-radius: calc(var(--d-h) / 2);
+    font-size: 15px; color: var(--coral); box-shadow: inset 0 0 0 var(--g-ring) var(--coral); transition: background-color .2s, color .2s; }
+  .opt .ic { width: 18px; height: 18px; } .opt .ic * { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .opt:hover:not(.on) { background: rgba(248,92,92,.12); }
+  .opt.on { background: var(--coral); color: var(--ink-on-coral); }
+  .opt.is-down { transform: scale(var(--press-scale)); }
+  .opt.col { background: var(--coral-tint); box-shadow: none; padding: 0 18px; }
+  .opt.col.on { background: var(--coral); }
+  .opt.why { box-shadow: none; padding: 0 6px; }
+  .opt.why:hover { background: none; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+  [data-content="text"] .opt { padding: 0 18px; } [data-content="icon"] .opt:not(.col):not(.why) { width: var(--d-h); padding: 0; }
+  [data-content="icon"] .opt .lbl { display: none; } [data-content="icon"] .opt.col .lbl, [data-content="icon"] .opt.why .lbl { display: inline; }
+
+  /* the track: its whole waveform, played through left to right */
+  .track { position: relative; width: 420px; max-width: calc(100vw - 48px); height: 34px; margin: 14px auto 0; }
+  .track .wv { position: absolute; inset: 0; width: 100%; height: 100%; justify-content: space-between; color: rgba(248,92,92,.32); }
+  .track .done { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--prog, 30%)) 0 0); color: var(--coral); }
+  .track .playhead { position: absolute; top: -4px; bottom: -4px; left: var(--prog, 30%); width: 2px; border-radius: 1px; background: #fff; }
+  .scene.preview .track .done .wv i { animation: beat var(--beat) ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -53ms); }
+  body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
+  body.shot .hero { padding: 0; }
+  body.shot .scene { min-height: 0; margin: 0; padding-top: 36px; }
+  body.shot .who, body.shot .dish, body.shot .grp-wrap, body.shot .room { display: none; }
+  body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; }
+
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .states, .spec { padding: 44px 32px 40px; border-top: 1px solid var(--rule); }
+  .states h2, .spec h2 { margin: 0 0 6px; font: 600 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+  .states > p, .spec > p { margin: 0 0 22px; color: var(--dim); max-width: 72ch; font: 400 14px/1.5 var(--font); }
+  .tbl { overflow-x: auto; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 12px; text-align: left; font: 600 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .states td { padding: 10px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  .states td:first-child { width: 190px; min-width: 160px; font-size: 14px; font-weight: 500; }
+  .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--dim); font-size: 12.5px; }
+  .frame { display: flex; align-items: center; justify-content: center; width: 210px; height: 100px; border-radius: 16px; background: var(--card); }
+  .frame button { pointer-events: none; }
+  .frame * { transition: none !important; }
+
+  .shotbox { position: relative; width: 300px; height: 186px; border-radius: 16px; overflow: hidden; background: var(--card); }
+  .shotbox iframe { position: absolute; left: 0; top: 0; width: 560px; height: 346px; border: 0; transform: scale(.536); transform-origin: 0 0; pointer-events: none; }
+  .shotbox.none { display: grid; place-items: center; color: var(--dim); }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .spec-card { padding: 16px 18px 14px; border-radius: 16px; background: var(--card); }
+  .spec-card h3 { margin: 0 0 12px; font: 600 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font: 400 13px/1.4 var(--font); color: #fff; }
+  .spec-card dt { color: var(--dim); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.4); }
+  .spec-measure { position: absolute; left: -9999px; top: 0; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20,20,40,.6); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (max-width: 760px) { .hero, .states, .spec { padding-left: 16px; padding-right: 16px; } .row { gap: 14px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-label="The buttons in use">
+    <div class="head">
+      <p><b>Week 08 &middot; Set 2 &middot; Wave &middot; Playful</b>A track in a music app, built from its own waveform: every button does something to sound. Add to playlist plays a few bars of the track when you point at it; Save records the waveform into itself; Skip fast-forwards a strip of tape; the quality options are the waveform at three resolutions. Each opens more, rising like level meters.</p>
+      <form class="ctl" onsubmit="return false">
+        <fieldset><legend>Buttons</legend><div class="opts">
+          <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
+          <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+          <label><input type="radio" name="content" value="icon" /><span>Icon</span></label>
+        </div></fieldset>
+        <fieldset><legend>State</legend><div class="opts">
+          <label><input type="checkbox" name="off" /><span>Disabled</span></label>
+        </div></fieldset>
+      </form>
+    </div>
+
+    <div class="scene" data-buttons data-live data-content="both">
+      <div class="dish">
+        <div class="plate" aria-hidden="true"><svg width="54" height="54" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1" opacity=".6"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg></div>
+        <h1>Night Swim</h1><p>Blue Hour &middot; Low Tide &middot; 3:42</p>
+        <div class="track" aria-hidden="true"><span class="wv" data-n="64"></span><span class="done"><span class="wv" data-n="64"></span></span><span class="playhead"></span></div>
+      </div>
+      <div class="row">
+        <button class="ad" type="button" aria-pressed="false" aria-expanded="false" data-opens="d-day" data-name="Add to playlist" data-off><span class="ic wv" data-n="5" data-seed="3" aria-hidden="true"></span><span class="lbl">Add to playlist</span></button>
+        <button class="sv" type="button" aria-expanded="false" data-opens="d-col" data-name="Save" data-off><span class="tape wv" data-n="30" data-seed="7" aria-hidden="true"></span><span class="ic rec" aria-hidden="true"></span><span class="lbl">Save</span></button>
+        <button class="sk" type="button" aria-expanded="false" data-opens="d-why" data-name="Skip" data-off><span class="tape" aria-hidden="true"><span class="wv" data-n="60" data-seed="11"></span></span><span class="lbl">Skip</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l8 6-8 6zM12 6l8 6-8 6z"/></svg></button>
+      </div>
+      <!-- depth: each row rises like level meters under the button that opened it -->
+      <div class="drow" id="d-day" role="group" aria-label="Which playlist" hidden><small>Which playlist?</small><button class="opt day rise" type="button" data-name="Focus" style="--k:0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/></svg><span class="lbl">Focus</span></button><button class="opt day rise" type="button" data-name="Night drive" style="--k:1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/></svg><span class="lbl">Night drive</span></button><button class="opt day rise" type="button" data-name="Run" style="--k:2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 3 7-8M15 7h5v5"/></svg><span class="lbl">Run</span></button><button class="opt day rise" type="button" data-name="Chill" style="--k:3"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15c2.5-3 5.5-3 8 0s5.5 3 8 0M4 9c2.5-3 5.5-3 8 0s5.5 3 8 0"/></svg><span class="lbl">Chill</span></button></div>
+      <div class="drow" id="d-meal" role="group" aria-label="Where in it" hidden><button class="opt meal rise" type="button" data-name="Play next" style="--k:0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6l8 6-8 6zM16 6v12"/></svg><span class="lbl">Play next</span></button><button class="opt meal rise" type="button" data-name="Add to end" style="--k:1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 12h11M4 17h7M18 14v6M15 17h6"/></svg><span class="lbl">Add to end</span></button></div>
+      <div class="drow" id="d-col" role="group" aria-label="Save to" hidden><button class="opt col rise" type="button" data-name="Library" style="--k:0"><span class="lbl">Library</span></button><button class="opt col rise" type="button" data-name="Offline" style="--k:1"><span class="lbl">Offline</span></button><button class="opt col rise" type="button" data-name="Car mix" style="--k:2"><span class="lbl">Car mix</span></button></div>
+      <div class="drow" id="d-why" role="group" aria-label="Skip because" hidden><button class="opt why rise" type="button" data-name="Not now" style="--k:0"><span class="lbl">Not now</span></button><button class="opt why rise" type="button" data-name="Never play this" style="--k:1"><span class="lbl">Never play this</span></button></div>
+      <div class="room" aria-hidden="true"></div>
+      <div class="grp-wrap">
+        <small id="g-cap">Quality</small>
+        <div class="grp" role="radiogroup" aria-labelledby="g-cap">
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Normal"><span class="ic wv coarse" data-n="4" data-seed="5" aria-hidden="true"></span><span class="lbl">Normal</span></button>
+          <button class="r lit" type="button" role="radio" aria-checked="true" data-name="High"><span class="ic wv" data-n="9" data-seed="5" aria-hidden="true"></span><span class="lbl">High</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Lossless" data-off><svg class="ic curve" viewBox="0 0 30 20" aria-hidden="true"><path d="M1 10 C4 2, 6 2, 8 10 S12 18, 15 10 S19 1, 22 10 S26 16, 29 10"/></svg><span class="lbl">Lossless</span></button>
+        </div>
+      </div>
+      <p class="hint" aria-live="polite" id="said"></p>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Add to playlist&rsquo;s bars playing, Save&rsquo;s recording written in, Skip&rsquo;s tape up to full. Add to playlist is a toggle, so it shows twice: before it is added (coral, five bars) and after (a ring, the bars flat). Turned off, coral gives way to a quiet blue-grey. Then the depth: each button closed, opened, and one level deeper.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table></div>
+    <div class="tbl" style="margin-top:26px"><table><thead><tr><th>Depth</th><th>Step 1 &middot; closed</th><th>Step 2 &middot; opened</th><th>Step 3 &middot; one level deeper</th></tr></thead><tbody><tr><td>Primary &middot; Add to playlist<small>a playlist, then where in it; then it clicks over to the answer</small></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=base" title="Primary &middot; Add to playlist, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=ad2" title="Primary &middot; Add to playlist, ad2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=ad3" title="Primary &middot; Add to playlist, ad3" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr><tr><td>Secondary &middot; Save<small>a collection; then it stays Saved</small></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=base" title="Secondary &middot; Save, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=sv2" title="Secondary &middot; Save, sv2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr><tr><td>Tertiary &middot; Skip<small>a reason</small></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=base" title="Tertiary &middot; Skip, base" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-wave-button.html?shot=sk2" title="Tertiary &middot; Skip, sk2" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr></tbody></table></div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: sizes from the buttons as the browser lays them out, colours and motion from the same tokens the buttons above use.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <script>
+    // every waveform on the page is the same track: bar heights from one seeded curve, so each piece of
+    // the interface shows a slice of the same sound
+    (() => {
+      const wave = (n, seed) => Array.from({ length: n }, (_, i) => {
+        const t = (i + seed * 7) / 6;
+        return Math.max(.18, Math.min(1, .55 + .3 * Math.sin(t * 1.7) + .2 * Math.sin(t * 4.3 + seed) + .12 * Math.sin(t * 9.1)));
+      });
+      document.querySelectorAll('.wv[data-n]').forEach(el => {
+        el.innerHTML = wave(+el.dataset.n, +(el.dataset.seed || 1)).map((h, k) => `<i style="--h:${h.toFixed(2)};--k:${k}"></i>`).join('');
+      });
+    })();
+  </script>
+  <script>
+    // the depth stills are this same page in ?shot mode; a still never loads stills of its own
+    if (!/[?&]shot=/.test(location.search)) document.querySelectorAll('.shotbox iframe[data-src]').forEach(f => { f.src = f.dataset.src; });
+  </script>
+  <a class="back-pill" href="week-08.html#ideation" hidden>&larr; Week 08</a>
+
+  <script>
+    // States table, copied from the live buttons
+    (() => {
+      const live = document.querySelector('[data-live]'), rows = document.getElementById('state-rows');
+      const src = { ad: live.querySelector('.ad'), sv: live.querySelector('.sv'), sk: live.querySelector('.sk'), r: live.querySelector('.r') };
+      const contents = [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']];
+      const cell = (key, content, st, extra) => {
+        const b = src[key].cloneNode(true);
+        b.removeAttribute('aria-pressed'); b.removeAttribute('aria-checked'); b.removeAttribute('role'); b.removeAttribute('data-off');
+        if (extra) b.classList.add(extra);
+        if (st === 'hover') b.classList.add('st-hover');
+        if (st === 'down') b.classList.add('st-down');
+        if (st === 'off') { b.disabled = true; if (key === 'r') b.classList.remove('st-on'); }
+        if (key === 'ad' && extra === 'st-on') b.querySelector('.lbl').textContent = 'Added';
+        return `<td><div class="frame" data-static data-content="${content}">${b.outerHTML}</div></td>`;
+      };
+      const row = (key, title, sub, content, extra) => `<tr><td>${title}<small>${sub}</small></td>${['', 'hover', 'down', 'off'].map(st => cell(key, content, st, extra)).join('')}</tr>`;
+      let html = '';
+      contents.forEach(([c, cn]) => { html += row('ad', `Primary · ${cn}`, 'Add to playlist, not added', c); });
+      contents.forEach(([c, cn]) => { html += row('ad', `Primary · ${cn}`, 'Added (toggle on)', c, 'st-on'); });
+      contents.forEach(([c, cn]) => { html += row('sv', `Secondary · ${cn}`, 'Save', c); });
+      contents.forEach(([c, cn]) => { html += row('sk', `Tertiary · ${cn}`, 'Skip', c); });
+      contents.forEach(([c, cn]) => { html += row('r', `Group option · ${cn}`, 'not picked', c); });
+      contents.forEach(([c, cn]) => { html += row('r', `Group option · ${cn}`, 'picked', c, 'st-on'); });
+      rows.innerHTML = html;
+      rows.querySelectorAll('button').forEach(b => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); });
+    })();
+  </script>
+  <script src="week-08-proto.js?v=1"></script>
+  <script>
+    const live = P.live, said = live.querySelector('#said');
+    const ad = live.querySelector('.ad'), sv = live.querySelector('.sv'), sk = live.querySelector('.sk');
+    const rel = el => { const s = live.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height }; };
+    const ms = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
+    const opener = box => live.querySelector(`[data-opens="${box.id}"]`) || box._opener;
+    const openRows = () => [...live.querySelectorAll('.drow:not([hidden])')];
+
+    // ---- the track: the playhead moves through it; pointing at Add to playlist plays a preview -----------
+    const track = live.querySelector('.track');
+    let prog = 30;
+    if (!P.calm.matches) setInterval(() => { prog = (prog + .25) % 100; track.style.setProperty('--prog', prog.toFixed(2) + '%'); }, 120);
+    ad.addEventListener('pointerenter', () => { if (!ad.disabled && ad.getAttribute('aria-pressed') !== 'true') live.classList.add('preview'); });
+    ad.addEventListener('pointerleave', () => { if (ad.getAttribute('aria-expanded') !== 'true') live.classList.remove('preview'); });
+    // a picked option gives a little level spike, like a meter catching a peak
+    const spike = el => { if (!P.calm.matches) el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(1.14)' }, { transform: 'scaleY(1)' }], { duration: 320, easing: 'cubic-bezier(.2, .8, .3, 1)' }); };
+
+    // ---- depth: a row rises like level meters under its button, one after another; closing drops it back --
+    const place = (box, parent) => {
+      box.hidden = false;
+      const r = rel(parent), w = box.offsetWidth, sw = live.clientWidth;
+      box.style.left = Math.max(12, Math.min(sw - w - 12, r.x + r.w / 2 - w / 2)) + 'px';
+      box.style.top = (r.y + r.h + 16) + 'px';
+    };
+    const timers = new WeakMap();
+    const open = (box, parent) => {
+      clearTimeout(timers.get(box));
+      box._opener = parent;
+      box.style.setProperty('--n', box.children.length);
+      place(box, parent);
+      parent.setAttribute('aria-expanded', 'true');
+      void box.offsetWidth; box.classList.add('in');
+    };
+    const close = (box, after) => {
+      if (box.hidden) { after?.(); return; }
+      openRows().filter(b => b !== box && b._opener && box.contains(b._opener)).forEach(b => close(b));
+      box.classList.remove('in');
+      opener(box)?.setAttribute('aria-expanded', 'false');
+      box.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+      const wait = ms('--d-close') + box.children.length * 25 + 120;   // the last one has dropped back
+      timers.set(box, setTimeout(() => { if (!box.classList.contains('in')) box.hidden = true; after?.(); }, P.calm.matches ? 0 : wait));
+    };
+    const closeAll = after => { const rows = openRows(); if (!rows.length) { after?.(); return; } let n = rows.length; rows.forEach(b => close(b, () => { if (--n === 0) after?.(); })); };
+    const days = live.querySelector('#d-day'), meals = live.querySelector('#d-meal'), cols = live.querySelector('#d-col'), why = live.querySelector('#d-why');
+
+    // Add to playlist: which playlist, then where in it; then the rows drop back and the button takes the playlist's name
+    let day = null;
+    // a label that changes eases the button to its new width rather than jumping
+    const relabel = (b, text) => {
+      const w = b.offsetWidth; b.querySelectorAll('.lbl').forEach(l => { l.textContent = text; });
+      if (P.calm.matches || !b.offsetParent) return;
+      b.animate([{ width: w + 'px' }, { width: b.offsetWidth + 'px' }], { duration: 420, easing: 'cubic-bezier(.3, .7, .2, 1)' });
+    };
+    const setAdded = (on, label) => {
+      ad.setAttribute('aria-pressed', String(on));
+      relabel(ad, on ? label : 'Add to playlist');
+      if (on) live.classList.remove('preview');
+      ad.dataset.name = on ? 'Added, ' + label : 'Add to playlist';
+      if (live.dataset.content === 'icon') { ad.setAttribute('aria-label', ad.dataset.name); ad.title = ad.dataset.name; }
+    };
+    ad.addEventListener('click', e => {
+      if (ad.getAttribute('aria-pressed') === 'true') { setAdded(false); said.textContent = 'Taken out of the playlist'; return; }
+      if (ad.getAttribute('aria-expanded') === 'true') { closeAll(); return; }
+      closeAll(); open(days, ad);
+      if (e.detail === 0) days.querySelector('button').focus();
+    });
+    days.addEventListener('click', e => {
+      const d = e.target.closest('.day'); if (!d) return;
+      days.querySelectorAll('.day').forEach(x => {
+        const on = x === d; x.setAttribute('aria-pressed', String(on));
+        x.classList.toggle('on', on); if (on) spike(x);
+      });
+      day = d.dataset.name;
+      close(meals, () => { open(meals, d); if (e.detail === 0) meals.querySelector('button').focus(); });
+    });
+    meals.addEventListener('click', e => {
+      const m = e.target.closest('.meal'); if (!m) return;
+      m.classList.add('on'); spike(m);
+      said.textContent = `Added to ${day}, ${m.dataset.name.toLowerCase()}`;
+      setTimeout(() => closeAll(() => { setAdded(true, `In ${day}`); ad.focus({ preventScroll: true }); }), P.calm.matches ? 0 : 420);
+    });
+
+    // Save: a collection; Skip: a reason
+    sv.addEventListener('click', e => {
+      if (sv.classList.contains('saved')) { sv.classList.remove('saved'); relabel(sv, 'Save'); said.textContent = 'Removed from saved'; return; }
+      if (sv.getAttribute('aria-expanded') === 'true') { closeAll(); return; }
+      closeAll(); open(cols, sv); if (e.detail === 0) cols.querySelector('button').focus();
+    });
+    cols.addEventListener('click', e => {
+      const c = e.target.closest('.col'); if (!c) return;
+      c.classList.add('on'); spike(c); said.textContent = 'Saved to ' + c.dataset.name;
+      setTimeout(() => closeAll(() => { sv.classList.add('saved'); relabel(sv, 'Saved'); sv.focus({ preventScroll: true }); }), P.calm.matches ? 0 : 380);
+    });
+    sk.addEventListener('click', e => {
+      if (sk.getAttribute('aria-expanded') === 'true') { closeAll(); return; }
+      closeAll(); open(why, sk); if (e.detail === 0) why.querySelector('button').focus();
+    });
+    why.addEventListener('click', e => { const w = e.target.closest('.why'); if (!w) return; said.textContent = 'Skipped: ' + w.dataset.name; setTimeout(() => closeAll(() => sk.focus({ preventScroll: true })), 200); });
+
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const rows = openRows(); if (!rows.length) return;
+      const deepest = rows.find(r => !rows.some(o => o !== r && o._opener && r.contains(o._opener))) || rows[0];
+      const o = opener(deepest); close(deepest); o?.focus();
+    });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('.scene button')) closeAll(); });
+    const replace = () => openRows().forEach(b => place(b, opener(b)));
+    addEventListener('resize', replace); P.onContent(() => { const t0 = performance.now(); const loop = t => { replace(); if (t - t0 < 700) requestAnimationFrame(loop); }; requestAnimationFrame(loop); });
+    live.addEventListener('off', e => { if (e.detail) closeAll(); });
+    // quality: the new pick's waveform resolves from nothing, bar by bar (or its curve draws itself)
+    live.querySelector('.grp').addEventListener('pick', e => {
+      said.textContent = e.detail.to.dataset.name + ' quality';
+      e.detail.from?.classList.remove('lit'); e.detail.to.classList.add('lit');
+      if (P.calm.matches) return;
+      e.detail.to.querySelectorAll('.wv i').forEach((i, k) => i.animate([{ scale: '1 0' }, { scale: '1 1' }], { duration: 260, delay: k * ms('--resolve'), easing: 'cubic-bezier(.2, .8, .3, 1.2)', fill: 'backwards' }));
+      const p = e.detail.to.querySelector('.curve path');
+      if (p) { const L = p.getTotalLength(); p.animate([{ strokeDasharray: L, strokeDashoffset: L }, { strokeDasharray: L, strokeDashoffset: 0 }], { duration: 520, easing: 'cubic-bezier(.4, 0, .2, 1)' }); }
+    });
+
+    // stills: ?pose=on (added, Save pointed at) and ?shot=… (one step of the depth)
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('pose') === 'on') { setAdded(true, 'In Night drive'); sv.classList.add('saved'); relabel(sv, 'Saved'); }
+    const shot = qs.get('shot') || qs.get('deep');
+    if (shot) {
+      document.body.classList.add(qs.get('shot') ? 'shot' : 'still');
+      document.fonts.ready.then(() => requestAnimationFrame(() => {
+        Object.defineProperty(P, 'calm', { value: { matches: true } });
+        document.documentElement.style.setProperty('--d-draw', '0ms'); document.documentElement.style.setProperty('--d-stagger', '0ms');
+        if (shot === 'ad2' || shot === 'ad3') open(days, ad);
+        if (shot === 'ad3') { const d = days.children[2]; d.classList.add('on'); day = d.dataset.name; open(meals, d); }
+        if (shot === 'ad4') setAdded(true, 'In Night drive');
+        if (shot === 'sv2') open(cols, sv);
+        if (shot === 'sk2') open(why, sk);
+      }));
+    }
+  </script>
+  <script>
+    // Spec, read from the tokens and the buttons as laid out
+    (() => {
+      const out = document.querySelector('.spec-grid'), root = getComputedStyle(document.documentElement), tok = n => root.getPropertyValue(n).trim();
+      const live = document.querySelector('[data-live]');
+      const m = document.createElement('div'); m.className = 'spec-measure';
+      m.innerHTML = ['both', 'text', 'icon'].map(c => `<div data-content="${c}">${['.ad', '.sv', '.sk', '.r'].map(s => live.querySelector(s).outerHTML).join('')}</div>`).join('');
+      document.body.append(m);
+      const w = (c, s) => Math.round(m.querySelector(`[data-content="${c}"] ${s}`).getBoundingClientRect().width) + 'px';
+      const ws = s => `${w('both', s)} icon + text, ${w('text', s)} text, ${w('icon', s)} icon`;
+      const sw = c => `<i style="background:${c}"></i>${c}`;
+      const lbl = getComputedStyle(live.querySelector('.ad .lbl')), fam = lbl.fontFamily.split(',')[0].replace(/"/g, '');
+      const cards = [
+        ['Colour', [
+          ['Page', sw(tok('--blue'))], ['Coral', sw(tok('--coral'))], ['Tint', sw(tok('--coral-tint'))],
+          ['On coral', `words and icons in ${tok('--ink-on-coral')}, the page blue cut out of the coral`],
+          ['Off', `${sw(tok('--off'))} lines and words, ${tok('--off-fill')} fill`],
+        ]],
+        ['Type and icon', [
+          ['Label', `${fam} ${lbl.fontWeight}, ${lbl.fontSize}, line height 1`], ['Group label', `${fam} ${lbl.fontWeight}, 16px`],
+          ['Icons', `the waveform itself: bars ${tok('--bar')} wide, 2px apart, their heights read from one curve for the whole track`],
+          ['Icon to label', tok('--gap')],
+        ]],
+        ['Primary · Add to playlist', [
+          ['Height', tok('--p-h')], ['Corners', 'fully round'], ['Fill', 'coral'],
+          ['Sides', `${tok('--p-pad')}, ${tok('--p-pad-icon')} on the icon side`], ['Width', ws('.ad')],
+          ['Icon', 'five bars of the track'],
+          ['Hover', `the five bars play (each breathes to 30% and back every ${tok('--beat')}, offset from the next), and the track above plays with them: a preview`],
+          ['Pressed', `scaled to ${tok('--press-scale')}, springs back`],
+          ['Added', 'the fill clears to a coral ring, the bars settle flat, and the words become the playlist (In Night drive)'],
+        ]],
+        ['Secondary · Save', [
+          ['Height', tok('--s-h')], ['Corners', 'fully round'], ['Fill', `coral tint ${tok('--coral-tint')}`], ['Sides', tok('--s-pad')], ['Width', ws('.sv')],
+          ['Icon', 'a 10px REC dot'],
+          ['Hover', `the dot blinks and the waveform is written into the button from the left, as if recorded (${tok('--record')}, linear)`],
+          ['Saved', 'solid coral, the recording kept, words Saved'], ['Pressed', `scaled to ${tok('--press-scale')}`],
+        ]],
+        ['Tertiary · Skip', [
+          ['Height', `${tok('--t-h')} target`], ['Icon', 'fast-forward, two filled triangles'], ['Width', ws('.sk')],
+          ['Tape', 'an 8px strip of the waveform under the word, at 40%'],
+          ['Hover', `the strip comes up to full and races past, half its length every ${tok('--ffwd')}; the mark leans forward`], ['Pressed', 'down 1px'],
+        ]],
+        ['Group · single selection', [
+          ['Option', `${tok('--g-h')} high, fully round, ${tok('--g-ring')} coral ring`], ['Between', tok('--g-gap')], ['Width', ws('.r')],
+          ['Icons', 'the waveform at its resolution: Normal four coarse steps, High nine fine bars, Lossless a smooth curve'],
+          ['Picked', 'coral fill; its waveform plays'], ['Hover', 'a faint coral tint'],
+          ['Keys', 'one tab stop; arrows move the pick'],
+          ['Moving', `the new pick's waveform resolves from nothing, bar by bar (${tok('--resolve')} apart), or its curve draws itself`],
+        ]],
+        ['Depth', [
+          ['Levels', 'Add to playlist opens two rows deep (3 levels: which playlist, where in it); Save and Skip open one (2 levels)'],
+          ['Options', `${tok('--d-h')} pills, ${tok('--d-gap')} apart, 16px below what opened them`],
+          ['Opening', `each option rises from its baseline like a level meter, one after another (${tok('--d-rise')}, ${tok('--d-stagger')} apart, a hair of overshoot)`],
+          ['Picking', 'the option fills coral with a little level spike, and opens the next row'],
+          ['Closing', `they drop back to the baseline, last first, quicker (${tok('--d-close')}); a finished choice drops the whole tree and the button takes the answer: In Night drive, Saved`],
+          ['Keys', 'Enter opens and moves focus into the new row; Escape closes the deepest row and returns focus'],
+        ]],
+        ['Motion', [
+          ['The material', 'sound, never liquid: bars that play, a tape that runs, a recording that writes, a signal that resolves'],
+          ['The track', 'its whole waveform under the title; the played part coral, a white playhead moving through it'],
+          ['Presses', 'a quick squeeze, a spring back'],
+          ['Reduced motion', 'nothing plays or moves; states change at once'],
+        ]],
+      ];
+      out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+      m.remove();
+    })();
+  </script>
+</body>
+</html>

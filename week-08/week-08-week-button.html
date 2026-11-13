@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Set 2 &middot; Week</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <style>
+  /* Week 08, Set 2 · Week. Tone: Calm.
+     A week on a blue card in coral ink, after a reference of seven date columns under a big day name: the
+     picked date sits on a raised coral tile with blue words. Every date is a button; pressed, the
+     day opens under the strip: its weather, its plans, and for some plans a link out.
+       Group      the seven dates, single selection: the raised tile slides to the new date and the big day
+                  name rolls over to it
+       Tertiary   the weather icon (hover shows the forecast, and the icon acts out its weather) and the
+                  dismiss, an X alone whose four arms pop out to the corners as the day folds away
+       Secondary  each set in the day's list, a faint white row: pressed, it opens in place to its details
+       Primary    the link out from a set (Gate map, Listen, Watch live, Tickets): coral, no leading icon; the arrow
+                  in its blue square leaves and comes back on hover
+     Depth: a date (1) opens its day (2), whose plans open to their details and links (3).
+     Every number in the Spec section is read from these tokens. */
+  :root {
+    /* coral on flat blue: the page is blue, the card a step lighter; coral carries the words and the accents,
+       pale lavender the quiet text; anything coral-filled has blue words cut into it */
+    --page: #4056b2; --card: #4a60be; --ink: #f85c5c; --mute: #c9d0f2; --line: rgba(255,255,255,.12); --tile: #f85c5c; --on-tile: #4056b2; --row: rgba(255,255,255,.07); --row-h: rgba(255,255,255,.13);
+    --m-dark: #7884c8; --m-mid: #9ba6dc; --m-hi: #dfe4ff; --m-warm: #ffc2b8;
+    --violet: #f85c5c; --violet-d: #e54848; --violet-l: rgba(248,92,92,.22); --off: #8792cc; --shadow: rgba(18,28,80,.45); --tipbg: #2b3b88;
+    --font: "Inter", -apple-system, system-ui, sans-serif;
+    --card-r: 16px; --card-pad: 44px;
+    --day-w: 74px; --day-h: 96px; --day-r: 8px; --day-gap: 13px;
+    --title: 64px;
+    --p-h: 44px; --p-pad: 18px; --p-r: 8px;
+    --s-r: 8px; --s-pad: 16px;
+    --t-size: 40px;
+    --gap: 8px; --icon: 18px;
+    --slide: 820ms; --roll: 640ms; --open: 820ms; --stagger: 90ms; --close: 520ms; --unfold: 680ms; --fold: 480ms; --t-r: 8px;
+    --press-scale: .96;
+    --spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.067, 1.087 23.7%, 1.083 26%, 1.06 28.7%, 0.994 37.3%, 0.981 41%, 0.982 46.4%, 1.002 58.1%, 1.005 63.6%, 1);
+    --ease: cubic-bezier(.25, .8, .25, 1);
+    interpolate-size: allow-keywords;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--ink); font: 500 15px/1.3 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; text-align: inherit; }
+  button:disabled { cursor: not-allowed; }
+  svg { display: block; }
+  :focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+  .ic { flex: none; width: var(--icon); height: var(--icon); }
+  .ic * { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .lbl { white-space: nowrap; }
+  [data-content="text"] .ic:not(.keep) { display: none; }
+  [data-content="icon"] .lbl:not(.keep) { display: none; }
+
+  /* ---- metal: every button wears a thin chrome outline that catches the light ----
+     the ring is a conic gradient cut to a hairline by a mask; --sheen turns it, so the highlight travels
+     round the edge. At rest it holds still; pointed at, the light runs slowly round and the glow comes up. */
+  @property --sheen { syntax: '<angle>'; inherits: false; initial-value: 210deg; }
+  .date, .wx, .dismiss, .plan, .go, .chip, .save, .split { position: relative; --ring: 1.25px; --glow: rgba(205,214,255,.22); }
+  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split)::before {
+    content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: var(--ring); pointer-events: none;
+    background: conic-gradient(from var(--sheen), var(--m-dark) 0deg, var(--m-mid) 40deg, var(--m-hi) 70deg, #fff 82deg, var(--m-hi) 96deg, var(--m-mid) 130deg,
+      var(--m-dark) 175deg, var(--m-mid) 215deg, var(--m-warm) 250deg, #fff 262deg, var(--m-warm) 276deg, var(--m-mid) 315deg, var(--m-dark) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    opacity: .8; transition: opacity .5s var(--ease), padding .5s var(--ease); }
+  :is(.date, .wx, .dismiss, .go, .chip, .save, .split) { box-shadow: 0 0 14px -4px var(--glow); }
+  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, :focus-visible, :focus-within)::before { opacity: 1; animation: sheen 3.6s linear infinite; }
+  :is(.date, .wx, .dismiss, .plan, .go, .chip, .save, .split):is(:hover, .st-hover) { --glow: rgba(225,232,255,.55); }
+  .st-hover::before, .st-down::before, .is-down::before { opacity: 1; }
+  .date[aria-checked="true"], .date.st-on, .chip[aria-pressed="true"], .save[aria-pressed="true"] { --glow: rgba(255,170,160,.5); }
+  .plan.open { --ring: 2px; --glow: rgba(225,232,255,.5); }
+  .plan.open::before { opacity: 1; animation: sheen 9s linear infinite; }
+  @keyframes sheen { to { --sheen: 570deg; } }
+  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled, .plan:has(.tg:disabled), .split:has(button:disabled) { --glow: transparent; }
+  :is(.date, .wx, .dismiss, .go, .chip, .save):disabled::before, .plan:has(.tg:disabled)::before, .split:has(button:disabled)::before { opacity: .3; filter: grayscale(1); animation: none; }
+  .go.done::before { opacity: .5; }
+
+  /* ---- the card ---- */
+  .card { position: relative; width: min(680px, calc(100vw - 32px)); padding: 34px var(--card-pad) 30px; border-radius: var(--card-r); background: var(--card);
+    box-shadow: 0 0 0 1px var(--line), 0 24px 50px -30px var(--shadow); }
+  /* the clip runs to the card's own edges, so a pushed word slides out past the card, not into its margin */
+  .title { position: relative; height: calc(var(--title) * 1.05); margin: 0 calc(var(--card-pad) * -1) 22px; overflow: hidden; font: 700 var(--title)/1 var(--font); letter-spacing: -.03em; }
+  .title span { position: absolute; left: var(--card-pad); top: 0; white-space: nowrap; }
+
+  /* ---- group: the seven dates ---- */
+  .days { position: relative; display: flex; gap: var(--day-gap); }
+  .slide { position: absolute; z-index: 0; top: 0; left: 0; width: var(--day-w); height: var(--day-h); border-radius: var(--day-r); background: var(--tile);
+    box-shadow: 0 8px 18px -10px var(--shadow); pointer-events: none; }
+  .date { position: relative; z-index: 1; display: grid; justify-items: center; align-content: center; gap: 4px; width: var(--day-w); height: var(--day-h); border-radius: var(--day-r);
+    color: var(--mute); transition: color .35s, background-color .3s, transform .6s var(--spring), box-shadow .5s var(--ease); }
+  .date .m { font-size: 13px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  .date .n { font-size: 22px; font-weight: 700; color: inherit; font-variant-numeric: tabular-nums; }
+  .date .w { font-size: 14px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  .date .dot { position: absolute; bottom: 6px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .5; }
+  .date:hover:not([aria-checked="true"]), .date.st-hover { background: rgba(255,255,255,.08); color: var(--ink); }
+  .date[aria-checked="true"], .date.st-on { color: var(--on-tile); }
+  .date[aria-checked="true"] .w, .date.st-on .w { color: var(--on-tile); }
+  .date.st-on { background: var(--tile); box-shadow: 0 0 14px -4px var(--glow), 0 8px 18px -10px var(--shadow); }
+  .date.is-down, .date.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .date:disabled { color: var(--off); }
+  .date:disabled .dot { display: none; }
+  .date.st-on:disabled { background: rgba(255,255,255,.1); box-shadow: none; color: var(--off); }
+  .date.st-on:disabled .w { color: var(--off); }
+
+  /* ---- level 2: the day ---- */
+  .day { height: 0; overflow: hidden; transition: height var(--close) var(--ease); }
+  .day.open { height: auto; transition: height var(--open) var(--ease); }
+  .day.open.settled { overflow: visible; }   /* once open, nothing inside is clipped (the forecast card can hang below) */
+  .day-in { padding-top: 26px; }
+  .day-head { position: relative; z-index: 3; display: flex; align-items: center; gap: 14px; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
+  .day-head h3 { margin: 0; flex: 1; font-size: 15px; font-weight: 600; }
+  .day-head h3 small { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--mute); }
+  .fade { opacity: 0; translate: 0 8px; transition: opacity .2s, translate .2s; }
+  .day.open .fade { opacity: 1; translate: 0 0; transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .7s var(--spring) calc(180ms + var(--k, 0) * var(--stagger)); }
+
+  /* tertiary: weather icon (with its forecast on hover) */
+  .wx { position: relative; display: inline-flex; align-items: center; gap: 6px; height: var(--t-size); padding: 0 12px 0 8px; border-radius: var(--t-r); color: var(--ink); transition: background-color .2s, box-shadow .5s var(--ease); }
+  .wx .ic { width: 26px; height: 26px; overflow: visible; }
+  .wx .ic * { stroke-width: 1.6; }
+  .wx .t { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wx:hover, .wx:focus-visible, .wx.st-hover { background: var(--row); }
+  .wx.is-down, .wx.st-down { background: var(--row-h); }
+  .wx .tip { position: absolute; z-index: 5; right: 0; top: calc(100% + 8px); width: 200px; padding: 12px 14px; border-radius: 8px; background: var(--tipbg); color: #fff; font-size: 13px; font-weight: 500; line-height: 1.45;
+    opacity: 0; translate: 0 -4px; pointer-events: none; transition: opacity .3s, translate .45s var(--ease); text-align: left; }
+  .wx .tip b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .wx:hover .tip, .wx:focus-visible .tip, .wx.st-hover .tip { opacity: 1; translate: 0 0; transition-delay: .25s; }
+  .frame .wx .tip { display: none; }
+  /* each weather acts itself out while pointed at */
+  .wx .rays { transform-origin: 12px 12px; } .wx:hover .rays, .wx:focus-visible .rays { animation: spin 6s linear infinite; }
+  @keyframes spin { to { rotate: 360deg; } }
+  .wx .cloud { transition: translate .6s var(--ease); } .wx:hover .cloud, .wx:focus-visible .cloud { animation: drift 2.4s ease-in-out infinite alternate; }
+  @keyframes drift { to { translate: 2px 0; } }
+  .wx .drop { opacity: .9; } .wx:hover .drop, .wx:focus-visible .drop { animation: fall 1s linear infinite; animation-delay: calc(var(--k, 0) * -.33s); }
+  @keyframes fall { from { translate: 0 -3px; opacity: 0; } 30% { opacity: 1; } to { translate: -1px 5px; opacity: 0; } }
+  .wx .gust { stroke-dasharray: 16; } .wx:hover .gust, .wx:focus-visible .gust { animation: gust 1.4s ease-in-out infinite; animation-delay: calc(var(--k, 0) * -.4s); }
+  @keyframes gust { from { stroke-dashoffset: 16; } 50% { stroke-dashoffset: 0; } to { stroke-dashoffset: -16; } }
+  .wx:disabled { color: var(--off); background: none; }
+  [data-content="icon"] .wx .t { display: none; }
+  [data-content="icon"] .wx { padding: 0 7px; }
+
+  /* tertiary: dismiss */
+  .dismiss { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: var(--t-size); min-width: var(--t-size); padding: 0 10px; border-radius: var(--t-r); color: var(--mute);
+    transition: background-color .2s, color .2s, box-shadow .5s var(--ease); }
+  /* the X is four arms from its centre: pointed at, they ease apart; pressed, they pop out to the four corners
+     and thin away, and the day folds behind them */
+  .dismiss { width: var(--t-size); padding: 0; }
+  .dismiss .ic { width: 20px; height: 20px; overflow: visible; }
+  .dismiss .ic path { stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 0; transition: translate .7s var(--spring); }
+  .dismiss:hover .ic path, .dismiss:focus-visible .ic path, .dismiss.st-hover .ic path { translate: calc(var(--dx) * 1.6px) calc(var(--dy) * 1.6px); }
+  .dismiss:hover, .dismiss:focus-visible, .dismiss.st-hover { background: var(--row); color: var(--ink); }
+  .dismiss.is-down, .dismiss.st-down { background: var(--row-h); }
+  .dismiss.is-down .ic path, .dismiss.st-down .ic path { translate: calc(var(--dx) * -1px) calc(var(--dy) * -1px); transition-duration: .12s; }
+  .dismiss.pop .ic path { animation: pop .6s cubic-bezier(.2, .7, .2, 1) forwards; }
+  @keyframes pop {
+    0%   { translate: calc(var(--dx) * -1px) calc(var(--dy) * -1px); stroke-dashoffset: 0; opacity: 1; }
+    45%  { translate: calc(var(--dx) * 7px) calc(var(--dy) * 7px); stroke-dashoffset: -.35; opacity: 1; }
+    100% { translate: calc(var(--dx) * 12px) calc(var(--dy) * 12px); stroke-dashoffset: -.95; opacity: 0; }
+  }
+  .dismiss:disabled { color: var(--off); background: none; }
+
+  /* secondary: a plan, opening in place (level 3) */
+  .plans { display: grid; gap: 8px; padding-top: 14px; }
+  .plan { border-radius: var(--s-r); background: var(--row); box-shadow: 0 0 14px -4px var(--glow);
+    transition: background-color .2s, box-shadow var(--fold) var(--ease); }
+  .plan > .tg { display: grid; grid-template-columns: 58px 1fr 38px auto; align-items: center; gap: 12px; width: 100%; padding: 14px var(--s-pad); border-radius: var(--s-r); transition: transform .45s var(--spring); }
+  .plan .time { font-size: 13px; font-weight: 600; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .plan .what { font-size: 15px; font-weight: 600; }
+  .plan .what small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--mute); }
+  .plan .chev { width: 16px; height: 16px; color: var(--mute); transition: rotate 1s var(--spring); }
+  .plan .chev * { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .plan:hover, .plan.st-hover { background: var(--row-h); }
+  .plan > .tg.is-down, .plan.st-down > .tg { transform: scale(.985); transition-duration: .1s; }
+  .plan.open { background: transparent; }
+  /* the plans are also .fade (their entrance); this keeps that entrance and adds the ring and fill, which the
+     .day.open .fade rule would otherwise override */
+  .day.open .plan.fade { transition: opacity .5s var(--ease) calc(180ms + var(--k, 0) * var(--stagger)), translate .7s var(--spring) calc(180ms + var(--k, 0) * var(--stagger)),
+    background-color .2s, box-shadow var(--fold) var(--ease); }
+  .day.open .plan.fade.open { transition: opacity .5s var(--ease), translate .7s var(--spring), background-color .4s var(--ease), box-shadow .5s var(--ease); }
+  .plan.open .chev { rotate: 180deg; }
+  .plan .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--fold) var(--ease); }
+  .plan.open .more { grid-template-rows: 1fr; transition: grid-template-rows var(--unfold) cubic-bezier(.4, 0, .2, 1); }
+  .more-clip { min-height: 0; overflow: hidden; }
+  .more-in { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 0 var(--s-pad) 16px calc(var(--s-pad) + 70px); }
+  .more-in p { margin: 0; font-size: 13.5px; font-weight: 450; color: var(--mute); line-height: 1.5; }
+  .more-in p b { color: var(--ink); font-weight: 600; }
+  .more-in { opacity: 0; translate: 0 12px; transition: opacity .3s, translate .3s; }
+  .plan.open .more-in { opacity: 1; translate: 0 0; transition: opacity .45s var(--ease) .12s, translate .55s var(--ease) .12s; }
+  .plan:has(.tg:disabled) { opacity: .45; }
+  .empty { padding: 22px 4px 6px; color: var(--mute); font-size: 14px; }
+
+  /* group: stage filter chips, multi-select (All clears the rest); a filtered-out set folds away */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 0 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; color: var(--mute); font-size: 13px; font-weight: 600;
+    transition: background-color .3s var(--ease), color .3s, box-shadow .5s var(--ease), transform .45s var(--spring); }
+  .chip .ic { width: 0; height: 14px; margin-right: -6px; opacity: 0; transition: width .45s var(--ease), margin .45s var(--ease), opacity .3s; }
+  .chip .ic * { stroke-width: 2.6; }
+  .chip:hover, .chip.st-hover { background: var(--row); color: var(--ink); }
+  .chip.is-down, .chip.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-tile); }
+  .chip[aria-pressed="true"] .ic { width: 14px; margin-right: 0; opacity: 1; }
+  .chip:disabled { color: var(--off); background: none; }
+  .chip[aria-pressed="true"]:disabled { background: rgba(255,255,255,.1); color: var(--off); }
+  .slot { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .55s var(--ease), opacity .4s var(--ease); }
+  .slot > div { min-height: 0; padding-top: 8px; }
+  .slot.busy > div { overflow: hidden; }
+  .slot.out { grid-template-rows: 0fr; opacity: 0; }
+  .plans { display: flex; flex-direction: column; gap: 0; padding-top: 6px; }
+  .none { margin: 0; padding: 0 4px; color: var(--mute); font-size: 14px; display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s var(--ease), opacity .35s; }
+  .none > span { min-height: 0; overflow: hidden; } .none.on { grid-template-rows: 1fr; opacity: 1; } .none.on > span { padding-top: 16px; }
+
+  /* tertiary toggle: save a set to My lineup (always an icon: the row has no room for a word) */
+  .save { position: absolute; z-index: 3; top: 14px; right: calc(var(--s-pad) + 26px); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 6px; color: var(--mute);
+    transition: background-color .2s, color .3s, box-shadow .5s var(--ease), transform .45s var(--spring); }
+  .save .ic { width: 18px; height: 18px; transition: rotate .8s var(--spring), scale .8s var(--spring); }
+  .save .ic * { stroke-width: 1.9; transition: fill .3s; }
+  .save:hover, .save.st-hover { background: var(--row-h); color: var(--ink); }
+  .save.is-down, .save.st-down { transform: scale(.9); transition-duration: .1s; }
+  .save[aria-pressed="true"] { color: var(--ink); }
+  .save[aria-pressed="true"] .ic { rotate: 72deg; scale: 1.08; }
+  .save[aria-pressed="true"] .ic * { fill: currentColor; }
+  .save:disabled { color: var(--off); background: none; }
+  .frame .save { top: 50%; translate: 0 -50%; right: 34px; width: 32px; height: 32px; }
+  .frame .save.solo { position: relative; top: auto; right: auto; translate: none; width: 36px; height: 36px; }
+
+  /* primary split: the ticket (main action) and its pass (a menu) */
+  .day-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 16px 2px 0; border-top: 1px solid var(--line); }
+  .day-foot p { margin: 0; font-size: 13px; color: var(--mute); line-height: 1.4; } .day-foot p b { display: block; color: var(--ink); font-size: 14px; }
+  .split { display: inline-flex; height: var(--p-h); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile); transition: box-shadow .5s var(--ease); }
+  .split > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 100%; font-size: 14px; font-weight: 600; transition: background-color .2s, transform .45s var(--spring); }
+  .split-main { padding: 0 14px 0 16px; border-radius: var(--p-r) 0 0 var(--p-r); }
+  .split-more { width: 40px; border-radius: 0 var(--p-r) var(--p-r) 0; box-shadow: inset 1px 0 0 rgba(64,86,178,.35); }
+  .split .ic { width: 18px; height: 18px; } .split .ic * { stroke-width: 2.1; }
+  .split-more .ic { width: 16px; transition: rotate .6s var(--spring); }
+  .split > button:hover, .split > button:focus-visible, .split.st-hover .split-main { background: var(--violet-d); }
+  .split > button.is-down, .split.st-down .split-main { transform: scale(.95); transition-duration: .1s; }
+  .split-more[aria-expanded="true"] { background: var(--violet-d); } .split-more[aria-expanded="true"] .ic { rotate: 180deg; }
+  .split-main.done { background: var(--violet-l); color: var(--violet); }
+  .split:has(button:disabled) { background: var(--row); color: var(--off); }
+  [data-content="icon"] .split-main { width: var(--p-h); padding: 0; }
+  [data-content="text"] .split-main { padding: 0 16px; }
+  .menu { position: absolute; z-index: 6; right: 0; top: calc(100% + 8px); width: 230px; padding: 6px; border-radius: 8px; background: var(--tipbg); box-shadow: 0 18px 40px -16px var(--shadow), 0 0 0 1px var(--line);
+    opacity: 0; translate: 0 -6px; scale: .97; transform-origin: top right; pointer-events: none; transition: opacity .25s, translate .35s var(--ease), scale .35s var(--ease); }
+  .menu.on { opacity: 1; translate: 0 0; scale: 1; pointer-events: auto; transition: opacity .35s var(--ease), translate .55s var(--spring), scale .55s var(--spring); }
+  .menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 10px; border-radius: 6px; color: #fff; font-size: 13.5px; font-weight: 500; text-align: left; }
+  .menu button small { color: var(--mute); font-size: 12.5px; }
+  .menu button:hover, .menu button:focus-visible { background: rgba(255,255,255,.08); outline: none; }
+  .menu button[aria-checked="true"] { color: var(--ink); font-weight: 600; }
+  .menu.on button { animation: item .45s var(--ease) both; animation-delay: calc(var(--k) * 50ms + 60ms); }
+  @keyframes item { from { opacity: 0; translate: 0 -4px; } }
+
+  /* primary: the link out */
+  .go { display: inline-flex; align-items: center; gap: 10px; height: var(--p-h); padding: 0 7px 0 calc(var(--p-pad) + 2px); border-radius: var(--p-r); background: var(--violet); color: var(--on-tile);
+    font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: background-color .2s, transform .45s var(--spring), box-shadow .5s var(--ease); }
+  /* the arrow sits in a blue square of its own, so it reads at a glance and has a stage to leave from */
+  .go .arw { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 5px; background: var(--on-tile); color: var(--ink); overflow: hidden; flex: none; }
+  .go .ic { width: 16px; height: 16px; }
+  .go .ic * { stroke-width: 2.6; }
+  .go:hover, .go:focus-visible, .go.st-hover { background: var(--violet-d); }
+  .go:hover .ic, .go:focus-visible .ic, .go.st-hover .ic { animation: out-in 1s var(--ease); }
+  @keyframes out-in { 45% { translate: 18px -18px; } 46% { translate: -18px 18px; } }
+  .go.is-down, .go.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
+  .go.done { background: var(--violet-l); color: var(--violet); }
+  .go.done .arw { background: transparent; color: var(--violet); }
+  .go:disabled { background: var(--row); color: var(--off); transform: none; }
+  .go:disabled .arw { background: rgba(255,255,255,.08); color: var(--off); }
+  [data-content="icon"] .go { width: var(--p-h); padding: 0; justify-content: center; }
+  [data-content="icon"] .go .arw { background: none; color: var(--on-tile); }
+  [data-content="icon"] .go .ic { width: 20px; height: 20px; }
+  [data-content="text"] .go .arw { display: none; }
+  [data-content="text"] .go { padding: 0 var(--p-pad); }
+
+  /* ---- page ---- */
+  .hero { padding: 26px 32px 40px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .head p { margin: 0; color: var(--mute); font-size: 14px; line-height: 1.5; max-width: 54ch; }
+  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--violet); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; background: var(--row); }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--mute); }
+  .ctl input:checked + span { background: var(--ink); color: var(--page); }
+  .ctl input:focus-visible + span { outline: 2px solid var(--violet); outline-offset: 1px; }
+  .scene { display: grid; justify-items: center; align-content: start; min-height: 640px; padding-top: 34px; }
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .states, .spec { padding: 44px 32px 40px; border-top: 1px solid var(--line); }
+  .states h2, .spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+  .states > p, .spec > p { margin: 0 0 22px; color: var(--mute); max-width: 72ch; font-size: 14px; line-height: 1.5; }
+  .tbl { overflow-x: auto; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 12px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .states td { padding: 10px; border-top: 1px solid var(--line); vertical-align: middle; }
+  .states td:first-child { width: 190px; min-width: 160px; font-size: 14px; font-weight: 600; }
+  .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--mute); font-size: 12.5px; }
+  .frame { display: flex; align-items: center; justify-content: center; width: 230px; min-height: 110px; padding: 10px; border-radius: 16px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
+  .frame .plan { width: 210px; }
+  .frame .plan > .tg { grid-template-columns: 42px 1fr 34px auto; gap: 8px; padding: 12px; }
+  .frame button { pointer-events: none; }
+  .frame * { transition: none !important; animation: none !important; }
+  .shotbox { position: relative; width: 300px; height: 210px; border-radius: 16px; overflow: hidden; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
+  .shotbox iframe { position: absolute; left: 0; top: 0; width: 760px; height: 532px; border: 0; transform: scale(.395); transform-origin: 0 0; pointer-events: none; }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .spec-card { padding: 16px 18px 14px; border-radius: 16px; background: var(--card); box-shadow: 0 0 0 1px var(--line); }
+  .spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+  .spec-card dt { color: var(--mute); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.4); }
+  .spec-measure { position: absolute; left: -9999px; top: 0; }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(20,20,20,.72); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
+  body.shot .hero { padding: 0; } body.shot .scene { min-height: 0; padding-top: 24px; }
+  body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; animation: none !important; }
+  @media (max-width: 760px) { .hero, .states, .spec { padding-left: 16px; padding-right: 16px; } :root { --card-pad: 18px; --day-w: 40px; --day-gap: 4px; --title: 44px; } .date .m { font-size: 9px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-label="The buttons in use">
+    <div class="head">
+      <p><b>Week 08 &middot; Set 2 &middot; Week &middot; Calm</b>A festival week on a card: Tidelight, seven days by the water. Pick a date and the raised tile slides to it; press it and the day opens with its weather, stage chips, its list of sets and the pass. Chips filter the list by stage (any mix); the star saves a set to My lineup; open a set for its details and a link out; the split ticket buys a pass or opens a menu to choose one; dismiss folds the day away. Every button wears a thin metallic outline that catches the light.</p>
+      <form class="ctl" onsubmit="return false">
+        <fieldset><legend>Buttons</legend><div class="opts">
+          <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
+          <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+          <label><input type="radio" name="content" value="icon" /><span>Icon</span></label>
+        </div></fieldset>
+        <fieldset><legend>State</legend><div class="opts">
+          <label><input type="checkbox" name="off" /><span>Disabled</span></label>
+        </div></fieldset>
+      </form>
+    </div>
+    <div class="scene" data-buttons data-live data-content="both">
+      <div class="card">
+        <h2 class="title" aria-live="polite"><span>Sun</span></h2>
+        <div class="days" role="radiogroup" aria-label="April 20 to 26">
+          <span class="slide" aria-hidden="true"></span>
+        </div>
+        <div class="day" id="day" role="region" aria-label="Day details">
+          <div class="day-in" id="day-in"></div>
+        </div>
+      </div>
+      <p class="hint" aria-live="polite" id="said"></p>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>Each kind of button at rest, pointed at, pressed and turned off. The dates are a single-select group and the stage chips a multi-select one, so both show twice: not picked and picked; the save star is a toggle, so it shows off and on. Primary: the link out and the split ticket. Secondary: a set. Tertiary: weather, dismiss and the save toggle. Each in icon and text, text, and icon where it has words. Then the depth: the week, a day opened, and a set opened to its link.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table></div>
+    <div class="tbl" style="margin-top:26px"><table>
+      <thead><tr><th>Depth</th><th>Step 1 &middot; the week</th><th>Step 2 &middot; a day opened</th><th>Step 3 &middot; a set opened</th></tr></thead>
+      <tbody><tr><td>Date &rarr; day &rarr; set<small>Monday: weather, two sets; Paper Lanterns opens to its live stream</small></td>
+        <td><div class="shotbox"><iframe data-src="week-08-week-button.html?shot=1" title="The week" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td>
+        <td><div class="shotbox"><iframe data-src="week-08-week-button.html?shot=2" title="Monday opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td>
+        <td><div class="shotbox"><iframe data-src="week-08-week-button.html?shot=3" title="A set opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: sizes from the buttons as the browser lays them out, colours and motion from the same tokens the buttons above use.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-08.html#deliverables" hidden>&larr; Week 08</a>
+
+  <script>
+    // ---- the week: data, then the buttons drawn from it ------------------------------------------------
+    // the storyline: a week of a music festival (Tidelight, fictional); every day is a list of sets
+    const WEEK = [
+      { d: 20, w: 'Sun', name: 'Sunday', wx: 'sun', temp: '18°', hi: 18, lo: 9, sky: 'Clear all day', wind: 'Light breeze', rain: 0,
+        plans: [ { t: '16:00', what: 'Gates open', where: 'North Gate', note: 'Wristbands at the blue tents. Bring the QR code.', link: ['Gate map', 'map'] },
+                 { t: '18:30', what: 'Low Harbour', where: 'Shore Stage', note: 'Opening set. Four-piece, mostly brass.' },
+                 { t: '21:00', what: 'Mira Vance', where: 'Main Stage', note: 'The headliner tonight. Fireworks at the last song.', link: ['Listen', 'play'] } ] },
+      { d: 21, w: 'Mon', name: 'Monday', wx: 'cloud', temp: '15°', hi: 15, lo: 8, sky: 'Cloudy', wind: 'Calm', rain: 10,
+        plans: [ { t: '17:00', what: 'Paper Lanterns', where: 'Grove Tent', note: 'Acoustic, seated. Arrive early, the tent fills.', link: ['Watch live', 'video'] },
+                 { t: '20:30', what: 'Kito & the Tides', where: 'Main Stage', note: 'Full band and a string section.' } ] },
+      { d: 22, w: 'Tue', name: 'Tuesday', wx: 'rain', temp: '12°', hi: 12, lo: 7, sky: 'Rain from noon', wind: 'Breezy', rain: 80,
+        plans: [ { t: '15:00', what: 'Rain session', where: 'Grove Tent', note: 'Moved indoors for the weather. Same lineup.', link: ['Tent map', 'map'] },
+                 { t: '19:00', what: 'Opal Sound', where: 'Grove Tent', note: 'Synth duo. Earplugs at the bar.' } ] },
+      { d: 23, w: 'Wed', name: 'Wednesday', wx: 'part', temp: '16°', hi: 16, lo: 9, sky: 'Sun and cloud', wind: 'Light breeze', rain: 20,
+        plans: [ { t: '14:00', what: 'Songwriters circle', where: 'Shore Stage', note: 'Three writers, one stage, turns at the mic.' },
+                 { t: '18:00', what: 'Brass Parade', where: 'Through the grounds', note: 'Starts at the North Gate and ends at Main.', link: ['Route', 'map'] },
+                 { t: '21:30', what: 'Night Ferry', where: 'Main Stage', note: 'Ninety minutes. The new album, front to back.', link: ['Listen', 'play'] } ] },
+      { d: 24, w: 'Thu', name: 'Thursday', wx: 'sun', temp: '19°', hi: 19, lo: 10, sky: 'Clear', wind: 'Calm', rain: 0, plans: [] },
+      { d: 25, w: 'Fri', name: 'Friday', wx: 'wind', temp: '14°', hi: 14, lo: 8, sky: 'Windy, dry', wind: 'Gusts to 40 km/h', rain: 5,
+        plans: [ { t: '19:00', what: 'Coastline', where: 'Shore Stage', note: 'Sunset set facing the water.' },
+                 { t: '22:00', what: 'Silver Static', where: 'Main Stage', note: 'Late show. Extra tickets released at noon.', link: ['Tickets', 'ticket'] } ] },
+      { d: 26, w: 'Sat', name: 'Saturday', wx: 'rain', temp: '11°', hi: 11, lo: 6, sky: 'Showers', wind: 'Breezy', rain: 70,
+        plans: [ { t: '18:00', what: 'Closing choir', where: 'Main Stage', note: 'Everyone on stage for the last song.' },
+                 { t: '21:00', what: 'Mira Vance, encore', where: 'Main Stage', note: 'Added this morning. Free for wristbands.', link: ['Watch live', 'video'] } ] },
+    ];
+    const ICONS = {
+      sun: '<g class="rays"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M5.3 18.7l1.5-1.5M17.2 6.8l1.5-1.5"/></g><circle cx="12" cy="12" r="4.2"/>',
+      cloud: '<path class="cloud" d="M7 18h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.7 1.4A3.4 3.4 0 0 0 7 18z"/>',
+      rain: '<path class="cloud" d="M7 14.5h10a3.8 3.8 0 0 0 .5-7.5 5.2 5.2 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14.5z"/><path class="drop" style="--k:0" d="M9 17.5l-.7 2"/><path class="drop" style="--k:1" d="M12.5 17.5l-.7 2"/><path class="drop" style="--k:2" d="M16 17.5l-.7 2"/>',
+      part: '<g class="rays"><path d="M8.5 3v1.6M3 8.5h1.6M4.6 4.6l1.1 1.1M12.4 4.6l-1.1 1.1"/></g><circle cx="8.5" cy="8.5" r="2.8"/><path class="cloud" d="M9 19h8.5a3.5 3.5 0 0 0 .4-7 4.8 4.8 0 0 0-9.3 1.2A2.9 2.9 0 0 0 9 19z"/>',
+      wind: '<path class="gust" style="--k:0" d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5"/><path class="gust" style="--k:1" d="M3 13h15a2.5 2.5 0 1 1-2.5 2.5"/><path class="gust" style="--k:2" d="M3 17h7"/>',
+      map: '<path d="M12 21s-6-5.4-6-10.5a6 6 0 0 1 12 0C18 15.6 12 21 12 21z"/><circle cx="12" cy="10.5" r="2"/>',
+      video: '<rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="m15 11 6-3.5v9L15 13"/>',
+      play: '<circle cx="12" cy="12" r="8.5"/><path d="m10.2 8.8 4.6 3.2-4.6 3.2z"/>',
+      star: '<path d="m12 3.2 2.6 5.5 6 .7-4.4 4.1 1.1 5.9L12 16.5l-5.3 2.9 1.1-5.9-4.4-4.1 6-.7z"/>',
+      check: '<path d="m5 12.5 4.2 4.2L19 7"/>',
+      ticket: '<path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M15 7.5v1.5M15 11.2v1.6M15 15v1.5"/>',
+      out: '<path d="M7 17 17 7M9 7h8v8"/>',
+      x: '<path d="M12 12 6 6" pathLength="1" style="--dx:-1;--dy:-1"/><path d="M12 12l6-6" pathLength="1" style="--dx:1;--dy:-1"/><path d="M12 12l-6 6" pathLength="1" style="--dx:-1;--dy:1"/><path d="M12 12l6 6" pathLength="1" style="--dx:1;--dy:1"/>',
+      chev: '<path d="m6 9 6 6 6-6"/>',
+    };
+    const days = document.querySelector('.days');
+    WEEK.forEach((d, i) => {
+      const b = document.createElement('button');
+      b.className = 'date'; b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(i === 0));
+      b.dataset.i = i; b.setAttribute('aria-label', `${d.name}, April ${d.d}${d.plans.length ? `, ${d.plans.length} set${d.plans.length > 1 ? 's' : ''}` : ''}`);
+      if (i === 4) b.dataset.off = '';
+      b.innerHTML = `<span class="m" aria-hidden="true">April</span><span class="n" aria-hidden="true">${d.d}</span><span class="w" aria-hidden="true">${d.w}</span>${d.plans.length ? '<span class="dot" aria-hidden="true"></span>' : ''}`;
+      days.append(b);
+    });
+    const svg = (k, cls = 'ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
+    // the day's panel (level 2), and its plans (level 3)
+    const STAGES = [['all', 'All'], ['main', 'Main'], ['shore', 'Shore'], ['grove', 'Grove']];
+    const stageOf = w => /Main/.test(w) ? 'main' : /Shore/.test(w) ? 'shore' : /Grove/.test(w) ? 'grove' : 'roam';
+    const PASSES = [['Day pass', '€45'], ['Weekend pass', '€110'], ['Full week', '€180']];
+    let pass = 0;
+    const saved = new Set();   // "day-set" keys in My lineup
+    const countText = (d, i) => {
+      if (!d.plans.length) return 'No shows';
+      const k = d.plans.filter((_, j) => saved.has(`${i}-${j}`)).length;
+      return `${d.plans.length} set${d.plans.length > 1 ? 's' : ''}${k ? ` · ${k} in my lineup` : ''}`;
+    };
+    // the day's panel (level 2): weather, dismiss, stage chips, the list of sets (level 3), and the pass
+    const dayHTML = (d, i) => `
+      <div class="day-head fade" style="--k:0">
+        <h3>${d.name}, April ${d.d}<small class="cnt">${countText(d, i)}</small></h3>
+        <button class="wx" type="button" aria-label="Weather: ${d.sky}, ${d.temp}" data-off aria-describedby="tip">${svg(d.wx, 'ic keep')}<span class="t">${d.temp}</span><span class="tip" id="tip" role="tooltip"><b>${d.sky}</b>High ${d.hi}°, low ${d.lo}°<br>${d.wind} &middot; rain ${d.rain}%</span></button>
+        <button class="dismiss" type="button" aria-label="Close ${d.name}" title="Close" data-off>${svg('x', 'ic keep')}</button>
+      </div>
+      ${d.plans.length ? `<div class="chips fade" style="--k:1" role="group" aria-label="Filter by stage">${STAGES.map(([k, n]) => `<button class="chip" type="button" data-stage="${k}" aria-pressed="${k === 'all'}" data-off>${svg('check')}<span class="lbl keep">${n}</span></button>`).join('')}</div>
+      <div class="plans">${d.plans.map((p, j) => `
+        <div class="slot" data-stage="${stageOf(p.where)}"><div>
+        <div class="plan fade" style="--k:${j + 2}">
+          <button class="tg" type="button" aria-expanded="false" aria-controls="more-${j}" data-off><span class="time">${p.t}</span><span class="what">${p.what}<small>${p.where}</small></span><span></span>${svg('chev', 'chev')}</button>
+          <button class="save" type="button" aria-pressed="${saved.has(`${i}-${j}`)}" aria-label="Save ${p.what} to My lineup" title="Save to My lineup" data-key="${i}-${j}" data-off>${svg('star', 'ic keep')}</button>
+          <div class="more" id="more-${j}"><div class="more-clip"><div class="more-in"><p><b>${p.where}</b><br>${p.note}</p>${p.link ? `<button class="go" type="button" data-name="${p.link[0]}" data-off><span class="lbl">${p.link[0]}</span><span class="arw">${svg('out', 'ic out')}</span></button>` : ''}</div></div></div>
+        </div></div></div>`).join('')}
+        <p class="none" aria-live="polite"><span>No sets on that stage today.</span></p></div>` : `<p class="empty fade" style="--k:1">A rest day. No shows.</p>`}
+      <div class="day-foot fade" style="--k:${d.plans.length + 2}">
+        <p><b>Tidelight passes</b>One wristband, every stage</p>
+        <div class="split">
+          <button class="split-main" type="button" data-name="Buy ${PASSES[pass][0]}" data-off>${svg('ticket')}<span class="lbl">${PASSES[pass][0]}</span></button>
+          <button class="split-more" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="passes" aria-label="Choose a pass" title="Choose a pass" data-off>${svg('chev', 'ic keep')}</button>
+          <div class="menu" id="passes" role="menu" aria-label="Passes">${PASSES.map(([n, c], k) => `<button type="button" role="menuitemradio" aria-checked="${k === pass}" data-pass="${k}" tabindex="-1" style="--k:${k}">${n}<small>${c}</small></button>`).join('')}</div>
+        </div>
+      </div>`;
+  </script>
+  <script>
+    // States table: real buttons in every state
+    (() => {
+      const rows = document.getElementById('state-rows'), D = WEEK[1];
+      const sv = (k, c = 'ic') => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
+      const make = {
+        date: on => `<button class="date${on ? ' st-on' : ''}" type="button"><span class="m">April</span><span class="n">21</span><span class="w">Mon</span><span class="dot"></span></button>`,
+        wx: () => `<button class="wx" type="button">${sv('part', 'ic keep')}<span class="t">16°</span></button>`,
+        dismiss: () => `<button class="dismiss" type="button">${sv('x', 'ic keep')}</button>`,
+        plan: () => `<div class="plan"><button class="tg" type="button"><span class="time">19:00</span><span class="what">Opal Sound<small>Grove Tent</small></span><span></span>${sv('chev', 'chev')}</button><button class="save" type="button" aria-pressed="false">${sv('star', 'ic keep')}</button></div>`,
+        chip: on => `<button class="chip" type="button" aria-pressed="${on}">${sv('check')}<span class="lbl keep">Grove</span></button>`,
+        save: on => `<button class="save solo" type="button" aria-pressed="${on}">${sv('star', 'ic keep')}</button>`,
+        split: () => `<div class="split"><button class="split-main" type="button">${sv('ticket')}<span class="lbl">Day pass</span></button><button class="split-more" type="button">${sv('chev', 'ic keep')}</button></div>`,
+        go: () => `<button class="go" type="button"><span class="lbl">Watch live</span><span class="arw">${sv('out', 'ic out')}</span></button>`,
+      };
+      const state = (html, st) => {
+        const t = document.createElement('div'); t.innerHTML = html; const el = t.firstElementChild; const b = el.matches('button') ? el : el.querySelector('button');
+        if (st === 'hover') el.classList.add('st-hover'); if (st === 'down') el.classList.add('st-down'); if (st === 'off') (el.matches('button') ? [el] : el.querySelectorAll('button')).forEach(x => { x.disabled = true; });
+        b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); return t.innerHTML;
+      };
+      const row = (title, sub, html, content = 'both') => `<tr><td>${title}<small>${sub}</small></td>${['', 'hover', 'down', 'off'].map(st => `<td><div class="frame" data-static data-content="${content}">${state(html, st)}</div></td>`).join('')}</tr>`;
+      let h = row('Group &middot; a date', 'not picked', make.date(false)) + row('Group &middot; a date', 'picked', make.date(true));
+      [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']].forEach(([c, n]) => { h += row(`Primary &middot; ${n}`, 'the link out', make.go(), c); });
+      [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']].forEach(([c, n]) => { h += row(`Primary &middot; split &middot; ${n}`, 'the pass: buy, or choose one', make.split(), c); });
+      h += row('Secondary', 'a set', make.plan());
+      h += row('Group &middot; a stage chip', 'not picked (multi-select)', make.chip(false)) + row('Group &middot; a stage chip', 'picked', make.chip(true));
+      h += row('Tertiary &middot; toggle', 'save, off', make.save(false)) + row('Tertiary &middot; toggle', 'save, on (in My lineup)', make.save(true));
+      [['both', 'icon + temperature'], ['icon', 'icon']].forEach(([c, n]) => { h += row(`Tertiary &middot; ${n}`, 'the weather', make.wx(), c); });
+      h += row('Tertiary &middot; icon', 'dismiss (always the X)', make.dismiss());
+      rows.innerHTML = h;
+    })();
+    if (!/[?&]shot=/.test(location.search)) document.querySelectorAll('.shotbox iframe[data-src]').forEach(f => { f.src = f.dataset.src; });
+  </script>
+  <script src="week-08-proto.js?v=1"></script>
+  <script>
+    const live = P.live, said = live.querySelector('#said'), title = live.querySelector('.title'), slide = days.querySelector('.slide');
+    const day = live.querySelector('#day'), dayIn = live.querySelector('#day-in');
+    const ms = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n));
+    const SPRING = getComputedStyle(document.documentElement).getPropertyValue('--spring').trim();
+    let cur = 0;
+
+    // the raised tile sits under the picked date and slides to a new one on a spring
+    const placeTile = (b, animate) => {
+      const to = `translate(${b.offsetLeft}px, ${b.offsetTop}px)`;
+      if (animate && !P.calm.matches) slide.animate([{ transform: slide.style.transform || to }, { transform: to }], { duration: ms('--slide'), easing: SPRING });
+      slide.style.transform = to;
+    };
+    // the big day name is pushed down: the new word comes in from above and pushes the old one out below;
+    // both travel together, one distance, one curve, so they never overlap or fade
+    const roll = (word, dir) => {
+      const old = title.querySelector('span:last-child'), nw = document.createElement('span'); nw.textContent = word; title.append(nw);
+      title.querySelectorAll('span').forEach(x => { if (x !== old && x !== nw) x.remove(); });   // a push still running is cut short
+      if (P.calm.matches || !old || !dir) { old?.remove(); return; }
+      const dist = title.offsetHeight + 6;
+      const opts = { duration: ms('--roll'), easing: 'cubic-bezier(.65, 0, .35, 1)' };
+      old.getAnimations().forEach(a => a.cancel());
+      old.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${dist}px)` }], { ...opts, fill: 'forwards' }).finished.then(() => old.remove()).catch(() => {});
+      nw.animate([{ transform: `translateY(${-dist}px)` }, { transform: 'translateY(0)' }], opts);
+    };
+    // level 2: the day opens under the strip; switching days while open slides the contents across
+    const fillDay = (i, dir) => {
+      dayIn.innerHTML = dayHTML(WEEK[i], i);
+      live.querySelectorAll('[data-off]').forEach(b => { b.disabled = live.classList.contains('all-off'); });
+      if (live.dataset.content === 'icon') dayIn.querySelectorAll('[data-name]').forEach(b => { b.setAttribute('aria-label', b.dataset.name); b.title = b.dataset.name; });
+      if (dir && day.classList.contains('open') && !P.calm.matches) dayIn.animate([{ transform: `translateX(${24 * dir}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 640, easing: SPRING });
+    };
+    const openDay = i => {
+      fillDay(i, 0);
+      day.classList.remove('open', 'settled'); void day.offsetHeight; day.classList.add('open');
+      clearTimeout(day._t); day._t = setTimeout(() => day.classList.add('settled'), P.calm.matches ? 0 : ms('--open'));
+      said.textContent = `${WEEK[i].name} opened. ${WEEK[i].plans.length || 'No'} plans.`;
+    };
+    const closeDay = () => { if (!day.classList.contains('open')) return; clearTimeout(day._t); day.classList.remove('settled', 'open'); said.textContent = 'Day closed'; days.querySelector('[aria-checked=true]').focus({ preventScroll: true }); };
+
+    // picking a date (click, or arrows inside the group): the tile slides, the name rolls; if a day is open it follows
+    let justPicked = false;
+    days.addEventListener('pick', e => {
+      const i = +e.detail.to.dataset.i, dir = i - cur; cur = i; justPicked = true;
+      placeTile(e.detail.to, true); roll(WEEK[i].w, dir);
+      if (day.classList.contains('open')) fillDay(i, Math.sign(dir));
+      setTimeout(() => { justPicked = false; }, 0);   // a pick made with the arrow keys has no click after it
+    });
+    // pressing the picked date opens (or closes) its day
+    days.addEventListener('click', e => {
+      const b = e.target.closest('.date'); if (!b || b.disabled) return;
+      // a new date: picked (above) and opened, or followed if a day is already open; the picked date again: open or close
+      if (justPicked) { justPicked = false; if (!day.classList.contains('open')) openDay(cur); return; }
+      day.classList.contains('open') ? closeDay() : openDay(cur);
+    });
+    days.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const b = days.querySelector('[aria-checked=true]'); day.classList.contains('open') ? closeDay() : openDay(+b.dataset.i); } });
+    // the pass menu off the split button
+    const menuOf = () => dayIn.querySelector('.menu'), moreBtn = () => dayIn.querySelector('.split-more');
+    const setMenu = (on, focusItem) => {
+      const m = menuOf(), b = moreBtn(); if (!m) return;
+      m.classList.toggle('on', on); b.setAttribute('aria-expanded', String(on));
+      m.querySelectorAll('button').forEach(x => { x.tabIndex = on ? 0 : -1; });
+      if (on && focusItem) m.querySelector('[aria-checked=true]').focus();
+    };
+    // stage chips: All, or any mix of stages; sets on other stages fold away
+    const filter = () => {
+      const chips = [...dayIn.querySelectorAll('.chip')];
+      const on = chips.filter(c => c.dataset.stage !== 'all' && c.getAttribute('aria-pressed') === 'true').map(c => c.dataset.stage);
+      let shown = 0;
+      dayIn.querySelectorAll('.slot').forEach(sl => {
+        const show = !on.length || on.includes(sl.dataset.stage); if (show) shown++;
+        if (show === !sl.classList.contains('out')) return;
+        sl.classList.add('busy'); sl.classList.toggle('out', !show); sl.inert = !show;
+        if (!show) { const p = sl.querySelector('.plan.open'); if (p) { p.classList.remove('open'); p.querySelector('.tg').setAttribute('aria-expanded', 'false'); } }
+        clearTimeout(sl._t); sl._t = setTimeout(() => { if (!sl.classList.contains('out')) sl.classList.remove('busy'); }, P.calm.matches ? 0 : 600);
+      });
+      dayIn.querySelector('.none')?.classList.toggle('on', !shown);
+      said.textContent = `${on.length ? on.join(' and ') : 'All stages'}: ${shown} set${shown === 1 ? '' : 's'}`;
+    };
+    // level 3: a set opens in place; chips filter; the star saves; the link out and the ticket acknowledge
+    const ack = (t, text) => {
+      const lbl = t.querySelector('.lbl'), was = lbl.textContent;
+      t.classList.add('done'); lbl.textContent = text; said.textContent = `${was}: ${text.toLowerCase()}`;
+      setTimeout(() => { t.classList.remove('done'); lbl.textContent = was; }, 1600);
+    };
+    dayIn.addEventListener('click', e => {
+      const t = e.target.closest('button'); if (!t || t.disabled) return;
+      if (!t.closest('.split')) setMenu(false);
+      if (t.classList.contains('dismiss')) { t.classList.add('pop'); setTimeout(closeDay, P.calm.matches ? 0 : 220); return; }
+      if (t.classList.contains('chip')) {
+        const all = t.dataset.stage === 'all', chips = [...dayIn.querySelectorAll('.chip')];
+        if (all) chips.forEach(c => c.setAttribute('aria-pressed', String(c === t)));
+        else {
+          t.setAttribute('aria-pressed', String(t.getAttribute('aria-pressed') !== 'true'));
+          const any = chips.some(c => c.dataset.stage !== 'all' && c.getAttribute('aria-pressed') === 'true');
+          chips[0].setAttribute('aria-pressed', String(!any));
+        }
+        filter(); return;
+      }
+      if (t.classList.contains('save')) {
+        const on = t.getAttribute('aria-pressed') !== 'true'; t.setAttribute('aria-pressed', String(on));
+        on ? saved.add(t.dataset.key) : saved.delete(t.dataset.key);
+        dayIn.querySelector('.cnt').textContent = countText(WEEK[cur], cur);
+        said.textContent = `${t.getAttribute('aria-label').replace(/^Save | to My lineup$/g, '')} ${on ? 'added to' : 'taken off'} My lineup`;
+        return;
+      }
+      if (t.classList.contains('split-more')) { setMenu(t.getAttribute('aria-expanded') !== 'true', e.detail === 0); return; }
+      if (t.dataset.pass !== undefined) {
+        pass = +t.dataset.pass;
+        menuOf().querySelectorAll('button').forEach(x => x.setAttribute('aria-checked', String(x === t)));
+        const main = dayIn.querySelector('.split-main');
+        main.querySelector('.lbl').textContent = PASSES[pass][0]; main.dataset.name = `Buy ${PASSES[pass][0]}`;
+        if (live.dataset.content === 'icon') { main.setAttribute('aria-label', main.dataset.name); main.title = main.dataset.name; }
+        if (!P.calm.matches) main.querySelector('.lbl').animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.25, .8, .25, 1)' });
+        setMenu(false); moreBtn().focus(); said.textContent = `${PASSES[pass][0]} chosen`;
+        return;
+      }
+      if (t.classList.contains('split-main')) { ack(t, 'Opening…'); return; }
+      if (t.classList.contains('tg')) {
+        const p = t.closest('.plan'), open = !p.classList.contains('open');
+        dayIn.querySelectorAll('.plan.open').forEach(o => { if (o !== p) { o.classList.remove('open'); o.querySelector('.tg').setAttribute('aria-expanded', 'false'); } });
+        p.classList.toggle('open', open); t.setAttribute('aria-expanded', String(open));
+        said.textContent = `${t.querySelector('.what').firstChild.textContent} ${open ? 'opened' : 'closed'}`;
+        return;
+      }
+      if (t.classList.contains('go')) ack(t, 'Opening…');
+    });
+    // arrows move inside the open menu; a click elsewhere closes it
+    dayIn.addEventListener('keydown', e => {
+      const m = menuOf(); if (!m?.classList.contains('on') || !m.contains(document.activeElement)) return;
+      const items = [...m.querySelectorAll('button')], i = items.indexOf(document.activeElement);
+      const to = { ArrowDown: (i + 1) % items.length, ArrowUp: (i - 1 + items.length) % items.length, Home: 0, End: items.length - 1 }[e.key];
+      if (to !== undefined) { e.preventDefault(); items[to].focus(); }
+      if (e.key === 'Tab') setMenu(false);
+    });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('.split')) setMenu(false); });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (menuOf()?.classList.contains('on')) { setMenu(false); moreBtn().focus(); return; }
+      const p = dayIn.querySelector('.plan.open');
+      if (p) { p.classList.remove('open'); const b = p.querySelector('.tg'); b.setAttribute('aria-expanded', 'false'); b.focus(); return; }
+      closeDay();
+    });
+    live.addEventListener('off', e => { live.classList.toggle('all-off', e.detail); dayIn.querySelectorAll('[data-off]').forEach(b => { b.disabled = e.detail; }); });
+    P.onContent(() => requestAnimationFrame(() => placeTile(days.querySelector('[aria-checked=true]'), false)));
+    addEventListener('resize', () => placeTile(days.querySelector('[aria-checked=true]'), false));
+    document.fonts.ready.then(() => placeTile(days.querySelector('[aria-checked=true]'), false));
+    placeTile(days.querySelector('[aria-checked=true]'), false);
+    fillDay(0, 0);
+
+    // stills: ?shot=1|2|3 (the depth, cropped) and ?deep=… (the same with the header) for the week page
+    const qs = new URLSearchParams(location.search), shot = qs.get('shot') || qs.get('deep') || qs.get('pose');
+    if (shot) {
+      document.body.classList.add(qs.get('shot') ? 'shot' : 'still');
+      Object.defineProperty(P, 'calm', { value: { matches: true } });
+      const go = () => {
+        const mon = days.querySelectorAll('.date')[1];
+        if (shot !== 'rest') { days.querySelectorAll('.date').forEach(x => x.setAttribute('aria-checked', String(x === mon))); cur = 1; placeTile(mon, false); roll('Mon', 0); }
+        if (shot === '2' || shot === '3' || shot === 'tip') openDay(1);
+        if (shot === '3') { const p = dayIn.querySelector('.plan'); p.classList.add('open'); p.querySelector('.tg').setAttribute('aria-expanded', 'true'); dayIn.querySelector('.save').setAttribute('aria-pressed', 'true'); saved.add('1-0'); dayIn.querySelector('.cnt').textContent = countText(WEEK[1], 1); }
+        if (shot === 'menu') { openDay(1); setMenu(true); }
+        if (shot === 'tip') dayIn.querySelector('.wx').classList.add('st-hover');
+      };
+      document.fonts.ready.then(() => requestAnimationFrame(go));
+    }
+  </script>
+  <script>
+    // Spec, read from the tokens and the buttons as laid out
+    (() => {
+      const out = document.querySelector('.spec-grid'), root = getComputedStyle(document.documentElement), tok = n => root.getPropertyValue(n).trim();
+      const r = sel => document.querySelector(sel)?.getBoundingClientRect();
+      const date = r('.days .date'), go = document.querySelector('.go');
+      const sw = c => `<i style="background:${c}"></i>${c}`;
+      const cards = [
+        ['Colour', [
+          ['Page / card', `${sw(tok('--page'))} ${sw(tok('--card'))}`], ['Ink', sw(tok('--ink'))], ['Muted', sw(tok('--mute'))],
+          ['Accent', `${sw(tok('--violet'))}, pressed ${tok('--violet-d')}`], ['Rows', `${sw(tok('--row'))}, hover ${tok('--row-h')}`], ['Off', sw(tok('--off'))],
+        ]],
+        ['Type', [
+          ['Family', 'Inter'], ['Day name', `700, ${tok('--title')}, letter-spacing -3%`],
+          ['Date', 'month 13 / 500 caps, number 22 / 700, weekday 14 / 500 caps'],
+          ['Plans', 'title 15 / 600, place and time 13 / 500–600'], ['Link', '14 / 600'],
+        ]],
+        ['Group · dates', [
+          ['Size', `${Math.round(date.width)} × ${Math.round(date.height)}px, ${tok('--day-gap')} apart`], ['Corners', tok('--day-r')],
+          ['Picked', 'a raised coral tile with a soft shadow, blue words'],
+          ['Hover', 'an 8% white tint, words turn coral'], ['Pressed', `scaled to ${tok('--press-scale')}`], ['Has sets', 'a 4px dot under the weekday'],
+          ['Moving', `the tile slides to the new date on a spring (${tok('--slide')}); the new day name comes down from above and pushes the old one out below, both together on one ease-in-out (${tok('--roll')})`],
+          ['Keys', 'one tab stop; arrows move the pick; Enter opens the day'],
+        ]],
+        ['Primary · link out', [
+          ['Height', tok('--p-h')], ['Corners', tok('--p-r')], ['Fill', `coral ${tok('--violet')}, blue words; the arrow coral in a 30px blue square, 5px corners`],
+          ['Width', go ? `${Math.round(go.getBoundingClientRect().width)}px for “${go.textContent.trim()}”` : '—'],
+          ['Hover', 'deeper coral; only the arrow moves: it flies out of its square to the top right and comes back in from the bottom left'], ['Pressed', `scaled to ${tok('--press-scale')}`],
+          ['After', 'a pale coral “Opening…” for a moment'],
+        ]],
+        ['Primary · split ticket', [
+          ['Parts', `the pass to buy (ticket icon and its name) and a ${40}px chevron that opens the pass menu; one ${tok('--p-h')} coral block, a hairline between`],
+          ['Hover', 'each half deepens on its own'], ['Pressed', 'the half pressed scales to 95%'],
+          ['Menu', 'Day pass, Weekend pass, Full week: drops from under the chevron on a spring, items 50ms apart; picking one renames the main half, which rises in'],
+          ['Keys', 'Enter on the chevron opens it on the current pass; arrows move; Escape closes and returns'],
+        ]],
+        ['Group · stage chips', [
+          ['Size', '32px high, 6px corners, 13 / 600'], ['Selection', 'multi-select: any mix of Main, Shore, Grove; All clears them; none left means All'],
+          ['Picked', 'coral fill, blue words; a check slides in from zero width'],
+          ['Filtering', 'sets on other stages fold their row to nothing (550ms) and fade; if none are left, a line says so'],
+        ]],
+        ['Tertiary · save toggle', [
+          ['Size', '36px square, 6px corners, inside the set row'], ['Content', 'always the star: the row has no room for a word, so it is named by its label'],
+          ['On', 'the star fills coral and turns a fifth (72°) on a spring; the day counts it (“· 1 in my lineup”)'],
+          ['Pressed', 'scaled to 90%'],
+        ]],
+        ['Secondary · a set', [
+          ['Row', `${tok('--s-r')} corners, ${tok('--s-pad')} sides, ${tok('--row')}`], ['Hover', tok('--row-h')], ['Pressed', 'scaled to 98.5%'],
+          ['Open', `its fill drops away, the metal ring thickens to 2px and its light keeps travelling round; the chevron turns over; the list row unfolds (${tok('--unfold')}) and the details rise in after it; it folds back in ${tok('--fold')}`],
+        ]],
+        ['Tertiary · weather, dismiss', [
+          ['Size', `${tok('--t-size')} high, ${tok('--t-r')} corners`], ['Hover', `${tok('--row')} behind it`],
+          ['Weather', 'its icon acts the weather out (sun rays turn, clouds drift, rain falls, wind blows) and a dark forecast card appears after 250ms'],
+          ['Dismiss', `the X alone, ${tok('--t-size')} square, in every content mode (named “Close” for screen readers); its four arms are drawn from the centre: on hover they ease 1.6px apart on a spring, held they draw in, and on release they pop out 12px to the four corners, thinning to nothing (600ms) while the day folds away 220ms later`],
+        ]],
+        ['Depth', [
+          ['Levels', 'a date (1) opens its day (2): weather, stage chips, the list of sets, the pass, dismiss; a set opens to its details and link, and the pass to its menu (3)'],
+          ['Opening', `the card grows to fit the day (${tok('--open')}); the day's parts come up one after another, ${tok('--stagger')} apart`],
+          ['Switching', 'picking another date while a day is open slides the new day in from the side you moved to'],
+          ['Closing', `dismiss, Escape, or pressing the picked date again: it folds up quicker (${tok('--close')}); Escape closes the pass menu first, then an open set`],
+        ]],
+        ['Metal outline', [
+          ['Ring', '1.25px on every button (2px on an open set), a conic gradient of chrome tones cut to a hairline by a mask'],
+          ['Tones', `${sw(tok('--m-dark'))} ${sw(tok('--m-mid'))} ${sw(tok('--m-hi'))} ${sw(tok('--m-warm'))} and two white highlights`],
+          ['Glow', 'a soft 14px halo; brighter when pointed at, coral under the picked date, none when off'],
+          ['Hover', 'the highlight travels once round the edge every 3.6s; an open set keeps a slow 9s turn'],
+          ['Disabled', 'the ring goes grey and faint, and stops'],
+        ]],
+        ['Motion', [
+          ['Spring', 'one soft spring (about 9% past) for slides, rolls and lifts'], ['Ease', tok('--ease') + ' for heights'],
+          ['Reduced motion', 'nothing moves; everything is simply in its new place'],
+        ]],
+      ];
+      out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+    })();
+  </script>
+</body>
+</html>
