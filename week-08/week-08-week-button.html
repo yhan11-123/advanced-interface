@@ -262,10 +262,14 @@
     transition: background-color .2s, color .3s, box-shadow .5s var(--ease), transform .45s var(--spring); }
   .save .ic { width: 18px; height: 18px; transition: rotate .8s var(--spring), scale .8s var(--spring); }
   .save .ic * { stroke-width: 1.9; transition: fill .3s; }
-  .save:hover, .save.st-hover { background: var(--row-h); color: var(--ink); }
+  /* the star stands on its own: no frame, no wash; the light is in the star itself */
+  .save::before { display: none; }
+  .save, .save:is(:hover, :focus-visible, .st-hover, [aria-pressed="true"]) { box-shadow: none; background: none; }
+  .save:hover, .save.st-hover { color: var(--ink); }
+  .save:hover .ic, .save.st-hover .ic { filter: drop-shadow(0 0 4px rgba(122,244,255,.8)); scale: 1.1; }
   .save.is-down, .save.st-down { transform: scale(.9); transition-duration: .1s; }
-  .save[aria-pressed="true"] { color: var(--org); background: var(--org-l); }
-  .save[aria-pressed="true"] .ic { filter: drop-shadow(0 0 4px rgba(255,106,44,.8)); }
+  .save[aria-pressed="true"] { color: var(--org); }
+  .save[aria-pressed="true"] .ic { filter: drop-shadow(0 0 5px rgba(255,106,44,.85)); }
   .save[aria-pressed="true"] .ic { rotate: 72deg; scale: 1.08; }
   .save[aria-pressed="true"] .ic * { fill: currentColor; }
   .save:disabled { color: var(--off); background: none; }
@@ -778,7 +782,7 @@
         ]],
         ['Tertiary · save toggle', [
           ['Size', '36px square, inside the set row'], ['Content', 'always the star: the row has no room for a word, so it is named by its label'],
-          ['On', 'its line turns orange; the star fills orange with a glow and turns a fifth (72°); the day counts it (“· 1 in my lineup”)'],
+          ['Frame', 'none: the star stands alone in a 36px hit area; pointed at, it grows 10% and glows cyan'], ['On', 'the star fills orange with a glow and turns a fifth (72°); the day counts it (“· 1 in my lineup”)'],
           ['Pressed', 'scaled to 90%'],
         ]],
         ['Secondary · a set', [

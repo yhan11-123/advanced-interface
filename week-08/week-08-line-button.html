@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Set 1 &middot; Line</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" />
+  <style>
+  /* Week 08, Set 1 · Line. Tone: Precise.
+     A cream-on-black button system made of nothing but outlines. Emphasis is the amount of line:
+       Primary    two lines, one inside the other: pointed at, the inner line closes out onto the outer one
+                  and they become a single heavy line; held, the inner line pulls in
+       Secondary  one line, faint at rest: pointed at, a bright line is drawn round it like a pen, clockwise
+       Tertiary   only the two ends, like brackets ( ): pointed at, they reach along the edges and close
+       Group      single selection: one bright outline slides from option to option
+     Nothing follows the pointer: a button answers when it is entered, pressed and left, not while you move.
+     Depth: pressed, a button's options open just under it, each opening out sideways from its centre; some
+     open one level further.
+     Every number in the Spec section is read from these tokens. */
+  :root {
+    --page: #000; --cream: #f6f4da; --dim: #8f8c78; --faint: rgba(246,244,218,.34); --off: rgba(246,244,218,.16); --rule: #24231c;
+    --font: "Inter Tight", -apple-system, system-ui, sans-serif;
+    --gap: 10px; --icon: 20px; --stroke: 1.6;
+    --line: 1.5px; --line-down: 2.5px;
+    --p-h: 64px; --p-pad: 36px; --p-in: 5px; --p-in-down: 9px;
+    --s-h: 56px; --s-pad: 28px;
+    --t-h: 52px; --t-pad: 26px; --t-reach: 8px;
+    --g-h: 46px; --g-pad: 20px; --g-gap: 6px;
+    --k-h: 44px; --k-h-sm: 38px; --k-gap: 10px; --k-drop: 22px; --k-drop-2: 18px;
+    --close-in: 480ms; --draw: 760ms; --reach: 620ms; --slide: 560ms; --ink: 560ms; --open: 460ms; --stagger: 90ms; --shut: 240ms;
+    --press-scale: .97;
+    --glide: cubic-bezier(.3, .7, .2, 1); --sharp: cubic-bezier(.2, .9, .25, 1);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--cream); font: 400 18px/1 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  svg { display: block; }
+  button:focus-visible { outline: 2px solid var(--cream); outline-offset: 6px; }
+
+  /* ---- the button system ------------------------------------------------------------------------------ */
+  .ic { flex: none; width: var(--icon); height: var(--icon); }
+  .ic * { fill: none; stroke: currentColor; stroke-width: var(--stroke); stroke-linecap: round; stroke-linejoin: round; }
+  .lbl { white-space: nowrap; }
+  [data-content="text"] .ic { display: none; }
+  [data-content="icon"] .lbl { display: none; }
+  .ln { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .ln path { fill: none; stroke: var(--cream); stroke-width: var(--line); stroke-linecap: round; }
+
+  /* primary: two lines. The outer is the button's edge; the inner sits --p-in inside it. Pointed at, the
+     inner line moves out until it lies against the outer, one heavy line; held, it pulls further in. */
+  .ct { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--p-h); padding: 0 var(--p-pad);
+    border-radius: calc(var(--p-h) / 2); transition: transform .5s var(--sharp); }
+  .ct::before, .ct::after, .c.dbl::before, .c.dbl::after { content: ""; position: absolute; border-radius: inherit; pointer-events: none; }
+  .ct::before { inset: 0; border: var(--line) solid var(--cream); }
+  .ct::after { --in: var(--p-in); inset: var(--in); border: var(--line) solid var(--cream); border-radius: calc(var(--p-h) / 2 - var(--in)); transition: inset var(--close-in) var(--glide), border-radius var(--close-in) var(--glide), opacity .3s; }
+  .ct:hover::after, .ct:focus-visible::after, .ct.st-hover::after, .ct[aria-expanded="true"]::after { --in: var(--line); }
+  .ct.is-down, .ct.st-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
+  .ct.is-down::after, .ct.st-down::after { --in: var(--p-in-down); transition-duration: .14s; }
+  .ct .ic { transition: translate .45s var(--sharp); }
+  .ct:hover .ic, .ct.st-hover .ic { translate: 2px 0; }
+  .ct:disabled { color: var(--off); transform: none; }
+  .ct:disabled::before, .ct:disabled::after { border-color: var(--off); }
+  .ct:disabled::after { --in: var(--p-in); }
+  [data-content="icon"] .ct { width: var(--p-h); padding: 0; }
+
+  /* secondary: one line. Faint at rest; pointed at, a bright line is drawn round from the top left,
+     clockwise, like a pen closing a loop; leaving, it is taken back the way it came, quicker */
+  .pf { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); height: var(--s-h); padding: 0 var(--s-pad);
+    border-radius: calc(var(--s-h) / 2); transition: transform .5s var(--sharp); }
+  .pen .base { stroke: var(--faint); }
+  .pen .hi { stroke-linecap: butt; stroke-dasharray: 0 1; transition: stroke-dasharray calc(var(--draw) * .55) var(--glide), stroke-width .12s; }
+  :is(.pf, .c.one):is(:hover, :focus-visible, .st-hover, [aria-expanded="true"]) .pen .hi { stroke-dasharray: 1 0; transition-duration: var(--draw); }
+  .pf.is-down, .pf.st-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
+  :is(.pf, .c.one):is(.is-down, .st-down) .pen .hi { stroke-dasharray: 1 0; stroke-width: var(--line-down); }
+  .pf .ic { transition: rotate .5s var(--sharp); transform-origin: 50% 60%; }
+  .pf:hover .ic, .pf.st-hover .ic { rotate: -8deg; }
+  .pf:disabled { color: var(--off); transform: none; }
+  .pf:disabled .pen .base { stroke: var(--off); stroke-dasharray: 3 5; }
+  [data-content="icon"] .pf { width: var(--s-h); padding: 0; }
+
+  /* tertiary: only the ends, like brackets. Pointed at, both brackets reach along the top and bottom edges
+     until they meet in the middle and close; the arrow flies out and comes back as they do */
+  .rs { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--t-h); padding: 0 var(--t-pad);
+    border-radius: calc(var(--t-h) / 2); transition: transform .5s var(--sharp); }
+  .brk path { stroke-dasharray: var(--da-rest, 0 1); stroke-dashoffset: var(--do-rest, 0);
+    transition: stroke-dasharray var(--reach) var(--glide), stroke-dashoffset var(--reach) var(--glide), stroke-width .12s; }
+  :is(.rs, .c.br):is(:hover, :focus-visible, .st-hover, [aria-expanded="true"]) .brk path { stroke-dasharray: var(--da-full, 1 0); stroke-dashoffset: var(--do-full, 0); }
+  :is(.rs, .c.br):is(.is-down, .st-down) .brk path { stroke-dasharray: var(--da-full, 1 0); stroke-dashoffset: var(--do-full, 0); stroke-width: var(--line-down); }
+  .rs.is-down, .rs.st-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
+  .rs .ic { transition: rotate .55s var(--sharp); }
+  .rs .ic path { transform-box: fill-box; transform-origin: center; }
+  .rs:hover .ic path, .rs:focus-visible .ic path { animation: arrow-through var(--reach) cubic-bezier(.5, 0, .3, 1); }
+  @keyframes arrow-through { 0% { transform: none; opacity: 1; } 42% { transform: translate(9px, -9px); opacity: 0; } 43% { transform: translate(-9px, 9px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .rs[aria-expanded="true"] .ic { rotate: 135deg; }
+  .rs[aria-expanded="true"]:hover .ic path { animation: none; }
+  .rs:disabled { color: var(--off); transform: none; }
+  .rs:disabled .brk path { stroke: var(--off); }
+  [data-content="icon"] .rs { width: var(--t-h); padding: 0; }
+
+  /* group: single selection; one bright outline (.gring) slides to the picked option */
+  .grp { position: relative; display: flex; gap: var(--g-gap); padding: 4px; border-radius: calc(var(--g-h) / 2 + 4px); box-shadow: inset 0 0 0 1px var(--rule); }
+  .r { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: var(--g-h); padding: 0 var(--g-pad);
+    border-radius: calc(var(--g-h) / 2); font-size: 16px; color: var(--dim); transition: color .3s, box-shadow .3s, transform .5s var(--sharp); }
+  .r .ic { width: 18px; height: 18px; }
+  .r:hover:not([aria-checked="true"]), .r.st-hover { color: var(--cream); box-shadow: inset 0 0 0 1px var(--faint); }
+  .r[aria-checked="true"], .r.st-on { color: var(--cream); }
+  .r.st-on { box-shadow: inset 0 0 0 var(--line) var(--cream); }
+  .r.is-down, .r.st-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
+  .r:disabled { color: var(--off); box-shadow: none; }
+  .r.st-on:disabled { box-shadow: inset 0 0 0 var(--line) var(--off); }
+  .gring { position: absolute; z-index: 0; top: 4px; left: 0; height: var(--g-h); border-radius: calc(var(--g-h) / 2); box-shadow: inset 0 0 0 var(--line) var(--cream); pointer-events: none; }
+  [data-content="icon"] .r { width: 54px; padding: 0; }
+
+  /* depth: pressed, a button's options open just under it, each one opening out sideways from its own
+     centre, one after another. Children keep their parent's line: Contact's two lines, Portfolio's pen
+     line, Résumé's brackets; the third level is a single faint line. */
+  .kids { position: absolute; z-index: 1; display: flex; gap: var(--k-gap); }
+  .kids[hidden] { display: none; }
+  .c { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--k-h); padding: 0 18px; border-radius: calc(var(--k-h) / 2);
+    font-size: 15px; white-space: nowrap; background: var(--page); transition: transform .45s var(--sharp); }
+  .c .ic { width: 18px; height: 18px; }
+  .c.is-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
+  /* while an option's line is being drawn in (or taken back), its real outline and its contents wait */
+  .ink { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
+  .ink path { fill: none; stroke: var(--cream); stroke-linecap: round; }
+  .c.inking::before, .c.inking::after, .c.inking > .ln { opacity: 0; }
+  .c.sm.inking { box-shadow: none; }
+  .c.inking > .ic, .c.inking > .lbl { opacity: 0; }
+  .c.dbl::before { inset: 0; border: var(--line) solid var(--cream); }
+  .c.dbl::after { --in: 4px; inset: var(--in); border: 1px solid var(--cream); border-radius: calc(var(--k-h) / 2 - var(--in)); transition: inset var(--close-in) var(--glide), border-radius var(--close-in) var(--glide); }
+  .c.dbl:is(:hover, :focus-visible, .st-hover, [aria-expanded="true"])::after { --in: var(--line); }
+  .c.sm { height: var(--k-h-sm); padding: 0 14px; font-size: 14px; border-radius: calc(var(--k-h-sm) / 2); color: var(--cream); box-shadow: inset 0 0 0 1px var(--faint); transition: box-shadow .3s, transform .45s var(--sharp); }
+  .c.sm:hover, .c.sm:focus-visible, .c.sm.st-hover { box-shadow: inset 0 0 0 var(--line) var(--cream); }
+  .c.sm .ic { width: 16px; height: 16px; }
+  [data-content="icon"] .c { width: var(--k-h); padding: 0; }
+  [data-content="icon"] .c.sm { width: var(--k-h-sm); }
+
+  /* ---- page ------------------------------------------------------------------------------------------- */
+  .hero { position: relative; padding: 26px 32px 36px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .head p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.5; max-width: 54ch; }
+  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cream); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--dim); }
+  .ctl input:checked + span { color: var(--cream); box-shadow: inset 0 0 0 1px var(--cream); }
+  .ctl input:focus-visible + span { outline: 2px solid var(--cream); outline-offset: 1px; }
+
+  .scene { position: relative; display: grid; justify-items: center; align-content: center; gap: 30px; min-height: 600px; margin-top: 10px; }
+  .who { text-align: center; }
+  .who h1 { margin: 0 0 8px; font-size: 34px; font-weight: 400; letter-spacing: -.02em; }
+  .who p { margin: 0; color: var(--dim); font-size: 15px; }
+  .row { position: relative; z-index: 1; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; }
+  .tree { height: 120px; }
+  .grp-wrap { display: grid; justify-items: center; gap: 12px; }
+  .grp-wrap small { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
+  body.shot .hero { padding: 0; }
+  body.shot .scene { min-height: 0; margin: 0; padding-top: 36px; align-content: start; }
+  body.shot .who, body.shot .grp-wrap { display: none; }
+  body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; animation: none !important; }
+
+  /* states */
+  .states, .spec { padding: 44px 32px 40px; border-top: 1px solid var(--rule); }
+  .states h2, .spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+  .states > p, .spec > p { margin: 0 0 22px; color: var(--dim); max-width: 72ch; font-size: 14px; line-height: 1.5; }
+  .tbl { overflow-x: auto; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 12px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .states td { padding: 10px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  .states td:first-child { width: 190px; min-width: 160px; font-size: 14px; font-weight: 500; }
+  .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--dim); font-size: 12.5px; }
+  .frame { display: flex; align-items: center; justify-content: center; width: 220px; height: 104px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .frame button { pointer-events: none; }
+  .frame *, .frame *::before, .frame *::after { transition: none !important; animation: none !important; }
+  .shotbox { position: relative; width: 300px; height: 186px; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--rule); }
+  .shotbox iframe { position: absolute; left: 0; top: 0; width: 600px; height: 372px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
+  .shotbox.none { display: grid; place-items: center; color: var(--dim); }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .spec-card { padding: 16px 18px 14px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+  .spec-card dt { color: var(--dim); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(40,40,40,.8); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  @media (max-width: 760px) { .hero, .states, .spec { padding-left: 16px; padding-right: 16px; } .row { gap: 16px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-label="The buttons in use">
+    <div class="head">
+      <p><b>Week 08 &middot; Set 1 &middot; Line &middot; Precise</b>A designer&rsquo;s contact card drawn in outlines only, where emphasis is the amount of line. Contact me has two lines that close into one heavy line when pointed at; Portfolio has one faint line that a pen draws round bright; R&eacute;sum&eacute; has only its two ends, like brackets, that reach along its edges and close. Nothing follows the pointer. Press a button and its options are drawn in just under it, each outline closing round before its words appear; some open one level further.</p>
+      <form class="ctl" onsubmit="return false">
+        <fieldset><legend>Buttons</legend><div class="opts">
+          <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
+          <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+          <label><input type="radio" name="content" value="icon" /><span>Icon</span></label>
+        </div></fieldset>
+        <fieldset><legend>State</legend><div class="opts">
+          <label><input type="checkbox" name="off" /><span>Disabled</span></label>
+        </div></fieldset>
+      </form>
+    </div>
+
+    <div class="scene" data-buttons data-live data-content="both">
+      <div class="who"><h1>Mina Oh</h1><p>Motion and interaction designer, Seoul</p></div>
+      <div class="row">
+        <button class="ct" type="button" aria-expanded="false" data-opens="k-ct" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></button>
+        <button class="pf" type="button" aria-expanded="false" data-opens="k-pf" data-name="Portfolio" data-off><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2"/></svg><span class="lbl">Portfolio</span></button>
+        <button class="rs" type="button" aria-expanded="false" data-opens="k-rs" data-name="Résumé" data-off><svg class="ln brk" aria-hidden="true"><path/></svg><span class="lbl">Résumé</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button>
+      </div>
+      <!-- depth: each row of options is drawn out of the button above it -->
+      <div class="kids" id="k-ct" role="group" aria-label="Contact" data-depth="2" hidden><button class="c dbl" type="button" data-name="Email" aria-expanded="false" data-opens="k-email"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg><span class="lbl">Email</span></button><button class="c dbl" type="button" data-name="Call"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h3l1.5 4-2 1.5a10 10 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2z"/></svg><span class="lbl">Call</span></button><button class="c dbl" type="button" data-name="Message"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="lbl">Message</span></button></div>
+      <div class="kids" id="k-email" role="group" aria-label="Email" data-depth="3" hidden><button class="c sm" type="button" data-name="Copy address"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h10v11H9zM5 15V4h10"/></svg><span class="lbl">Copy address</span></button><button class="c sm" type="button" data-name="Open Mail"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg><span class="lbl">Open Mail</span></button></div>
+      <div class="kids" id="k-pf" role="group" aria-label="Portfolio" data-depth="2" hidden><button class="c one" type="button" data-name="Case studies" aria-expanded="false" data-opens="k-case"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16"/></svg><span class="lbl">Case studies</span></button><button class="c one" type="button" data-name="Experiments" aria-expanded="false" data-opens="k-exp"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 10h14L14 9V3"/></svg><span class="lbl">Experiments</span></button><button class="c one" type="button" data-name="Archive" aria-expanded="false" data-opens="k-arc"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM3 4h18v3H3zM10 11h4"/></svg><span class="lbl">Archive</span></button></div>
+      <div class="kids" id="k-case" role="group" aria-label="Case studies" data-depth="3" hidden><button class="c sm" type="button" data-name="Hollow Bank"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Hollow Bank</span></button><button class="c sm" type="button" data-name="Tidal Radio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Tidal Radio</span></button><button class="c sm" type="button" data-name="Ember Stove"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ember Stove</span></button></div>
+      <div class="kids" id="k-exp" role="group" aria-label="Experiments" data-depth="3" hidden><button class="c sm" type="button" data-name="Line Cursor"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Line Cursor</span></button><button class="c sm" type="button" data-name="Drift Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Drift Type</span></button><button class="c sm" type="button" data-name="Pulse Grid"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Pulse Grid</span></button></div>
+      <div class="kids" id="k-arc" role="group" aria-label="Archive" data-depth="3" hidden><button class="c sm" type="button" data-name="Night Market"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Night Market</span></button><button class="c sm" type="button" data-name="Field Notes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Field Notes</span></button><button class="c sm" type="button" data-name="Paper Moon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Paper Moon</span></button></div>
+      <div class="kids" id="k-rs" role="group" aria-label="Résumé" data-depth="2" hidden><button class="c br" type="button" data-name="View online"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/></svg><span class="lbl">View online</span></button><button class="c br" type="button" data-name="Download PDF"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span class="lbl">Download PDF</span></button></div>
+      <div class="tree" aria-hidden="true"></div>
+      <div class="grp-wrap">
+        <small id="g-cap">Show work in</small>
+        <div class="grp" role="radiogroup" aria-labelledby="g-cap">
+          <span class="gring" aria-hidden="true"></span>
+          <button class="r" type="button" role="radio" aria-checked="true" data-name="Motion"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M10 9v6l5-3z" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Motion</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13"/></svg><span class="lbl">Type</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="3D" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19.5 8v8L12 20.5 4.5 16V8zM4.5 8 12 12.5 19.5 8M12 12.5v8"/></svg><span class="lbl">3D</span></button>
+        </div>
+      </div>
+      <p class="hint" aria-live="polite" id="said"></p>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Contact me&rsquo;s two lines closed into one, Portfolio&rsquo;s pen line drawn all the way round, R&eacute;sum&eacute;&rsquo;s brackets closed. Pressed thickens or pulls in the line. Turned off, every line drops to a faint trace (Portfolio&rsquo;s to a dotted one). Then the depth: each button closed, opened, and one level deeper.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table></div>
+    <div class="tbl" style="margin-top:26px"><table><thead><tr><th>Depth</th><th>Step 1 &middot; closed</th><th>Step 2 &middot; opened</th><th>Step 3 &middot; one level deeper</th></tr></thead><tbody>
+      <tr><td>Primary &middot; Contact me<small>Email, Call, Message; Email opens Copy address and Open Mail</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Contact me closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct2" title="Contact me opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct3" title="Email opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
+      <tr><td>Secondary &middot; Portfolio<small>Case studies, Experiments, Archive; each opens its project titles</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Portfolio closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf2" title="Portfolio opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf3" title="Case studies opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
+      <tr><td>Tertiary &middot; R&eacute;sum&eacute;<small>View online and Download PDF</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Résumé closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=rs2" title="Résumé opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: sizes from the buttons as the browser lays them out, colours and motion from the same tokens the buttons above use.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-08.html#deliverables" hidden>&larr; Week 08</a>
+
+  <script>
+    // the depth stills are this same page in ?shot mode; a still never loads stills of its own
+    if (!/[?&]shot=/.test(location.search)) document.querySelectorAll('.shotbox iframe[data-src]').forEach(f => { f.src = f.dataset.src; });
+
+    // Lines drawn to each button's own size: a rounded outline path, and for brackets the dash pattern
+    // that leaves only the two ends (rest) or closes the whole loop (full), centred on each end
+    const pill = (w, h, r, sw) => {
+      const o = sw / 2, W = w - sw, H = h - sw, R = Math.max(0, Math.min(r - o, H / 2, W / 2));
+      return { d: `M${o + R},${o} H${o + W - R} A${R},${R} 0 0 1 ${o + W},${o + R} V${o + H - R} A${R},${R} 0 0 1 ${o + W - R},${o + H} H${o + R} A${R},${R} 0 0 1 ${o},${o + H - R} V${o + R} A${R},${R} 0 0 1 ${o + R},${o} Z`,
+        S: W - 2 * R, E: Math.PI * R + (H - 2 * R) };
+    };
+    const reachTok = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t-reach')) || 8;
+    const fitLines = el => {
+      const w = el.offsetWidth, h = el.offsetHeight; if (!w || !h) return;
+      const r = parseFloat(getComputedStyle(el).borderTopLeftRadius) || h / 2, sw = 1.5;
+      el.querySelectorAll(':scope > .ln').forEach(svg => {
+        const { d, S, E } = pill(w, h, r, sw);
+        svg.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+        if (svg.classList.contains('brk')) {
+          const P = 2 * S + 2 * E, half = S + E, c2 = 2 * S + 1.5 * E;
+          const B = Math.min(E + 2 * reachTok(), half * .72), B2 = half;
+          const pat = b => `${b.toFixed(2)} ${(half - b).toFixed(2)}`;
+          const off = b => (P - (c2 - b / 2)).toFixed(2);
+          const p = svg.querySelector('path');
+          p.style.setProperty('--da-rest', pat(B)); p.style.setProperty('--do-rest', off(B));
+          p.style.setProperty('--da-full', pat(B2)); p.style.setProperty('--do-full', off(B2));
+        }
+      });
+    };
+    const lined = () => document.querySelectorAll('.pf, .rs, .c.one, .c.br');
+    const ro = new ResizeObserver(es => es.forEach(e => fitLines(e.target)));
+    window.watchLines = root => root.querySelectorAll('.pf, .rs, .c.one, .c.br').forEach(el => { fitLines(el); ro.observe(el); });
+    watchLines(document);
+  </script>
+  <script>
+    // States table: one row per level and configuration, the button copied from the live one
+    (() => {
+      const live = document.querySelector('[data-live]'), rows = document.getElementById('state-rows');
+      const src = { ct: live.querySelector('.ct'), pf: live.querySelector('.pf'), rs: live.querySelector('.rs'), r: live.querySelectorAll('.r')[1], rp: live.querySelector('.r') };
+      const contents = [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']];
+      const cell = (key, content, st) => {
+        const b = src[key].cloneNode(true); b.classList.remove('is-down', 'is-up');
+        if (st === 'hover') b.classList.add('st-hover');
+        if (st === 'down') b.classList.add('st-down');
+        if (st === 'off') b.disabled = true;
+        if (key === 'rp') b.classList.add('st-on');
+        return `<td><div class="frame" data-static data-content="${content}">${b.outerHTML}</div></td>`;
+      };
+      const row = (key, title, sub, content) => `<tr><td>${title}<small>${sub}</small></td>${['', 'hover', 'down', 'off'].map(st => cell(key, content, st)).join('')}</tr>`;
+      let html = '';
+      [['ct', 'Primary', 'Contact me · two lines'], ['pf', 'Secondary', 'Portfolio · one line'], ['rs', 'Tertiary', 'Résumé · brackets']].forEach(([k, lvl, nm]) => contents.forEach(([c, cn]) => { html += row(k, `${lvl} · ${cn}`, nm, c); }));
+      contents.forEach(([c, cn]) => { html += row('r', `Group option · ${cn}`, 'not picked', c); });
+      contents.forEach(([c, cn]) => { html += row('rp', `Group option · ${cn}`, 'picked', c); });
+      rows.innerHTML = html;
+      rows.querySelectorAll('button').forEach(b => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); b.removeAttribute('data-off'); b.removeAttribute('role'); b.removeAttribute('aria-checked'); b.removeAttribute('aria-expanded'); });
+      watchLines(rows);
+    })();
+  </script>
+  <script src="week-08-proto.js?v=1"></script>
+  <script>
+    // In use: depth, and the group's sliding outline. Nothing here listens to pointer movement.
+    const scene = P.live, q = s => scene.querySelector(s), said = q('#said');
+    const root = () => getComputedStyle(document.documentElement);
+    const ms = n => parseFloat(root().getPropertyValue(n));
+    const SHARP = 'cubic-bezier(.2, .9, .25, 1)';
+    const box = el => { const a = el.getBoundingClientRect(), s = scene.getBoundingClientRect(); return { x: a.left - s.left, y: a.top - s.top, w: a.width, h: a.height }; };
+    const kidsOf = btn => document.getElementById(btn.dataset.opens);
+    const openerOf = k => scene.querySelector(`[data-opens="${k.id}"]`);
+    const openKids = () => [...scene.querySelectorAll('.kids:not([hidden])')];
+
+    // place a row of options under its opener, kept inside the scene
+    const place = k => {
+      const o = box(openerOf(k)), depth = +k.dataset.depth;
+      k.style.left = '0px'; k.style.top = '0px';
+      const w = k.offsetWidth, sw = scene.clientWidth;
+      const x = Math.max(12, Math.min(sw - w - 12, o.x + o.w / 2 - w / 2));
+      k.style.left = x + 'px'; k.style.top = (o.y + o.h + ms(depth === 2 ? '--k-drop' : '--k-drop-2')) + 'px';
+    };
+    // the ink: an option's outline drawn in from the top centre, both ways at once, until it closes at the
+    // bottom (two lines for Contact's options, one for Portfolio's, the third level's faint one); Résumé's
+    // brackets instead grow out from the middle of each end. Only then do its icon and words come in.
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const inkPaths = c => {
+      const w = c.offsetWidth, h = c.offsetHeight, r = parseFloat(getComputedStyle(c).borderTopLeftRadius) || h / 2;
+      const loop = (inset, sw) => { const g = pill(w - inset * 2, h - inset * 2, r - inset, sw); const P = 2 * g.S + 2 * g.E; return { d: g.d, sw, inset, f0: (g.S / 2) / P, loop: true }; };
+      if (c.classList.contains('dbl')) return [loop(0, 1.5), loop(4, 1)];
+      if (c.classList.contains('br')) {
+        const g = pill(w, h, r, 1.5), half = g.S + g.E, P = 2 * half, c2 = 2 * g.S + 1.5 * g.E, B = Math.min(g.E + 2 * reachTok(), half * .72);
+        const pat = b => `${b.toFixed(2)} ${(half - b).toFixed(2)}`, off = b => (P - (c2 - b / 2)).toFixed(2);
+        // each bracket is drawn against the path's own direction: the left one from its top end down and round,
+        // the right one from its bottom end up and round (the far end of each dash stays put while it grows)
+        const grow = b => (P - (c2 + B / 2 - b)).toFixed(2);
+        return [{ d: g.d, sw: 1.5, inset: 0, from: [pat(0), grow(0)], to: [pat(B), grow(B)] }];
+      }
+      return [loop(0, c.classList.contains('sm') ? 1 : 1.5)];
+    };
+    const ink = (c, delay, back) => new Promise(done => {
+      c.querySelector(':scope > .ink')?.remove();
+      const svg = document.createElementNS(SVGNS, 'svg'); svg.classList.add('ink'); svg.setAttribute('aria-hidden', 'true');
+      const t = back ? ms('--shut') : ms('--ink'), easing = back ? 'ease-in' : 'cubic-bezier(.45, 0, .2, 1)';
+      c.classList.add('inking'); c.append(svg);   // in the document before anything is animated, or the animations never start
+      const anims = inkPaths(c).map(sp => {
+        const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', sp.d); p.style.strokeWidth = sp.sw;
+        if (sp.inset) p.setAttribute('transform', `translate(${sp.inset} ${sp.inset})`);
+        svg.append(p);
+        let k;
+        if (sp.loop) { p.setAttribute('pathLength', '1'); k = [{ strokeDasharray: '0 1', strokeDashoffset: -sp.f0 }, { strokeDasharray: '1 0', strokeDashoffset: .5 - sp.f0 }]; }
+        else k = [{ strokeDasharray: sp.from[0], strokeDashoffset: sp.from[1] }, { strokeDasharray: sp.to[0], strokeDashoffset: sp.to[1] }];
+        return p.animate(back ? k.reverse() : k, { duration: t, easing, delay: delay + (sp.inset ? 70 : 0), fill: 'both' });
+      });
+      Promise.all(anims.map(a => a.finished)).then(() => done(svg)).catch(() => done(svg));
+    });
+    const settle = c => { c.classList.remove('inking'); const svg = c.querySelector(':scope > .ink'); if (svg) svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: 'forwards' }).finished.then(() => svg.remove()).catch(() => svg.remove()); };
+    const open = (btn, focusFirst) => {
+      const k = kidsOf(btn), depth = +k.dataset.depth;
+      openKids().filter(x => +x.dataset.depth >= depth && x !== k).forEach(x => shut(x, true));
+      k.hidden = false; place(k); watchLines(k);
+      btn.setAttribute('aria-expanded', 'true');
+      const calm = P.calm.matches;
+      [...k.children].forEach((c, i) => {
+        c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.querySelectorAll(':scope > *').forEach(x => x.getAnimations().forEach(a => a.cancel()));
+        if (calm) return;
+        const d = 40 + i * ms('--stagger');
+        ink(c, d, false).then(() => settle(c));
+        c.querySelectorAll(':scope > .ic, :scope > .lbl').forEach(x => x.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }],
+          { duration: ms('--open'), easing: SHARP, delay: d + ms('--ink') * .65, fill: 'backwards' }));
+      });
+      said.textContent = `${btn.dataset.name} opened: ${[...k.children].map(c => c.dataset.name).join(', ')}`;
+      if (focusFirst) k.children[0].focus();
+    };
+    const shut = (k, quick) => {
+      if (k.hidden) return;
+      openKids().filter(x => +x.dataset.depth > +k.dataset.depth && x !== k).forEach(x => shut(x, true));
+      const btn = openerOf(k); btn.setAttribute('aria-expanded', 'false');
+      k.querySelectorAll('[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+      const done = () => { k.hidden = true; };
+      if (P.calm.matches || quick) { done(); return; }
+      const t = ms('--shut');
+      [...k.children].forEach(c => ink(c, 0, true));
+      setTimeout(() => { done(); [...k.children].forEach(c => { c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.querySelectorAll('*').forEach(x => x.getAnimations().forEach(a => a.cancel())); }); }, t + 20);
+    };
+    const relayout = () => { openKids().sort((a, b) => a.dataset.depth - b.dataset.depth).forEach(place); };
+
+    scene.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled || b.closest('.grp')) return;
+      if (b.dataset.opens) {
+        const k = kidsOf(b);
+        if (k.hidden) open(b, e.detail === 0); else { shut(k); said.textContent = `${b.dataset.name} closed`; }
+        return;
+      }
+      if (b.closest('.kids')) said.textContent = `${b.dataset.name}`;
+    });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const deepest = openKids().sort((a, b) => b.dataset.depth - a.dataset.depth)[0];
+      if (deepest) { const o = openerOf(deepest); shut(deepest); o.focus(); }
+    });
+    // close what is open when the pointer goes down anywhere outside the buttons
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('button') && !e.target.closest('form')) openKids().filter(k => k.dataset.depth === '2').forEach(k => shut(k)); });
+
+    // the group: one outline slides to the pick (no pointer tracking: it moves on the pick only)
+    const grp = q('.grp'), gring = q('.gring');
+    const ringTo = (r, animate) => {
+      const to = { x: r.offsetLeft, w: r.offsetWidth };
+      if (animate && !P.calm.matches) gring.animate([{ transform: gring.style.transform || `translateX(${to.x}px)`, width: gring.style.width || to.w + 'px' }, { transform: `translateX(${to.x}px)`, width: to.w + 'px' }], { duration: ms('--slide'), easing: SHARP });
+      gring.style.transform = `translateX(${to.x}px)`; gring.style.width = to.w + 'px';
+    };
+    grp.addEventListener('pick', e => { ringTo(e.detail.to, true); said.textContent = `Showing ${e.detail.to.dataset.name}`; });
+    const picked = () => grp.querySelector('[aria-checked="true"]');
+    // a content switch animates button widths for 520ms (proto); follow them, then settle on the end size
+    P.onContent(() => { requestAnimationFrame(relayout); setTimeout(() => { ringTo(picked(), true); relayout(); }, 540); });
+    addEventListener('resize', () => { ringTo(picked(), false); relayout(); });
+    document.fonts.ready.then(() => { ringTo(picked(), false); relayout(); });
+    ringTo(picked(), false);
+    scene.addEventListener('off', e => { gring.style.opacity = e.detail ? .3 : 1; if (e.detail) openKids().forEach(k => shut(k, true)); });
+
+    // ?shot=… a still of one step of the depth (States table); ?deep=… the same with the whole page (week page)
+    const qd = new URLSearchParams(location.search), shot = qd.get('shot') || qd.get('deep');
+    if (shot) {
+      document.body.classList.add(qd.get('shot') ? 'shot' : 'still');
+      Object.defineProperty(P, 'calm', { value: { matches: true } });
+      const go = () => {
+        const steps = { ct2: ['.ct'], ct3: ['.ct', '[data-opens="k-email"]'], pf2: ['.pf'], pf3: ['.pf', '[data-opens="k-case"]'], rs2: ['.rs'] }[shot] || [];
+        steps.forEach(s => open(q(s), false));
+        if (shot === 'hover') ['.ct', '.pf', '.rs'].forEach(s => q(s).classList.add('st-hover'));
+      };
+      document.fonts.ready.then(() => requestAnimationFrame(go));
+    }
+  </script>
+  <script>
+    // Spec, read from the tokens and the buttons as laid out
+    (() => {
+      const out = document.querySelector('.spec-grid'), r = getComputedStyle(document.documentElement), tok = n => r.getPropertyValue(n).trim();
+      const live = document.querySelector('[data-live]'), sz = s => { const b = live.querySelector(s); return `${Math.round(b.offsetWidth)} × ${Math.round(b.offsetHeight)}px`; };
+      const sw = c => `<i style="background:${c}"></i>${c}`;
+      const cards = [
+        ['Colour', [['Page', sw(tok('--page'))], ['Line and words', sw(tok('--cream'))], ['Faint line', sw(tok('--faint'))], ['Quiet words', sw(tok('--dim'))], ['Off', sw(tok('--off'))],
+          ['Rule', 'no fills anywhere: emphasis is the amount of line, not a colour']]],
+        ['Type', [['Family', 'Inter Tight'], ['Buttons', '18 / 400'], ['Group', '16 / 400'], ['Options', '15 / 400, third level 14']]],
+        ['Line', [['Weight', `${tok('--line')}, pressed ${tok('--line-down')}`], ['Caps', 'round'], ['Corners', 'every button is a pill: half its height']]],
+        ['Primary · Contact me', [['Size', sz('.ct')], ['Lines', `two: the edge, and one ${tok('--p-in')} inside it`],
+          ['Hover', `the inner line moves out onto the edge (${tok('--close-in')}): one heavy line; the icon steps 2px right`],
+          ['Pressed', `the inner line pulls in to ${tok('--p-in-down')}; the button scales to ${tok('--press-scale')}`], ['Open', 'stays closed into one line'], ['Off', 'both lines faint']]],
+        ['Secondary · Portfolio', [['Size', sz('.pf')], ['Line', 'one, faint at rest'],
+          ['Hover', `a bright line is drawn round it clockwise from the top left (${tok('--draw')}); leaving, it is taken back in about half the time`],
+          ['Pressed', `the line thickens to ${tok('--line-down')}`], ['Open', 'stays drawn'], ['Off', 'a faint dotted line']]],
+        ['Tertiary · Résumé', [['Size', sz('.rs')], ['Line', `only the two ends, like brackets, reaching ${tok('--t-reach')} onto the edges`],
+          ['Hover', `both brackets reach along the top and bottom edges and meet in the middle (${tok('--reach')}); the arrow flies out and comes back`],
+          ['Pressed', `closed, ${tok('--line-down')}`], ['Open', 'closed; the arrow turns to point down at what opened'], ['Off', 'faint brackets']]],
+        ['Group · Show work in', [['Option', `${tok('--g-h')} high, ${tok('--g-gap')} apart, in a faint frame`],
+          ['Picked', `one bright outline slides to it (${tok('--slide')}); its words go cream`], ['Hover', 'a faint outline of its own'], ['Keys', 'one tab stop; arrows move the pick']]],
+        ['Depth', [['Levels', 'Contact me and Portfolio open two rows deep (3 levels); Résumé opens one (2 levels)'],
+          ['Options', `${tok('--k-drop')} under the button; each one's outline is drawn in from its top centre both ways round until it closes (${tok('--ink')}; Résumé's brackets are drawn from their ends, the left from the top, the right from the bottom), then its icon and words rise in; ${tok('--stagger')} apart, wearing its parent's line: two lines, a pen line, brackets`],
+          ['Closing', `pressing the button again, Escape or a press outside: each option's words go and its line is taken back to the top centre (${tok('--shut')})`],
+          ['Keys', 'Enter opens and moves focus to the first option; Escape closes the deepest row and returns focus']]],
+        ['Motion', [['Ease', `${tok('--glide')} for lines, ${tok('--sharp')} for moves`], ['Pointer', 'nothing tracks the pointer: buttons answer on enter, press and leave only'], ['Reduced motion', 'lines and options appear in their end state']]],
+      ];
+      out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+    })();
+  </script>
+</body>
+</html>
