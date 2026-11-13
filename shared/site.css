@@ -266,6 +266,8 @@ html.has-dialog { overflow: hidden; }
 .process-grid figure { margin: 0; }
 .prose .process-grid img { width: 100%; margin: 0; }
 .process-grid figcaption { margin-top: 6px; font-size: 12.5px; line-height: 1.45; color: var(--fg-muted); }
+/* a line under a stage on why it changed or was left: <p class="process-why">...</p> */
+.process-why, .prose .process-why { margin: -6px 0 22px; font-size: 13px; line-height: 1.5; color: var(--fg-muted); max-width: 72ch; }
 
 /* placeholders: dashed, with the file each is waiting for */
 .frame-art, .proto-art { display: grid; place-items: center; }

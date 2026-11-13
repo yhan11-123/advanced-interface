@@ -308,7 +308,15 @@
   .split > button:hover, .split > button:focus-visible, .split.st-hover .split-main { background: var(--violet-d); }
   .split > button.is-down, .split.st-down .split-main { transform: scale(.95); transition-duration: .1s; }
   .split-more[aria-expanded="true"] { background: var(--violet-d); } .split-more[aria-expanded="true"] .ic { rotate: 180deg; }
-  .split-main.done { background: var(--violet-l); color: var(--violet); }
+  /* acknowledged: the lit half goes dark with a cyan line and cyan words, so “Opening…” reads against it */
+  /* acknowledged (the ticket and the link out): the lit panel powers down from the left, a dark panel with a
+     cyan line sliding across it, while the words fade out and come back in cyan, so they never sit cyan on cyan */
+  :is(.split-main, .go)::after { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--ink);
+    transform: scaleX(0); transform-origin: 0 50%; transition: transform .5s var(--sharp); pointer-events: none; }
+  .split-main { position: relative; }
+  :is(.split-main, .go) > * { position: relative; z-index: 1; }
+  :is(.split-main, .go).done::after { transform: scaleX(1); }
+  :is(.split-main, .go).dark { color: var(--ink); }
   .split:has(button:disabled) { background: none; color: var(--off); }
   .split:has(button:disabled) .split-more { box-shadow: inset 1px 0 0 var(--line); }
   [data-content="icon"] .split-main { width: var(--p-h); padding: 0; }
@@ -335,8 +343,7 @@
   .go:hover .ic, .go:focus-visible .ic, .go.st-hover .ic { animation: out-in 1s var(--ease); }
   @keyframes out-in { 45% { translate: 18px -18px; } 46% { translate: -18px 18px; } }
   .go.is-down, .go.st-down { transform: scale(var(--press-scale)); transition-duration: .1s; }
-  .go.done { background: var(--violet-l); color: var(--violet); }
-  .go.done .arw { background: transparent; color: var(--violet); }
+  .go.dark .arw { background: transparent; color: var(--ink); }
   .go:disabled { background: none; color: var(--off); transform: none; }
   .go:disabled .arw { background: var(--row); color: var(--off); }
   [data-content="icon"] .go { width: var(--p-h); padding: 0; justify-content: center; }
@@ -666,9 +673,16 @@
     };
     // level 3: a set opens in place; chips filter; the star saves; the link out and the ticket acknowledge
     const ack = (t, text) => {
-      const lbl = t.querySelector('.lbl'), was = lbl.textContent;
-      t.classList.add('done'); lbl.textContent = text; said.textContent = `${was}: ${text.toLowerCase()}`;
-      setTimeout(() => { t.classList.remove('done'); lbl.textContent = was; }, 1600);
+      const lbl = t.querySelector('.lbl'), was = lbl.textContent, parts = t.querySelectorAll(':scope > .ic, :scope > .lbl, :scope > .arw');
+      // the words go out, change, and come back in, so the colour swap never shows half-way
+      const swap = fn => {
+        if (P.calm.matches) { fn(); return; }
+        const out = [...parts].map(x => x.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in', fill: 'forwards' }));
+        setTimeout(() => { fn(); out.forEach(a => a.cancel()); parts.forEach(x => x.animate([{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.2, .9, .25, 1)' })); }, 180);
+      };
+      clearTimeout(t._ack); t.classList.add('done'); swap(() => { lbl.textContent = text; t.classList.add('dark'); });
+      said.textContent = `${was}: ${text.toLowerCase()}`;
+      t._ack = setTimeout(() => { t.classList.remove('done'); swap(() => { lbl.textContent = was; t.classList.remove('dark'); }); }, 1800);
     };
     dayIn.addEventListener('click', e => {
       const t = e.target.closest('button'); if (!t || t.disabled) return;
@@ -787,11 +801,11 @@
           ['Height', tok('--p-h')], ['Corners', tok('--p-r')], ['Fill', `a lit cyan panel ${tok('--violet')}, black words in caps; the arrow cyan in a black square`],
           ['Width', go ? `${Math.round(go.getBoundingClientRect().width)}px for “${go.textContent.trim()}”` : '—'],
           ['Hover', 'whiter; only the arrow moves: it flies out of its square to the top right and back in from the bottom left'], ['Pressed', `scaled to ${tok('--press-scale')}`],
-          ['After', 'a dim “Opening…” for a moment'],
+          ['After', 'powers down from the left like the ticket: “Opening…” in cyan on dark, then back'],
         ]],
         ['Primary · split ticket', [
           ['Parts', `the pass to buy (ticket icon and its name) and a 40px chevron that opens the pass menu; one ${tok('--p-h')} lit panel, a black hairline between`],
-          ['Hover', 'each half whitens on its own'], ['Pressed', 'the half pressed scales to 95%'],
+          ['Hover', 'each half whitens on its own'], ['Pressed', 'the half pressed scales to 95%'], ['After', 'the lit half powers down from the left (a dark panel with a cyan line slides across, 500ms) while its words fade out and back in as “Opening…”; after 1.8s it lights up again the same way'],
           ['Menu', 'scanned down from the top in 500ms; items switch on one after another (70ms apart) with a tube flicker; the chosen pass is orange'],
           ['Keys', 'Enter on the chevron opens it on the current pass; arrows move; Escape closes and returns'],
         ]],
