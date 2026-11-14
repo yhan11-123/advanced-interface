@@ -9,18 +9,20 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" />
   <style>
   /* Week 08, Set 1 · Line. Tone: Precise.
-     A cream-on-black button system made of nothing but outlines. Emphasis is the amount of line:
+     Lineworks, a blueprint archive: cream lines on blueprint paper, nothing but outlines. Emphasis is the amount of
+     line, as line weight is on a drawing:
        Primary    two lines, one inside the other: pointed at, the inner line closes out onto the outer one
                   and they become a single heavy line; held, the inner line pulls in
        Secondary  one line, faint at rest: pointed at, a bright line is drawn round it like a pen, clockwise
-       Tertiary   only the two ends, like brackets ( ): pointed at, they reach along the edges and close
+       Tertiary   only the two ends, like crop marks ( ): pointed at, they reach along the edges and close
        Group      single selection: one bright outline slides from option to option
      Nothing follows the pointer: a button answers when it is entered, pressed and left, not while you move.
      Depth: pressed, a button's options open just under it, each opening out sideways from its centre; some
      open one level further.
      Every number in the Spec section is read from these tokens. */
   :root {
-    --page: #000; --cream: #f6f4da; --dim: #8f8c78; --faint: rgba(246,244,218,.34); --off: rgba(246,244,218,.16); --rule: #24231c;
+    --page: #0b1f33; --paper: #0d243b; --cream: #f6f4da; --dim: #9aa6a8; --faint: rgba(246,244,218,.34); --off: rgba(246,244,218,.18); --rule: #1f3a55;
+    --grid-minor: rgba(246,244,218,.035); --grid-major: rgba(246,244,218,.07);
     --font: "Inter Tight", -apple-system, system-ui, sans-serif;
     --gap: 10px; --icon: 20px; --stroke: 1.6;
     --line: 1.5px; --line-down: 2.5px;
@@ -82,8 +84,8 @@
   .pf:disabled .pen .base { stroke: var(--off); stroke-dasharray: 3 5; }
   [data-content="icon"] .pf { width: var(--s-h); padding: 0; }
 
-  /* tertiary: only the ends, like brackets. Pointed at, both brackets reach along the top and bottom edges
-     until they meet in the middle and close; the arrow flies out and comes back as they do */
+  /* tertiary: only the ends, like brackets. Pointed at, both crop marks reach along the top and bottom edges
+     until they meet in the middle and close; the lens swells and settles as they do */
   .rs { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--t-h); padding: 0 var(--t-pad);
     border-radius: calc(var(--t-h) / 2); transition: transform .5s var(--sharp); }
   .brk path { stroke-dasharray: var(--da-rest, 0 1); stroke-dashoffset: var(--do-rest, 0);
@@ -91,12 +93,12 @@
   :is(.rs, .c.br):is(:hover, :focus-visible, .st-hover, [aria-expanded="true"]) .brk path { stroke-dasharray: var(--da-full, 1 0); stroke-dashoffset: var(--do-full, 0); }
   :is(.rs, .c.br):is(.is-down, .st-down) .brk path { stroke-dasharray: var(--da-full, 1 0); stroke-dashoffset: var(--do-full, 0); stroke-width: var(--line-down); }
   .rs.is-down, .rs.st-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
-  .rs .ic { transition: rotate .55s var(--sharp); }
+  .rs .ic { transition: scale .55s var(--sharp); }
   .rs .ic path { transform-box: fill-box; transform-origin: center; }
-  .rs:hover .ic path, .rs:focus-visible .ic path { animation: arrow-through var(--reach) cubic-bezier(.5, 0, .3, 1); }
-  @keyframes arrow-through { 0% { transform: none; opacity: 1; } 42% { transform: translate(9px, -9px); opacity: 0; } 43% { transform: translate(-9px, 9px); opacity: 0; } 100% { transform: none; opacity: 1; } }
-  .rs[aria-expanded="true"] .ic { rotate: 135deg; }
-  .rs[aria-expanded="true"]:hover .ic path { animation: none; }
+  .rs:hover .ic, .rs:focus-visible .ic { animation: lens var(--reach) var(--sharp); }
+  @keyframes lens { 0% { scale: 1; } 45% { scale: 1.22; } 100% { scale: 1; } }
+  .rs[aria-expanded="true"] .ic { scale: 1.18; }
+  .rs[aria-expanded="true"]:hover .ic { animation: none; }
   .rs:disabled { color: var(--off); transform: none; }
   .rs:disabled .brk path { stroke: var(--off); }
   [data-content="icon"] .rs { width: var(--t-h); padding: 0; }
@@ -116,8 +118,8 @@
   [data-content="icon"] .r { width: 54px; padding: 0; }
 
   /* depth: pressed, a button's options open just under it, each one opening out sideways from its own
-     centre, one after another. Children keep their parent's line: Contact's two lines, Portfolio's pen
-     line, Résumé's brackets; the third level is a single faint line. */
+     centre, one after another. Children keep their parent's line: Download's two lines, Blueprints' pen
+     line, Zoom's crop marks; the third level is a single faint line. */
   .kids { position: absolute; z-index: 1; display: flex; gap: var(--k-gap); }
   .kids[hidden] { display: none; }
   .c { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--k-h); padding: 0 18px; border-radius: calc(var(--k-h) / 2);
@@ -154,20 +156,69 @@
   .ctl input:checked + span { color: var(--cream); box-shadow: inset 0 0 0 1px var(--cream); }
   .ctl input:focus-visible + span { outline: 2px solid var(--cream); outline-offset: 1px; }
 
-  .scene { position: relative; display: grid; justify-items: center; align-content: center; gap: 30px; min-height: 600px; margin-top: 10px; }
-  .who { text-align: center; }
-  .who h1 { margin: 0 0 8px; font-size: 34px; font-weight: 400; letter-spacing: -.02em; }
-  .who p { margin: 0; color: var(--dim); font-size: 15px; }
-  .row { position: relative; z-index: 1; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; }
-  .tree { height: 120px; }
-  .grp-wrap { display: grid; justify-items: center; gap: 12px; }
+  /* ---- the archive: a blueprint viewer the buttons act on ------------------------------------------------ */
+  .scene { position: relative; display: grid; gap: 16px; margin-top: 14px; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand svg { width: 26px; height: 26px; fill: none; stroke: var(--cream); stroke-width: 1.5; }
+  .brand b { font-size: 15px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .brand span, .bar .count { font-size: 13px; color: var(--dim); }
+  .row { position: relative; z-index: 1; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: center; justify-self: center; }
+  /* the buttons knock the drawing out behind them */
+  .row :is(.ct, .pf, .rs), .grp { background: var(--page); }
+
+  /* the sheet: blueprint paper with a double border, the drawing on the left, the title strip on the right */
+  .sheet { position: relative; z-index: 0; display: flex; height: 470px; border: 1.5px solid rgba(246,244,218,.5); background: var(--paper); }
+  .sheet::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(246,244,218,.2); pointer-events: none; z-index: 2; }
+  .canvas { position: relative; flex: 1; min-width: 0; overflow: hidden; outline: none; touch-action: none;
+    background-image: linear-gradient(var(--grid-major) 1px, transparent 1px), linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid-minor) 1px, transparent 1px), linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; background-position: -1px -1px; }
+  .canvas.can-pan { cursor: grab; }
+  .canvas.panning { cursor: grabbing; }
+  .canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--cream); }
+  .dwg-bg, .crop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .crop path { fill: none; stroke: var(--cream); stroke-width: 1.5; }
+  .zread { position: absolute; left: 16px; bottom: 14px; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
+  /* the drawing: heavy cut walls, medium edges, thin notes; line weights stay the same on screen at any zoom, as in CAD */
+  .dwg :is(path, circle, rect) { fill: none; stroke: var(--cream); stroke-linecap: butt; }
+  .dwg .w { stroke-width: calc(4.5 / var(--z, 1)); stroke-opacity: .9; }
+  .dwg .m { stroke-width: calc(1.6 / var(--z, 1)); stroke-opacity: .7; }
+  .dwg .t { stroke-width: calc(1 / var(--z, 1)); stroke-opacity: .55; }
+  .dwg .d { stroke-width: calc(1 / var(--z, 1)); stroke-opacity: .4; stroke-dasharray: calc(12 / var(--z, 1)) calc(4 / var(--z, 1)) calc(2 / var(--z, 1)) calc(4 / var(--z, 1)); }
+  .dwg .hl { fill: var(--cream); fill-opacity: .07; stroke: none; }
+  .dwg text { fill: var(--cream); fill-opacity: .7; font: 500 11px/1 var(--font); letter-spacing: .08em; }
+  .dwg text.c { text-anchor: middle; dominant-baseline: central; }
+  /* the title strip */
+  .tblock { position: relative; z-index: 1; flex: none; width: 214px; display: flex; flex-direction: column; border-left: 1.5px solid rgba(246,244,218,.5); background: var(--paper); }
+  .tblock > div { padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+  .tblock small { display: block; margin-bottom: 5px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .tblock b { display: block; font-size: 15px; font-weight: 500; }
+  .tblock span { font-size: 12.5px; color: var(--dim); }
+  .tb-2 { display: grid; grid-template-columns: 1fr 1fr; }
+  .tb-2 span { color: var(--cream); font-size: 14px; }
+  .tb-dl { flex: 1; min-height: 0; overflow: hidden; }
+  .tb-dl ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+  .tb-dl li { position: relative; padding-left: 10px; font-size: 12px; line-height: 1.3; color: var(--cream); overflow-wrap: anywhere; }
+  .tb-dl li::before { content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 1.5px; background: var(--cream); }
+  .tb-dl li i { display: block; font-style: normal; color: var(--dim); font-size: 11px; }
+  .tb-dl li.none { padding: 0; color: var(--dim); }
+  .tb-dl li.none::before { display: none; }
+  .tb-no { border-bottom: 0 !important; }
+  .tb-no b { font-size: 30px; font-weight: 400; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  /* the plotter: one bright line runs down the sheet as it is written out */
+  .plot { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--cream); box-shadow: 0 0 14px 2px rgba(246,244,218,.45); opacity: 0; pointer-events: none; z-index: 3; }
+  .c.sm.cur { box-shadow: inset 0 0 0 var(--line) var(--cream); }
+  .grp-wrap { position: relative; z-index: 1; display: grid; justify-items: center; gap: 10px; justify-self: center; }
   .grp-wrap small { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  @media (max-width: 760px) { .tblock { width: 150px; } .bar .count { display: none; } .sheet { height: 420px; } }
   .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
   body.shot .hero { padding: 0; }
-  body.shot .scene { min-height: 0; margin: 0; padding-top: 36px; align-content: start; }
-  body.shot .who, body.shot .grp-wrap { display: none; }
+  body.shot .scene { display: block; min-height: 186px; margin: 0; padding-top: 36px; }
+  body.shot .row { width: max-content; margin: 0 auto; }
+  body.shot :is(.bar, .sheet, .grp-wrap) { display: none; }
   body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; animation: none !important; }
 
   /* states */
@@ -201,7 +252,7 @@
 <body>
   <section class="hero" aria-label="The buttons in use">
     <div class="head">
-      <p><b>Week 08 &middot; Set 1 &middot; Line &middot; Precise</b>A designer&rsquo;s contact card drawn in outlines only, where emphasis is the amount of line. Contact me has two lines that close into one heavy line when pointed at; Portfolio has one faint line that a pen draws round bright; R&eacute;sum&eacute; has only its two ends, like brackets, that reach along its edges and close. Nothing follows the pointer. Press a button and its options are drawn in just under it, each outline closing round before its words appear; some open one level further.</p>
+      <p><b>Week 08 &middot; Set 1 &middot; Line &middot; Precise</b>Lineworks, a blueprint archive: an architecture office hands out the drawings of each of its buildings, and you pick a building, zoom in and download the sheet. Emphasis is the amount of line, as line weight is on the drawings themselves. Download, what you came for, has two lines that close into one heavy line; Blueprints has one faint line that a pen draws round; Zoom has only crop marks that reach along its edges and close, and on the sheet they frame what the zoom will fill. Press a button and its options are drawn in just under it; some open one level further. View switches the sheet between plan, section and elevation.</p>
       <form class="ctl" onsubmit="return false">
         <fieldset><legend>Buttons</legend><div class="opts">
           <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
@@ -215,28 +266,45 @@
     </div>
 
     <div class="scene" data-buttons data-live data-content="both">
-      <div class="who"><h1>Mina Oh</h1><p>Motion and interaction designer, Seoul</p></div>
+      <header class="bar">
+        <div class="brand"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1.5" y="1.5" width="23" height="23"/><rect x="5.5" y="5.5" width="15" height="15"/><path d="M5.5 13h15M13 5.5v15"/></svg><b>Lineworks</b><span>Blueprint archive</span></div>
+        <span class="count">3 buildings &middot; plans, sections, elevations</span>
+      </header>
       <div class="row">
-        <button class="ct" type="button" aria-expanded="false" data-opens="k-ct" data-name="Contact me" data-off><span class="lbl">Contact me</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></button>
-        <button class="pf" type="button" aria-expanded="false" data-opens="k-pf" data-name="Portfolio" data-off><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2"/></svg><span class="lbl">Portfolio</span></button>
-        <button class="rs" type="button" aria-expanded="false" data-opens="k-rs" data-name="Résumé" data-off><svg class="ln brk" aria-hidden="true"><path/></svg><span class="lbl">Résumé</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button>
+        <button class="pf" type="button" aria-expanded="false" data-opens="k-pf" data-name="Blueprints" data-off><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h12v14H8zM5 6v15h12M11 8h6M11 11h6"/></svg><span class="lbl">Blueprints</span></button>
+        <button class="rs" type="button" aria-expanded="false" data-opens="k-rs" data-name="Zoom" data-off><svg class="ln brk" aria-hidden="true"><path/></svg><span class="lbl">Zoom</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20"/></svg></button>
+        <button class="ct" type="button" aria-expanded="false" data-opens="k-ct" data-name="Download" data-off><span class="lbl">Download</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
       </div>
       <!-- depth: each row of options is drawn out of the button above it -->
-      <div class="kids" id="k-ct" role="group" aria-label="Contact" data-depth="2" hidden><button class="c dbl" type="button" data-name="Email" aria-expanded="false" data-opens="k-email"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg><span class="lbl">Email</span></button><button class="c dbl" type="button" data-name="Call"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h3l1.5 4-2 1.5a10 10 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2z"/></svg><span class="lbl">Call</span></button><button class="c dbl" type="button" data-name="Message"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="lbl">Message</span></button></div>
-      <div class="kids" id="k-email" role="group" aria-label="Email" data-depth="3" hidden><button class="c sm" type="button" data-name="Copy address"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h10v11H9zM5 15V4h10"/></svg><span class="lbl">Copy address</span></button><button class="c sm" type="button" data-name="Open Mail"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg><span class="lbl">Open Mail</span></button></div>
-      <div class="kids" id="k-pf" role="group" aria-label="Portfolio" data-depth="2" hidden><button class="c one" type="button" data-name="Case studies" aria-expanded="false" data-opens="k-case"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16"/></svg><span class="lbl">Case studies</span></button><button class="c one" type="button" data-name="Experiments" aria-expanded="false" data-opens="k-exp"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 10h14L14 9V3"/></svg><span class="lbl">Experiments</span></button><button class="c one" type="button" data-name="Archive" aria-expanded="false" data-opens="k-arc"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM3 4h18v3H3zM10 11h4"/></svg><span class="lbl">Archive</span></button></div>
-      <div class="kids" id="k-case" role="group" aria-label="Case studies" data-depth="3" hidden><button class="c sm" type="button" data-name="Hollow Bank"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Hollow Bank</span></button><button class="c sm" type="button" data-name="Tidal Radio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Tidal Radio</span></button><button class="c sm" type="button" data-name="Ember Stove"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ember Stove</span></button></div>
-      <div class="kids" id="k-exp" role="group" aria-label="Experiments" data-depth="3" hidden><button class="c sm" type="button" data-name="Line Cursor"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Line Cursor</span></button><button class="c sm" type="button" data-name="Drift Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Drift Type</span></button><button class="c sm" type="button" data-name="Pulse Grid"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Pulse Grid</span></button></div>
-      <div class="kids" id="k-arc" role="group" aria-label="Archive" data-depth="3" hidden><button class="c sm" type="button" data-name="Night Market"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Night Market</span></button><button class="c sm" type="button" data-name="Field Notes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Field Notes</span></button><button class="c sm" type="button" data-name="Paper Moon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Paper Moon</span></button></div>
-      <div class="kids" id="k-rs" role="group" aria-label="Résumé" data-depth="2" hidden><button class="c br" type="button" data-name="View online"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/></svg><span class="lbl">View online</span></button><button class="c br" type="button" data-name="Download PDF"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span class="lbl">Download PDF</span></button></div>
-      <div class="tree" aria-hidden="true"></div>
+      <div class="kids" id="k-ct" role="group" aria-label="Download" data-depth="2" hidden><button class="c dbl" type="button" data-name="PDF" aria-expanded="false" data-opens="k-pdf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h4"/></svg><span class="lbl">PDF</span></button><button class="c dbl" type="button" data-name="DWG" data-dl="dwg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg><span class="lbl">DWG</span></button><button class="c dbl" type="button" data-name="Print set" data-dl="set"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v13H6zM8 4h10M9 11h6M9 14h6M9 17h3"/></svg><span class="lbl">Print set</span></button></div>
+      <div class="kids" id="k-pdf" role="group" aria-label="PDF" data-depth="3" hidden><button class="c sm" type="button" data-name="A1 full size" data-dl="a1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/></svg><span class="lbl">A1 full size</span></button><button class="c sm" type="button" data-name="A3 reduced" data-dl="a3"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h8v11H8z"/></svg><span class="lbl">A3 reduced</span></button></div>
+      <div class="kids" id="k-pf" role="group" aria-label="Blueprints" data-depth="2" hidden><button class="c one" type="button" data-name="Haneul House" aria-expanded="false" data-opens="k-b-haneul"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10l8-6 8 6v10zM10 20v-5h4v5"/></svg><span class="lbl">Haneul House</span></button><button class="c one" type="button" data-name="Mapo Library" aria-expanded="false" data-opens="k-b-library"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 12 4l9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></svg><span class="lbl">Mapo Library</span></button><button class="c one" type="button" data-name="Riverside Tower" aria-expanded="false" data-opens="k-b-tower"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21V3h8v18M5 21h14M10.5 7h3M10.5 11h3M10.5 15h3"/></svg><span class="lbl">Riverside Tower</span></button></div>
+      <div class="kids" id="k-b-haneul" role="group" aria-label="Haneul House" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="haneul" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="First floor" data-b="haneul" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">First floor</span></button></div>
+      <div class="kids" id="k-b-library" role="group" aria-label="Mapo Library" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="library" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="Reading room" data-b="library" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Reading room</span></button><button class="c sm" type="button" data-name="Roof terrace" data-b="library" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Roof terrace</span></button></div>
+      <div class="kids" id="k-b-tower" role="group" aria-label="Riverside Tower" data-depth="3" hidden><button class="c sm" type="button" data-name="Lobby" data-b="tower" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Lobby</span></button><button class="c sm" type="button" data-name="Typical floor" data-b="tower" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Typical floor</span></button><button class="c sm" type="button" data-name="Sky lounge" data-b="tower" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Sky lounge</span></button></div>
+      <div class="kids" id="k-rs" role="group" aria-label="Zoom" data-depth="2" hidden><button class="c br" type="button" data-name="Fit" data-z="1"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="lbl">Fit</span></button><button class="c br" type="button" data-name="2×" data-z="2"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M10.5 8v5M8 10.5h5"/></svg><span class="lbl">2×</span></button><button class="c br" type="button" data-name="4×" data-z="4"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M8 9h5M8 12h5M10.5 7v3.5M10.5 10.5v3.5"/></svg><span class="lbl">4×</span></button></div>
+      <div class="sheet">
+        <div class="canvas" id="canvas" tabindex="0" role="img" aria-label="Blueprint">
+          <svg class="dwg-bg" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+          <svg class="crop" aria-hidden="true"></svg>
+          <span class="zread" id="zread">Fit</span>
+        </div>
+        <aside class="tblock" aria-label="Title block">
+          <div><small>Building</small><b id="tb-name">Haneul House</b><span id="tb-place">Mapo-gu, Seoul</span></div>
+          <div><small>Drawing</small><b id="tb-title">Ground floor plan</b></div>
+          <div class="tb-2"><div><small>Scale</small><span id="tb-scale">1:100</span></div><div><small>Revision</small><span id="tb-rev">C</span></div></div>
+          <div class="tb-dl"><small>Downloaded</small><ol id="tray"><li class="none">Nothing yet</li></ol></div>
+          <div class="tb-no"><small>Sheet</small><b id="tb-no">A-101</b></div>
+        </aside>
+        <div class="plot" aria-hidden="true"></div>
+      </div>
       <div class="grp-wrap">
-        <small id="g-cap">Show work in</small>
+        <small id="g-cap">View</small>
         <div class="grp" role="radiogroup" aria-labelledby="g-cap">
           <span class="gring" aria-hidden="true"></span>
-          <button class="r" type="button" role="radio" aria-checked="true" data-name="Motion"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M10 9v6l5-3z" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Motion</span></button>
-          <button class="r" type="button" role="radio" aria-checked="false" data-name="Type"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13"/></svg><span class="lbl">Type</span></button>
-          <button class="r" type="button" role="radio" aria-checked="false" data-name="3D" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19.5 8v8L12 20.5 4.5 16V8zM4.5 8 12 12.5 19.5 8M12 12.5v8"/></svg><span class="lbl">3D</span></button>
+          <button class="r" type="button" role="radio" aria-checked="true" data-name="Plan"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM12 4v6M12 14v6M4 12h5"/></svg><span class="lbl">Plan</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Section"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 20v-9l6-5 6 5v9M6 14.5h12"/></svg><span class="lbl">Section</span></button>
+          <button class="r" type="button" role="radio" aria-checked="false" data-name="Elevation" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 20v-9l6-5 6 5v9M9 13h2v3H9zM13 13h2v3h-2z"/></svg><span class="lbl">Elevation</span></button>
         </div>
       </div>
       <p class="hint" aria-live="polite" id="said"></p>
@@ -245,15 +313,15 @@
 
   <section class="states" aria-labelledby="states-title">
     <h2 id="states-title">Every state</h2>
-    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Contact me&rsquo;s two lines closed into one, Portfolio&rsquo;s pen line drawn all the way round, R&eacute;sum&eacute;&rsquo;s brackets closed. Pressed thickens or pulls in the line. Turned off, every line drops to a faint trace (Portfolio&rsquo;s to a dotted one). Then the depth: each button closed, opened, and one level deeper.</p>
+    <p>Each level in each configuration, at rest, pointed at, pressed and turned off. Hover is drawn as it ends: Download&rsquo;s two lines closed into one, Blueprints&rsquo; pen line drawn all the way round, Zoom&rsquo;s crop marks closed. Pressed thickens or pulls in the line. Turned off, every line drops to a faint trace (Blueprints&rsquo; to a dotted one). Then the depth: each button closed, opened, and one level deeper.</p>
     <div class="tbl"><table>
       <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
       <tbody id="state-rows"></tbody>
     </table></div>
     <div class="tbl" style="margin-top:26px"><table><thead><tr><th>Depth</th><th>Step 1 &middot; closed</th><th>Step 2 &middot; opened</th><th>Step 3 &middot; one level deeper</th></tr></thead><tbody>
-      <tr><td>Primary &middot; Contact me<small>Email, Call, Message; Email opens Copy address and Open Mail</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Contact me closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct2" title="Contact me opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct3" title="Email opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
-      <tr><td>Secondary &middot; Portfolio<small>Case studies, Experiments, Archive; each opens its project titles</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Portfolio closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf2" title="Portfolio opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf3" title="Case studies opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
-      <tr><td>Tertiary &middot; R&eacute;sum&eacute;<small>View online and Download PDF</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Résumé closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=rs2" title="Résumé opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr>
+      <tr><td>Primary &middot; Download<small>PDF, DWG, Print set; PDF opens A1 full size and A3 reduced</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Download closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct2" title="Download opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=ct3" title="PDF opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
+      <tr><td>Secondary &middot; Blueprints<small>Haneul House, Mapo Library, Riverside Tower; each opens its floors</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Blueprints closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf2" title="Blueprints opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=pf3" title="Haneul House opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td></tr>
+      <tr><td>Tertiary &middot; Zoom<small>Fit, 2&times; and 4&times;</small></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=base" title="Zoom closed" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox"><iframe data-src="week-08-line-button.html?shot=rs2" title="Zoom opened" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></td><td><div class="shotbox none">&mdash;</div></td></tr>
     </tbody></table></div>
   </section>
 
@@ -315,7 +383,7 @@
       };
       const row = (key, title, sub, content) => `<tr><td>${title}<small>${sub}</small></td>${['', 'hover', 'down', 'off'].map(st => cell(key, content, st)).join('')}</tr>`;
       let html = '';
-      [['ct', 'Primary', 'Contact me · two lines'], ['pf', 'Secondary', 'Portfolio · one line'], ['rs', 'Tertiary', 'Résumé · brackets']].forEach(([k, lvl, nm]) => contents.forEach(([c, cn]) => { html += row(k, `${lvl} · ${cn}`, nm, c); }));
+      [['ct', 'Primary', 'Download · two lines'], ['pf', 'Secondary', 'Blueprints · one line'], ['rs', 'Tertiary', 'Zoom · crop marks']].forEach(([k, lvl, nm]) => contents.forEach(([c, cn]) => { html += row(k, `${lvl} · ${cn}`, nm, c); }));
       contents.forEach(([c, cn]) => { html += row('r', `Group option · ${cn}`, 'not picked', c); });
       contents.forEach(([c, cn]) => { html += row('rp', `Group option · ${cn}`, 'picked', c); });
       rows.innerHTML = html;
@@ -344,7 +412,7 @@
       k.style.left = x + 'px'; k.style.top = (o.y + o.h + ms(depth === 2 ? '--k-drop' : '--k-drop-2')) + 'px';
     };
     // the ink: an option's outline drawn in from the top centre, both ways at once, until it closes at the
-    // bottom (two lines for Contact's options, one for Portfolio's, the third level's faint one); Résumé's
+    // bottom (two lines for Download's options, one for Blueprints', the third level's faint one); Zoom's
     // brackets instead grow out from the middle of each end. Only then do its icon and words come in.
     const SVGNS = 'http://www.w3.org/2000/svg';
     const inkPaths = c => {
@@ -415,7 +483,7 @@
         if (k.hidden) open(b, e.detail === 0); else { shut(k); said.textContent = `${b.dataset.name} closed`; }
         return;
       }
-      if (b.closest('.kids')) said.textContent = `${b.dataset.name}`;
+      if (b.closest('.kids')) act(b);
     });
     addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
@@ -432,7 +500,194 @@
       if (animate && !P.calm.matches) gring.animate([{ transform: gring.style.transform || `translateX(${to.x}px)`, width: gring.style.width || to.w + 'px' }, { transform: `translateX(${to.x}px)`, width: to.w + 'px' }], { duration: ms('--slide'), easing: SHARP });
       gring.style.transform = `translateX(${to.x}px)`; gring.style.width = to.w + 'px';
     };
-    grp.addEventListener('pick', e => { ringTo(e.detail.to, true); said.textContent = `Showing ${e.detail.to.dataset.name}`; });
+    // ---- the archive ------------------------------------------------------------------------------------------
+    // Each building is drawn from a few numbers, in three weights: w heavy cut walls, m edges, t thin notes, d centre lines
+    const BUILDINGS = {
+      haneul: { name: 'Haneul House', place: 'Mapo-gu, Seoul', code: 'HH', w: 720, d: 400, levels: 2, roof: 'gable', bays: 3, rev: 'C', scale: '1:100', mm: 10, rooms: ['LIVING', 'KITCHEN', 'STUDY'], floors: ['Ground floor', 'First floor'], lv: [0, 1] },
+      library: { name: 'Mapo Library', place: 'Mangwon-dong, Seoul', code: 'ML', w: 880, d: 380, levels: 3, roof: 'flat', bays: 5, rev: 'F', scale: '1:200', mm: 20, rooms: ['LOBBY', 'STACKS', 'READING', 'STACKS', 'OFFICE'], floors: ['Ground floor', 'Reading room', 'Roof terrace'], lv: [0, 1, 2] },
+      tower: { name: 'Riverside Tower', place: 'Yeouido, Seoul', code: 'RT', w: 440, d: 440, levels: 12, roof: 'flat', bays: 4, rev: 'B', scale: '1:500', mm: 50, rooms: [], core: true, floors: ['Lobby', 'Typical floor', 'Sky lounge'], lv: [0, 5, 11] },
+    };
+    const st = { b: 'haneul', f: 0, view: 'Plan', zoom: 1 };
+    const B = () => BUILDINGS[st.b], CY = 330, GL = 520, LETTERS = 'ABCDEFG';
+    const n = v => Math.round(v * 10) / 10, mm = v => (Math.round(v * B().mm / 100) * 100).toLocaleString('en').replace(',', ' ');
+    const plan = (b, f) => {
+      const x0 = 600 - b.w / 2, y0 = CY - b.d / 2, x1 = x0 + b.w, y1 = y0 + b.d, bw = b.w / b.bays;
+      let W = `M570 ${y1}H${x0}V${y0}H${x1}V${y1}H630`, M = '', T = `M570 ${y1}V${y1 - 60}A60 60 0 0 1 630 ${y1}`, D = '', X = '';
+      for (let i = 1; i < b.bays; i++) {
+        const x = n(x0 + bw * i);
+        if (b.core) continue;
+        const gy = n((i + f) % 2 ? y0 + b.d * .3 : y0 + b.d * .68);
+        W += `M${x} ${y0}V${gy - 28}M${x} ${gy + 28}V${y1}`;
+        T += `M${x} ${gy - 28}h50A56 56 0 0 1 ${x} ${gy + 28}`;
+      }
+      if (f % 2 && !b.core) W += `M${x0} ${n(y0 + b.d * .52)}H${n(x0 + bw * .7)}`;
+      for (let i = 0; i < b.bays; i++) {
+        const cx = x0 + bw * (i + .5), ww = bw * .46;
+        M += `M${n(cx - ww / 2)} ${y0 - 5}h${n(ww)}M${n(cx - ww / 2)} ${y0 + 5}h${n(ww)}`;
+        if (Math.abs(cx - 600) > ww / 2 + 50) M += `M${n(cx - ww / 2)} ${y1 - 5}h${n(ww)}M${n(cx - ww / 2)} ${y1 + 5}h${n(ww)}`;
+      }
+      if (b.core) {
+        const c = 70;
+        W += `M${600 - c} ${CY - c}H${600 + c}V${CY + c}H${600 - c}z`;
+        M += `M600 ${CY - c}V${CY + c}`;
+        T += `M${600 - c} ${CY - c}L600 ${CY + c}M600 ${CY - c}L${600 - c} ${CY + c}`;
+        for (let y = CY - c + 14; y < CY + c; y += 14) T += `M600 ${y}h${c}`;
+      } else {
+        const sw = Math.min(bw * .45, 90), sx = x1 - bw / 2 - sw / 2, sy = y0 + b.d * .4, sh = b.d * .5;
+        M += `M${n(sx)} ${n(sy)}h${n(sw)}v${n(sh)}h${n(-sw)}z`;
+        for (let y = sy + 16; y < sy + sh; y += 16) T += `M${n(sx)} ${n(y)}h${n(sw)}`;
+        T += `M${n(sx + sw / 2)} ${n(sy + sh - 6)}V${n(sy + 10)}M${n(sx + sw / 2 - 5)} ${n(sy + 20)}l5-10 5 10`;
+      }
+      // grid lines and bubbles, and the overall dimensions
+      for (let i = 0; i <= b.bays; i++) {
+        const x = n(x0 + bw * i);
+        D += `M${x} ${y0 - 34}V${y1 + 24}`;
+        X += `<circle class="t" cx="${x}" cy="${y0 - 48}" r="13"/><text class="c" x="${x}" y="${y0 - 48}">${LETTERS[i]}</text>`;
+        T += `M${x} ${y1 + 32}v20M${x - 6} ${y1 + 48}l12-12`;
+        if (i < b.bays) X += `<text class="c" x="${n(x + bw / 2)}" y="${y1 + 34}">${mm(bw)}</text>`;
+        if (b.rooms[i]) X += `<text x="${n(x + 14)}" y="${y0 + 26}">${b.rooms[i]}</text>`;
+      }
+      T += `M${x0} ${y1 + 42}H${x1}`;
+      return `<path class="w" d="${W}"/><path class="m" d="${M}"/><path class="t" d="${T}"/><path class="d" d="${D}"/>${X}`;
+    };
+    const levels = b => { const fh = Math.min(120, 330 / b.levels); return { fh, top: GL - fh * b.levels, x0: 600 - b.w / 2, x1: 600 + b.w / 2 }; };
+    const roof = (b, L) => b.roof === 'gable' ? `M${L.x0 - 28} ${n(L.top + 12)}L600 ${n(L.top - 100)}L${L.x1 + 28} ${n(L.top + 12)}` : `M${L.x0 - 6} ${n(L.top - 14)}H${L.x1 + 6}`;
+    const hl = (b, f, L) => { const l = b.lv[f]; return `<rect class="hl" x="${L.x0}" y="${n(GL - L.fh * (l + 1))}" width="${b.w}" height="${n(L.fh)}"/>`; };
+    const section = (b, f) => {
+      const L = levels(b);
+      let W = `M80 ${GL}H1120M${L.x0} ${GL}V${n(L.top)}M${L.x1} ${GL}V${n(L.top)}`, M = '', T = '', X = '';
+      for (let l = 1; l <= b.levels; l++) W += `M${L.x0} ${n(GL - L.fh * l)}H${L.x1}`;
+      W += roof(b, L);
+      M += `M${n(L.x0 + b.w * .42)} ${GL}V${n(L.top)}`;
+      for (let x = 92; x < 1120; x += 22) T += `M${x} ${GL + 4}l-16 26`;
+      const step = b.levels > 6 ? 3 : 1;
+      for (let l = 0; l <= b.levels; l += step) {
+        const y = n(GL - L.fh * l);
+        T += `M${L.x1 + 30} ${y}h120M${L.x1 + 60} ${y}l-7-11h14z`;
+        X += `<text x="${L.x1 + 76}" y="${y - 6}">${l ? '+' + (l * 3.6).toFixed(1) : '±0.0'}</text>`;
+      }
+      return `${hl(b, f, L)}<path class="w" d="${W}"/><path class="m" d="${M}"/><path class="t" d="${T}"/>${X}`;
+    };
+    const elev = (b, f) => {
+      const L = levels(b), bw = b.w / b.bays;
+      let W = `M80 ${GL}H1120`, M = `M${L.x0} ${GL}V${n(L.top)}H${L.x1}V${GL}` + roof(b, L), T = `M575 ${GL}v${n(-L.fh * .72)}h50v${n(L.fh * .72)}`, X = '';
+      for (let l = 0; l < b.levels; l++) for (let i = 0; i < b.bays; i++) {
+        const ww = bw * .5, wh = L.fh * .5, wx = L.x0 + bw * (i + .5) - ww / 2, wy = GL - L.fh * (l + 1) + L.fh * .22;
+        if (l === 0 && Math.abs(wx + ww / 2 - 600) < ww / 2 + 30) continue;
+        T += `M${n(wx)} ${n(wy)}h${n(ww)}v${n(wh)}h${n(-ww)}z`;
+        if (L.fh > 60) T += `M${n(wx + ww / 2)} ${n(wy)}v${n(wh)}`;
+      }
+      X += `<text x="${L.x1 + 30}" y="${GL - 6}">GL</text>`;
+      return `${hl(b, f, L)}<path class="w" d="${W}"/><path class="m" d="${M}"/><path class="t" d="${T}"/>${X}`;
+    };
+    const DRAW = { Plan: plan, Section: section, Elevation: elev };
+    const sheetNo = () => st.view === 'Plan' ? `A-1${String(st.f + 1).padStart(2, '0')}` : st.view === 'Section' ? 'A-301' : 'A-201';
+    const title = () => st.view === 'Plan' ? `${B().floors[st.f]} plan` : st.view === 'Section' ? `Section A–A · ${B().floors[st.f]}` : `South elevation · ${B().floors[st.f]}`;
+
+    const canvas = q('#canvas'), bg = q('.dwg-bg'), crop = q('.crop'), zread = q('#zread'), tray = q('#tray'), plot = q('.plot');
+    const tb = id => q('#tb-' + id);
+    // the viewBox keeps the canvas's own shape, so drawing units map to screen pixels by one factor
+    let FIT, V;
+    const setVB = v => { V = v; bg.setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); bg.style.setProperty('--z', FIT.w / v.w); };
+    const clampVB = v => ({ ...v, x: Math.min(Math.max(v.x, FIT.x), FIT.x + FIT.w - v.w), y: Math.min(Math.max(v.y, FIT.y), FIT.y + FIT.h - v.h) });
+    const focus = () => st.view === 'Plan' ? { x: 600, y: CY + B().d / 2 - 30 } : { x: 600, y: GL - levels(B()).fh * (B().lv[st.f] + .5) };
+    const zoomRect = z => { const w = FIT.w / z, h = FIT.h / z, f = focus(); return clampVB({ x: f.x - w / 2, y: f.y - h / 2, w, h }); };
+    const fitCanvas = () => {
+      const W = canvas.clientWidth, H = canvas.clientHeight; if (!W || !H) return;
+      const C = { x: 60, y: 20, w: 1080, h: 600 }, s = Math.min(W / C.w, H / C.h);
+      FIT = { x: C.x + (C.w - W / s) / 2, y: C.y + (C.h - H / s) / 2, w: W / s, h: H / s };
+      setVB(zoomRect(st.zoom));
+      canvas.classList.toggle('can-pan', st.zoom > 1);
+    };
+    const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, w: a.w + (b.w - a.w) * t, h: a.h + (b.h - a.h) * t });
+    // a rect in drawing units, as it sits on screen under the view v
+    const onScreen = (r, v) => { const k = canvas.clientWidth / v.w; return { x: (r.x - v.x) * k, y: (r.y - v.y) * k, w: r.w * k, h: r.h * k }; };
+    const corners = ({ x, y, w, h }) => { const a = 18; return [`M${x} ${y + a}V${y}H${x + a}`, `M${x + w - a} ${y}H${x + w}V${y + a}`, `M${x + w} ${y + h - a}V${y + h}H${x + w - a}`, `M${x + a} ${y + h}H${x}V${y + h - a}`]; };
+
+    const render = draw => {
+      const b = B();
+      bg.innerHTML = `<g class="dwg">${DRAW[st.view](b, st.f)}</g>`;
+      bg.querySelectorAll('path:not(.d), circle').forEach(el => el.setAttribute('pathLength', '1'));
+      tb('name').textContent = b.name; tb('place').textContent = b.place; tb('title').textContent = title();
+      tb('scale').textContent = b.scale; tb('rev').textContent = b.rev; tb('no').textContent = sheetNo();
+      canvas.setAttribute('aria-label', `${b.name}, ${title()}, sheet ${sheetNo()}${st.zoom > 1 ? `, zoomed ${st.zoom * 100}%: drag or use the arrow keys to move` : ''}`);
+      scene.querySelectorAll('.c.sm[data-b]').forEach(c => { const on = c.dataset.b === st.b && +c.dataset.f === st.f; c.classList.toggle('cur', on); c.toggleAttribute('aria-current', on); });
+      if (!draw || P.calm.matches) return;
+      // the sheet is drawn the way a drafter works: heavy walls first, then edges, then the notes
+      const order = { w: 0, m: 1, t: 2 };
+      bg.querySelectorAll('path:not(.d), circle').forEach(el => el.animate([{ strokeDasharray: '0 1' }, { strokeDasharray: '1 0' }],
+        { duration: 760, delay: (order[el.getAttribute('class')] ?? 2) * 300, easing: 'cubic-bezier(.45, 0, .2, 1)', fill: 'backwards' }));
+      bg.querySelectorAll('.d, .hl, text').forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: 820, fill: 'backwards' }));
+      q('.tblock').querySelectorAll('b, span').forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: i * 30, easing: SHARP, fill: 'backwards' }));
+    };
+
+    // Zoom: the crop marks first frame the part of the sheet the zoom will fill, then open out with it to the edges;
+    // zooming back out, they close in on where the old view now sits
+    let zooming = 0;
+    const zoomTo = z => {
+      const from = V, to = zoomRect(z), id = ++zooming;
+      st.zoom = z; zread.textContent = z === 1 ? 'Fit' : `${z * 100}%`;
+      canvas.classList.toggle('can-pan', z > 1); render(false);
+      if (P.calm.matches) { setVB(to); return; }
+      const full = { x: 1, y: 1, w: canvas.clientWidth - 2, h: canvas.clientHeight - 2 };
+      const inward = to.w < from.w;
+      const r0 = inward ? onScreen(to, from) : full, r1 = inward ? full : onScreen(from, to);
+      crop.innerHTML = corners(r0).map(d => `<path d="${d}" pathLength="1"/>`).join('');
+      const ps = [...crop.children];
+      ps.forEach(pth => pth.animate([{ strokeDasharray: '0 1' }, { strokeDasharray: '1 0' }], { duration: 260, easing: 'ease-out', fill: 'backwards' }));
+      const t0 = performance.now() + 300, dur = 680;
+      const tick = now => {
+        if (id !== zooming) return;
+        const t = Math.min(1, Math.max(0, (now - t0) / dur)), e = ease(t);
+        if (now >= t0) { setVB(lerp(from, to, e)); const c = corners(lerp(r0, r1, e)); ps.forEach((pth, i) => pth.setAttribute('d', c[i])); }
+        if (t < 1) requestAnimationFrame(tick);
+        else crop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: 120, fill: 'forwards' }).finished.then(() => { if (id === zooming) { crop.innerHTML = ''; crop.getAnimations().forEach(a => a.cancel()); } });
+      };
+      crop.getAnimations().forEach(a => a.cancel());
+      requestAnimationFrame(tick);
+    };
+    // when zoomed in, the sheet can be moved: drag it, or the arrow keys with the sheet focused
+    let drag = null;
+    canvas.addEventListener('pointerdown', e => { if (st.zoom === 1) return; canvas.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, v: V }; canvas.classList.add('panning'); });
+    canvas.addEventListener('pointermove', e => { if (!drag) return; const k = V.w / canvas.clientWidth; setVB(clampVB({ ...drag.v, x: drag.v.x - (e.clientX - drag.x) * k, y: drag.v.y - (e.clientY - drag.y) * k })); });
+    const endDrag = () => { drag = null; canvas.classList.remove('panning'); };
+    canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('keydown', e => {
+      const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+      if (!d || st.zoom === 1) return; e.preventDefault();
+      const k = 60 * V.w / canvas.clientWidth; setVB(clampVB({ ...V, x: V.x + d[0] * k, y: V.y + d[1] * k }));
+    });
+
+    // Download: the plotter line runs down the sheet, then the file is listed in the title strip
+    const FILES = { a1: ['pdf', 'A1 · 2.4 MB'], a3: ['pdf', 'A3 · 0.8 MB'], dwg: ['dwg', 'AutoCAD 2018 · 1.1 MB'], set: ['pdf', 'sheets · 14 MB'] };
+    const download = kind => {
+      const b = B(), [ext, meta] = FILES[kind];
+      const name = kind === 'set' ? `${b.code}_set_Rev${b.rev}.pdf` : `${b.code}_${sheetNo()}_Rev${b.rev}.${ext}`;
+      const info = kind === 'set' ? `${b.floors.length + 2} ${meta}` : meta;
+      openKids().filter(k => k.dataset.depth === '2').forEach(k => shut(k));
+      const list = () => {
+        tray.querySelector('.none')?.remove();
+        const li = document.createElement('li'); li.innerHTML = `${name}<i>${info}</i>`; tray.prepend(li);
+        [...tray.children].slice(4).forEach(x => x.remove());
+        if (!P.calm.matches) { li.animate([{ opacity: 0, transform: 'translateX(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: SHARP }); }
+        said.textContent = `Downloaded ${name}`;
+      };
+      if (P.calm.matches) { list(); return; }
+      const h = q('.sheet').clientHeight;
+      plot.animate([{ opacity: 0, transform: 'translateY(0)' }, { opacity: 1, offset: .08 }, { opacity: 1, offset: .92 }, { opacity: 0, transform: `translateY(${h - 2}px)` }], { duration: 1100, easing: 'cubic-bezier(.4, 0, .6, 1)' }).finished.then(list);
+    };
+    const act = b => {
+      if (b.dataset.f != null) {
+        st.b = b.dataset.b; st.f = +b.dataset.f; st.zoom = 1; zread.textContent = 'Fit'; fitCanvas(); render(true);
+        said.textContent = `${B().name}, ${title()}`;
+      } else if (b.dataset.z) zoomTo(+b.dataset.z);
+      else if (b.dataset.dl) download(b.dataset.dl);
+      else said.textContent = b.dataset.name;
+    };
+    fitCanvas(); render(false);
+    new ResizeObserver(() => fitCanvas()).observe(canvas);
+    grp.addEventListener('pick', e => { ringTo(e.detail.to, true); st.view = e.detail.to.dataset.name; st.zoom = 1; zread.textContent = 'Fit'; fitCanvas(); render(true); said.textContent = `Showing ${title()}`; });
     const picked = () => grp.querySelector('[aria-checked="true"]');
     // a content switch animates button widths for 520ms (proto); follow them, then settle on the end size
     P.onContent(() => { requestAnimationFrame(relayout); setTimeout(() => { ringTo(picked(), true); relayout(); }, 540); });
@@ -447,7 +702,7 @@
       document.body.classList.add(qd.get('shot') ? 'shot' : 'still');
       Object.defineProperty(P, 'calm', { value: { matches: true } });
       const go = () => {
-        const steps = { ct2: ['.ct'], ct3: ['.ct', '[data-opens="k-email"]'], pf2: ['.pf'], pf3: ['.pf', '[data-opens="k-case"]'], rs2: ['.rs'] }[shot] || [];
+        const steps = { ct2: ['.ct'], ct3: ['.ct', '[data-opens="k-pdf"]'], pf2: ['.pf'], pf3: ['.pf', '[data-opens="k-b-haneul"]'], rs2: ['.rs'] }[shot] || [];
         steps.forEach(s => open(q(s), false));
         if (shot === 'hover') ['.ct', '.pf', '.rs'].forEach(s => q(s).classList.add('st-hover'));
       };
@@ -461,23 +716,24 @@
       const live = document.querySelector('[data-live]'), sz = s => { const b = live.querySelector(s); return `${Math.round(b.offsetWidth)} × ${Math.round(b.offsetHeight)}px`; };
       const sw = c => `<i style="background:${c}"></i>${c}`;
       const cards = [
-        ['Colour', [['Page', sw(tok('--page'))], ['Line and words', sw(tok('--cream'))], ['Faint line', sw(tok('--faint'))], ['Quiet words', sw(tok('--dim'))], ['Off', sw(tok('--off'))],
-          ['Rule', 'no fills anywhere: emphasis is the amount of line, not a colour']]],
+        ['Colour', [['Page', sw(tok('--page'))], ['Sheet', sw(tok('--paper'))], ['Line and words', sw(tok('--cream'))], ['Faint line', sw(tok('--faint'))], ['Quiet words', sw(tok('--dim'))], ['Off', sw(tok('--off'))],
+          ['Rule', 'no fills anywhere: emphasis is the amount of line, as on a drawing, not a colour']]],
         ['Type', [['Family', 'Inter Tight'], ['Buttons', '18 / 400'], ['Group', '16 / 400'], ['Options', '15 / 400, third level 14']]],
         ['Line', [['Weight', `${tok('--line')}, pressed ${tok('--line-down')}`], ['Caps', 'round'], ['Corners', 'every button is a pill: half its height']]],
-        ['Primary · Contact me', [['Size', sz('.ct')], ['Lines', `two: the edge, and one ${tok('--p-in')} inside it`],
+        ['Primary · Download', [['Size', sz('.ct')], ['Lines', `two: the edge, and one ${tok('--p-in')} inside it`],
           ['Hover', `the inner line moves out onto the edge (${tok('--close-in')}): one heavy line; the icon steps 2px right`],
           ['Pressed', `the inner line pulls in to ${tok('--p-in-down')}; the button scales to ${tok('--press-scale')}`], ['Open', 'stays closed into one line'], ['Off', 'both lines faint']]],
-        ['Secondary · Portfolio', [['Size', sz('.pf')], ['Line', 'one, faint at rest'],
+        ['Secondary · Blueprints', [['Size', sz('.pf')], ['Line', 'one, faint at rest'],
           ['Hover', `a bright line is drawn round it clockwise from the top left (${tok('--draw')}); leaving, it is taken back in about half the time`],
           ['Pressed', `the line thickens to ${tok('--line-down')}`], ['Open', 'stays drawn'], ['Off', 'a faint dotted line']]],
-        ['Tertiary · Résumé', [['Size', sz('.rs')], ['Line', `only the two ends, like brackets, reaching ${tok('--t-reach')} onto the edges`],
-          ['Hover', `both brackets reach along the top and bottom edges and meet in the middle (${tok('--reach')}); the arrow flies out and comes back`],
-          ['Pressed', `closed, ${tok('--line-down')}`], ['Open', 'closed; the arrow turns to point down at what opened'], ['Off', 'faint brackets']]],
-        ['Group · Show work in', [['Option', `${tok('--g-h')} high, ${tok('--g-gap')} apart, in a faint frame`],
-          ['Picked', `one bright outline slides to it (${tok('--slide')}); its words go cream`], ['Hover', 'a faint outline of its own'], ['Keys', 'one tab stop; arrows move the pick']]],
-        ['Depth', [['Levels', 'Contact me and Portfolio open two rows deep (3 levels); Résumé opens one (2 levels)'],
-          ['Options', `${tok('--k-drop')} under the button; each one's outline is drawn in from its top centre both ways round until it closes (${tok('--ink')}; Résumé's brackets are drawn from their ends, the left from the top, the right from the bottom), then its icon and words rise in; ${tok('--stagger')} apart, wearing its parent's line: two lines, a pen line, brackets`],
+        ['Tertiary · Zoom', [['Size', sz('.rs')], ['Line', `only the two ends, like crop marks, reaching ${tok('--t-reach')} onto the edges`],
+          ['Hover', `both crop marks reach along the top and bottom edges and meet in the middle (${tok('--reach')}); the lens swells and settles`],
+          ['Pressed', `closed, ${tok('--line-down')}`], ['Open', 'closed; the lens stays a little larger'], ['Off', 'faint crop marks']]],
+        ['Group · View', [['Option', `${tok('--g-h')} high, ${tok('--g-gap')} apart, in a faint frame`],
+          ['Picked', `one bright outline slides to it (${tok('--slide')}); its words go cream`], ['Hover', 'a faint outline of its own'], ['Keys', 'one tab stop; arrows move the pick'], ['Sheet', 'the sheet redraws in the order a drafter works: heavy walls first, then edges, then notes']]],
+        ['The archive', [['Paper', `blueprint navy ${tok('--page')}, sheet ${tok('--paper')}, a 24px grid with a heavier line every 120px`], ['Blueprints', 'a floor redraws the sheet and marks itself as the current one'], ['Zoom', `crop marks frame what will fill the sheet, then open out with it (${tok('--reach')} to draw, 680ms to fill); line weights stay the same on screen at every zoom; drag or arrow keys to move`], ['Download', 'a plotter line runs down the sheet (1.1s), then the file is listed in the title strip, newest first']]],
+        ['Depth', [['Levels', 'Download and Blueprints open two rows deep (3 levels); Zoom opens one (2 levels)'],
+          ['Options', `${tok('--k-drop')} under the button; each one's outline is drawn in from its top centre both ways round until it closes (${tok('--ink')}; Zoom's crop marks are drawn from their ends, the left from the top, the right from the bottom), then its icon and words rise in; ${tok('--stagger')} apart, wearing its parent's line: two lines, a pen line, crop marks`],
           ['Closing', `pressing the button again, Escape or a press outside: each option's words go and its line is taken back to the top centre (${tok('--shut')})`],
           ['Keys', 'Enter opens and moves focus to the first option; Escape closes the deepest row and returns focus']]],
         ['Motion', [['Ease', `${tok('--glide')} for lines, ${tok('--sharp')} for moves`], ['Pointer', 'nothing tracks the pointer: buttons answer on enter, press and leave only'], ['Reduced motion', 'lines and options appear in their end state']]],
