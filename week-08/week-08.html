@@ -116,7 +116,7 @@
 
       <h2>Deliverables</h2>
 
-      <p>Two sets of buttons: Line, precise, and Week, electric. Each set is one prototype: the buttons in use, at three levels of emphasis, switching between icon and text, text and icon, with a single-select button group; pressed, each button opens more to press, two or three levels deep; then every configuration laid out in enabled, hover, pressed and disabled, the depth step by step, and the spec.</p>
+      <p>Three sets of buttons: Line, precise, Week, electric, and Make, soft. Line and Week are each one prototype: the buttons in use, at three levels of emphasis, switching between icon and text, text and icon, with a single-select button group; pressed, each button opens more to press, two or three levels deep; then every configuration laid out in enabled, hover, pressed and disabled, the depth step by step, and the spec. Make is smaller: a button you shape yourself, then see at three levels of emphasis in every state.</p>
 
       <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
            file name (week-08-TONE-button.html, images/process/TONE-button-N.png).
@@ -245,6 +245,32 @@
               <p class="process-label">11 &middot; Now</p>
               <div class="process-grid"><figure><img src="images/process/week-button-0.png?v=13" alt="The week at rest" loading="lazy" /><figcaption>The week, Sunday picked; the dots are gone.</figcaption></figure><figure><img src="images/process/week-button-1.png?v=13" alt="Monday open with the forecast showing" loading="lazy" /><figcaption>The sun turns round its own centre.</figcaption></figure><figure><img src="images/process/week-button-3.png?v=13" alt="A set opened to its link" loading="lazy" /><figcaption>Sets are lit panels; the chevrons run like an escalator; the star stands alone.</figcaption></figure></div>
               <p class="process-why">Small fixes from use: the date dots and the star&rsquo;s frame went, a readable Opening&hellip; state on the ticket, light in the rows.</p>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-3">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-3">
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/make-button-0.png?v=3" alt="" loading="lazy" /><img src="images/process/make-button-1.png?v=3" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 3</span><span class="set-name">Make</span><span class="set-line">Soft. A button you make yourself: push and pull the glass like clay, type its label, and it becomes a button of frosted glass with a blue light inside.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-3" aria-labelledby="dlg-3-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 3</span><span class="set-name" id="dlg-3-title">Make</span></span>
+              <button type="button" class="set-close" aria-label="Close set 3"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1200/800" src="week-08-make-button.html?v=3" title="Make: shape a button like clay, type its label, and make it a working button; then every state and the spec" loading="lazy"></iframe>
+                  <figcaption>
+                    <b>Make it, then every state</b>
+                    <span>A button you make yourself. It starts as a rectangle of frosted glass with a blue light inside, soft as clay: press anywhere and pull, and the glass near your hand stretches or dents; let go and it keeps the shape. Type its label. Then make it a button, and it answers like one: pointed at, the light rises; held, it sinks; turned off, it goes out. Emphasis is how much light the glass holds. Below: your button in every state, and the spec.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-08-make-button.html?v=3">View larger</button>
+                  </figcaption>
+                </figure>
+              </div>
             </div>
           </dialog>
         </div>

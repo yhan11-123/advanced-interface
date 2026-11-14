@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 08 &middot; Set 3 &middot; Make</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <style>
+  /* Week 08, Set 3 · Make. Tone: Soft.
+     A button you make yourself. It starts as a plain rectangle of frosted glass with a blue light inside.
+     Push and pull it anywhere, like clay, and the glass near your hand follows; type a label into it; then make it a button, and it answers like one: pointed at, the light inside rises and grows;
+     held, it sinks and the glass presses in; turned off, the light goes out.
+     Emphasis is how much light the glass holds:
+       Primary    frosted white glass, a full blue light blooming from the top, dark ink
+       Secondary  clear glass, a faint light, white ink
+       Tertiary   only the glass's edge, blue ink; pointed at, a little light comes in
+     Every number in the Spec section is read from these tokens. */
+  :root {
+    --page: #0d0f12; --panel: #14171c; --rule: rgba(255,255,255,.07); --ink: #eef3fb; --dim: #8b94a4;
+    --blue: #2f74ee; --blue-2: #4d8ff5; --blue-3: #9cc0fa; --frost-1: #eef4fe; --frost-2: #d6e4fb; --deep: #1b3a66; --pale: #dce8ff; --link: #8fb8ff;
+    --font: "Inter", -apple-system, system-ui, sans-serif;
+    --bloom-blur: 11; --rim: 6;
+    --rise: 420ms; --press: 120ms; --settle: 560ms; --sweep: 900ms; --morph: 420ms;
+    --soft: cubic-bezier(.22, 1, .36, 1);
+    --spring: linear(0, .009, .035 2.1%, .141 4.4%, .723 12.9%, .938 16.7%, 1.017 19.4%, 1.067, 1.077 24.4%, 1.071 26.3%, 1.017 33.4%, .996 37.6%, .994 41.4%, 1);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--page); }
+  body { margin: 0; color: var(--ink); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+  button:focus-visible, .h:focus-visible { outline: 2px solid var(--link); outline-offset: 4px; }
+
+  /* ---- the glass ------------------------------------------------------------------------------------------- */
+  .mb { position: absolute; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0; color: var(--deep);
+    font-size: 18px; font-weight: 500; letter-spacing: -.01em; transition: scale var(--press) ease-out, color .3s; }
+  .mb .skin { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .mb .lbl, .mb .ic { position: relative; z-index: 1; }
+  .mb .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-content="text"] .mb .ic { display: none; }
+  [data-content="icon"] .mb .lbl { display: none; }
+  .skin .bloom, .skin .glow, .skin .rim, .skin .base { transition: opacity var(--rise) var(--soft), transform var(--rise) var(--soft); transform-box: fill-box; transform-origin: 50% 40%; }
+  .skin .edge { fill: none; stroke: rgba(255,255,255,.62); stroke-width: 1; transition: stroke .3s; }
+  .skin .rim { fill: none; stroke: #fff; stroke-width: var(--rim); opacity: .9; }
+  .skin .sheen { opacity: 0; }
+  /* pointed at, the light rises and grows; held, it sinks and the glass presses in */
+  .mb:is(:hover, :focus-visible, .st-hover):not(:disabled) .bloom { transform: scale(1.16) translateY(-4%); }
+  .mb:is(:hover, :focus-visible, .st-hover):not(:disabled) .glow { opacity: 1; transform: scale(1.1); }
+  .mb:is(.is-down, .st-down):not(:disabled) { scale: .965; }
+  .mb:is(.is-down, .st-down):not(:disabled) .bloom { transform: scale(.86) translateY(6%); opacity: .82; transition-duration: var(--press); }
+  .mb:is(.is-down, .st-down):not(:disabled) .rim { opacity: .55; transition-duration: var(--press); }
+  .mb.is-up { transition: scale var(--settle) var(--spring); }
+  /* emphasis: how much light the glass holds */
+  .mb.e-secondary { color: var(--pale); }
+  .mb.e-secondary .base { opacity: .1; }
+  .mb.e-secondary .bloom { opacity: .42; }
+  .mb.e-secondary .glow { opacity: .25; }
+  .mb.e-secondary .rim { opacity: .5; }
+  .mb.e-secondary:is(:hover, :focus-visible, .st-hover):not(:disabled) .bloom { opacity: .7; }
+  .mb.e-secondary:is(.is-down, .st-down):not(:disabled) .bloom { opacity: .3; }
+  .mb.e-tertiary { color: var(--link); }
+  .mb.e-tertiary :is(.base, .bloom, .glow) { opacity: 0; }
+  .mb.e-tertiary .rim { opacity: .28; }
+  .mb.e-tertiary .edge { stroke: rgba(255,255,255,.4); }
+  .mb.e-tertiary:is(:hover, :focus-visible, .st-hover):not(:disabled) .bloom { opacity: .3; }
+  .mb.e-tertiary:is(:hover, :focus-visible, .st-hover):not(:disabled) .edge { stroke: rgba(255,255,255,.7); }
+  .mb.e-tertiary:is(.is-down, .st-down):not(:disabled) .bloom { opacity: .18; }
+  .mb .glow { opacity: .85; }
+  /* turned off, the light goes out */
+  .mb:disabled { color: rgba(255,255,255,.3); cursor: not-allowed; }
+  .mb:disabled :is(.bloom, .glow) { opacity: 0; }
+  .mb:disabled .base { opacity: .06; }
+  .mb:disabled .rim { opacity: .14; }
+  .mb:disabled .edge { stroke: rgba(255,255,255,.2); }
+
+  /* ---- the maker ------------------------------------------------------------------------------------------- */
+  .hero { padding: 26px 32px 36px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .head p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.5; max-width: 56ch; }
+  .head b { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+  .ctl { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl fieldset { margin: 0; padding: 0; border: 0; }
+  .ctl legend { padding: 0 0 6px 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .ctl .opts { display: flex; padding: 3px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .ctl label { position: relative; }
+  .ctl input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .ctl span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--dim); }
+  .ctl input:checked + span { color: var(--ink); background: rgba(255,255,255,.08); }
+  .ctl input:focus-visible + span { outline: 2px solid var(--link); outline-offset: 1px; }
+
+  .scene { margin-top: 22px; display: grid; gap: 18px; }
+  .steps { display: flex; gap: 22px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--dim); }
+  .steps li { display: flex; align-items: center; gap: 8px; transition: color .3s; }
+  .steps i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-style: normal; font-size: 11px; font-weight: 600; box-shadow: inset 0 0 0 1px var(--rule); transition: background .3s, color .3s; }
+  .steps li.on { color: var(--ink); }
+  .steps li.on i { background: var(--ink); color: var(--page); }
+  .stage { position: relative; height: 340px; border-radius: 28px; background: radial-gradient(120% 90% at 50% 0%, #181c23 0%, var(--panel) 55%); box-shadow: inset 0 0 0 1px var(--rule); overflow: hidden; touch-action: none; }
+  .stage::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1.2px); background-size: 22px 22px; opacity: 0; transition: opacity .4s; pointer-events: none; }
+  .stage.editing::before { opacity: 1; }
+  .guide { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .guide path { fill: none; stroke: rgba(255,255,255,.28); stroke-width: 1; stroke-dasharray: 4 5; }
+  .guide line { stroke: rgba(143,184,255,.5); stroke-width: 1; }
+  .stage:not(.editing) .guide { opacity: 0; }
+  .editor { position: absolute; display: flex; align-items: center; justify-content: center; color: var(--deep); font-size: 18px; font-weight: 500; letter-spacing: -.01em; }
+  .editor .skin { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .editor .glow { opacity: .85; }
+  .editor.e-secondary { color: var(--pale); }
+  .editor.e-secondary .base { opacity: .1; } .editor.e-secondary .bloom { opacity: .42; } .editor.e-secondary .glow { opacity: .25; } .editor.e-secondary .rim { opacity: .5; }
+  .editor.e-tertiary { color: var(--link); }
+  .editor.e-tertiary :is(.base, .bloom, .glow) { opacity: 0; } .editor.e-tertiary .rim { opacity: .28; }
+  .type { position: relative; z-index: 2; min-width: 4ch; max-width: 100%; padding: 4px 8px; border-radius: 8px; outline: none; white-space: nowrap; overflow: hidden; cursor: text; text-align: center; }
+  .type:empty::before { content: attr(data-placeholder); color: currentColor; opacity: .45; }
+  .type:focus { box-shadow: 0 0 0 1px rgba(27,58,102,.25); }
+  .e-secondary .type:focus, .e-tertiary .type:focus { box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+  .stage:not(.editing) .editor { display: none; }
+  .stage.editing .mb { display: none; }
+  .stage.editing.can-knead { cursor: grab; }
+  .stage.editing.kneading { cursor: grabbing; }
+  .tip { position: absolute; left: 50%; bottom: 16px; translate: -50% 0; font-size: 12.5px; color: var(--dim); white-space: nowrap; pointer-events: none; transition: opacity .3s; }
+  .tools { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .tools .group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tools small { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+  .chip { height: 34px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--dim); box-shadow: inset 0 0 0 1px var(--rule); transition: color .2s, box-shadow .2s, background .2s; }
+  .chip:hover { color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .chip:disabled { opacity: .35; cursor: not-allowed; }
+  .grp { display: flex; gap: 4px; padding: 4px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .grp .r { height: 32px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--dim); transition: color .25s, background .25s; }
+  .grp .r[aria-checked="true"] { color: var(--deep); background: linear-gradient(180deg, var(--frost-1), var(--frost-2)); box-shadow: inset 0 -6px 14px rgba(47,116,238,.35); }
+  .grp .r:hover:not([aria-checked="true"]) { color: var(--ink); }
+  .go { height: 44px; padding: 0 22px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--deep);
+    background: radial-gradient(90% 120% at 50% 0%, var(--blue-2) 0%, rgba(77,143,245,.35) 45%, transparent 75%), linear-gradient(180deg, var(--frost-1), var(--frost-2));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), inset 0 2px 6px rgba(255,255,255,.7); transition: scale .12s; }
+  .go:active { scale: .97; }
+  .back { height: 44px; padding: 0 18px; border-radius: 999px; font-size: 14px; color: var(--link); box-shadow: inset 0 0 0 1px rgba(143,184,255,.35); }
+  .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---- states and spec ----------------------------------------------------------------------------------- */
+  .states, .spec { padding: 44px 32px 40px; border-top: 1px solid var(--rule); }
+  .states h2, .spec h2 { margin: 0 0 6px; font: 700 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+  .states > p, .spec > p { margin: 0 0 22px; color: var(--dim); max-width: 72ch; font-size: 14px; line-height: 1.5; }
+  .tbl { overflow-x: auto; }
+  .states table { border-collapse: collapse; }
+  .states th { padding: 10px 12px; text-align: left; font: 700 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .states td { padding: 10px; border-top: 1px solid var(--rule); vertical-align: middle; }
+  .states td:first-child { width: 170px; min-width: 150px; font-size: 14px; font-weight: 500; }
+  .states td:first-child small { display: block; margin-top: 4px; font-weight: 400; color: var(--dim); font-size: 12.5px; }
+  .frame { position: relative; width: 200px; height: 100px; border-radius: 16px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--rule); overflow: hidden; }
+  .frame .mb { pointer-events: none; }
+  .frame *, .frame *::before, .frame *::after { transition: none !important; animation: none !important; }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+  .spec-card { padding: 16px 18px 14px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .spec-card h3 { margin: 0 0 12px; font: 700 11px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; margin: 0; font-size: 13px; line-height: 1.4; }
+  .spec-card dt { color: var(--dim); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .spec-card dd i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+  .back-pill { position: fixed; left: 12px; bottom: 12px; z-index: 9; font: 12px/1 system-ui, sans-serif; color: #fff; background: rgba(40,40,40,.8); padding: 8px 12px; border-radius: 999px; text-decoration: none; }
+  body.still *, body.still *::before, body.still *::after { transition: none !important; animation: none !important; }
+  @media (max-width: 760px) { .hero, .states, .spec { padding-left: 16px; padding-right: 16px; } .stage { height: 300px; } .tip { white-space: normal; width: 90%; text-align: center; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-label="Make a button">
+    <div class="head">
+      <p><b>Week 08 &middot; Set 3 &middot; Make &middot; Soft</b>A button you make yourself. It starts as a rectangle of frosted glass with a blue light inside, soft as clay: push and pull it anywhere into the shape you want, type its label, then make it a button. Made, it answers like one: pointed at, the light rises and grows; held, it sinks; turned off, it goes out. Emphasis is how much light the glass holds.</p>
+      <form class="ctl" onsubmit="return false">
+        <fieldset><legend>Buttons</legend><div class="opts">
+          <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
+          <label><input type="radio" name="content" value="text" /><span>Text</span></label>
+          <label><input type="radio" name="content" value="icon" /><span>Icon</span></label>
+        </div></fieldset>
+        <fieldset><legend>State</legend><div class="opts">
+          <label><input type="checkbox" name="off" /><span>Disabled</span></label>
+        </div></fieldset>
+      </form>
+    </div>
+
+    <div class="scene" data-buttons data-live data-content="both">
+      <ol class="steps" aria-label="Steps">
+        <li class="on" data-step="shape"><i>1</i>Shape it</li>
+        <li class="on" data-step="name"><i>2</i>Name it</li>
+        <li data-step="make"><i>3</i>Make it a button</li>
+      </ol>
+      <div class="stage editing" id="stage">
+        <svg class="guide" aria-hidden="true"><path id="bbox"/></svg>
+        <div class="editor e-primary" id="editor"><span class="type" id="type" contenteditable="plaintext-only" spellcheck="false" role="textbox" aria-label="Button label" data-placeholder="Type a label">Create</span></div>
+        <button class="mb e-primary" id="made" type="button" data-name="Create" data-off><span class="lbl">Create</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+        <p class="tip" id="tip">Push and pull the glass anywhere, like clay. Click the label to type.</p>
+      </div>
+      <div class="tools">
+        <div class="group" id="presets"><small>Start from</small>
+          <button type="button" class="chip" data-preset="rect">Rectangle</button>
+          <button type="button" class="chip" data-preset="pill">Pill</button>
+          <button type="button" class="chip" data-preset="drop">Drop</button>
+          <button type="button" class="chip" data-preset="lean">Lean</button>
+        </div>
+        <div class="group"><small id="g-cap">Emphasis</small>
+          <div class="grp" role="radiogroup" aria-labelledby="g-cap">
+            <button class="r" type="button" role="radio" aria-checked="true" data-e="primary">Primary</button>
+            <button class="r" type="button" role="radio" aria-checked="false" data-e="secondary">Secondary</button>
+            <button class="r" type="button" role="radio" aria-checked="false" data-e="tertiary">Tertiary</button>
+          </div>
+        </div>
+        <div class="group">
+          <button type="button" class="back" id="edit" hidden>Shape again</button>
+          <button type="button" class="go" id="make">Make it a button</button>
+        </div>
+      </div>
+      <p class="hint" aria-live="polite" id="said"></p>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>The button as you have shaped it, at each emphasis and in each configuration: at rest, pointed at, pressed and turned off. Reshape it above and this table follows.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Configuration</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table></div>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on: the shape as you left it, colours and motion from the same tokens the button above uses.</p>
+    <div class="spec-grid"></div>
+  </section>
+
+  <a class="back-pill" href="week-08.html#deliverables" hidden>&larr; Week 08</a>
+
+  <script src="week-08-proto.js?v=1"></script>
+  <script>
+    const stage = document.getElementById('stage'), editor = document.getElementById('editor'), made = document.getElementById('made'), typeEl = document.getElementById('type');
+    const said = document.getElementById('said'), tip = document.getElementById('tip'), bboxPath = document.getElementById('bbox');
+    const css = getComputedStyle(document.documentElement), tok = n => css.getPropertyValue(n).trim(), ms = n => parseFloat(tok(n));
+    const calm = () => P.calm.matches;
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const ICON = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>';
+
+    // ---- the clay: the outline is a ring of points, clockwise. Wherever you grab it, the points near your hand move
+    // with it, the nearest most, falling off softly with distance, so the glass stretches and dents like clay.
+    let M, emph = 'primary';
+    const N = 72, REACH = 70;
+    const W = () => stage.clientWidth, H = () => stage.clientHeight;
+    // starting shapes, described as four corners, a bend per edge and a rounding per corner, then sampled into the ring
+    const presets = {
+      rect: (cx, cy) => ({ P: [[cx - 130, cy - 44], [cx + 130, cy - 44], [cx + 130, cy + 44], [cx - 130, cy + 44]], O: [[0, 0], [0, 0], [0, 0], [0, 0]], R: [2, 2, 2, 2] }),
+      pill: (cx, cy) => ({ P: [[cx - 130, cy - 40], [cx + 130, cy - 40], [cx + 130, cy + 40], [cx - 130, cy + 40]], O: [[0, 0], [0, 0], [0, 0], [0, 0]], R: [40, 40, 40, 40] }),
+      drop: (cx, cy) => ({ P: [[cx - 140, cy - 46], [cx + 130, cy - 46], [cx + 136, cy + 46], [cx - 140, cy + 46]], O: [[0, 0], [8, 0], [0, 0], [0, 0]], R: [46, 18, 26, 46] }),
+      lean: (cx, cy) => ({ P: [[cx - 112, cy - 42], [cx + 148, cy - 42], [cx + 112, cy + 42], [cx - 148, cy + 42]], O: [[0, 0], [0, 0], [0, 0], [0, 0]], R: [10, 10, 10, 10] }),
+    };
+    const at = (a, c, b, t) => [(1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const shapePts = m => {
+      const pts = [], ctrl = i => { const md = mid(m.P[i], m.P[(i + 1) % 4]); return [md[0] + m.O[i][0], md[1] + m.O[i][1]]; };
+      for (let i = 0; i < 4; i++) {
+        const a = m.P[i], b = m.P[(i + 1) % 4], L = Math.max(1, len(a, b));
+        const t0 = Math.min(.49, m.R[i] / L), t1 = 1 - Math.min(.49, m.R[(i + 1) % 4] / L);
+        for (let k = 0; k < 24; k++) pts.push(at(a, ctrl(i), b, t0 + (t1 - t0) * k / 24));
+        const e = at(a, ctrl(i), b, t1), n2 = m.P[(i + 2) % 4], nb = m.P[(i + 1) % 4], Ln = Math.max(1, len(nb, n2));
+        const md = mid(nb, n2), cn = [md[0] + m.O[(i + 1) % 4][0], md[1] + m.O[(i + 1) % 4][1]], s0 = at(nb, cn, n2, Math.min(.49, m.R[(i + 1) % 4] / Ln));
+        for (let k = 0; k < 8; k++) pts.push(at(e, nb, s0, k / 8));
+      }
+      return pts;
+    };
+    // even spacing round the ring, so kneading never bunches the clay
+    const resample = (pts, n) => {
+      const segs = pts.map((p, i) => len(p, pts[(i + 1) % pts.length])), total = segs.reduce((a, b) => a + b, 0), out = [];
+      let i = 0, acc = 0;
+      for (let k = 0; k < n; k++) {
+        const t = k * total / n;
+        while (acc + segs[i] < t && i < pts.length - 1) { acc += segs[i]; i++; }
+        const a = pts[i], b = pts[(i + 1) % pts.length], u = segs[i] ? (t - acc) / segs[i] : 0;
+        out.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]);
+      }
+      return out;
+    };
+    const ringOf = m => resample(shapePts(m), N);
+    // a smooth closed curve through the ring (Catmull-Rom)
+    const outline = r => {
+      const n = r.length, f = v => v.toFixed(1), g = i => r[(i + n) % n];
+      let d = `M${f(r[0][0])} ${f(r[0][1])}`;
+      for (let i = 0; i < n; i++) {
+        const p0 = g(i - 1), p1 = g(i), p2 = g(i + 1), p3 = g(i + 2);
+        d += `C${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])} ${f(p2[1])}`;
+      }
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      r.forEach(p => { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); });
+      return { d: d + 'Z', box: { x: x0 - 1, y: y0 - 1, w: x1 - x0 + 2, h: y1 - y0 + 2 } };
+    };
+    const inside = (r, p) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+    const nearest = (r, p) => Math.min(...r.map(q => len(q, p)));
+
+    // ---- the glass, drawn into any element at a given box
+    let uid = 0;
+    const skin = (d, box) => {
+      const n = ++uid, { x, y, w, h } = box;
+      return `<svg class="skin" viewBox="${x} ${y} ${w} ${h}" aria-hidden="true"><defs>
+        <clipPath id="c${n}"><path d="${d}"/></clipPath>
+        <linearGradient id="f${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tok('--frost-1')}"/><stop offset="1" stop-color="${tok('--frost-2')}"/></linearGradient>
+        <radialGradient id="b${n}" cx=".5" cy=".38" r=".62"><stop offset="0" stop-color="${tok('--blue')}"/><stop offset=".42" stop-color="${tok('--blue-2')}" stop-opacity=".8"/><stop offset=".78" stop-color="${tok('--blue-3')}" stop-opacity=".22"/><stop offset="1" stop-color="${tok('--blue-3')}" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g${n}" cx=".5" cy="1.08" r=".55"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <linearGradient id="s${n}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <filter id="u${n}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${tok('--bloom-blur')}"/></filter>
+        <filter id="r${n}"><feGaussianBlur stdDeviation="1.6"/></filter>
+      </defs><g clip-path="url(#c${n})">
+        <path class="base" d="${d}" fill="url(#f${n})"/>
+        <g class="bloom" filter="url(#u${n})"><rect x="${x + w * .02}" y="${y + h * .02}" width="${w * .96}" height="${h * .96}" fill="url(#b${n})"/></g>
+        <rect class="glow" x="${x}" y="${y + h * .35}" width="${w}" height="${h * .65}" fill="url(#g${n})"/>
+        <path class="rim" d="${d}" filter="url(#r${n})"/>
+        <rect class="sheen" x="${x - w * .6}" y="${y}" width="${w * .5}" height="${h}" fill="url(#s${n})"/>
+      </g><path class="edge" d="${d}"/></svg>`;
+    };
+    const place = (el, box) => { el.style.left = box.x + 'px'; el.style.top = box.y + 'px'; el.style.width = box.w + 'px'; el.style.height = box.h + 'px'; };
+    const dress = (el, o) => { el.querySelector(':scope > .skin')?.remove(); el.insertAdjacentHTML('afterbegin', skin(o.d, o.box)); };
+
+    // ---- draw
+    const draw = () => {
+      const o = outline(M);
+      place(editor, o.box); dress(editor, o);
+      place(made, o.box); dress(made, o);
+      bboxPath.setAttribute('d', '');
+      return o;
+    };
+    const clampPt = p => [Math.min(W() - 14, Math.max(14, p[0])), Math.min(H() - 44, Math.max(14, p[1]))];
+
+    // ---- kneading: press anywhere on the glass (or just outside its edge) and pull. Every point of the ring moves
+    // with your hand by a weight that falls off with its distance from where you pressed; pressing deep inside reaches
+    // further, so the nearest side still follows. Let go and the kneaded part relaxes a little, then stays.
+    let knead = null;
+    const local = e => { const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const grabbable = p => inside(M, p) || nearest(M, p) < 34;
+    stage.addEventListener('pointerdown', e => {
+      if (!stage.classList.contains('editing') || e.target.closest('.type') || e.button > 0) return;
+      const p = local(e); if (!grabbable(p)) return;
+      e.preventDefault(); stage.setPointerCapture(e.pointerId); typeEl.blur();
+      const reach = Math.max(REACH, nearest(M, p) * 1.25);
+      knead = { p, base: M.map(q => q.slice()), w: M.map(q => Math.exp(-Math.pow(len(q, p) / reach, 2))), moved: 0 };
+      stage.classList.add('kneading'); tip.style.opacity = 0;
+      if (!calm()) editor.animate([{ scale: 1 }, { scale: .992 }], { duration: 120, easing: 'ease-out', fill: 'forwards' });
+    });
+    stage.addEventListener('pointermove', e => {
+      const p = local(e);
+      if (!knead) { if (stage.classList.contains('editing')) stage.classList.toggle('can-knead', grabbable(p) && !e.target.closest('.type')); return; }
+      const dx = p[0] - knead.p[0], dy = p[1] - knead.p[1]; knead.moved = Math.max(knead.moved, Math.hypot(dx, dy));
+      M = knead.base.map((q, i) => clampPt([q[0] + dx * knead.w[i], q[1] + dy * knead.w[i]]));
+      draw();
+    });
+    const relax = w => {
+      // a few soft passes that pull each kneaded point toward its neighbours' middle, then even spacing again
+      if (calm()) { M = resample(M, N); draw(); queueStates(); return; }
+      let k = 0;
+      const step = () => {
+        M = M.map((q, i) => { const a = M[(i + N - 1) % N], b = M[(i + 1) % N], s = .22 * w[i]; return [q[0] + s * ((a[0] + b[0]) / 2 - q[0]), q[1] + s * ((a[1] + b[1]) / 2 - q[1])]; });
+        draw(); if (++k < 9) requestAnimationFrame(step); else { M = resample(M, N); draw(); queueStates(); }
+      };
+      requestAnimationFrame(step);
+    };
+    const letGo = e => {
+      if (!knead) return;
+      stage.classList.remove('kneading'); editor.getAnimations().forEach(a => a.cancel());
+      const k = knead; knead = null;
+      if (k.moved < 4) { typeEl.focus(); const sel = getSelection(); sel.selectAllChildren(typeEl); sel.collapseToEnd(); return; }
+      if (!calm()) editor.animate([{ scale: .992 }, { scale: 1 }], { duration: ms('--settle'), easing: tok('--spring') });
+      relax(k.w); said.textContent = 'Shape changed';
+    };
+    stage.addEventListener('pointerup', letGo); stage.addEventListener('pointercancel', letGo);
+
+    // ---- presets morph from the shape you have
+    const lerpM = (a, b, t) => a.map((p, i) => [p[0] + (b[i][0] - p[0]) * t, p[1] + (b[i][1] - p[1]) * t]);
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    const morph = to => {
+      if (calm()) { M = to; draw(); queueStates(); return; }
+      const from = M.map(q => q.slice()), t0 = performance.now(), dur = ms('--morph');
+      const tick = now => { const t = Math.min(1, (now - t0) / dur); M = lerpM(from, to, ease(t)); draw(); if (t < 1) requestAnimationFrame(tick); else queueStates(); };
+      requestAnimationFrame(tick);
+    };
+    document.getElementById('presets').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if (!b) return; morph(ringOf(presets[b.dataset.preset](W() / 2, H() / 2 - 14))); said.textContent = `Shape: ${b.textContent}`; });
+
+    // ---- the label
+    const label = () => (typeEl.textContent.trim() || 'Button').slice(0, 28);
+    typeEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); typeEl.blur(); } });
+    typeEl.addEventListener('input', () => { if (typeEl.textContent.length > 28) typeEl.textContent = typeEl.textContent.slice(0, 28); queueStates(); });
+
+    // ---- emphasis
+    const grp = document.querySelector('.grp');
+    grp.addEventListener('pick', e => { emph = e.detail.to.dataset.e; [editor, made].forEach(el => { el.classList.remove('e-primary', 'e-secondary', 'e-tertiary'); el.classList.add('e-' + emph); }); said.textContent = `Emphasis: ${emph}`; });
+
+    // ---- make it a button, and back
+    const steps = [...document.querySelectorAll('.steps li')];
+    const makeBtn = document.getElementById('make'), editBtn = document.getElementById('edit');
+    const finish = () => {
+      const name = label();
+      made.querySelector('.lbl').textContent = name; made.dataset.name = name; P.onContent && document.querySelector('form.ctl')?.dispatchEvent(new Event('noop'));
+      if (made.closest('[data-content="icon"]')) { made.setAttribute('aria-label', name); made.title = name; }
+      const done = () => {
+        stage.classList.remove('editing'); makeBtn.hidden = true; editBtn.hidden = false;
+        document.querySelectorAll('[data-preset]').forEach(b => b.disabled = true);
+        steps[2].classList.add('on'); tip.style.opacity = 0;
+        said.textContent = `${name} is a button now`;
+        if (calm()) return;
+        // set: a band of light runs once across the glass, and it settles into place
+        made.querySelector('.sheen').animate([{ opacity: 1, transform: 'translateX(0)' }, { opacity: 1, offset: .85 }, { opacity: 0, transform: `translateX(${outline(M).box.w * 1.6}px)` }], { duration: ms('--sweep'), easing: 'cubic-bezier(.4, 0, .2, 1)' });
+        made.animate([{ scale: .985 }, { scale: 1 }], { duration: ms('--settle'), easing: tok('--spring') });
+      };
+      done();
+    };
+    makeBtn.addEventListener('click', finish);
+    editBtn.addEventListener('click', () => {
+      stage.classList.add('editing'); makeBtn.hidden = false; editBtn.hidden = true; steps[2].classList.remove('on'); tip.style.opacity = '';
+      document.querySelectorAll('[data-preset]').forEach(b => b.disabled = false);
+      said.textContent = 'Shaping again: push and pull the glass';
+    });
+    made.addEventListener('click', () => { said.textContent = `${made.dataset.name} pressed`; });
+
+    // ---- states table: the shape you made, at every emphasis, configuration and state
+    const rows = document.getElementById('state-rows');
+    let qs = 0;
+    const queueStates = () => { cancelAnimationFrame(qs); qs = requestAnimationFrame(buildStates); };
+    const buildStates = () => {
+      const o = outline(M), k = Math.min(170 / o.box.w, 70 / o.box.h, 1), name = label();
+      const cell = (e, content, st) => {
+        const ox = (200 - o.box.w * k) / 2 / k - o.box.x, oy = (100 - o.box.h * k) / 2 / k - o.box.y;
+        return `<td><div class="frame" data-content="${content}"><div style="position:absolute;left:0;top:0;transform:scale(${k}) translate(${ox}px, ${oy}px);transform-origin:0 0">
+          <button class="mb e-${e} ${st === 'hover' ? 'st-hover' : ''} ${st === 'down' ? 'st-down' : ''}" type="button" tabindex="-1" aria-hidden="true" ${st === 'off' ? 'disabled' : ''} style="left:${o.box.x}px;top:${o.box.y}px;width:${o.box.w}px;height:${o.box.h}px">${skin(o.d, o.box)}<span class="lbl">${name}</span>${ICON}</button></div></div></td>`;
+      };
+      let html = '';
+      [['primary', 'Primary'], ['secondary', 'Secondary'], ['tertiary', 'Tertiary']].forEach(([e, n]) => [['both', 'icon + text'], ['text', 'text'], ['icon', 'icon']].forEach(([c, cn]) => {
+        html += `<tr><td>${n} &middot; ${cn}<small>${e === 'primary' ? 'a full light' : e === 'secondary' ? 'a faint light' : 'the edge only'}</small></td>${['', 'hover', 'down', 'off'].map(st => cell(e, c, st)).join('')}</tr>`;
+      }));
+      rows.innerHTML = html;
+      buildSpec();
+    };
+
+    // ---- spec, read from the tokens and the shape as it is
+    const out = document.querySelector('.spec-grid');
+    const sw = c => `<i style="background:${c}"></i>${c}`;
+    const buildSpec = () => {
+      const o = outline(M);
+      const cards = [
+        ['Colour', [['Page', sw(tok('--page'))], ['Stage', sw(tok('--panel'))], ['Light', sw(tok('--blue'))], ['Light, outer', sw(tok('--blue-2'))], ['Glass', `${sw(tok('--frost-1'))} to ${tok('--frost-2')}`], ['Ink, primary', sw(tok('--deep'))], ['Ink, tertiary', sw(tok('--link'))]]],
+        ['Glass', [['Layers', 'frosted base, a blue light blurred ' + tok('--bloom-blur') + 'px from the top, a white glow from the bottom, a ' + tok('--rim') + 'px soft white rim inside the edge, a 1px edge'], ['Rule', 'emphasis is how much light the glass holds']]],
+        ['Your shape', [['Size', `${Math.round(o.box.w)} × ${Math.round(o.box.h)}px`], ['Outline', `${N} points, a smooth curve through them`], ['Label', label()]]],
+        ['Primary', [['Look', 'frosted white glass, the full light, dark ink'], ['Hover', `the light rises and grows 16% (${tok('--rise')}); the bottom glow brightens`], ['Pressed', `the light sinks and shrinks, the rim dims, the glass presses in to 96.5% (${tok('--press')}); let go, it springs back (${tok('--settle')})`], ['Off', 'the light goes out; a faint edge']]],
+        ['Secondary', [['Look', 'clear glass, a faint light, white ink'], ['Hover', 'the light grows and brightens'], ['Pressed', 'as primary'], ['Off', 'the light goes out']]],
+        ['Tertiary', [['Look', 'only the edge and a faint rim, blue ink'], ['Hover', 'a little light comes in; the edge brightens'], ['Pressed', 'as primary'], ['Off', 'a faint edge']]],
+        ['Shaping', [['Like clay', 'press anywhere on the glass, or just outside its edge, and pull: the outline near your hand follows it, the nearest part most'], ['Reach', `${REACH}px, falling off softly; pressing deep inside reaches as far as the nearest side`], ['Feel', `the glass gives a little under your hand (99.2%); let go, the kneaded part relaxes over 9 frames and stays, and the glass springs back (${tok('--settle')})`], ['Label', 'a click without pulling puts the caret in the label'], ['Without dragging', `Start from shapes morph there (${tok('--morph')})`]]],
+        ['Making it', [['Order', 'the dotted ground fades and a band of light runs once across the glass (' + tok('--sweep') + '), then it settles'], ['After', 'it is a real button: Tab, Enter and Space work; Shape again goes back to the clay']]],
+        ['Group · Emphasis', [['Options', 'Primary, Secondary, Tertiary'], ['Picked', 'frosted with a little blue light'], ['Keys', 'one tab stop; arrows move the pick']]],
+      ];
+      out.innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+    };
+
+    // ---- start
+    const start = () => { M = ringOf(presets.rect(W() / 2, H() / 2 - 14)); draw(); buildStates(); };
+    document.fonts.ready.then(start);
+    addEventListener('resize', () => { if (!M) return; const o = outline(M), dx = W() / 2 - (o.box.x + o.box.w / 2); M = M.map(p => [p[0] + dx, p[1]]); draw(); });
+    P.onContent(() => requestAnimationFrame(draw));
+    // ?deep=made: a still of the finished button; ?deep=drop: shaped like a drop, still editing
+    const qd = new URLSearchParams(location.search).get('deep');
+    if (qd) {
+      document.body.classList.add('still'); Object.defineProperty(P, 'calm', { value: { matches: true } });
+      document.fonts.ready.then(() => requestAnimationFrame(() => {
+        if (qd === 'drop' || qd === 'made') { M = ringOf(presets.drop(W() / 2, H() / 2 - 14)); draw(); buildStates(); }
+        if (qd === 'clay' || qd === 'clay-made') {
+          // a shape kneaded by hand: the right end pulled out and up, the top pressed in
+          M = ringOf(presets.rect(W() / 2, H() / 2 - 14));
+          const pull = (p, d, reach) => { M = M.map(q => { const w = Math.exp(-Math.pow(len(q, p) / reach, 2)); return [q[0] + d[0] * w, q[1] + d[1] * w]; }); };
+          const c = [W() / 2, H() / 2 - 14];
+          pull([c[0] + 130, c[1]], [46, -18], 70); pull([c[0] - 30, c[1] - 44], [0, 16], 60); pull([c[0] - 130, c[1] + 30], [-20, 22], 60);
+          M = resample(M, N); draw(); buildStates();
+          if (qd === 'clay-made') finish();
+        }
+        if (qd === 'made') finish();
+      }));
+    }
+  </script>
+</body>
+</html>
