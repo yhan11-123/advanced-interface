@@ -9,16 +9,19 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" />
   <style>
   /* Week 08, Set 1 · Line. Tone: Precise.
-     Lineworks, a blueprint archive: cream lines on blueprint paper, nothing but outlines. Emphasis is the amount of
-     line, as line weight is on a drawing:
+     Lineworks, a blueprint archive: cream lines on blueprint paper, nothing but outlines.
+     The idea: a blueprint is a building drawn before it exists, so here a line shows what will happen before it
+     happens. Pointed at, an option draws its result on the sheet dashed (proposed); pressed, it is drawn solid
+     (done). Emphasis is the amount of line, as line weight is on a drawing:
        Primary    two lines, one inside the other: pointed at, the inner line closes out onto the outer one
                   and they become a single heavy line; held, the inner line pulls in
        Secondary  one line, faint at rest: pointed at, a bright line is drawn round it like a pen, clockwise
        Tertiary   only the two ends, like crop marks ( ): pointed at, they reach along the edges and close
        Group      single selection: one bright outline slides from option to option
      Nothing follows the pointer: a button answers when it is entered, pressed and left, not while you move.
-     Depth: pressed, a button's options open just under it, each opening out sideways from its centre; some
-     open one level further.
+     Layout: the sheet on the left, the tools in a column on its right so nothing covers the drawing.
+     Depth: pressed, a button's options open under it in the column, each drawn line first; some open one level
+     further.
      Every number in the Spec section is read from these tokens. */
   :root {
     --page: #0b1f33; --paper: #0d243b; --cream: #f6f4da; --dim: #9aa6a8; --faint: rgba(246,244,218,.34); --off: rgba(246,244,218,.18); --rule: #1f3a55;
@@ -30,9 +33,10 @@
     --s-h: 56px; --s-pad: 28px;
     --t-h: 52px; --t-pad: 26px; --t-reach: 8px;
     --g-h: 46px; --g-pad: 20px; --g-gap: 6px;
-    --k-h: 44px; --k-h-sm: 38px; --k-gap: 10px; --k-drop: 22px; --k-drop-2: 18px;
-    --close-in: 480ms; --draw: 760ms; --reach: 620ms; --slide: 560ms; --ink: 560ms; --open: 460ms; --stagger: 90ms; --shut: 240ms;
+    --k-h: 44px; --k-h-sm: 32px; --k-gap: 10px; --k-drop: 22px; --k-drop-2: 18px;
+    --close-in: 480ms; --draw: 760ms; --reach: 620ms; --slide: 560ms; --ink: 560ms; --open: 460ms; --stagger: 90ms; --shut: 380ms;
     --press-scale: .97;
+    --tools-w: 236px; --k-indent: 16px; --unfold: 340ms; --fold: 420ms; --words-out: 160ms; --unstagger: 50ms;
     --glide: cubic-bezier(.3, .7, .2, 1); --sharp: cubic-bezier(.2, .9, .25, 1);
   }
   *, *::before, *::after { box-sizing: border-box; }
@@ -120,7 +124,21 @@
   /* depth: pressed, a button's options open just under it, each one opening out sideways from its own
      centre, one after another. Children keep their parent's line: Download's two lines, Blueprints' pen
      line, Zoom's crop marks; the third level is a single faint line. */
-  .kids { position: absolute; z-index: 1; display: flex; gap: var(--k-gap); }
+  .kids { display: flex; flex-direction: column; align-items: stretch; gap: var(--k-gap); padding: 0 0 6px var(--k-indent); overflow-clip-margin: 6px; }
+  /* while the list opens its height grows from 0; the buttons keep their own height and are uncovered, never squeezed */
+  .kids > * { flex-shrink: 0; }
+  .kids > .c { justify-content: flex-start; padding-left: 20px; }
+  /* a crop mark grows from nothing: flat ends, so a mark not yet drawn leaves no dot */
+  .c.br .ln path { stroke-linecap: butt; }
+  /* zoom levels sit side by side, one row of three, as a scale is read */
+  #k-rs { flex-direction: row; }
+  #k-rs > .c { flex: 1 1 0; min-width: 0; justify-content: center; padding: 0 8px; gap: 6px; }
+  [data-content="icon"] #k-rs > .c { flex: none; }
+  /* the current floor's outline waits for its line to be drawn too */
+  .c.sm.cur.inking { box-shadow: none; transition: none; }
+  [data-content="icon"] .kids { align-items: flex-start; }
+  [data-content="icon"] .kids > .c { justify-content: center; padding-left: 0; }
+  .kids .kids { padding-bottom: 2px; }
   .kids[hidden] { display: none; }
   .c { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--k-h); padding: 0 18px; border-radius: calc(var(--k-h) / 2);
     font-size: 15px; white-space: nowrap; background: var(--page); transition: transform .45s var(--sharp); }
@@ -128,16 +146,18 @@
   .c.is-down { transform: scale(var(--press-scale)); transition-duration: .12s; }
   /* while an option's line is being drawn in (or taken back), its real outline and its contents wait */
   .ink { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
-  .ink path { fill: none; stroke: var(--cream); stroke-linecap: round; }
+  .ink path { fill: none; stroke: var(--cream); stroke-linecap: butt; }
   .c.inking::before, .c.inking::after, .c.inking > .ln { opacity: 0; }
-  .c.sm.inking { box-shadow: none; }
+  .c.sm.inking { box-shadow: none; transition: none; }
   .c.inking > .ic, .c.inking > .lbl { opacity: 0; }
   .c.dbl::before { inset: 0; border: var(--line) solid var(--cream); }
   .c.dbl::after { --in: 4px; inset: var(--in); border: 1px solid var(--cream); border-radius: calc(var(--k-h) / 2 - var(--in)); transition: inset var(--close-in) var(--glide), border-radius var(--close-in) var(--glide); }
   .c.dbl:is(:hover, :focus-visible, .st-hover, [aria-expanded="true"])::after { --in: var(--line); }
-  .c.sm { height: var(--k-h-sm); padding: 0 14px; font-size: 14px; border-radius: calc(var(--k-h-sm) / 2); color: var(--cream); box-shadow: inset 0 0 0 1px var(--faint); transition: box-shadow .3s, transform .45s var(--sharp); }
+  .c.sm { height: var(--k-h-sm); padding: 0 12px; font-size: 13px; border-radius: calc(var(--k-h-sm) / 2); color: var(--cream); box-shadow: inset 0 0 0 1px var(--faint); transition: box-shadow .3s, transform .45s var(--sharp); }
   .c.sm:hover, .c.sm:focus-visible, .c.sm.st-hover { box-shadow: inset 0 0 0 var(--line) var(--cream); }
-  .c.sm .ic { width: 16px; height: 16px; }
+  .c.sm .ic { width: 14px; height: 14px; }
+  .kids .kids { gap: 6px; }
+  .kids > .c.sm { padding-left: 14px; }
   [data-content="icon"] .c { width: var(--k-h); padding: 0; }
   [data-content="icon"] .c.sm { width: var(--k-h-sm); }
 
@@ -163,12 +183,15 @@
   .brand svg { width: 26px; height: 26px; fill: none; stroke: var(--cream); stroke-width: 1.5; }
   .brand b { font-size: 15px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
   .brand span, .bar .count { font-size: 13px; color: var(--dim); }
-  .row { position: relative; z-index: 1; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: center; justify-self: center; }
+  .work { display: grid; grid-template-columns: minmax(0, 1fr) var(--tools-w); gap: 24px; align-items: start; }
+  .main { display: grid; gap: 16px; min-width: 0; }
+  .row { display: flex; flex-direction: column; align-items: stretch; gap: 14px; min-height: 520px; }
+  [data-content="icon"] .row { align-items: flex-start; }
   /* the buttons knock the drawing out behind them */
   .row :is(.ct, .pf, .rs), .grp { background: var(--page); }
 
   /* the sheet: blueprint paper with a double border, the drawing on the left, the title strip on the right */
-  .sheet { position: relative; z-index: 0; display: flex; height: 470px; border: 1.5px solid rgba(246,244,218,.5); background: var(--paper); }
+  .sheet { position: relative; z-index: 0; display: flex; height: 520px; border: 1.5px solid rgba(246,244,218,.5); background: var(--paper); }
   .sheet::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(246,244,218,.2); pointer-events: none; z-index: 2; }
   .canvas { position: relative; flex: 1; min-width: 0; overflow: hidden; outline: none; touch-action: none;
     background-image: linear-gradient(var(--grid-major) 1px, transparent 1px), linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
@@ -177,7 +200,19 @@
   .canvas.can-pan { cursor: grab; }
   .canvas.panning { cursor: grabbing; }
   .canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--cream); }
-  .dwg-bg, .crop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .dwg-bg, .crop, .ghost, .pre { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  /* a line shows what will happen before it happens: pointed at, an option's result is drawn on the sheet dashed
+     (proposed); pressed, it is drawn solid (done) */
+  .dwg-bg { transition: opacity .25s; }
+  .canvas.ghosting .dwg-bg { opacity: .26; }
+  .ghost, .pre { opacity: 0; transition: opacity .22s; }
+  .ghost.on, .pre.on { opacity: 1; }
+  .ghost :is(path, circle), .pre path { fill: none; stroke: var(--cream); stroke-width: 1.3; stroke-dasharray: 7 6; }
+  .ghost :is(.t, .d, .hl, text, circle) { display: none; }
+  .pre.solid path { stroke-dasharray: none; stroke-width: 1.5; }
+  .tb-dl li.will { color: var(--dim); }
+  .tb-dl li.will::before { width: 0; background: none; border-left: 1.5px dashed var(--dim); }
+  .tb-dl li.will ~ li.none { display: none; }
   .crop path { fill: none; stroke: var(--cream); stroke-width: 1.5; }
   .zread { position: absolute; left: 16px; bottom: 14px; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
   /* the drawing: heavy cut walls, medium edges, thin notes; line weights stay the same on screen at any zoom, as in CAD */
@@ -211,14 +246,15 @@
   .c.sm.cur { box-shadow: inset 0 0 0 var(--line) var(--cream); }
   .grp-wrap { position: relative; z-index: 1; display: grid; justify-items: center; gap: 10px; justify-self: center; }
   .grp-wrap small { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-  @media (max-width: 760px) { .tblock { width: 150px; } .bar .count { display: none; } .sheet { height: 420px; } }
+  @media (max-width: 860px) { .work { grid-template-columns: 1fr; } .row { order: -1; min-height: 0; } .tblock { width: 150px; } .bar .count { display: none; } .sheet { height: 420px; } }
   .hint { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   body.shot .head, body.shot .states, body.shot .spec, body.shot .back-pill { display: none !important; }
   body.shot .hero { padding: 0; }
-  body.shot .scene { display: block; min-height: 186px; margin: 0; padding-top: 36px; }
-  body.shot .row { width: max-content; margin: 0 auto; }
-  body.shot :is(.bar, .sheet, .grp-wrap) { display: none; }
+  body.shot .scene { display: block; margin: 0; padding-top: 16px; }
+  body.shot .work { display: block; }
+  body.shot .row { width: var(--tools-w); margin: 0 auto; min-height: 0; }
+  body.shot :is(.bar, .main) { display: none; }
   body.shot *, body.shot *::before, body.shot *::after, body.still *, body.still *::before, body.still *::after { transition: none !important; animation: none !important; }
 
   /* states */
@@ -234,8 +270,8 @@
   .frame { display: flex; align-items: center; justify-content: center; width: 220px; height: 104px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--rule); }
   .frame button { pointer-events: none; }
   .frame *, .frame *::before, .frame *::after { transition: none !important; animation: none !important; }
-  .shotbox { position: relative; width: 300px; height: 186px; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--rule); }
-  .shotbox iframe { position: absolute; left: 0; top: 0; width: 600px; height: 372px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
+  .shotbox { position: relative; width: 190px; height: 200px; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--rule); }
+  .shotbox iframe { position: absolute; left: 0; top: 0; width: 380px; height: 400px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
   .shotbox.none { display: grid; place-items: center; color: var(--dim); }
   .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
   .spec-card { padding: 16px 18px 14px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--rule); }
@@ -252,7 +288,7 @@
 <body>
   <section class="hero" aria-label="The buttons in use">
     <div class="head">
-      <p><b>Week 08 &middot; Set 1 &middot; Line &middot; Precise</b>Lineworks, a blueprint archive: an architecture office hands out the drawings of each of its buildings, and you pick a building, zoom in and download the sheet. Emphasis is the amount of line, as line weight is on the drawings themselves. Download, what you came for, has two lines that close into one heavy line; Blueprints has one faint line that a pen draws round; Zoom has only crop marks that reach along its edges and close, and on the sheet they frame what the zoom will fill. Press a button and its options are drawn in just under it; some open one level further. View switches the sheet between plan, section and elevation.</p>
+      <p><b>Week 08 &middot; Set 1 &middot; Line &middot; Precise</b>Lineworks, a blueprint archive: an architecture office hands out the drawings of its buildings, and you pick a building, zoom in and download the sheet. A blueprint is a building drawn before it exists, so here a line shows what will happen before it happens: point at an option and its result is drawn on the sheet dashed, as a proposal; press, and it is drawn solid. Emphasis is the amount of line, as line weight is on the drawings: Blueprints has one faint line a pen draws round, Zoom has only crop marks that reach and close, Download, what you came for, has two lines that close into one heavy line. The tools stand in a column beside the sheet, in the order they are used, and each opens its options under itself; some open one level further.</p>
       <form class="ctl" onsubmit="return false">
         <fieldset><legend>Buttons</legend><div class="opts">
           <label><input type="radio" name="content" value="both" checked /><span>Icon + text</span></label>
@@ -270,22 +306,13 @@
         <div class="brand"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1.5" y="1.5" width="23" height="23"/><rect x="5.5" y="5.5" width="15" height="15"/><path d="M5.5 13h15M13 5.5v15"/></svg><b>Lineworks</b><span>Blueprint archive</span></div>
         <span class="count">3 buildings &middot; plans, sections, elevations</span>
       </header>
-      <div class="row">
-        <button class="pf" type="button" aria-expanded="false" data-opens="k-pf" data-name="Blueprints" data-off><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h12v14H8zM5 6v15h12M11 8h6M11 11h6"/></svg><span class="lbl">Blueprints</span></button>
-        <button class="rs" type="button" aria-expanded="false" data-opens="k-rs" data-name="Zoom" data-off><svg class="ln brk" aria-hidden="true"><path/></svg><span class="lbl">Zoom</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20"/></svg></button>
-        <button class="ct" type="button" aria-expanded="false" data-opens="k-ct" data-name="Download" data-off><span class="lbl">Download</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
-      </div>
-      <!-- depth: each row of options is drawn out of the button above it -->
-      <div class="kids" id="k-ct" role="group" aria-label="Download" data-depth="2" hidden><button class="c dbl" type="button" data-name="PDF" aria-expanded="false" data-opens="k-pdf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h4"/></svg><span class="lbl">PDF</span></button><button class="c dbl" type="button" data-name="DWG" data-dl="dwg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg><span class="lbl">DWG</span></button><button class="c dbl" type="button" data-name="Print set" data-dl="set"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v13H6zM8 4h10M9 11h6M9 14h6M9 17h3"/></svg><span class="lbl">Print set</span></button></div>
-      <div class="kids" id="k-pdf" role="group" aria-label="PDF" data-depth="3" hidden><button class="c sm" type="button" data-name="A1 full size" data-dl="a1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/></svg><span class="lbl">A1 full size</span></button><button class="c sm" type="button" data-name="A3 reduced" data-dl="a3"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h8v11H8z"/></svg><span class="lbl">A3 reduced</span></button></div>
-      <div class="kids" id="k-pf" role="group" aria-label="Blueprints" data-depth="2" hidden><button class="c one" type="button" data-name="Haneul House" aria-expanded="false" data-opens="k-b-haneul"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10l8-6 8 6v10zM10 20v-5h4v5"/></svg><span class="lbl">Haneul House</span></button><button class="c one" type="button" data-name="Mapo Library" aria-expanded="false" data-opens="k-b-library"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 12 4l9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></svg><span class="lbl">Mapo Library</span></button><button class="c one" type="button" data-name="Riverside Tower" aria-expanded="false" data-opens="k-b-tower"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21V3h8v18M5 21h14M10.5 7h3M10.5 11h3M10.5 15h3"/></svg><span class="lbl">Riverside Tower</span></button></div>
-      <div class="kids" id="k-b-haneul" role="group" aria-label="Haneul House" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="haneul" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="First floor" data-b="haneul" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">First floor</span></button></div>
-      <div class="kids" id="k-b-library" role="group" aria-label="Mapo Library" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="library" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="Reading room" data-b="library" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Reading room</span></button><button class="c sm" type="button" data-name="Roof terrace" data-b="library" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Roof terrace</span></button></div>
-      <div class="kids" id="k-b-tower" role="group" aria-label="Riverside Tower" data-depth="3" hidden><button class="c sm" type="button" data-name="Lobby" data-b="tower" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Lobby</span></button><button class="c sm" type="button" data-name="Typical floor" data-b="tower" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Typical floor</span></button><button class="c sm" type="button" data-name="Sky lounge" data-b="tower" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Sky lounge</span></button></div>
-      <div class="kids" id="k-rs" role="group" aria-label="Zoom" data-depth="2" hidden><button class="c br" type="button" data-name="Fit" data-z="1"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="lbl">Fit</span></button><button class="c br" type="button" data-name="2×" data-z="2"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M10.5 8v5M8 10.5h5"/></svg><span class="lbl">2×</span></button><button class="c br" type="button" data-name="4×" data-z="4"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M8 9h5M8 12h5M10.5 7v3.5M10.5 10.5v3.5"/></svg><span class="lbl">4×</span></button></div>
+      <div class="work">
+        <div class="main">
       <div class="sheet">
         <div class="canvas" id="canvas" tabindex="0" role="img" aria-label="Blueprint">
           <svg class="dwg-bg" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+          <svg class="ghost" aria-hidden="true"></svg>
+          <svg class="pre" aria-hidden="true"></svg>
           <svg class="crop" aria-hidden="true"></svg>
           <span class="zread" id="zread">Fit</span>
         </div>
@@ -305,6 +332,17 @@
           <button class="r" type="button" role="radio" aria-checked="true" data-name="Plan"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM12 4v6M12 14v6M4 12h5"/></svg><span class="lbl">Plan</span></button>
           <button class="r" type="button" role="radio" aria-checked="false" data-name="Section"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 20v-9l6-5 6 5v9M6 14.5h12"/></svg><span class="lbl">Section</span></button>
           <button class="r" type="button" role="radio" aria-checked="false" data-name="Elevation" data-off><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 20v-9l6-5 6 5v9M9 13h2v3H9zM13 13h2v3h-2z"/></svg><span class="lbl">Elevation</span></button>
+        </div>
+      </div>
+        </div>
+        <!-- the tools: a column beside the sheet, in the order they are used; each button's options open under it -->
+        <div class="row">
+          <button class="pf" type="button" aria-expanded="false" data-opens="k-pf" data-name="Blueprints" data-off><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h12v14H8zM5 6v15h12M11 8h6M11 11h6"/></svg><span class="lbl">Blueprints</span></button>
+          <div class="kids" id="k-pf" role="group" aria-label="Blueprints" data-depth="2" hidden><button class="c one" type="button" data-name="Haneul House" aria-expanded="false" data-opens="k-b-haneul"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10l8-6 8 6v10zM10 20v-5h4v5"/></svg><span class="lbl">Haneul House</span></button><div class="kids" id="k-b-haneul" role="group" aria-label="Haneul House" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="haneul" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="First floor" data-b="haneul" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">First floor</span></button></div><button class="c one" type="button" data-name="Mapo Library" aria-expanded="false" data-opens="k-b-library"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 12 4l9 5M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/></svg><span class="lbl">Mapo Library</span></button><div class="kids" id="k-b-library" role="group" aria-label="Mapo Library" data-depth="3" hidden><button class="c sm" type="button" data-name="Ground floor" data-b="library" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Ground floor</span></button><button class="c sm" type="button" data-name="Reading room" data-b="library" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Reading room</span></button><button class="c sm" type="button" data-name="Roof terrace" data-b="library" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Roof terrace</span></button></div><button class="c one" type="button" data-name="Riverside Tower" aria-expanded="false" data-opens="k-b-tower"><svg class="ln pen" aria-hidden="true"><path class="base"/><path class="hi" pathLength="1"/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21V3h8v18M5 21h14M10.5 7h3M10.5 11h3M10.5 15h3"/></svg><span class="lbl">Riverside Tower</span></button><div class="kids" id="k-b-tower" role="group" aria-label="Riverside Tower" data-depth="3" hidden><button class="c sm" type="button" data-name="Lobby" data-b="tower" data-f="0"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Lobby</span></button><button class="c sm" type="button" data-name="Typical floor" data-b="tower" data-f="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Typical floor</span></button><button class="c sm" type="button" data-name="Sky lounge" data-b="tower" data-f="2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/></svg><span class="lbl">Sky lounge</span></button></div></div>
+          <button class="rs" type="button" aria-expanded="false" data-opens="k-rs" data-name="Zoom" data-off><svg class="ln brk" aria-hidden="true"><path/></svg><span class="lbl">Zoom</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20"/></svg></button>
+          <div class="kids" id="k-rs" role="group" aria-label="Zoom" data-depth="2" hidden><button class="c br" type="button" data-name="Fit" data-z="1"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span class="lbl">Fit</span></button><button class="c br" type="button" data-name="2×" data-z="2"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M10.5 8v5M8 10.5h5"/></svg><span class="lbl">2×</span></button><button class="c br" type="button" data-name="4×" data-z="4"><svg class="ln brk" aria-hidden="true"><path/></svg><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M8 9h5M8 12h5M10.5 7v3.5M10.5 10.5v3.5"/></svg><span class="lbl">4×</span></button></div>
+          <button class="ct" type="button" aria-expanded="false" data-opens="k-ct" data-name="Download" data-off><span class="lbl">Download</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+          <div class="kids" id="k-ct" role="group" aria-label="Download" data-depth="2" hidden><button class="c dbl" type="button" data-name="PDF" aria-expanded="false" data-opens="k-pdf"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h4"/></svg><span class="lbl">PDF</span></button><div class="kids" id="k-pdf" role="group" aria-label="PDF" data-depth="3" hidden><button class="c sm" type="button" data-name="A1 full size" data-dl="a1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/></svg><span class="lbl">A1 full size</span></button><button class="c sm" type="button" data-name="A3 reduced" data-dl="a3"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h8v11H8z"/></svg><span class="lbl">A3 reduced</span></button></div><button class="c dbl" type="button" data-name="DWG" data-dl="dwg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5"/></svg><span class="lbl">DWG</span></button><button class="c dbl" type="button" data-name="Print set" data-dl="set"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v13H6zM8 4h10M9 11h6M9 14h6M9 17h3"/></svg><span class="lbl">Print set</span></button></div>
         </div>
       </div>
       <p class="hint" aria-live="polite" id="said"></p>
@@ -359,6 +397,7 @@
           const p = svg.querySelector('path');
           p.style.setProperty('--da-rest', pat(B)); p.style.setProperty('--do-rest', off(B));
           p.style.setProperty('--da-full', pat(B2)); p.style.setProperty('--do-full', off(B2));
+          if (!p.dataset.fit) { p.style.transition = 'none'; p.getBoundingClientRect(); p.style.transition = ''; p.dataset.fit = '1'; }
         }
       });
     };
@@ -398,19 +437,15 @@
     const root = () => getComputedStyle(document.documentElement);
     const ms = n => parseFloat(root().getPropertyValue(n));
     const SHARP = 'cubic-bezier(.2, .9, .25, 1)';
+    const PAGE = () => root().getPropertyValue('--page').trim();
     const box = el => { const a = el.getBoundingClientRect(), s = scene.getBoundingClientRect(); return { x: a.left - s.left, y: a.top - s.top, w: a.width, h: a.height }; };
     const kidsOf = btn => document.getElementById(btn.dataset.opens);
     const openerOf = k => scene.querySelector(`[data-opens="${k.id}"]`);
     const openKids = () => [...scene.querySelectorAll('.kids:not([hidden])')];
 
     // place a row of options under its opener, kept inside the scene
-    const place = k => {
-      const o = box(openerOf(k)), depth = +k.dataset.depth;
-      k.style.left = '0px'; k.style.top = '0px';
-      const w = k.offsetWidth, sw = scene.clientWidth;
-      const x = Math.max(12, Math.min(sw - w - 12, o.x + o.w / 2 - w / 2));
-      k.style.left = x + 'px'; k.style.top = (o.y + o.h + ms(depth === 2 ? '--k-drop' : '--k-drop-2')) + 'px';
-    };
+    const place = () => {};   // options sit in the column under their button now; nothing to place
+    const opts = k => [...k.children].filter(c => c.tagName === 'BUTTON');
     // the ink: an option's outline drawn in from the top centre, both ways at once, until it closes at the
     // bottom (two lines for Download's options, one for Blueprints', the third level's faint one); Zoom's
     // brackets instead grow out from the middle of each end. Only then do its icon and words come in.
@@ -433,6 +468,8 @@
       c.querySelector(':scope > .ink')?.remove();
       const svg = document.createElementNS(SVGNS, 'svg'); svg.classList.add('ink'); svg.setAttribute('aria-hidden', 'true');
       const t = back ? ms('--shut') : ms('--ink'), easing = back ? 'ease-in' : 'cubic-bezier(.45, 0, .2, 1)';
+      // taken back, a faint outline stays faint: it is the same line leaving, not a bright one
+      if (back && c.matches('.c.one:not([aria-expanded="true"]), .c.sm:not(.cur)')) svg.style.opacity = '.34';
       c.classList.add('inking'); c.append(svg);   // in the document before anything is animated, or the animations never start
       const anims = inkPaths(c).map(sp => {
         const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', sp.d); p.style.strokeWidth = sp.sw;
@@ -445,34 +482,61 @@
       });
       Promise.all(anims.map(a => a.finished)).then(() => done(svg)).catch(() => done(svg));
     });
+    // crop marks draw on their own line: from each end, the left from the top, the right from the bottom
+    const brackets = (c, delay, back) => {
+      const sp = inkPaths(c)[0], p = c.querySelector(':scope > .ln path');
+      const k = [{ strokeDasharray: sp.from[0], strokeDashoffset: sp.from[1] }, { strokeDasharray: sp.to[0], strokeDashoffset: sp.to[1] }];
+      p.animate(back ? k.reverse() : k, { duration: back ? ms('--shut') : ms('--ink'), delay, easing: back ? 'ease-in' : 'cubic-bezier(.45, 0, .2, 1)', fill: back ? 'forwards' : 'backwards' });
+    };
     const settle = c => { c.classList.remove('inking'); const svg = c.querySelector(':scope > .ink'); if (svg) svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: 'forwards' }).finished.then(() => svg.remove()).catch(() => svg.remove()); };
     const open = (btn, focusFirst) => {
-      const k = kidsOf(btn), depth = +k.dataset.depth;
-      openKids().filter(x => +x.dataset.depth >= depth && x !== k).forEach(x => shut(x, true));
-      k.hidden = false; place(k); watchLines(k);
+      const k = kidsOf(btn), depth = +k.dataset.depth, tok = k._t = (k._t || 0) + 1;
+      openKids().filter(x => +x.dataset.depth >= depth && x !== k && !x.contains(k)).forEach(x => shut(x, true));
+      k.getAnimations().forEach(a => a.cancel()); k.style.visibility = ''; k.style.overflow = '';
+      k.hidden = false; watchLines(k);
       btn.setAttribute('aria-expanded', 'true');
-      const calm = P.calm.matches;
-      [...k.children].forEach((c, i) => {
-        c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.querySelectorAll(':scope > *').forEach(x => x.getAnimations().forEach(a => a.cancel()));
+      const calm = P.calm.matches, base = calm ? 0 : 120;
+      // the column makes room, and the buttons under it move down, while the lines are drawn
+      if (!calm) { k.style.overflow = 'clip'; k.animate([{ height: '0px' }, { height: k.offsetHeight + 'px' }], { duration: ms('--unfold'), easing: SHARP }).finished.then(() => { if (k._t === tok) k.style.overflow = ''; }).catch(() => {}); }
+      opts(k).forEach((c, i) => {
+        c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.getAnimations().forEach(a => a.cancel()); c.querySelectorAll(':scope > *').forEach(x => x.getAnimations().forEach(a => a.cancel()));
         if (calm) return;
-        const d = 40 + i * ms('--stagger');
-        ink(c, d, false).then(() => settle(c));
+        const d = base + i * ms('--stagger');
+        // the line leads; the space inside it comes in as the line closes
+        c.animate([{ backgroundColor: 'transparent' }, { backgroundColor: PAGE() }], { duration: ms('--ink') * .5, delay: d + ms('--ink') * .5, easing: 'ease-out', fill: 'backwards' });
+        if (c.classList.contains('br')) brackets(c, d, false); else ink(c, d, false).then(() => settle(c));
         c.querySelectorAll(':scope > .ic, :scope > .lbl').forEach(x => x.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }],
-          { duration: ms('--open'), easing: SHARP, delay: d + ms('--ink') * .65, fill: 'backwards' }));
+          { duration: ms('--open'), easing: SHARP, delay: d + ms('--ink') * .75, fill: 'backwards' }));
       });
-      said.textContent = `${btn.dataset.name} opened: ${[...k.children].map(c => c.dataset.name).join(', ')}`;
-      if (focusFirst) k.children[0].focus();
+      said.textContent = `${btn.dataset.name} opened: ${opts(k).map(c => c.dataset.name).join(', ')}`;
+      if (focusFirst) opts(k)[0].focus();
     };
     const shut = (k, quick) => {
       if (k.hidden) return;
+      const tok = k._t = (k._t || 0) + 1;
       openKids().filter(x => +x.dataset.depth > +k.dataset.depth && x !== k).forEach(x => shut(x, true));
       const btn = openerOf(k); btn.setAttribute('aria-expanded', 'false');
       k.querySelectorAll('[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
-      const done = () => { k.hidden = true; };
+      const clean = () => opts(k).forEach(c => { c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.getAnimations().forEach(a => a.cancel()); c.querySelectorAll('*').forEach(x => x.getAnimations().forEach(a => a.cancel())); });
+      const done = () => { k.hidden = true; k.getAnimations().forEach(a => a.cancel()); k.style.visibility = ''; k.style.overflow = ''; clean(); };
       if (P.calm.matches || quick) { done(); return; }
       const t = ms('--shut');
-      [...k.children].forEach(c => ink(c, 0, true));
-      setTimeout(() => { done(); [...k.children].forEach(c => { c.classList.remove('inking'); c.querySelector(':scope > .ink')?.remove(); c.querySelectorAll('*').forEach(x => x.getAnimations().forEach(a => a.cancel())); }); }, t + 20);
+      // opening in reverse: the words go first, then the space and the line are taken back, the last option first,
+      // then the column closes up
+      const words = ms('--words-out'), gap = ms('--unstagger'), list = opts(k).reverse();
+      list.forEach((c, i) => {
+        c.querySelectorAll(':scope > .ic, :scope > .lbl').forEach(x => x.animate([{ opacity: 1 }, { opacity: 0 }], { duration: words, delay: i * gap * .5, easing: 'ease-in', fill: 'forwards' }));
+        setTimeout(() => {
+          if (k._t !== tok) return;
+          c.animate([{ backgroundColor: PAGE() }, { backgroundColor: 'transparent' }], { duration: t * .45, easing: 'ease-in', fill: 'forwards' });
+          if (c.classList.contains('br')) brackets(c, 0, true); else ink(c, 0, true);
+        }, words * .8 + i * gap);
+      });
+      setTimeout(() => {
+        if (k._t !== tok) return;
+        k.style.visibility = 'hidden'; k.style.overflow = 'clip';
+        k.animate([{ height: k.offsetHeight + 'px' }, { height: '0px' }], { duration: ms('--fold'), easing: 'cubic-bezier(.5, 0, .2, 1)' }).finished.then(() => { if (k._t === tok) done(); }).catch(() => {});
+      }, words * .8 + (list.length - 1) * gap + t + 20);
     };
     const relayout = () => { openKids().sort((a, b) => a.dataset.depth - b.dataset.depth).forEach(place); };
 
@@ -491,7 +555,7 @@
       if (deepest) { const o = openerOf(deepest); shut(deepest); o.focus(); }
     });
     // close what is open when the pointer goes down anywhere outside the buttons
-    document.addEventListener('pointerdown', e => { if (!e.target.closest('button') && !e.target.closest('form')) openKids().filter(k => k.dataset.depth === '2').forEach(k => shut(k)); });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('button') && !e.target.closest('form') && !e.target.closest('.sheet')) openKids().filter(k => k.dataset.depth === '2').forEach(k => shut(k)); });
 
     // the group: one outline slides to the pick (no pointer tracking: it moves on the pick only)
     const grp = q('.grp'), gring = q('.gring');
@@ -661,11 +725,15 @@
 
     // Download: the plotter line runs down the sheet, then the file is listed in the title strip
     const FILES = { a1: ['pdf', 'A1 · 2.4 MB'], a3: ['pdf', 'A3 · 0.8 MB'], dwg: ['dwg', 'AutoCAD 2018 · 1.1 MB'], set: ['pdf', 'sheets · 14 MB'] };
-    const download = kind => {
+    const fileOf = kind => {
       const b = B(), [ext, meta] = FILES[kind];
-      const name = kind === 'set' ? `${b.code}_set_Rev${b.rev}.pdf` : `${b.code}_${sheetNo()}_Rev${b.rev}.${ext}`;
-      const info = kind === 'set' ? `${b.floors.length + 2} ${meta}` : meta;
-      openKids().filter(k => k.dataset.depth === '2').forEach(k => shut(k));
+      return { name: kind === 'set' ? `${b.code}_set_Rev${b.rev}.pdf` : `${b.code}_${sheetNo()}_Rev${b.rev}.${ext}`, info: kind === 'set' ? `${b.floors.length + 2} ${meta}` : meta };
+    };
+    // the part of the sheet a download takes: the whole sheet, or half of it for the reduced A3
+    const paper = kind => { const W = canvas.clientWidth, H = canvas.clientHeight, m = 10, k = kind === 'a3' ? .5 : 1, w = (W - 2 * m) * k, h = (H - 2 * m) * k; return { x: (W - w) / 2, y: (H - h) / 2, w, h }; };
+    const frame = r => `<path d="M${r.x.toFixed(1)} ${r.y.toFixed(1)}h${r.w.toFixed(1)}v${r.h.toFixed(1)}h${(-r.w).toFixed(1)}z"/>`;
+    const download = kind => {
+      const { name, info } = fileOf(kind);
       const list = () => {
         tray.querySelector('.none')?.remove();
         const li = document.createElement('li'); li.innerHTML = `${name}<i>${info}</i>`; tray.prepend(li);
@@ -674,10 +742,47 @@
         said.textContent = `Downloaded ${name}`;
       };
       if (P.calm.matches) { list(); return; }
+      // the dashed frame that proposed it is now solid, and stays while the plotter line runs down the sheet
+      pre.innerHTML = frame(paper(kind)); pre.classList.add('on', 'solid');
       const h = q('.sheet').clientHeight;
-      plot.animate([{ opacity: 0, transform: 'translateY(0)' }, { opacity: 1, offset: .08 }, { opacity: 1, offset: .92 }, { opacity: 0, transform: `translateY(${h - 2}px)` }], { duration: 1100, easing: 'cubic-bezier(.4, 0, .6, 1)' }).finished.then(list);
+      plot.animate([{ opacity: 0, transform: 'translateY(0)' }, { opacity: 1, offset: .08 }, { opacity: 1, offset: .92 }, { opacity: 0, transform: `translateY(${h - 2}px)` }], { duration: 1100, easing: 'cubic-bezier(.4, 0, .6, 1)' })
+        .finished.then(() => { pre.classList.remove('on', 'solid'); list(); });
     };
+    // Before: pointed at (or focused), an option draws on the sheet, dashed, what it would do
+    const ghost = q('.ghost'), pre = q('.pre');
+    const unpreview = () => { canvas.classList.remove('ghosting'); ghost.classList.remove('on'); if (!pre.classList.contains('solid')) pre.classList.remove('on'); tray.querySelector('.will')?.remove(); };
+    const preview = b => {
+      unpreview(); if (b.disabled || pre.classList.contains('solid')) return;
+      const inGrp = !!b.closest('.grp'), bld = b.dataset.opens?.startsWith('k-b-') ? b.dataset.opens.slice(4) : null;
+      if (b.dataset.f != null || bld || inGrp) {
+        // another building, floor or view: its walls, dashed, over the sheet as it is now
+        const tb = b.dataset.f != null ? b.dataset.b : bld || st.b;
+        const tf = b.dataset.f != null ? +b.dataset.f : tb === st.b ? st.f : 0;
+        const tv = inGrp ? b.dataset.name : st.view;
+        if (tb === st.b && tf === st.f && tv === st.view) return;
+        ghost.setAttribute('viewBox', `${FIT.x} ${FIT.y} ${FIT.w} ${FIT.h}`);
+        ghost.innerHTML = `<g>${DRAW[tv](BUILDINGS[tb], tf)}</g>`;
+        ghost.classList.add('on'); canvas.classList.add('ghosting');
+      } else if (b.dataset.z) {
+        // a zoom: the part of the sheet it would fill
+        const z = +b.dataset.z; if (z === st.zoom) return;
+        const r = onScreen(zoomRect(z), V), W = canvas.clientWidth, H = canvas.clientHeight, m = 8;
+        const x = Math.max(m, r.x), y = Math.max(m, r.y), x2 = Math.min(W - m, r.x + r.w), y2 = Math.min(H - m, r.y + r.h);
+        pre.innerHTML = frame({ x, y, w: x2 - x, h: y2 - y }); pre.classList.add('on');
+      } else if (b.dataset.dl) {
+        // a download: the paper it would take, and the file it would leave in the title strip
+        pre.innerHTML = frame(paper(b.dataset.dl)); pre.classList.add('on');
+        const f = fileOf(b.dataset.dl), li = document.createElement('li'); li.className = 'will'; li.innerHTML = `${f.name}<i>${f.info}</i>`; tray.prepend(li);
+      }
+    };
+    let pv = null;
+    const previewable = e => e.target.closest?.('.kids button, .grp .r');
+    scene.addEventListener('pointerover', e => { const b = previewable(e); if (b && b !== pv) { pv = b; preview(b); } });
+    scene.addEventListener('pointerout', e => { const b = previewable(e); if (b && !b.contains(e.relatedTarget)) { pv = null; unpreview(); } });
+    scene.addEventListener('focusin', e => { const b = previewable(e); if (b && b.matches(':focus-visible')) preview(b); });
+    scene.addEventListener('focusout', e => { if (previewable(e)) unpreview(); });
     const act = b => {
+      unpreview();
       if (b.dataset.f != null) {
         st.b = b.dataset.b; st.f = +b.dataset.f; st.zoom = 1; zread.textContent = 'Fit'; fitCanvas(); render(true);
         said.textContent = `${B().name}, ${title()}`;
@@ -687,7 +792,7 @@
     };
     fitCanvas(); render(false);
     new ResizeObserver(() => fitCanvas()).observe(canvas);
-    grp.addEventListener('pick', e => { ringTo(e.detail.to, true); st.view = e.detail.to.dataset.name; st.zoom = 1; zread.textContent = 'Fit'; fitCanvas(); render(true); said.textContent = `Showing ${title()}`; });
+    grp.addEventListener('pick', e => { unpreview(); ringTo(e.detail.to, true); st.view = e.detail.to.dataset.name; st.zoom = 1; zread.textContent = 'Fit'; fitCanvas(); render(true); said.textContent = `Showing ${title()}`; });
     const picked = () => grp.querySelector('[aria-checked="true"]');
     // a content switch animates button widths for 520ms (proto); follow them, then settle on the end size
     P.onContent(() => { requestAnimationFrame(relayout); setTimeout(() => { ringTo(picked(), true); relayout(); }, 540); });
@@ -703,6 +808,7 @@
       Object.defineProperty(P, 'calm', { value: { matches: true } });
       const go = () => {
         const steps = { ct2: ['.ct'], ct3: ['.ct', '[data-opens="k-pdf"]'], pf2: ['.pf'], pf3: ['.pf', '[data-opens="k-b-haneul"]'], rs2: ['.rs'] }[shot] || [];
+        if (steps.length) scene.querySelectorAll('.row > button').forEach(b => { if (!b.matches(steps[0])) b.style.display = 'none'; });
         steps.forEach(s => open(q(s), false));
         if (shot === 'hover') ['.ct', '.pf', '.rs'].forEach(s => q(s).classList.add('st-hover'));
       };
@@ -731,10 +837,13 @@
           ['Pressed', `closed, ${tok('--line-down')}`], ['Open', 'closed; the lens stays a little larger'], ['Off', 'faint crop marks']]],
         ['Group · View', [['Option', `${tok('--g-h')} high, ${tok('--g-gap')} apart, in a faint frame`],
           ['Picked', `one bright outline slides to it (${tok('--slide')}); its words go cream`], ['Hover', 'a faint outline of its own'], ['Keys', 'one tab stop; arrows move the pick'], ['Sheet', 'the sheet redraws in the order a drafter works: heavy walls first, then edges, then notes']]],
-        ['The archive', [['Paper', `blueprint navy ${tok('--page')}, sheet ${tok('--paper')}, a 24px grid with a heavier line every 120px`], ['Blueprints', 'a floor redraws the sheet and marks itself as the current one'], ['Zoom', `crop marks frame what will fill the sheet, then open out with it (${tok('--reach')} to draw, 680ms to fill); line weights stay the same on screen at every zoom; drag or arrow keys to move`], ['Download', 'a plotter line runs down the sheet (1.1s), then the file is listed in the title strip, newest first']]],
+        ['The idea', [['A line', 'shows what will happen before it happens, as a blueprint is a building drawn before it exists'], ['Dashed', 'proposed: pointed at or focused, an option draws its result on the sheet in dashed line'], ['Solid', 'done: pressed, the same thing is drawn solid'],
+          ['Blueprints', 'another building or floor: its walls dashed over the sheet, which dims; pressed, it is drawn in'], ['Zoom', 'a dashed frame round the part that would fill the sheet; pressed, solid crop marks open out with it'],
+          ['Download', 'a dashed frame round the paper it takes (half the sheet for A3) and the file, dashed, in the title strip; pressed, the frame is solid while the plotter runs, then the file is listed'], ['View', 'the other view, dashed, before it is picked']]],
+        ['The archive', [['Layout', `the sheet on the left; the tools in a ${tok('--tools-w')} column on its right, top to bottom in the order they are used, so nothing covers the drawing`], ['Paper', `blueprint navy ${tok('--page')}, sheet ${tok('--paper')}, a 24px grid with a heavier line every 120px`], ['Blueprints', 'a floor redraws the sheet and marks itself as the current one'], ['Zoom', `crop marks frame what will fill the sheet, then open out with it (${tok('--reach')} to draw, 680ms to fill); line weights stay the same on screen at every zoom; drag or arrow keys to move`], ['Download', 'a plotter line runs down the sheet (1.1s), then the file is listed in the title strip, newest first']]],
         ['Depth', [['Levels', 'Download and Blueprints open two rows deep (3 levels); Zoom opens one (2 levels)'],
-          ['Options', `${tok('--k-drop')} under the button; each one's outline is drawn in from its top centre both ways round until it closes (${tok('--ink')}; Zoom's crop marks are drawn from their ends, the left from the top, the right from the bottom), then its icon and words rise in; ${tok('--stagger')} apart, wearing its parent's line: two lines, a pen line, crop marks`],
-          ['Closing', `pressing the button again, Escape or a press outside: each option's words go and its line is taken back to the top centre (${tok('--shut')})`],
+          ['Options', `under their button in the column, set in ${tok('--k-indent')}; the column makes room (${tok('--unfold')}) while each one's outline is drawn in from its top centre both ways round until it closes (${tok('--ink')}; Zoom's crop marks are drawn from their ends, the left from the top, the right from the bottom), then the space inside it fills as the line closes and its icon and words rise in; ${tok('--stagger')} apart, wearing its parent's line: two lines, a pen line, crop marks`],
+          ['Closing', `pressing the button again, Escape or a press outside: opening in reverse: the words fade (${tok('--words-out')}), then each line is taken back to the top centre, the last option first, ${tok('--unstagger')} apart (${tok('--shut')}), then the column closes up (${tok('--fold')})`],
           ['Keys', 'Enter opens and moves focus to the first option; Escape closes the deepest row and returns focus']]],
         ['Motion', [['Ease', `${tok('--glide')} for lines, ${tok('--sharp')} for moves`], ['Pointer', 'nothing tracks the pointer: buttons answer on enter, press and leave only'], ['Reduced motion', 'lines and options appear in their end state']]],
       ];
