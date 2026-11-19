@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 09 &middot; Navigation &middot; Advanced Interface</title>
+  <meta name="description" content="Two sets of navigation, each a tone: a vertical sidebar that expands and collapses, and a horizontal tab bar, with icon and text, category headers and a trailing slot, in enabled, hover, pressed and selected." />
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../shared/site.css?v=24" />
+  <style>
+    /* Week 09 diagram kit: one navigation item drawn the same way everywhere.
+       Anatomy (px, true size): Material's drawer / expanded rail item, 56 tall, pill radius 28,
+       12 in from the panel, 16 before the icon, icon 24, 12 to the label, label 14/20, 24 after the trailing slot. */
+    .nv-panel { fill: var(--bg-elev); stroke: var(--line); stroke-width: 1; }
+    .nv-page { fill: var(--fg); fill-opacity: .04; stroke: var(--line); stroke-width: 1; }
+    .nv-pill { fill: var(--accent); fill-opacity: .16; }
+    .nv-hover { fill: var(--fg); fill-opacity: .06; }
+    .nv-press { fill: var(--fg); fill-opacity: .11; }
+    .nv-ink { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .nv-mute { fill: none; stroke: var(--fg-muted); stroke-width: 1.2; stroke-linecap: round; opacity: .7; }
+    .nv-acc { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .nv-dot { fill: #e5484d; }
+    .nv-glass { fill: var(--fg); fill-opacity: .82; }
+    .nv-on-glass { fill: none; stroke: var(--bg-elev); stroke-width: 1.4; stroke-linecap: round; }
+    .nv-txt { font: 500 14px/1 var(--font); fill: var(--fg); }
+    .nv-head { font: 500 14px/1 var(--font); fill: var(--fg-muted); }
+    .nv-meta { fill: var(--fg-muted); font: 7px/1 var(--font); }
+    .nv-dim { fill: none; stroke: #e2537d; stroke-width: .8; }
+    .nv-dim-txt { fill: #e2537d; font: 600 8.5px/1 var(--font); text-anchor: middle; }
+    .nv-pad { fill: #e2537d; opacity: .12; }
+    .rv-anat-fig .an-num text { font-size: 7px; }
+
+    /* Try it: a sidebar that expands and collapses, and the same places as a tab bar */
+    .nv-try { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 20px; align-items: start; margin: 16px 0 24px; padding: 20px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .nv-try-stage { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 420px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); overflow: hidden; }
+    .nv-side { --w: 248px; box-sizing: border-box; width: var(--w); padding: 10px 0 12px; border-right: 1px solid var(--line); background: var(--bg-elev); overflow: hidden; transition: width var(--spatial-t) var(--spatial); }
+    .nv-try-stage[data-side="collapsed"] .nv-side { --w: 80px; }
+    .nv-toggle { display: grid; place-items: center; width: 40px; height: 40px; margin: 0 0 6px 20px; border: 0; border-radius: 20px; background: none; color: var(--fg); cursor: pointer; }
+    .nv-toggle:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
+    .nv-toggle:active { background: color-mix(in srgb, var(--fg) 12%, transparent); }
+    .nv-toggle svg { width: 24px; height: 24px; }
+    .nv-side h4 { box-sizing: border-box; height: 36px; margin: 6px 0 0; padding: 0 28px; font-size: 14px; font-weight: 500; line-height: 36px; color: var(--fg-muted); white-space: nowrap; transition: opacity var(--fx-t) var(--fx); }
+    .nv-side ul { margin: 0; padding: 0; list-style: none; }
+    .nv-side li { margin: 0; }
+    .nv-item { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 12px; height: 48px; margin: 0 12px; padding: 0 16px; border-radius: 24px; color: var(--fg-muted); font-size: 14px; font-weight: 500; line-height: 20px; text-decoration: none; white-space: nowrap; }
+    .prose .nv-item { text-decoration: none; color: var(--fg-muted); }
+    .nv-item::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--fg); opacity: 0; transition: opacity .12s ease; }
+    .nv-item:hover::before { opacity: .07; }
+    .nv-item:active::before { opacity: .12; transition: none; }
+    .nv-item::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--accent) 16%, transparent); transform: scaleX(.5); opacity: 0; transition: transform var(--fast-t) var(--fast), opacity var(--fx-t) var(--fx); z-index: 0; }
+    .nv-item[aria-current="page"] { color: var(--fg); }
+    .nv-item[aria-current="page"]::after { transform: none; opacity: 1; }
+    .nv-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .nv-item > * { position: relative; z-index: 1; }
+    .nv-ico { position: relative; flex: none; width: 24px; height: 24px; }
+    .nv-ico svg { width: 24px; height: 24px; }
+    .nv-item[aria-current="page"] .nv-ico { color: var(--accent); }
+    .nv-label { flex: 1; transition: opacity var(--fx-t) var(--fx); }
+    .nv-trail { display: inline-flex; align-items: center; min-width: 0; color: var(--fg-muted); font-size: 12px; font-weight: 500; transition: opacity var(--fx-t) var(--fx); }
+    .nv-trail svg { width: 18px; height: 18px; }
+    .nv-trail [data-kind] { display: none; }
+    .nv-try-stage[data-slot="badge"] .nv-trail [data-kind="badge"],
+    .nv-try-stage[data-slot="icon"] .nv-trail [data-kind="icon"],
+    .nv-try-stage[data-slot="text"] .nv-trail [data-kind="text"] { display: inline-flex; }
+    .nv-badge { box-sizing: border-box; display: inline-grid; place-items: center; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 600; line-height: 16px; }
+    .nv-pip { position: absolute; top: -1px; right: -2px; width: 6px; height: 6px; border-radius: 50%; background: #e5484d; opacity: 0; transition: opacity var(--fx-t) var(--fx); }
+    /* collapsed: icon only, headers become a short rule, the slot becomes a dot on the icon */
+    .nv-try-stage[data-side="collapsed"] .nv-label,
+    .nv-try-stage[data-side="collapsed"] .nv-trail { opacity: 0; }
+    .nv-try-stage[data-side="collapsed"] .nv-side h4 { opacity: 0; }
+    .nv-side h4 + ul { position: relative; }
+    .nv-side h4 { position: relative; }
+    .nv-side h4::after { content: ""; position: absolute; left: 28px; top: 50%; width: 24px; height: 1px; background: var(--line); opacity: 0; }
+    .nv-try-stage[data-side="collapsed"] .nv-side h4 { opacity: 1; color: transparent; }
+    .nv-try-stage[data-side="collapsed"] .nv-side h4::after { opacity: 1; }
+    .nv-try-stage[data-side="collapsed"] .nv-pip { opacity: 1; }
+    .nv-try-stage[data-side="collapsed"] .nv-item { padding: 0 16px; }
+    .nv-main { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; }
+    .nv-view { padding: 28px 24px; }
+    .nv-view b { display: block; font-size: 22px; letter-spacing: -.01em; }
+    .nv-view span { display: block; margin-top: 6px; font-size: 13px; color: var(--fg-muted); }
+    /* tab bar: 64 tall, icon over label, the picked item's icon held in a 56 x 32 pill */
+    .nv-tabs { display: flex; justify-content: center; gap: 0; height: 64px; padding: 6px 8px; border-top: 1px solid var(--line); background: var(--bg-elev); }
+    .nv-tab { position: relative; flex: 1; max-width: 96px; display: grid; justify-items: center; align-content: center; gap: 4px; border-radius: 12px; color: var(--fg-muted); font-size: 12px; font-weight: 500; line-height: 16px; text-decoration: none; }
+    .prose .nv-tab { text-decoration: none; color: var(--fg-muted); }
+    .nv-tab-pill { position: relative; display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; }
+    .nv-tab-pill::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--fg); opacity: 0; transition: opacity .12s ease; }
+    .nv-tab:hover .nv-tab-pill::before { opacity: .07; }
+    .nv-tab:active .nv-tab-pill::before { opacity: .12; transition: none; }
+    .nv-tab-pill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--accent) 16%, transparent); transform: scaleX(.5); opacity: 0; transition: transform var(--fast-t) var(--fast), opacity var(--fx-t) var(--fx); }
+    .nv-tab[aria-current="page"] { color: var(--fg); }
+    .nv-tab[aria-current="page"] .nv-tab-pill::after { transform: none; opacity: 1; }
+    .nv-tab[aria-current="page"] .nv-ico { color: var(--accent); }
+    .nv-tab .nv-ico { z-index: 1; }
+    .nv-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .nv-tab .nv-badge { position: absolute; top: -4px; left: 14px; z-index: 2; }
+    .nv-try-stage[data-slot="icon"] .nv-tab .nv-badge { display: none; }
+    .nv-try-said { margin-top: 14px; font-size: 13px; color: var(--fg-muted); min-height: 1.4em; }
+    .nv-try-side { display: grid; gap: 16px; }
+    .nv-try-seg { margin: 0; padding: 0; border: 0; }
+    .nv-try-seg legend { margin-bottom: 6px; padding: 0; font-size: 12px; font-weight: 600; color: var(--fg-muted); }
+    .nv-try-seg div { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+    .nv-try-seg label { position: relative; flex: 1; }
+    .nv-try-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .nv-try-seg span { display: block; padding: 6px 4px; border-radius: 7px; font-size: 12.5px; text-align: center; color: var(--fg-muted); transition: background-color .15s ease, color .15s ease; }
+    .nv-try-seg input:checked + span { background: var(--bg-elev); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
+    .nv-try-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .prose .nv-try-keylist { display: grid; gap: 12px; margin: 0; padding: 4px 0 0; list-style: none; font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+    .prose .nv-try-keylist li { position: relative; margin: 0; padding-left: 30px; }
+    .nv-try-keylist b { display: block; font-size: 13.5px; color: var(--fg); }
+    .nv-try-keylist i { position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); font-style: normal; font-size: 11px; line-height: 18px; text-align: center; color: var(--fg); }
+    /* springs from Material 3 Expressive, sampled into linear() (mass 1):
+       spatial default 0.8 / 380, spatial fast 0.6 / 800, effects default 1.0 / 1600 */
+    :root {
+      --spatial: linear(0, 0.072, 0.222, 0.395, 0.558, 0.696, 0.804, 0.884, 0.94, 0.976, 0.997, 1.009, 1.014, 1.014, 1.013, 1.011, 1.008, 1.006, 1.004, 1.003, 1.002, 1.001, 1, 1, 1); --spatial-t: 500ms;
+      --fast: linear(0, 0.108, 0.337, 0.58, 0.79, 0.944, 1.041, 1.084, 1.093, 1.081, 1.059, 1.036, 1.017, 1.004, 0.995, 0.992, 0.991, 0.993, 0.995, 0.997, 0.999, 1, 1, 1.001, 1); --fast-t: 420ms;
+      --fx: linear(0, 0.095, 0.27, 0.441, 0.588, 0.703, 0.793, 0.856, 0.901, 0.932, 0.955, 0.969, 0.979, 0.986, 0.991, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1, 1, 1); --fx-t: 290ms;
+    }
+    @media (max-width: 720px) { .nv-try { grid-template-columns: minmax(0, 1fr); } .nv-side { --w: 200px; } }
+    @media (prefers-reduced-motion: reduce) { .nv-side, .nv-item::after, .nv-tab-pill::after, .nv-label, .nv-trail, .nv-side h4, .nv-pip { transition: none !important; } }
+
+    /* Numbers to remember */
+    .nv-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .nv-nums div { padding: 16px 16px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); }
+    .nv-nums b { display: block; margin-bottom: 6px; font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .nv-nums small { font-size: 13px; font-weight: 500; margin-left: 1px; }
+    .nv-nums span { display: block; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+    .nv-dd { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .nv-dd { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">Advanced Interface</a>
+    <nav><a href="../index.html">Timeline</a></nav>
+  </header>
+
+  <main class="page">
+
+    <div class="post-head">
+      <div class="kicker">Week 09</div>
+      <h1>Navigation</h1>
+      <div class="meta">
+        <span>Nov 16, 2026</span>
+        <span class="tag">navigation</span>
+        <span class="tag">sidebar</span>
+        <span class="tag">tab bar</span>
+        <span class="tag">system</span>
+        <span class="tag">research</span>
+        <span class="tag">spec</span>
+        <span class="tag">tone</span>
+      </div>
+    </div>
+
+    <article class="prose">
+
+      <h2>Deliverables</h2>
+
+      <p>Two sets of navigation, each a tone. Each set is one prototype: a vertical sidebar that expands and collapses and a horizontal tab bar, both in use, then every state, then the spec.</p>
+
+      <!-- Filling a set: pick its tone and rename "Tone to pick", the set-N ids and the
+           file name (week-09-TONE-nav.html, images/process/TONE-nav-N.png).
+           Filling the prototype: build it as its own page, swap <div class="proto-art">…</div> for
+           <iframe style="height:auto;aspect-ratio:W/H" src="…" title="…" loading="lazy"></iframe>, drop the is-empty class, and turn
+           <span class="soon"> into <button type="button" class="viewer-open" data-wide data-src="…">View larger</button>.
+           The prototype page holds the navigation in use first, then a States section, then a Spec section read from its own CSS values.
+           Card thumbnails: swap the two <span class="thumb-empty"></span> for the newest frames. -->
+
+      <div class="set-grid">
+        <div class="set-box" id="set-1">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">Not started yet.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 1"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-09-set-1-nav.html</span></div>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>A sidebar that expands and collapses and a tab bar, with icon and text, category headers and a trailing badge, icon or text; every state; the spec.</span>
+                    <span class="soon">Coming soon</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time.</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+        <div class="set-box" id="set-2">
+          <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-2">
+            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
+            <span class="set-head"><span class="set-num">Set 2</span><span class="set-name">Tone to pick</span><span class="set-line">Not started yet.</span></span>
+            <span class="set-open" aria-hidden="true"></span>
+          </button>
+          <dialog class="set-dialog" id="dlg-2" aria-labelledby="dlg-2-title">
+            <div class="set-dialog-head">
+              <span class="set-head"><span class="set-num">Set 2</span><span class="set-name" id="dlg-2-title">Tone to pick</span></span>
+              <button type="button" class="set-close" aria-label="Close set 2"></button>
+            </div>
+            <div class="set-body">
+              <h4>Prototypes</h4>
+              <div class="proto-grid" style="grid-template-columns:1fr">
+                <figure class="proto is-empty">
+                  <div class="proto-art"><span>week-09-set-2-nav.html</span></div>
+                  <figcaption>
+                    <b>In use and every state</b>
+                    <span>A sidebar that expands and collapses and a tab bar, with icon and text, category headers and a trailing badge, icon or text; every state; the spec.</span>
+                    <span class="soon">Coming soon</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <h4>Process</h4>
+              <p>How the set got here, one tried version at a time.</p>
+              <div class="process-grid"></div>
+            </div>
+          </dialog>
+        </div>
+      </div>
+
+      <h2>Brief</h2>
+
+      <p>Two sets of navigation, each expressing a tone. Tones can repeat. Every design has to do its job. Each one gets a drawing and a working prototype.</p>
+
+      <p>Tone is the soft attribute: the personality, the associations, the attitude. Function is the hard one: what the navigation is for and what it lets you do. Navigation's function is to show where you are, where else you can go, and to take you there in one move. So the tone has to live in the surface, the marks and the way an item answers the pointer, while the current place still reads at a glance.</p>
+
+      <p>Each set has <strong>two kinds of navigation</strong>, built on one structure.</p>
+
+      <h3>Two kinds</h3>
+
+      <table>
+        <thead>
+          <tr><th>Kind</th><th>Also called</th><th>Has to</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vertical</td><td>Navigation rail, navigation drawer, sidebar</td><td>Expand and collapse</td></tr>
+          <tr><td>Horizontal</td><td>Tab bar, navigation bar</td><td>Hold the top destinations in one row</td></tr>
+        </tbody>
+      </table>
+
+      <h3>What the structure has to take</h3>
+
+      <table>
+        <thead>
+          <tr><th>Part</th><th>Has to support</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Icon and text</td><td>Every item has an icon with its label</td></tr>
+          <tr><td>Category headers</td><td>A heading over a group of items</td></tr>
+          <tr><td>Trailing slot</td><td>A place on the right of an item that holds a badge, an icon or text</td></tr>
+        </tbody>
+      </table>
+
+      <h3>States</h3>
+
+      <table>
+        <thead>
+          <tr><th></th><th>Shows</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Enabled</td><td>The item at rest, ready to go to</td></tr>
+          <tr><td>Hover</td><td>The item under the pointer, about to be picked</td></tr>
+          <tr><td>Pressed</td><td>The press landing</td></tr>
+          <tr><td>Selected</td><td>The place you are now</td></tr>
+        </tbody>
+      </table>
+
+      <p>The brief shows three references. Apple's sidebar on iPad: a frosted panel over a blurred photo, a round toggle at its top right, and three rows of a tinted icon with a label (Landmarks, Map, Collections) beside a Mount Fuji article. Apple's tab bar: a dark floating capsule of four tabs, icon over label, the picked one lifted in its own lighter pill and tinted blue, and a separate round search button beside it. Material's navigation bar in two widths, icon over label and icon beside label, the picked item held in a soft pill; and the navigation drawer, with a Mail header, an Inbox row picked in a full-width pill with a count of 24 on its right, a divider and a Labels header.</p>
+
+      <div class="shot-row">
+        <figure class="shot"><img src="images/brief-apple-sidebar.webp" alt="Apple's iPad sidebar: a frosted panel with a toggle button and three rows, Landmarks, Map and Collections, beside a photo of cherry blossom and a Mount Fuji article" loading="lazy" /><figcaption>Sidebars, Apple HIG</figcaption></figure>
+        <figure class="shot"><img src="images/brief-tab-bars.png" alt="Apple's floating tab bar with four tabs and a search button, then Material's navigation bar in two layouts and two navigation drawers with Mail and Labels headers and an Inbox count of 24" loading="lazy" /><figcaption>Tab bars, Apple HIG; Navigation bar and drawer, Material 3</figcaption></figure>
+      </div>
+
+      <h3>The spec</h3>
+
+      <p>As before, no Figma file: every prototype carries its own spec in a section of the page. At least spacing, font, font size and line height, the size of the sidebar (expanded and collapsed), the tab bar and each item, and every other property that shapes them: roundness, stroke width, icon size, the selected indicator, the badge. The numbers are read from the values the prototype runs on, so the spec cannot drift from the design.</p>
+
+      <h2>Research</h2>
+
+      <p>What navigation is and how it behaves, from Apple's Sidebars and Tab bars, Material 3's navigation bar, rail and drawer, and three desktop systems (Microsoft Fluent, IBM Carbon, GitHub Primer). Nothing about tone yet, only the navigation. The full report, with every source, is in <a href="reports/Navigation%20sidebar%20and%20tab%20bar%20specs.md">the research report</a>.</p>
+
+      <p>One thing to know first: the two guides speak differently. Material publishes every number. Apple's iOS 26 pages dropped their size tables and now describe behaviour (a floating glass bar, a bar that shrinks on scroll); the old sizes survive only in 2024 copies. Where a number below is Apple's, it says which.</p>
+
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14 V14 H10 V20 H4 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+          <symbol id="i-browse" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M15.5 8.5 L13.5 13.5 L8.5 15.5 L10.5 10.5 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+          <symbol id="i-radio" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 8 L16 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="14" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M14.5 12.5 H17.5 M14.5 15.5 H17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+          <symbol id="i-library" viewBox="0 0 24 24"><rect x="7" y="3.5" width="13.5" height="13.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 7 V20.5 H17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13.5 a1.6 1.6 0 1 1 0 -.1 V7 H15.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+          <symbol id="i-saved" viewBox="0 0 24 24"><path d="M6.5 3.5 H17.5 V20.5 L12 16.5 L6.5 20.5 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+          <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4 V15 M7.5 10.5 L12 15 L16.5 10.5 M5 19.5 H19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+          <symbol id="i-side" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 5 V19 M6 8.5 H7.5 M6 11 H7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+          <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 5 H5 V19 H19 V14 M13 4 H20 V11 M20 4 L11 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        </defs>
+      </svg>
+
+      <h3>The parts</h3>
+
+      <p>A sidebar is a list of places, grouped under headers. Each place is one row: an icon, a label, and a slot on the right. The row you are on is held in a pill.</p>
+
+      <div class="rv-anat">
+        <figure class="rv-anat-fig">
+          <svg viewBox="-34 -36 344 312" role="img" aria-label="A sidebar drawn at true size: a Mail header, an Inbox row picked in a 56 tall pill with a count of 24 on its right, an Outbox row, a divider, a Labels header and a Label row, with seven numbered parts">
+            <rect x="0" y="0" width="280" height="264" rx="16" class="nv-panel"/>
+            <text x="28" y="27" class="nv-head">Mail</text>
+            <!-- picked row -->
+            <rect x="12" y="40" width="256" height="56" rx="28" class="nv-pill"/>
+            <rect x="12" y="40" width="16" height="56" class="nv-pad"/><rect x="52" y="40" width="12" height="56" class="nv-pad"/><rect x="244" y="40" width="24" height="56" class="nv-pad"/>
+            <path class="nv-acc" d="M31 59 H49 V77 H31 Z M31 68 H37 L39 71 H41 L43 68 H49"/>
+            <text x="64" y="73" class="nv-txt">Inbox</text>
+            <text x="244" y="73" text-anchor="end" class="nv-txt" style="font-weight:600">24</text>
+            <!-- plain row -->
+            <path class="nv-ink" style="stroke-width:1.4" d="M31 115 L49 124 L31 133 L34 124 Z M34 124 H40"/>
+            <text x="64" y="129" class="nv-txt">Outbox</text>
+            <path class="nv-mute" d="M28 162.5 H252"/>
+            <text x="28" y="187" class="nv-head">Labels</text>
+            <path class="nv-ink" style="stroke-width:1.4" d="M31 215 H38 L40 218 H49 V231 H31 Z"/>
+            <text x="64" y="229" class="nv-txt">Label</text>
+            <!-- dimensions, top -->
+            <path class="nv-dim" d="M0 -8 H12 M0 -11 V-5 M12 -11 V-5 M12 -8 H28 M28 -11 V-5 M28 -8 H52 M52 -11 V-5 M52 -8 H64 M64 -11 V-5 M244 -11 V-5 M244 -8 H268 M268 -11 V-5 M268 -8 H280 M280 -11 V-5"/>
+            <text x="6" y="-14" class="nv-dim-txt">12</text><text x="20" y="-23" class="nv-dim-txt">16</text><text x="40" y="-14" class="nv-dim-txt">24</text><text x="58" y="-23" class="nv-dim-txt">12</text><text x="256" y="-14" class="nv-dim-txt">24</text><text x="274" y="-23" class="nv-dim-txt">12</text>
+            <!-- dimensions, left -->
+            <path class="nv-dim" d="M-8 40 V96 M-11 40 H-5 M-11 96 H-5"/>
+            <text x="-20" y="71" class="nv-dim-txt">56</text>
+            <!-- numbered parts -->
+            <g class="an-num"><circle cx="268" cy="10" r="5"/><text x="268" y="10">1</text></g>
+            <g class="an-num"><circle cx="70" cy="22" r="5"/><text x="70" y="22">2</text></g>
+            <g class="an-num"><circle cx="140" cy="96" r="5"/><text x="140" y="96">3</text></g>
+            <g class="an-num"><circle cx="40" cy="88" r="5"/><text x="40" y="88">4</text></g>
+            <g class="an-num"><circle cx="112" cy="68" r="5"/><text x="112" y="68">5</text></g>
+            <g class="an-num"><circle cx="236" cy="56" r="5"/><text x="236" y="56">6</text></g>
+            <g class="an-num"><circle cx="140" cy="162.5" r="5"/><text x="140" y="162.5">7</text></g>
+            <text x="140" y="284" text-anchor="middle" class="nv-meta">Material drawer &middot; pill radius 28 (full) &middot; header and label 14 / 20, weight 500 &middot; panel up to 360 wide</text>
+          </svg>
+        </figure>
+        <ol class="rv-anat-key">
+          <li><b>Container</b><span>The panel; Material's drawer is 360 wide, the expanded rail 220&ndash;360</span></li>
+          <li><b>Category header</b><span>Names a group; muted, never pressable. Material: Title small</span></li>
+          <li><b>Active indicator</b><span>The pill behind the place you are; 56 tall, 12 in from each side</span></li>
+          <li><b>Icon</b><span>24; tinted when picked. Apple prefers filled symbols</span></li>
+          <li><b>Label</b><span>One or two words; the place's name</span></li>
+          <li><b>Trailing slot</b><span>A badge, an icon or text: counts, a new mark, a link out</span></li>
+          <li><b>Divider</b><span>Optional; space or a hairline between groups</span></li>
+        </ol>
+      </div>
+
+      <h3>Two directions, one list</h3>
+
+      <p>The same places, laid out three ways depending on room. Wide windows get the sidebar; it collapses to a rail of icons; on a phone the list turns into a bar across the bottom. Headers only fit in the widest one.</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="6" y="4" width="46" height="60" rx="5" class="nv-panel"/><rect x="58" y="4" width="48" height="60" rx="5" class="nv-page"/>
+            <path class="nv-mute" d="M12 12 H24"/>
+            <rect x="9" y="17" width="40" height="9" rx="4.5" class="nv-pill"/>
+            <path class="nv-acc" d="M14 21.5 h3"/><path class="nv-ink" d="M21 21.5 H36" style="stroke-width:1.3"/><circle cx="44" cy="21.5" r="2" class="nv-dot"/>
+            <path class="nv-ink" d="M14 32 h3 M21 32 H38" style="stroke-width:1.3"/>
+            <path class="nv-mute" d="M12 42 H22"/>
+            <path class="nv-ink" d="M14 50 h3 M21 50 H34 M14 58 h3 M21 58 H40" style="stroke-width:1.3"/>
+          </svg>
+          <b>Sidebar &middot; expanded</b>
+          <p>Icon and label side by side, headers, trailing slots. Material: expanded rail or drawer, 220&ndash;360 wide. Fluent shows it at 1008 px and wider.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="6" y="4" width="20" height="60" rx="5" class="nv-panel"/><rect x="32" y="4" width="74" height="60" rx="5" class="nv-page"/>
+            <rect x="9" y="12" width="14" height="9" rx="4.5" class="nv-pill"/><path class="nv-acc" d="M14.5 16.5 h3"/><circle cx="21" cy="12.5" r="1.6" class="nv-dot"/>
+            <path class="nv-ink" d="M14.5 28 h3"/><path class="nv-mute" d="M12 36 H20"/><path class="nv-ink" d="M14.5 44 h3 M14.5 54 h3"/>
+          </svg>
+          <b>Rail &middot; collapsed</b>
+          <p>Icons alone (or icon over a small label). Material: 96 wide (80 before Expressive), up to 7 places. Headers become space; counts become a dot.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="30" y="2" width="52" height="64" rx="7" class="nv-page"/>
+            <rect x="30" y="48" width="52" height="18" class="nv-panel"/>
+            <rect x="33" y="51" width="10" height="6" rx="3" class="nv-pill"/>
+            <path class="nv-acc" d="M37 54 h2"/><path class="nv-ink" d="M50 54 h2 M62 54 h2 M74 54 h2" style="stroke-width:1.3"/>
+            <path class="nv-mute" d="M35.5 61 h5 M48.5 61 h5 M60.5 61 h5 M72.5 61 h5"/>
+          </svg>
+          <b>Bar &middot; compact</b>
+          <p>Icon over label, across the bottom. Material: 80 tall (64 in Expressive), 3&ndash;5 places, the icon held in a 56 &times; 32 pill.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="30" y="2" width="52" height="64" rx="7" class="nv-page"/>
+            <rect x="33" y="50" width="34" height="12" rx="6" class="nv-glass"/><rect x="35" y="52" width="9" height="8" rx="4" fill="var(--bg-elev)" fill-opacity=".3"/>
+            <path class="nv-on-glass" d="M38 56 h3 M49 56 h3 M58 56 h3"/>
+            <circle cx="74" cy="56" r="6" class="nv-glass"/><circle cx="73.5" cy="55.5" r="2" class="nv-on-glass" style="stroke-width:1"/><path class="nv-on-glass" d="M75 57 l1.6 1.6" style="stroke-width:1"/>
+          </svg>
+          <b>Apple &middot; floating glass</b>
+          <p>iOS 26: the bar floats over content on Liquid Glass and shrinks while you scroll down. Search can sit apart as its own round button at the end.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="18" width="104" height="32" rx="5" class="nv-page"/>
+            <rect x="4" y="38" width="104" height="12" class="nv-panel"/>
+            <rect x="10" y="40.5" width="20" height="7" rx="3.5" class="nv-pill"/>
+            <path class="nv-acc" d="M13 44 h2"/><path class="nv-ink" d="M18 44 H27" style="stroke-width:1.2"/>
+            <path class="nv-ink" d="M38 44 h2 M43 44 H53 M62 44 h2 M67 44 H75 M84 44 h2 M89 44 H100" style="stroke-width:1.2"/>
+          </svg>
+          <b>Bar &middot; wide</b>
+          <p>On windows 600 and wider, Material Expressive turns each item sideways: icon beside label in a 40 tall pill. Apple does the same in regular width.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="4" y="8" width="38" height="52" rx="5" class="nv-panel"/>
+            <path class="nv-ink" d="M9 18 h2 M14 18 H30 M9 28 h2 M14 28 H34 M9 38 h2 M14 38 H28" style="stroke-width:1.2"/>
+            <path class="nv-mute" d="M48 34 H62 M58 30 L62 34 L58 38" style="opacity:1"/>
+            <rect x="68" y="44" width="40" height="14" rx="4" class="nv-panel"/>
+            <path class="nv-ink" d="M75 51 h2 M87 51 h2 M99 51 h2" style="stroke-width:1.2"/>
+          </svg>
+          <b>One list, two layouts</b>
+          <p>Apple's iPad tab view can turn into a sidebar and back; Material swaps bar, rail and drawer by window width. Same places, same order.</p>
+        </div>
+      </div>
+
+      <h3>The slot on the right</h3>
+
+      <p>The brief asks for a slot at the end of each row that holds one of three things. Primer splits them by job: something to read (a count, an icon that says where the link goes) or something to press (an action, which then needs its own name).</p>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="10" y="27" width="92" height="14" rx="7" class="nv-pill" style="fill-opacity:.06"/>
+            <path class="nv-ink" d="M18 34 h4 M27 34 H58" style="stroke-width:1.3"/>
+            <rect x="80" y="29.5" width="15" height="9" rx="4.5" class="nv-dot"/><path d="M84.5 34 H90.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="70" cy="34" r="2" class="nv-dot"/>
+          </svg>
+          <b>Badge</b>
+          <p>Something new or waiting. Material: a 6 dot, or a 16 tall badge with a number, in the error colour. Apple keeps the red badge for what really matters.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="10" y="27" width="92" height="14" rx="7" class="nv-pill" style="fill-opacity:.06"/>
+            <path class="nv-ink" d="M18 34 h4 M27 34 H58" style="stroke-width:1.3"/>
+            <path class="nv-mute" d="M86 30 h6 v6 M92 30 l-6 6" style="opacity:1;stroke-width:1.3"/>
+          </svg>
+          <b>Icon</b>
+          <p>Says where the row goes or what it holds: a link out of the app, a lock, a pin. If pressing the icon does something of its own, it is a button with its own label.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true">
+            <rect x="10" y="27" width="92" height="14" rx="7" class="nv-pill" style="fill-opacity:.06"/>
+            <path class="nv-ink" d="M18 34 h4 M27 34 H58" style="stroke-width:1.3"/>
+            <text x="94" y="37" text-anchor="end" class="nv-meta" style="font-size:9px;font-weight:600">24</text>
+          </svg>
+          <b>Text</b>
+          <p>A plain count or a short word, in the muted colour: Material's drawer puts Inbox's 24 here in the label's own size (Label large).</p>
+        </div>
+      </div>
+
+      <h3>Try it</h3>
+
+      <p>A sidebar and a tab bar that hold the same places. Collapse the sidebar, change what the slot holds, pick a place in either and watch the other follow.</p>
+
+      <div class="nv-try">
+        <div>
+          <div class="nv-try-stage" data-side="expanded" data-slot="badge">
+            <nav class="nv-side" id="nv-side" aria-label="Sidebar">
+              <button type="button" class="nv-toggle" aria-expanded="true" aria-controls="nv-side" aria-label="Collapse sidebar" title="Collapse sidebar"><svg aria-hidden="true"><use href="#i-side"/></svg></button>
+              <h4>Listen</h4>
+              <ul>
+                <li><a class="nv-item" href="#home" data-place="home" aria-current="page"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-home"/></svg></span><span class="nv-label">Home</span></a></li>
+                <li><a class="nv-item" href="#browse" data-place="browse"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-browse"/></svg></span><span class="nv-label">Browse</span></a></li>
+                <li><a class="nv-item" href="#radio" data-place="radio"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-radio"/></svg><span class="nv-pip"></span></span><span class="nv-label">Radio</span><span class="nv-trail"><span data-kind="badge" class="nv-badge" aria-label="3 new">3</span><span data-kind="icon" aria-label="live"><svg aria-hidden="true"><use href="#i-out"/></svg></span><span data-kind="text">Live</span></span></a></li>
+              </ul>
+              <h4>Your music</h4>
+              <ul>
+                <li><a class="nv-item" href="#library" data-place="library"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-library"/></svg><span class="nv-pip"></span></span><span class="nv-label">Library</span><span class="nv-trail"><span data-kind="badge" class="nv-badge" aria-label="24 new">24</span><span data-kind="icon" aria-label="synced"><svg aria-hidden="true"><use href="#i-down"/></svg></span><span data-kind="text">24</span></span></a></li>
+                <li><a class="nv-item" href="#saved" data-place="saved"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-saved"/></svg></span><span class="nv-label">Saved</span></a></li>
+              </ul>
+            </nav>
+            <div class="nv-main">
+              <div class="nv-view" aria-live="polite"><b>Home</b><span>The place picked in the sidebar or the tab bar.</span></div>
+              <nav class="nv-tabs" aria-label="Tab bar">
+                <a class="nv-tab" href="#home" data-place="home" aria-current="page"><span class="nv-tab-pill"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-home"/></svg></span></span>Home</a>
+                <a class="nv-tab" href="#browse" data-place="browse"><span class="nv-tab-pill"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-browse"/></svg></span></span>Browse</a>
+                <a class="nv-tab" href="#radio" data-place="radio"><span class="nv-tab-pill"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-radio"/></svg></span><span class="nv-badge" aria-label="3 new">3</span></span>Radio</a>
+                <a class="nv-tab" href="#library" data-place="library"><span class="nv-tab-pill"><span class="nv-ico"><svg aria-hidden="true"><use href="#i-library"/></svg></span><span class="nv-badge" aria-label="24 new">24</span></span>Library</a>
+              </nav>
+            </div>
+          </div>
+          <p class="nv-try-said" aria-live="polite"></p>
+        </div>
+        <div class="nv-try-side">
+          <fieldset class="nv-try-seg">
+            <legend>Sidebar</legend>
+            <div>
+              <label><input type="radio" name="nv-side" value="expanded" checked /><span>Expanded</span></label>
+              <label><input type="radio" name="nv-side" value="collapsed" /><span>Collapsed</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="nv-try-seg">
+            <legend>Trailing slot</legend>
+            <div>
+              <label><input type="radio" name="nv-slot" value="badge" checked /><span>Badge</span></label>
+              <label><input type="radio" name="nv-slot" value="icon" /><span>Icon</span></label>
+              <label><input type="radio" name="nv-slot" value="text" /><span>Text</span></label>
+            </div>
+          </fieldset>
+          <ul class="nv-try-keylist">
+            <li><i>&#8677;</i><b>Tab</b>Moves through the places one by one: they are links, not a menu</li>
+            <li><i>&#9166;</i><b>Enter</b>Goes there; the picked one is marked <code>aria-current="page"</code></li>
+            <li><i>&#9707;</i><b>Toggle</b>The round button at the top folds the sidebar; it says <code>aria-expanded</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <p>Three choices in it, taken from the research. Collapsed, a place keeps its name for the pointer (a tooltip) and the screen reader, since NN/g found icons alone rarely speak for themselves. The tab bar has no room on the right, so the slot moves onto the icon's corner as a badge, the way both Apple and Material do it. The width eases open on Material's default spatial spring (damping 0.8, stiffness 380, about 500 ms) while the labels fade on the faster effects spring, so the words are gone before the panel narrows past them.</p>
+
+      <h3>Four states</h3>
+
+      <p>The same ladder as last week's buttons, on a row: a faint layer of the ink colour for hover and press, and selected is not a layer but the pill, which stays.</p>
+
+      <div class="rv-states">
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><path class="nv-ink" d="M22 20 h4 M32 20 H62" style="stroke-width:1.4"/></svg>
+          <figcaption><b>Enabled</b><span>Muted ink, no container</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="12" y="10" width="76" height="20" rx="10" class="nv-hover"/><path class="nv-ink" d="M22 20 h4 M32 20 H62" style="stroke-width:1.4"/><path d="M60 24 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/></svg>
+          <figcaption><b>Hover</b><span>Layer 8% (Material); Apple: a glass highlight</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="12" y="10" width="76" height="20" rx="10" class="nv-press"/><path class="nv-ink" d="M22 20 h4 M32 20 H62" style="stroke-width:1.4"/></svg>
+          <figcaption><b>Pressed</b><span>Layer 10%, then the page changes</span></figcaption>
+        </figure>
+        <figure class="rv-state">
+          <svg viewBox="0 0 100 40" aria-hidden="true"><rect x="12" y="10" width="76" height="20" rx="10" class="nv-pill"/><path class="nv-acc" d="M22 20 h4"/><path class="nv-ink" d="M32 20 H62" style="stroke-width:1.4"/></svg>
+          <figcaption><b>Selected</b><span>The pill and a tinted icon; stays until you leave</span></figcaption>
+        </figure>
+      </div>
+
+      <p>Carbon, IBM's system, adds a 4 px bar on the left edge of the selected row, so the place reads even without colour. Material's state layers sit only on the pill area, not the whole row width, in the bar and rail. Apple asks that tabs are never disabled or hidden: a place you can't go to yet should still open and explain why.</p>
+
+      <h3>How it moves</h3>
+
+      <p>Two schools. Material moves on springs, named by what they move: spatial ones for position and size (they may overshoot a little), effects ones for colour and opacity (never overshoot). Carbon moves its rail on a short curve: 110 ms and the labels simply appear.</p>
+
+      <table>
+        <thead>
+          <tr><th>What moves</th><th>Material 3 Expressive</th><th>Settles in about</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Rail widens and narrows</td><td>Default spatial spring, damping 0.8, stiffness 380</td><td>500 ms</td></tr>
+          <tr><td>Picked pill grows in from its centre</td><td>Fast spatial spring, 0.6 / 800 (a small bounce)</td><td>420 ms</td></tr>
+          <tr><td>Colour, label fade</td><td>Default effects spring, 1.0 / 1600 (no bounce)</td><td>290 ms</td></tr>
+          <tr><td>Modal drawer opens / closes</td><td>Opens on default spatial, closes on fast effects</td><td>&mdash;</td></tr>
+          <tr><td>Carbon rail (for contrast)</td><td><code>width .11s cubic-bezier(.2, 0, 1, .9)</code></td><td>110 ms</td></tr>
+        </tbody>
+      </table>
+
+      <p>Note that Material's pill does not slide from the old place to the new one; it fades and grows where you tapped, so the eye lands on the new place, not on the trip. Settle times are from sampling each spring with a mass of 1; the springs themselves are Google's.</p>
+
+      <h3>Laws of UX that shape navigation</h3>
+
+      <div class="rv-rules">
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><path class="nv-ink" d="M30 34 H48" style="stroke-width:1.3"/><path class="nv-mute" d="M48 34 L66 16 M48 34 L66 28 M48 34 L66 40 M48 34 L66 52" style="opacity:1"/><circle cx="70" cy="16" r="3" class="nv-pill" style="fill-opacity:.5"/><circle cx="70" cy="28" r="3" class="nv-pill" style="fill-opacity:.5"/><circle cx="70" cy="40" r="3" class="nv-pill" style="fill-opacity:.5"/><circle cx="70" cy="52" r="3" class="nv-pill" style="fill-opacity:.5"/></svg>
+          <b>Hick's law</b>
+          <p>More choices, longer to decide. Keep the top level short (3&ndash;5 in a bar, about 7 in a rail) and push the rest down a level.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="12" y="50" width="88" height="14" rx="3" class="nv-panel"/><rect x="16" y="52" width="18" height="10" rx="5" class="nv-pill"/><path d="M60 14 l0 10 l2.6 -2.6 l2 4 l1.8 -.9 l-2 -4 l3.6 0 z" fill="var(--bg-elev)" stroke="currentColor" stroke-width=".8"/><path class="nv-mute" d="M58 26 L30 50" style="stroke-dasharray:2 2"/></svg>
+          <b>Fitts's law</b>
+          <p>Big, near targets are faster. Whole rows are the target, not just the label; screen edges help. At least 24 px (WCAG), 44 pt (Apple), 48 (Material).</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="8" y="10" width="40" height="48" rx="4" class="nv-page"/><rect x="8" y="10" width="12" height="48" rx="4" class="nv-panel"/><rect x="64" y="10" width="40" height="48" rx="4" class="nv-page"/><rect x="64" y="10" width="12" height="48" rx="4" class="nv-panel"/><path class="nv-mute" d="M52 34 H60" style="opacity:1"/></svg>
+          <b>Jakob's law</b>
+          <p>People expect your app to work like the others they use. Sidebar on the left, bar at the bottom of a phone, the picked place visibly marked.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><rect x="28" y="6" width="56" height="26" rx="5" class="nv-page"/><rect x="28" y="36" width="56" height="26" rx="5" class="nv-page"/><path class="nv-mute" d="M34 12 H46 M34 42 H46"/><path class="nv-ink" d="M34 19 H70 M34 26 H62 M34 49 H66 M34 56 H58" style="stroke-width:1.2"/></svg>
+          <b>Chunking &middot; common region</b>
+          <p>A long list reads as a few short ones once headers and space split it. Things inside one boundary feel like one group.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><path class="nv-ink" d="M30 12 H70 M30 56 H70" style="stroke-width:1.6"/><path class="nv-mute" d="M30 23 H66 M30 34 H64 M30 45 H68"/></svg>
+          <b>Serial position</b>
+          <p>The first and last items are remembered best. Put the most-used place first and a key one last; Apple warns against burying critical items at a sidebar's bottom edge.</p>
+        </div>
+        <div class="rv-rule">
+          <svg class="rv-pict" viewBox="0 0 112 68" aria-hidden="true"><path class="nv-ink" d="M30 16 H70 M30 28 H70 M30 52 H70" style="stroke-width:1.2"/><rect x="26" y="34" width="56" height="12" rx="6" class="nv-pill"/><path class="nv-acc" d="M30 40 H70"/></svg>
+          <b>Von Restorff</b>
+          <p>The one that differs is the one remembered. Only the selected place gets the strong mark; badges stay rare so they still stand out.</p>
+        </div>
+      </div>
+
+      <p>And one finding to weigh against collapsing: NN/g's study of 179 people found hidden navigation was used about half as often as visible navigation on desktop (27% against 48%), and tasks took at least 39% longer. A collapsed rail is a cost the design has to earn.</p>
+
+      <h3>Accessibility</h3>
+
+      <table>
+        <thead>
+          <tr><th>Question</th><th>Answer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>What is a sidebar, in code?</td><td>A <code>&lt;nav&gt;</code> of links. The current one carries <code>aria-current="page"</code>. Tab moves between them. Not a <code>menu</code>.</td></tr>
+          <tr><td>And a tab bar?</td><td>If it moves to another page, the same: links in a <code>&lt;nav&gt;</code>. Only if it swaps a panel in place is it a <code>tablist</code> with <code>aria-selected</code> and arrow keys.</td></tr>
+          <tr><td>The collapse button?</td><td>A disclosure: <code>aria-expanded</code> and <code>aria-controls</code> pointing at the sidebar.</td></tr>
+          <tr><td>Collapsed, icons only?</td><td>Every item keeps a name for the screen reader and a tooltip for the pointer.</td></tr>
+          <tr><td>Selected look?</td><td>Not by colour alone: a pill, a bar or a weight change, at 3:1 against its background.</td></tr>
+          <tr><td>Motion?</td><td>Under reduced motion, snap instead of spring.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Numbers to remember</h3>
+
+      <div class="nv-nums">
+        <div><b>96 &middot; 360</b><span>Material's rail collapsed, and the widest expanded rail or drawer.</span></div>
+        <div><b>56 &middot; 48</b><span>Drawer row height; the smallest a touch target gets (Material).</span></div>
+        <div><b>80 &middot; 64</b><span>Navigation bar height, baseline and Expressive; its pill is 56 &times; 32.</span></div>
+        <div><b>3&ndash;5</b><span>Places in a bottom bar; a collapsed rail holds up to 7.</span></div>
+        <div><b>6 &middot; 16</b><span>Badge: a dot, or a pill with a number.</span></div>
+        <div><b>8 &middot; 10<small>%</small></b><span>Hover and pressed layers.</span></div>
+      </div>
+
+      <h3>Do and don't</h3>
+
+      <div class="rv-dd nv-dd">
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="10" y="4" width="40" height="36" rx="4" class="nv-panel"/><rect x="13" y="16" width="34" height="9" rx="4.5" class="nv-pill"/><path class="nv-acc" d="M17 20.5 h3"/><path class="nv-ink" d="M23 20.5 H40 M17 10 h3 M23 10 H38 M17 32 h3 M23 32 H36" style="stroke-width:1.2"/></svg>
+          <figcaption><b>Do</b>Mark the current place clearly, and only that one.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="40" y="4" width="16" height="36" rx="4" class="nv-panel"/><path class="nv-ink" d="M46 12 h4 M46 22 h4 M46 32 h4"/><rect x="62" y="17" width="30" height="10" rx="3" class="nv-panel"/><path class="nv-ink" d="M66 22 H88" style="stroke-width:1.2"/></svg>
+          <figcaption><b>Do</b>Give a collapsed rail's icons a tooltip and an accessible name.</figcaption>
+        </figure>
+        <figure class="rv-do">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="20" y="4" width="80" height="36" rx="4" class="nv-panel"/><path class="nv-mute" d="M26 11 H40 M26 27 H40"/><path class="nv-ink" d="M26 18 H70 M26 34 H66" style="stroke-width:1.2"/></svg>
+          <figcaption><b>Do</b>Group with headers and space; keep headers quiet and unpressable.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="4" y="26" width="112" height="14" rx="3" class="nv-panel"/><path class="nv-ink" d="M10 33 h3 M22 33 h3 M34 33 h3 M46 33 h3 M58 33 h3 M70 33 h3 M82 33 h3 M94 33 h3 M106 33 h3"/></svg>
+          <figcaption><b>Don't</b>Crowd a bottom bar past five; move the rest into a More place or a sidebar.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="10" y="4" width="40" height="36" rx="4" class="nv-panel"/><path class="nv-ink" d="M17 12 h3 M23 12 H38 M17 22 h3 M23 22 H40" style="stroke-width:1.2"/><circle cx="44" cy="12" r="2" class="nv-dot"/><circle cx="44" cy="22" r="2" class="nv-dot"/><circle cx="44" cy="32" r="2" class="nv-dot"/><path class="nv-ink" d="M17 32 h3 M23 32 H36" style="stroke-width:1.2"/></svg>
+          <figcaption><b>Don't</b>Badge everything; a badge on every row means none of them is news.</figcaption>
+        </figure>
+        <figure class="rv-do is-dont">
+          <svg viewBox="0 0 120 44" aria-hidden="true"><rect x="10" y="4" width="40" height="36" rx="4" class="nv-panel"/><path class="nv-ink" d="M17 12 h3 M23 12 H38 M17 22 h3 M23 22 H40" style="stroke-width:1.2"/><path class="nv-ink" d="M17 32 h3 M23 32 H36" style="stroke-width:1.2;opacity:.3"/></svg>
+          <figcaption><b>Don't</b>Grey out or hide a place you can't use yet; open it and say why.</figcaption>
+        </figure>
+      </div>
+
+      <h2>Process</h2>
+
+      <h3>Ideation</h3>
+
+      <p>Loose sketches, each running live in its box.</p>
+
+      <!-- Add a sketch: build it as week-09-NAME.html, then copy this inside the grid:
+        <figure class="idea">
+          <iframe src="week-09-NAME.html" title="NAME sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Name</b>
+            <span>One line on the idea.</span>
+            <button type="button" class="viewer-open" data-src="week-09-NAME.html">View larger</button>
+          </figcaption>
+        </figure> -->
+      <div class="idea-grid">
+      </div>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/sidebars">Sidebars</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://developer.apple.com/design/human-interface-guidelines/tab-bars">Tab bars</a>, Apple Human Interface Guidelines</li>
+          <li><a href="https://m3.material.io/components/navigation-bar/overview">Navigation bar</a>, Material Design 3</li>
+          <li><a href="https://m3.material.io/components/navigation-rail/overview">Navigation rail</a> and <a href="https://m3.material.io/components/navigation-drawer/overview">Navigation drawer</a>, Material Design 3; numbers from the <a href="https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/tokens/">Compose material3 tokens</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/apps/design/controls/navigationview">NavigationView</a>, Microsoft Fluent / WinUI</li>
+          <li><a href="https://carbondesignsystem.com/components/UI-shell-left-panel/usage/">UI shell left panel</a>, IBM Carbon</li>
+          <li><a href="https://primer.style/product/components/nav-list/">NavList</a>, GitHub Primer</li>
+          <li><a href="https://www.nngroup.com/articles/hamburger-menus/">Hamburger menus and hidden navigation</a>, <a href="https://www.nngroup.com/articles/vertical-nav/">Vertical navigation</a> and <a href="https://www.nngroup.com/articles/icon-usability/">Icon usability</a>, Nielsen Norman Group</li>
+          <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/">Disclosure navigation</a> and <a href="https://www.w3.org/WAI/ARIA/apg/patterns/tabs/">Tabs pattern</a>, WAI-ARIA Authoring Practices Guide; <a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">Target size (minimum)</a>, WCAG 2.2</li>
+          <li><a href="https://lawsofux.com">Laws of UX</a> and <a href="https://www.userinterface.wiki/laws-of-ux">userinterface.wiki</a></li>
+        </ul>
+      </footer>
+
+    </article>
+
+    <nav class="post-nav">
+      <span><a href="../week-08/week-08.html">&larr; Week 08: Buttons</a></span>
+      <span class="next"></span>
+    </nav>
+
+  </main>
+
+  <footer class="site-footer">
+    Fall 2026 &middot; plain HTML, updated every week.
+  </footer>
+
+  <script src="../shared/viewer.js?v=8"></script>
+  <script src="../shared/sets.js?v=1"></script>
+  <script src="../shared/toc.js?v=4"></script>
+  <script>
+    // Try it: one set of places in a sidebar and a tab bar. Links with aria-current, a disclosure toggle.
+    (() => {
+      const stage = document.querySelector('.nv-try-stage');
+      if (!stage) return;
+      const side = stage.querySelector('.nv-side');
+      const toggle = stage.querySelector('.nv-toggle');
+      const view = stage.querySelector('.nv-view');
+      const said = document.querySelector('.nv-try-said');
+      const all = [...stage.querySelectorAll('[data-place]')];
+      const names = { home: 'Home', browse: 'Browse', radio: 'Radio', library: 'Library', saved: 'Saved' };
+
+      const go = place => {
+        all.forEach(a => { if (a.dataset.place === place) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+        view.querySelector('b').textContent = names[place];
+        said.textContent = 'Went to ' + names[place] + '.';
+      };
+      all.forEach(a => a.addEventListener('click', e => { e.preventDefault(); go(a.dataset.place); }));
+
+      // collapsed: labels hidden from sight, so each link gets a tooltip; its text stays its accessible name
+      const fold = state => {
+        const open = state === 'expanded';
+        stage.dataset.side = state;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Collapse sidebar' : 'Expand sidebar');
+        toggle.title = toggle.getAttribute('aria-label');
+        side.querySelectorAll('.nv-item').forEach(a => { if (open) a.removeAttribute('title'); else a.title = a.querySelector('.nv-label').textContent; });
+        document.querySelector(`.nv-try-seg input[name="nv-side"][value="${state}"]`).checked = true;
+      };
+      toggle.addEventListener('click', () => fold(stage.dataset.side === 'expanded' ? 'collapsed' : 'expanded'));
+
+      document.querySelectorAll('.nv-try-seg input').forEach(input => input.addEventListener('change', () => {
+        if (input.name === 'nv-side') fold(input.value);
+        else stage.dataset.slot = input.value;
+      }));
+    })();
+  </script>
+</body>
+</html>
