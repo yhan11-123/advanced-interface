@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pill &middot; Week 09 sketch</title>
+  <!-- Pill, after the user's reference: a dark navy capsule of outlined icons on lavender;
+       the picked place is a white pill with a filled icon and its label.
+       Motion:
+       - the pill travels on two springs: its leading edge runs ahead (stiff), its trailing edge
+         catches up (soft), so it stretches toward the new place and gathers there, in the tab bar
+         sideways and in the sidebar up and down; one engine moves both pills
+       - arriving, the outline icon swaps to the filled one with a pop; in the tab bar the label
+         unrolls from the left as the item widens, and the other icons slide aside to make room
+       - hover lifts an icon 2px; press squashes the item (and the pill under it); release springs back
+       - the sidebar collapses on a spring: labels and slots clip away first (fast), the panel narrows
+         (slower), the picked pill gathers into a circle; headers fold into short rules.
+         Opening reverses it, labels last. Closing is quicker than opening. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { overflow: hidden; background: #9a6be0; font-family: Inter, -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; }
+
+    :root {
+      --w: 760px; --h: 420px; --fit: 1;
+      --navy: #1b1930; --navy-2: #252340; --white: #fff; --ink: #1b1930;
+      --icon: rgba(255,255,255,.72); --muted: rgba(255,255,255,.42); --lav: #c9a8ff;
+      /* springs sampled into linear(): spatial (0.8 / 380), fast with a little bounce (0.6 / 800), effects (1 / 1600) */
+      --spatial: linear(0, 0.072, 0.222, 0.395, 0.558, 0.696, 0.804, 0.884, 0.94, 0.976, 0.997, 1.009, 1.014, 1.014, 1.013, 1.011, 1.008, 1.006, 1.004, 1.003, 1.002, 1.001, 1, 1, 1);
+      --fast: linear(0, 0.108, 0.337, 0.58, 0.79, 0.944, 1.041, 1.084, 1.093, 1.081, 1.059, 1.036, 1.017, 1.004, 0.995, 0.992, 0.991, 0.993, 0.995, 0.997, 0.999, 1, 1, 1.001, 1);
+      --fx: linear(0, 0.095, 0.27, 0.441, 0.588, 0.703, 0.793, 0.856, 0.901, 0.932, 0.955, 0.969, 0.979, 0.986, 0.991, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1, 1, 1);
+      --open-t: 520ms; --close-t: 360ms;
+    }
+    .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); display: flex; gap: 20px; padding: 26px; }
+
+    /* ---------- shared item bits ---------- */
+    .ico { position: relative; flex: none; width: 24px; height: 24px; transition: translate .25s var(--fast); }
+    .ico svg { position: absolute; inset: 0; width: 24px; height: 24px; overflow: visible; }
+    .ico .o { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: opacity .18s var(--fx), scale .3s var(--fx); transform-origin: 12px 12px; }
+    .ico .f { opacity: 0; scale: .4; transform-origin: 12px 12px; transition: opacity .2s var(--fx), scale .42s var(--fast); }
+    .ico .f .fill { fill: var(--ink); stroke: var(--ink); stroke-width: 1.7; stroke-linejoin: round; }
+    .ico .f .cut { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; }
+    .ico .f .dot { fill: #fff; }
+    [aria-current="page"] .ico .o { opacity: 0; scale: 1.3; }
+    [aria-current="page"] .ico .f { opacity: 1; scale: 1; }
+    .item:hover:not([aria-current]) .ico { translate: 0 -2px; }
+    .item { transition: scale .32s var(--fast); }
+    .item:active { scale: .9; transition: scale .08s ease-out; }
+    .item:focus-visible { outline: 2px solid var(--lav); outline-offset: 2px; }
+
+    /* the white pill: positioned every frame by the edge springs */
+    .pill { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 999px; background: var(--white); pointer-events: none; z-index: 0; transition: scale .34s var(--fast); }
+    .pill.down { scale: .94; transition: scale .08s ease-out; }
+    .item > * { position: relative; z-index: 1; }
+
+    /* ---------- sidebar ---------- */
+    .side { position: relative; flex: none; width: 214px; padding: 14px 12px 14px; border-radius: 30px; background: var(--navy); overflow: hidden; color: var(--icon);
+      transition: width var(--close-t) var(--spatial); }
+    .stage[data-side="open"] .side { transition: width var(--open-t) var(--spatial); }
+    .stage[data-side="rail"] .side { width: 72px; }
+    .side-top { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 4px; padding-left: 12px; }
+    .brand { font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: #fff; white-space: nowrap; transition: opacity .16s var(--fx); }
+    .toggle { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 20px; color: var(--icon); transition: background-color .15s, scale .3s var(--fast); }
+    .toggle:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .toggle:active { scale: .88; transition: scale .08s; }
+    .toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .toggle svg { rotate: 180deg; }
+    .stage[data-side="rail"] .side-top { padding-left: 0; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; }
+
+    .side h4 { position: relative; height: 28px; margin: 4px 0 0; padding: 0 12px; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; line-height: 28px; color: var(--muted); white-space: nowrap; transition: color .14s var(--fx); }
+    .side h4::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 1.5px; margin-left: -9px; left: 22px; border-radius: 1px; background: var(--muted); transition: width .3s var(--fast) .05s; }
+    .stage[data-side="rail"] .side h4 { color: transparent; transition-delay: 0s; }
+    .stage[data-side="rail"] .side h4::after { width: 18px; }
+    .side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+    .side .item { position: relative; display: flex; align-items: center; gap: 12px; width: 190px; height: 44px; padding: 0 10px; border-radius: 22px; overflow: hidden; white-space: nowrap; color: var(--icon);
+      transition: width var(--close-t) var(--spatial), scale .32s var(--fast); }
+    .stage[data-side="open"] .side .item { transition: width var(--open-t) var(--spatial), scale .32s var(--fast); }
+    .stage[data-side="rail"] .side .item { width: 44px; }
+    .side .item:active { transition: width var(--open-t) var(--spatial), scale .08s ease-out; }
+    .side .ico { overflow: visible; }
+    .side .item::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: #fff; opacity: 0; transition: opacity .15s; }
+    .side .item:hover:not([aria-current])::before { opacity: .07; }
+    .side .item:hover:not([aria-current]) { color: #fff; }
+    .side .item[aria-current="page"] { color: var(--ink); }
+    .side .lbl { flex: 1; font-size: 14px; font-weight: 600; transition: opacity .2s var(--fx) .12s; }
+    .stage[data-side="rail"] .side .lbl,
+    .stage[data-side="rail"] .side .trail { opacity: 0; transition: opacity .1s var(--fx); }
+    .trail { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--muted); transition: opacity .2s var(--fx) .14s; }
+    [aria-current="page"] .trail { color: rgba(27,25,48,.55); }
+    .trail > * { display: none; }
+    .stage[data-slot="badge"] .trail .t-badge, .stage[data-slot="icon"] .trail .t-icon, .stage[data-slot="text"] .trail .t-text { display: inline-flex; }
+    .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--lav); color: var(--ink); font-size: 11px; font-weight: 700; line-height: 18px; justify-content: center; }
+    .t-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    /* collapsed: the slot shrinks to a dot on the icon */
+    .pip { position: absolute; top: -2px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--lav); box-shadow: 0 0 0 2px var(--navy); scale: 0; transition: scale .3s var(--fast); }
+    .stage[data-side="rail"] .pip { scale: 1; transition-delay: .18s; }
+    [aria-current="page"] .pip { box-shadow: 0 0 0 2px #fff; }
+
+    /* ---------- main + tab bar ---------- */
+    .main { position: relative; flex: 1; min-width: 0; display: grid; grid-template-rows: 1fr auto; border-radius: 30px; background: rgba(255,255,255,.14); padding: 26px 24px 18px; }
+    .view b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: rgba(255,255,255,.75); }
+    .view .lines { margin-top: 18px; display: grid; gap: 8px; }
+    .view .lines i { display: block; height: 10px; border-radius: 5px; background: rgba(255,255,255,.16); }
+    .tabs { position: relative; justify-self: center; display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; max-width: 420px; height: 66px; padding: 0 12px; border-radius: 33px; background: var(--navy); color: var(--icon); }
+    .tabs .item { position: relative; display: flex; align-items: center; height: 44px; padding: 0 10px; border-radius: 22px; }
+    .tabs .item::before { content: ""; position: absolute; inset: 2px; border-radius: inherit; background: #fff; opacity: 0; transition: opacity .15s; }
+    .tabs .item:hover:not([aria-current])::before { opacity: .08; }
+    .tabs .item:hover:not([aria-current]) { color: #fff; }
+    .tabs .lbl { display: block; overflow: hidden; max-width: 0; opacity: 0; margin-left: 0; font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap;
+      transition: max-width var(--close-t) var(--spatial), margin-left var(--close-t) var(--spatial), opacity .12s var(--fx); }
+    .tabs .item[aria-current="page"] { padding: 0 16px 0 10px; color: var(--ink); }
+    .tabs .item[aria-current="page"] .lbl { max-width: var(--lw, 80px); margin-left: 8px; opacity: 1; transition: max-width var(--open-t) var(--spatial), margin-left var(--open-t) var(--spatial), opacity .25s var(--fx) .1s; }
+    .tabs .item { transition: padding var(--open-t) var(--spatial), scale .32s var(--fast); }
+    .tabs .item:active { transition: padding var(--open-t) var(--spatial), scale .08s ease-out; }
+    .tabs .badge { position: absolute; top: 3px; left: 24px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; box-shadow: 0 0 0 2px var(--navy); display: none; }
+    .stage[data-slot="badge"] .tabs .badge { display: inline-flex; }
+    .tabs [aria-current="page"] .badge { box-shadow: 0 0 0 2px #fff; }
+
+    /* the viewer's switch: neutral, apart from the sketch; hidden in the small grid preview */
+    .ctl-pill { position: fixed; right: 10px; bottom: 10px; z-index: 9; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(20,20,20,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font: 600 11px/1 system-ui, sans-serif; }
+    .ctl-pill button { height: 24px; padding: 0 9px; border-radius: 999px; color: rgba(255,255,255,.6); }
+    .ctl-pill button:hover { color: #fff; background: rgba(255,255,255,.12); }
+    .ctl-pill button[aria-pressed="true"] { color: #111; background: #fff; }
+    .ctl-pill i { width: 1px; height: 14px; margin: 0 3px; background: rgba(255,255,255,.25); }
+    @media (max-width: 520px) { .ctl-pill { display: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="home" viewBox="0 0 24 24">
+        <g class="o"><path d="M4.5 10.5 L12 4.5 L19.5 10.5 V18 a2 2 0 0 1 -2 2 H6.5 a2 2 0 0 1 -2 -2 Z"/><path d="M10.5 13.5 v3 M13.5 13.5 v3"/></g>
+        <g class="f"><path class="fill" d="M4.5 10.5 L12 4.5 L19.5 10.5 V18 a2 2 0 0 1 -2 2 H6.5 a2 2 0 0 1 -2 -2 Z"/><path class="cut" d="M10.5 13.5 v3 M13.5 13.5 v3"/></g>
+      </symbol>
+      <symbol id="search" viewBox="0 0 24 24">
+        <g class="o"><circle cx="11" cy="11" r="6.5"/><path d="M16 16 L20 20"/></g>
+        <g class="f"><circle class="fill" cx="11" cy="11" r="6.5"/><path class="fill" d="M16 16 L20 20" style="stroke-width:3;stroke-linecap:round"/></g>
+      </symbol>
+      <symbol id="offers" viewBox="0 0 24 24">
+        <g class="o"><circle cx="12" cy="12" r="8.5"/><path d="M9.2 14.8 L14.8 9.2"/><circle cx="9.4" cy="9.4" r=".9"/><circle cx="14.6" cy="14.6" r=".9"/></g>
+        <g class="f"><circle class="fill" cx="12" cy="12" r="8.5"/><path class="cut" d="M9.2 14.8 L14.8 9.2"/><circle class="dot" cx="9.4" cy="9.4" r="1.3"/><circle class="dot" cx="14.6" cy="14.6" r="1.3"/></g>
+      </symbol>
+      <symbol id="cart" viewBox="0 0 24 24">
+        <g class="o"><path d="M8.5 9 V7.5 a3.5 3.5 0 0 1 7 0 V9"/><path d="M4.5 9 H19.5 L18 18.2 a2 2 0 0 1 -2 1.8 H8 a2 2 0 0 1 -2 -1.8 Z"/><path d="M10 13 v3 M14 13 v3"/></g>
+        <g class="f"><path class="fill" d="M8.5 9 V7.5 a3.5 3.5 0 0 1 7 0 V9" style="fill:none"/><path class="fill" d="M4.5 9 H19.5 L18 18.2 a2 2 0 0 1 -2 1.8 H8 a2 2 0 0 1 -2 -1.8 Z"/><path class="cut" d="M10 13 v3 M14 13 v3"/></g>
+      </symbol>
+      <symbol id="profile" viewBox="0 0 24 24">
+        <g class="o"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.6"/><path d="M7.6 17 a5 5 0 0 1 8.8 0"/></g>
+        <g class="f"><circle class="fill" cx="12" cy="12" r="8.5"/><circle class="dot" cx="12" cy="10" r="2.8"/><path class="cut" d="M7.6 17 a5 5 0 0 1 8.8 0" style="stroke-width:2.4"/></g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="stage" data-side="open" data-slot="badge">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <span class="pill" aria-hidden="true"></span>
+      <div class="side-top">
+        <span class="brand">Basket</span>
+        <button type="button" class="toggle" aria-expanded="true" aria-controls="side" aria-label="Collapse sidebar" title="Collapse sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 7 L9.5 12 L14.5 17"/></svg></button>
+      </div>
+      <h4>Shop</h4>
+      <ul>
+        <li><a class="item" href="#home" data-place="home" aria-current="page"><span class="ico"><svg><use href="#home"/></svg></span><span class="lbl">Home</span></a></li>
+        <li><a class="item" href="#search" data-place="search"><span class="ico"><svg><use href="#search"/></svg></span><span class="lbl">Search</span></a></li>
+        <li><a class="item" href="#offers" data-place="offers"><span class="ico"><svg><use href="#offers"/></svg><span class="pip"></span></span><span class="lbl">Offers</span>
+          <span class="trail"><span class="t-badge badge" aria-label="3 new">3</span><span class="t-icon" aria-label="ending soon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8 V12 L14.5 13.5"/></svg></span><span class="t-text">New</span></span></a></li>
+      </ul>
+      <h4>Yours</h4>
+      <ul>
+        <li><a class="item" href="#cart" data-place="cart"><span class="ico"><svg><use href="#cart"/></svg><span class="pip"></span></span><span class="lbl">Cart</span>
+          <span class="trail"><span class="t-badge badge" aria-label="2 items">2</span><span class="t-icon" aria-label="ready to check out"><svg viewBox="0 0 24 24"><path d="M6 12.5 L10 16.5 L18 8"/></svg></span><span class="t-text">$48</span></span></a></li>
+        <li><a class="item" href="#profile" data-place="profile"><span class="ico"><svg><use href="#profile"/></svg></span><span class="lbl">Profile</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Home</b><span>Picked in the sidebar or the bar below.</span><div class="lines"><i style="width:78%"></i><i style="width:62%"></i><i style="width:70%"></i></div></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <span class="pill" aria-hidden="true"></span>
+        <a class="item" href="#home" data-place="home" aria-current="page"><span class="ico"><svg><use href="#home"/></svg></span><span class="lbl">Home</span></a>
+        <a class="item" href="#search" data-place="search"><span class="ico"><svg><use href="#search"/></svg></span><span class="lbl">Search</span></a>
+        <a class="item" href="#offers" data-place="offers"><span class="ico"><svg><use href="#offers"/></svg></span><span class="badge" aria-label="3 new">3</span><span class="lbl">Offers</span></a>
+        <a class="item" href="#cart" data-place="cart"><span class="ico"><svg><use href="#cart"/></svg></span><span class="badge" aria-label="2 items">2</span><span class="lbl">Cart</span></a>
+        <a class="item" href="#profile" data-place="profile"><span class="ico"><svg><use href="#profile"/></svg></span><span class="lbl">Profile</span></a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="ctl-pill" role="group" aria-label="Sketch controls">
+    <button type="button" data-side="open" aria-pressed="true">Open</button>
+    <button type="button" data-side="rail" aria-pressed="false">Rail</button>
+    <i></i>
+    <button type="button" data-slot="badge" aria-pressed="true">Badge</button>
+    <button type="button" data-slot="icon" aria-pressed="false">Icon</button>
+    <button type="button" data-slot="text" aria-pressed="false">Text</button>
+  </div>
+
+  <script>
+    (() => {
+      const stage = document.querySelector('.stage');
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / 760, innerHeight / 420, 1.6));
+      fit(); addEventListener('resize', () => { fit(); wake(); });
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      const names = { home: 'Home', search: 'Search', offers: 'Offers', cart: 'Cart', profile: 'Profile' };
+
+      // copy each icon in place (styles can't reach inside <use>, and the outline/filled swap needs them)
+      document.querySelectorAll('.ico svg').forEach(svg => {
+        const use = svg.querySelector('use'); if (!use) return;
+        const sym = document.querySelector(use.getAttribute('href'));
+        svg.setAttribute('viewBox', sym.getAttribute('viewBox')); svg.setAttribute('aria-hidden', 'true');
+        svg.innerHTML = sym.innerHTML;
+      });
+
+      // each tab label unrolls to its own width
+      document.querySelectorAll('.tabs .lbl').forEach(l => l.style.setProperty('--lw', l.scrollWidth + 'px'));
+
+      // ---- the pill: four edges, each its own spring. The edge on the side of travel leads (stiff),
+      //      the far edge trails (soft), so the pill stretches toward the new place and gathers there.
+      const LEAD = { k: 620, z: .72 }, TRAIL = { k: 230, z: .86 }, EVEN = { k: 380, z: .8 };
+      const pills = [...document.querySelectorAll('nav')].map(nav => ({
+        nav, el: nav.querySelector('.pill'),
+        e: { l: { x: 0, v: 0, p: EVEN }, r: { x: 0, v: 0, p: EVEN }, t: { x: 0, v: 0, p: EVEN }, b: { x: 0, v: 0, p: EVEN } },
+        placed: false,
+      }));
+      const target = p => {
+        const cur = p.nav.querySelector('[aria-current="page"]');
+        const n = p.nav.getBoundingClientRect(), c = cur.getBoundingClientRect(), s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fit')) || 1;
+        return { l: (c.left - n.left) / s, r: (c.right - n.left) / s, t: (c.top - n.top) / s, b: (c.bottom - n.top) / s };
+      };
+      const draw = p => {
+        const { l, r, t, b } = p.e;
+        p.el.style.left = l.x + 'px'; p.el.style.top = t.x + 'px';
+        p.el.style.width = Math.max(0, r.x - l.x) + 'px'; p.el.style.height = Math.max(0, b.x - t.x) + 'px';
+      };
+      // set who leads from the direction of travel
+      const aim = (p, from, to) => {
+        const dx = (to.l + to.r) / 2 - (from.l + from.r) / 2, dy = (to.t + to.b) / 2 - (from.t + from.b) / 2;
+        const e = p.e;
+        if (Math.abs(dx) > 4) { e.r.p = dx > 0 ? LEAD : TRAIL; e.l.p = dx > 0 ? TRAIL : LEAD; } else { e.l.p = e.r.p = EVEN; }
+        if (Math.abs(dy) > 4) { e.b.p = dy > 0 ? LEAD : TRAIL; e.t.p = dy > 0 ? TRAIL : LEAD; } else { e.t.p = e.b.p = EVEN; }
+      };
+
+      let raf = 0, until = 0, last = 0;
+      const step = now => {
+        const dt = Math.min(.032, (now - last) / 1000 || .016); last = now;
+        let moving = false;
+        for (const p of pills) {
+          const T = target(p);
+          for (const k of ['l', 'r', 't', 'b']) {
+            const s = p.e[k];
+            if (!p.placed || calm.matches) { s.x = T[k]; s.v = 0; continue; }
+            const w = Math.sqrt(s.p.k);
+            // a few small substeps keep the stiff edge stable
+            for (let i = 0; i < 4; i++) { const h = dt / 4; s.v += (-s.p.k * (s.x - T[k]) - 2 * s.p.z * w * s.v) * h; s.x += s.v * h; }
+            if (Math.abs(s.x - T[k]) > .2 || Math.abs(s.v) > 2) moving = true;
+          }
+          p.placed = true; draw(p);
+        }
+        raf = (moving || now < until) ? requestAnimationFrame(step) : 0;
+      };
+      const wake = (ms = 800) => { until = performance.now() + ms; if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } };
+
+      // ---- picking: both navs follow
+      const go = place => {
+        for (const p of pills) {
+          const from = target(p);
+          p.nav.querySelectorAll('[data-place]').forEach(a => a.dataset.place === place ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+          aim(p, from, target(p));
+        }
+        stage.querySelector('.view b').textContent = names[place];
+        wake(900);
+      };
+      stage.querySelectorAll('[data-place]').forEach(a => {
+        a.addEventListener('click', e => { e.preventDefault(); if (!a.hasAttribute('aria-current')) go(a.dataset.place); });
+        // pressing the picked item squashes its pill too
+        a.addEventListener('pointerdown', () => { if (a.hasAttribute('aria-current')) a.closest('nav').querySelector('.pill').classList.add('down'); });
+      });
+      addEventListener('pointerup', () => document.querySelectorAll('.pill.down').forEach(p => p.classList.remove('down')));
+
+      // ---- collapse / expand
+      const toggle = stage.querySelector('.toggle');
+      const ctl = [...document.querySelectorAll('.ctl-pill button')];
+      const fold = state => {
+        stage.dataset.side = state;
+        const open = state === 'open';
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Collapse sidebar' : 'Expand sidebar'); toggle.title = toggle.getAttribute('aria-label');
+        stage.querySelectorAll('.side .item').forEach(a => open ? a.removeAttribute('title') : (a.title = a.querySelector('.lbl').textContent));
+        for (const p of pills) for (const k of ['l', 'r', 't', 'b']) p.e[k].p = EVEN;
+        ctl.forEach(b => b.dataset.side && b.setAttribute('aria-pressed', String(b.dataset.side === state)));
+        wake(900);
+      };
+      toggle.addEventListener('click', () => fold(stage.dataset.side === 'open' ? 'rail' : 'open'));
+      ctl.forEach(b => b.addEventListener('click', () => {
+        if (b.dataset.side) return fold(b.dataset.side);
+        stage.dataset.slot = b.dataset.slot;
+        ctl.forEach(x => x.dataset.slot && x.setAttribute('aria-pressed', String(x === b)));
+        wake(400);
+      }));
+      // the sidebar's width changes the main column, so the tab bar's pill follows during any transition
+      stage.addEventListener('transitionrun', () => wake(700));
+
+      if (new URLSearchParams(location.search).has('rail')) fold('rail');
+      const pick = new URLSearchParams(location.search).get('pick'); if (pick) go(pick);
+      const demo = new URLSearchParams(location.search).get('demo'); if (demo) setTimeout(() => go(demo), 700);
+      wake(200);
+    })();
+  </script>
+</body>
+</html>
