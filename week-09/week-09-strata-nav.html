@@ -13,7 +13,7 @@
      bellows. Like an accordion it stretches and compresses:
        Open (the first screen): the pleats are pulled apart, each place's name sits under its rings.
        Folded (once you scroll): the bellows press together toward the middle, the names give way, the tube
-       narrows, and the short bar lifts off the sheet as a plate with a double outline and a hatched shadow;
+       narrows, and the short bar lifts off the sheet as a plate on an undertone, with no outline;
        the place you are on is named at its right end.
        Pointing at the bar or pulling up 36px stretches it open again.
      Each ring moves on its own spring, softer the farther it is from where the change starts (the middle for
@@ -22,7 +22,7 @@
      with a heavy first ring, a hatched middle ring and a rule under its name; the axis is solid up to it.
      Every number in the Spec is read from these tokens. */
   :root {
-    --paper: #ecebe7; --ink: #1a1a1a; --dim: #6b6b67; --rule: #c9c8c3;
+    --paper: #ecebe7; --under: #dddbd4; --ink: #1a1a1a; --dim: #6b6b67; --rule: #c9c8c3;
     --mono: ui-monospace, "SF Mono", Menlo, monospace;
     --serif: Georgia, "Times New Roman", serif;
     --w: 1100px; --h: 720px;
@@ -147,7 +147,7 @@
       const tok = n => css.getPropertyValue(n).trim();
       const num = n => parseFloat(tok(n));
       const W = num('--w'), H = num('--h'), OPEN = num('--bar-open'), SHUT = num('--bar-shut');
-      const SCRUB = num('--scrub'), PULL = num('--pull-up'), HOLD = num('--hold'), FTOP = num('--float-top'), SHAD = num('--shadow');
+      const SCRUB = num('--scrub'), PULL = num('--pull-up'), HOLD = num('--hold'), FTOP = num('--float-top'), SHAD = num('--shadow'), UNDER = getComputedStyle(document.documentElement).getPropertyValue('--under').trim();
       const GROW = num('--grow') / 1000, PEEK = num('--peek') / 1000, DRAW = num('--draw') / 1000, REVEAL = num('--reveal') / 1000, COIL = num('--coil-turns');
       const RSHUT = num('--ring-shut'), RXK = num('--ring-rx'), RIP = num('--ripple'), DRIFT = num('--drift');
       const PLEAT = { rest: num('--pleat-rest'), hover: num('--pleat-hover'), press: num('--pleat-press'), sel: num('--pleat-sel') }, PSHUT = num('--pleat-shut');
@@ -254,20 +254,20 @@
           return `<path d="${d}" fill="${p.fill ? (extra.hatch ? 'url(#hatch-s)' : '#ecebe7') : 'none'}" stroke="#1a1a1a" stroke-width="${w}"${p.dash ? ` stroke-dasharray="${p.dash}"` : ''}/>`;
         }).join('');
       };
+      const mixHex = (a, b, t) => '#' + [1, 3, 5].map(i => Math.round(lerp(parseInt(a.substr(i, 2), 16), parseInt(b.substr(i, 2), 16), t)).toString(16).padStart(2, '0')).join('');
       const barSVG = o => {
         const { xs, f, sel, hv, lift, phase } = o, rv = o.rv ?? 1, hl = o.hl || [], mid = o.mid || [], out = o.out || [], fc = clamp(f, 0, 1);
         const s = lerp(1, RSHUT, fc), cy = lerp(56, 27, f) + o.top, h = lerp(OPEN, SHUT, f), top = o.top, R = LAYER * s;
         const reach = 66 * s;
         const x0 = xs[0] - 22 * s - reach * (1 - fc), xR = xs[NODES - 1] + 30 * s, x1 = xR + R * 1.6 * RXK + 10;
         const pl = lerp(0, x0 - 96, lift), pr = lerp(W, x1 + hereW, lift), pw = pr - pl;
+        // the ground: the sheet's paper while open, mixing to the undertone as it lifts; the plates take the same tone
+        const tone = mixHex('#ecebe7', UNDER, lift);
         let m = '';
-        // the frame: rules while it is part of the sheet; a double outline and a drafted shadow once it lifts
-        if (lift > .001) m += `<path d="M${f1(pl + SHAD + 3)} ${f1(top + h)} H${f1(pr + SHAD * lift)} V${f1(top + SHAD + 3)} H${f1(pr)} V${f1(top + h)} Z M${f1(pl + SHAD + 3)} ${f1(top + h)} V${f1(top + h + SHAD * lift)} H${f1(pr + SHAD * lift)} V${f1(top + h)} Z" fill="url(#hatch-s)" opacity="${lift}"/>`;
-        m += `<rect x="${f1(pl)}" y="${f1(top)}" width="${f1(pw)}" height="${f1(h)}" fill="#ecebe7"/>`;
+        // the frame: rules while it is part of the sheet; once it lifts, the rules fade and an undertone fills in under it
+        m += `<rect x="${f1(pl)}" y="${f1(top)}" width="${f1(pw)}" height="${f1(h)}" fill="${tone}"/>`;
         m += `<line x1="${f1(pl)}" x2="${f1(pr)}" y1="${f1(top + .5)}" y2="${f1(top + .5)}" stroke="#1a1a1a" stroke-width="1" opacity="${1 - lift}"/>`;
         m += `<line x1="${f1(pl)}" x2="${f1(pr)}" y1="${f1(top + h - .5)}" y2="${f1(top + h - .5)}" stroke="#1a1a1a" stroke-width="1" opacity="${1 - lift}"/>`;
-        m += `<rect x="${f1(pl + .5)}" y="${f1(top + .5)}" width="${f1(pw - 1)}" height="${f1(h - 1)}" fill="none" stroke="#1a1a1a" stroke-width="1" opacity="${lift}"/>`;
-        m += `<rect x="${f1(pl + 3.5)}" y="${f1(top + 3.5)}" width="${f1(Math.max(0, pw - 7))}" height="${f1(Math.max(0, h - 7))}" fill="none" stroke="#1a1a1a" stroke-width=".35" opacity="${lift * lift}"/>`;
         // the head of the axis: a theodolite's sight lines with their bearings (fade as it folds)
         const xo = xs[0] - 22 * s, ro = 1 - fc;
         if (ro > .01) {
@@ -333,6 +333,7 @@
           if (f < .5) PLACES.forEach((p, i) => m += `<text x="${f1(xs[i * 3 + 1])}" y="${f1(top + h - 14)}" text-anchor="middle" font-family="monospace" font-size="11" letter-spacing="1.3" fill="#1a1a1a">${String(i + 1).padStart(2, '0')} ${p[1].toUpperCase()}${p[2] ? ` [${p[2]}]` : ''}</text>`);
           else m += `<text x="${f1(x1 + 6)}" y="${f1(cy + 4)}" font-family="monospace" font-size="11" letter-spacing="1.3" fill="#1a1a1a">03 ${PLACES[sel][1].toUpperCase()}</text>`;
         }
+        if (lift > .001) m = m.replaceAll('fill="#ecebe7"', `fill="${tone}"`);
         return { m, pl, pr, h, cy, x1 };
       };
 
@@ -483,7 +484,7 @@
       };
       $('barfig').innerHTML =
         fig({ f: 0 }, `Open, ${OPEN}px: the first screen, after a pull up of ${PULL}px, or while pointed at. The plates spread along the axis, each place named under its plate.`) +
-        fig({ f: 1 }, `Folded, ${SHUT}px: while you read. The plates pressed toward the middle at ${Math.round(RSHUT * 100)}% size, the sight lines and names gone; the place you are on named at the end; the plate lifted ${tok('--float-top')} off the sheet with a double outline and a hatched shadow. A small mark keeps the places with something new.`) +
+        fig({ f: 1 }, `Folded, ${SHUT}px: while you read. The plates pressed toward the middle at ${Math.round(RSHUT * 100)}% size, the sight lines and names gone; the place you are on named at the end; the plate lifted ${tok('--float-top')} off the sheet on an undertone, with no outline. A small mark keeps the places with something new.`) +
         fig({ f: 0, hv: 1 }, `Pointing at Works: only its outer part slides out from behind the plate, ${tok('--pleat-hover')} away, and its slot widens, pushing the others outward. Nothing else appears until you click: Archive, the place you are on, shows what a click adds, the middle part grown in from the axis and the construction lines drawn over it.`);
       const item = (st, open) => {
         const p = open ? PLEAT[st] : lerp(PLEAT[st], st === 'rest' ? PSHUT : PSHUT + (PLEAT[st] - PLEAT.rest) * .4, 1), s = open ? 1 : RSHUT, cy = 32, cx = 80, on = st === 'sel', R = LAYER * s;
@@ -498,7 +499,7 @@
 
       // ---- spec ----
       const cards = [
-        ['Bar', [['Open', `${OPEN}px, full width, rules top and bottom`], ['Folded', `${SHUT}px, as short as its rings`], ['Lifted', `${tok('--float-top')} down, outline 1.4 + .5, ${tok('--shadow')} hatched shadow`], ['Folded label', 'the place you are on, at the right end']]],
+        ['Bar', [['Open', `${OPEN}px, full width, rules top and bottom`], ['Folded', `${SHUT}px, as short as its rings`], ['Lifted', `${tok('--float-top')} down, filled ${tok('--under')}, no outline`], ['Folded label', 'the place you are on, at the right end']]],
         ['Plates', [['One a place', 'pyramid, contour plate, fan of planes, dashed sheet, contoured slab, surveyed plot'], ['Size', `${tok('--layer')} half-height, ${RXK} as deep (on its side)`], ['Folded', `${RSHUT} of that`], ['Ends', 'sight lines with bearings at the head, an aquifer at the foot'], ['Weights', 'plate edge .7 (selected 1.5, pointed 1), contours .4, dashes .4, fan .3, axis 1 / .5 dashed'], ['Drift', `${DRIFT} rad/s, each plate turns slowly in its own plane`]]],
         ['Pleats', [['Open', `rest ${tok('--pleat-rest')}, hover ${tok('--pleat-hover')}, pressed ${tok('--pleat-press')}, selected ${tok('--pleat-sel')}`], ['Folded', `${tok('--pleat-shut')}, hover and selected a little more`], ['Slot', 'open: the name + 34; folded: two pleats + the plate + 12; hover +30']]],
         ['What shows', [['At rest', 'the main plate only'], ['Pointed at, pressed', `+ the outer part, sliding out over ${tok('--peek')}`], ['Clicked (selected)', `+ the middle part, grown from the axis past its size and back over ${tok('--grow')}, then the construction lines`]]],
