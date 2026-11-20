@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Week 09 &middot; Set 2 &middot; Strata</title>
   <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
   <style>
   /* Week 09, Set 2 · Strata. Tone: Analytical.
      (Plates now follow the user's exploded-axonometric reference, laid on its side with thin lines; see LAYERS.)
@@ -25,12 +28,13 @@
     --paper: #ecebe7; --under: #dddbd4; --ink: #1a1a1a; --dim: #6b6b67; --rule: #c9c8c3;
     --mono: ui-monospace, "SF Mono", Menlo, monospace;
     --serif: Georgia, "Times New Roman", serif;
+    --letter: "Cormorant Garamond", Garamond, Georgia, serif; --label-size: 16px;
     --w: 1100px; --h: 720px;
     --bar-open: 124px; --bar-shut: 54px;
     --scrub: 96px; --pull-up: 36px; --hold: 260ms;
     --float-top: 12px; --shadow: 5px;
     --layer: 26px; --ring-shut: .5; --ring-rx: .3;
-    --pleat-rest: 4px; --pleat-hover: 24px; --pleat-press: 8px; --pleat-sel: 22px; --pleat-shut: 3px; --grow: 560ms; --peek: 300ms;
+    --pleat-rest: 4px; --pleat-hover: 24px; --pleat-press: 8px; --pleat-sel: 22px; --pleat-shut: 3px; --grow: 1300ms; --peek: 300ms;
     --ripple: .18; --drift: .12; --draw: 450ms; --reveal: 900ms; --coil-turns: .5;
     --fold-k: 240; --fold-z: .74; --open-k: 190; --open-z: .45; --hover-k: 300; --hover-z: .42;
     --label: 11.5px;
@@ -49,30 +53,33 @@
   .brand { position: absolute; font: 500 11px/1.15 var(--mono); letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
   .brand small { position: absolute; left: 0; top: 100%; margin-top: 3px; font: 9.5px/1.2 var(--mono); letter-spacing: .14em; color: var(--dim); }
   .meta, .here { position: absolute; font: 9.5px/1.2 var(--mono); letter-spacing: .14em; color: var(--dim); white-space: nowrap; }
-  .here { font: 500 var(--label)/1.2 var(--mono); letter-spacing: .12em; color: var(--ink); text-transform: uppercase; }
+  .here { font: 500 11px/1.2 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
   .here::after { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; border-bottom: 2.6px solid var(--ink); }
   .here span { color: var(--dim); font-weight: 400; font-size: 10px; margin-right: 6px; }
   .tab { position: absolute; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; color: var(--ink); text-decoration: none; pointer-events: none; }
   .tab span { display: flex; align-items: center; gap: 6px; height: 18px; white-space: nowrap; }
   .tab i { font: normal 10px var(--mono); color: var(--dim); }
-  .tab b { position: relative; font: 500 var(--label)/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; transition: letter-spacing .3s; }
-  .tab.hov b { letter-spacing: .17em; }
-  .tab.down b { letter-spacing: .08em; }
+  /* the names use the same face as the title at the left: one voice for the bar */
+  .tab b { position: relative; font: 500 11px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; transition: letter-spacing .3s; }
+  .tab.hov b { letter-spacing: .26em; }
+  .tab.down b { letter-spacing: .15em; }
   .tab b::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; border-bottom: 2.6px solid var(--ink); transform: scaleX(0); transform-origin: 0 50%; transition: transform .4s cubic-bezier(.2,.8,.2,1); }
   .tab[aria-current="page"] b::after { transform: scaleX(1); }
-  .tab .cnt { font: 10px/1 var(--mono); padding: 2px 3px; border: 1px solid var(--ink); }
+  /* the count hangs off the end of the name, so the name itself sits centred under its plate */
+  .tab span { position: relative; }
+  .tab .cnt { position: absolute; left: 100%; top: 0; margin-left: 1px; font: 9px/1 var(--mono); font-style: normal; color: var(--dim); }
   .tab:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: -3px; }
 
   /* ---------- the page under it ---------- */
   .scroller { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
   .page { padding: calc(var(--bar-open) + 48px) 0 120px 170px; max-width: 900px; transition: opacity .2s; }
   .page.swap { opacity: 0; }
-  .page h1 { margin: 0; font: 500 30px/1.1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+  .page h1 { margin: 0; font: italic 500 44px/1.05 var(--letter); letter-spacing: 0; }
   .page .lede { margin: 10px 0 48px; font: italic 17px/1.45 var(--serif); max-width: 520px; }
   .sect { display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: center; padding: 34px 0; border-top: 1px dashed var(--rule); }
   .sect svg { width: 300px; height: 230px; overflow: visible; }
   .sect svg * { vector-effect: non-scaling-stroke; }
-  .sect h2 { margin: 0 0 8px; font: 500 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; }
+  .sect h2 { margin: 0 0 6px; font: italic 500 22px/1.1 var(--letter); }
   .sect p { margin: 0; max-width: 340px; font-size: 15px; }
   .hint { position: absolute; right: 22px; bottom: 18px; z-index: 3; font: 10px/1 var(--mono); letter-spacing: .16em; color: var(--dim); pointer-events: none; }
 
@@ -97,7 +104,6 @@
   .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
   .spec-card dt { color: var(--dim); }
   .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
-  .back-pill { position: fixed; right: 12px; bottom: 12px; z-index: 9; font: 10px/1 var(--mono); letter-spacing: .12em; color: var(--paper); background: var(--ink); padding: 8px 12px; text-decoration: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
   </style>
 </head>
@@ -139,7 +145,6 @@
     <div class="spec-grid" id="spec"></div>
   </section>
 
-  <a class="back-pill" href="week-09.html#set-2">&larr; WEEK 09</a>
 
   <script>
     (() => {
@@ -148,7 +153,7 @@
       const num = n => parseFloat(tok(n));
       const W = num('--w'), H = num('--h'), OPEN = num('--bar-open'), SHUT = num('--bar-shut');
       const SCRUB = num('--scrub'), PULL = num('--pull-up'), HOLD = num('--hold'), FTOP = num('--float-top'), SHAD = num('--shadow'), UNDER = getComputedStyle(document.documentElement).getPropertyValue('--under').trim();
-      const GROW = num('--grow') / 1000, PEEK = num('--peek') / 1000, DRAW = num('--draw') / 1000, REVEAL = num('--reveal') / 1000, COIL = num('--coil-turns');
+      const GROW = num('--grow') / 1000, PEEK = num('--peek') / 1000, DRAW = num('--draw') / 1000, REVEAL = num('--reveal') / 1000, COIL = num('--coil-turns'), DRAW_STAGGER = .55;
       const RSHUT = num('--ring-shut'), RXK = num('--ring-rx'), RIP = num('--ripple'), DRIFT = num('--drift');
       const PLEAT = { rest: num('--pleat-rest'), hover: num('--pleat-hover'), press: num('--pleat-press'), sel: num('--pleat-sel') }, PSHUT = num('--pleat-shut');
       const FK = num('--fold-k'), FZ = num('--fold-z'), OK = num('--open-k'), OZ = num('--open-z'), HK = num('--hover-k'), HZ = num('--hover-z');
@@ -160,7 +165,7 @@
       fit(); addEventListener('resize', fit);
       const NS = 'http://www.w3.org/2000/svg', el = (n, a = {}, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p && p.append(e); return e; };
       const backOut = t => { const c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
-      const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t, smooth = t => t * t * (3 - 2 * t);
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t, smooth = t => t * t * (3 - 2 * t), ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const f1 = v => v.toFixed(1);
 
       const PLACES = [
@@ -200,14 +205,16 @@
       const tabs = PLACES.map(([id, name, cnt], k) => {
         const a = document.createElement('a');
         a.className = 'tab'; a.href = '#' + id;
-        a.innerHTML = `<span><i>${String(k + 1).padStart(2, '0')}</i><b>${name}</b>${cnt ? `<em class="cnt">${cnt}</em>` : ''}</span>`;
+        a.innerHTML = `<span><b>${name}</b>${cnt ? `<em class="cnt">${cnt}</em>` : ''}</span>`;
         a.setAttribute('aria-label', name + (cnt ? `, ${cnt} new` : ''));
         a.addEventListener('click', e => { e.preventDefault(); pick(k); });
         a.addEventListener('focus', () => { hov = k; src = k * 3 + 1; mode = 'hover'; enter(); });
         bar.append(a); return a;
       });
       const labels = tabs.map(t => t.firstElementChild);
-      const nameW = labels.map(l => l.getBoundingClientRect().width);
+      // unscaled widths (the frame is scaled to fit, so a client rect would shrink with the window); the count hangs
+      // off the right of the name, so its width is kept free on both sides and the name stays centred in its slot
+      const nameW = labels.map(l => { const c = l.querySelector('.cnt'); return l.firstElementChild.offsetWidth + (c ? 2 * (c.offsetWidth + 2) : 0); });
 
       // ---- layout: where each ring sits for a given fold (0 open, 1 folded) and item states ----
       // each place gets a slot; its three rings sit at the slot's centre, a pleat apart
@@ -220,7 +227,11 @@
           const w = lerp(wOpen, wShut, f); slots.push({ w, p }); total += w;
         }
         let x = W / 2 - total / 2; const xs = [];
-        slots.forEach(s => { s.c = x + s.w / 2; x += s.w; xs.push(s.c - s.p, s.c, s.c + s.p); });
+        // what shows is always centred on the name. The place you are on stands its three parts evenly round it.
+        // Any other place shows its main plate alone, right over its name; pointed at, the plate and its outer part
+        // part from the name's centre by the same amount each way, so the pair stays centred under the pointer.
+        slots.forEach((s, i) => { s.c = x + s.w / 2; x += s.w; const q = Math.max(0, s.p - PLEAT.rest) * .75;
+          xs.push(...(i === sl ? [s.c - s.p, s.c, s.c + s.p] : [s.c - q, s.c, s.c + q])); });
         return { xs, slots };
       };
 
@@ -235,30 +246,52 @@
       const spokes = (n, r0, r1, o = {}) => Array.from({ length: n }, (_, k) => { const t = k / n * Math.PI * 2; return seg([r0 * Math.cos(t), r0 * Math.sin(t)], [r1 * Math.cos(t), r1 * Math.sin(t)], o); });
       const contours = (seed, rs, o = {}) => rs.map((r, k) => blob(r, seed + k * .3, { da: (1 - r) * .12, db: (1 - r) * .16, ...o }));
       const fan = (n, r0, r1, wd) => Array.from({ length: n }, (_, k) => { const t = k / n * Math.PI * 2 + .2, c = q => [Math.cos(q), Math.sin(q)]; const [a1, b1] = c(t - wd), [a2, b2] = c(t + wd); return { pts: [[r0 * a1, r0 * b1], [r1 * a1, r1 * b1], [r1 * a2, r1 * b2], [r0 * a2, r0 * b2]], closed: true, w: .3 }; });
-      const MAIN = { w: .7, fill: true, main: true }, FINE = { w: .4 }, DASH = { w: .4, dash: '2 2' };
+      const MAIN = { w: .7, fill: true, main: true }, FINE = { w: .4 }, DASH = { w: .6, dash: '2.4 1.6' };
       // three parts a place (the pleats): spread on hover, closed on press
       const LAYERS = [
         [[diamond(1, MAIN), seg([1, 0], [-1, 0], FINE), seg([0, 1], [0, -1], FINE)], [diamond(.72, DASH)], [ring(.32, FINE)]],                 // index: a pyramid
         [[blob(.9, 1, MAIN)], contours(1.3, [.7, .52, .34, .17], FINE), [blob(1.02, 1, DASH)]],                                              // works: a contour plate
         [[blob(.85, 2, MAIN), blob(.6, 2.2, DASH), blob(.38, 2.4, DASH), ...spokes(10, 0, .85, { w: .3, dash: '1 2' })], fan(14, .3, 1.32, .07), [ring(.95, DASH)]], // archive: the fan of planes
-        [[blob(.95, 3, DASH)], [blob(.8, 3, MAIN), ...contours(3.4, [.6, .42, .25, .1], FINE)], [ring(.5, { w: .3, dash: '1 2' })]],            // journal: dashed sheet over contours
+        [[blob(.95, 3, { w: .8, dash: '3 1.6', main: true })], [blob(.8, 3, MAIN), ...contours(3.4, [.6, .42, .25, .1], FINE)], [ring(.5, { w: .55, dash: '1.4 1.4' })]],            // journal: dashed sheet over contours
         [[blob(.82, 4, MAIN)], contours(4.2, [.66, .5, .36, .22, .1], { w: .55 }), [blob(.84, 4, { w: .45, db: .06 })]],                       // studio: a thick contoured plate
         [[diamond(1.05, { ...MAIN, fill: false, w: .6 }), ...[[1.05, 0], [-1.05, 0], [0, 1.05], [0, -1.05]].flatMap(([a, b]) => [seg([a - .1, b - .1], [a + .1, b + .1], FINE), seg([a - .1, b + .1], [a + .1, b - .1], FINE)])], [ring(.62, { w: .6 }), ...spokes(12, 0, 1.05, { w: .3 })], [blob(.6, 5, DASH)]], // contact: a surveyed plot
       ];
       const hereW = 130, LAYER = num('--layer');
       const shapes = (list, cx, cy, R, rot, extra = {}) => {
         const c = Math.cos(rot), s = Math.sin(rot);
-        return list.map(p => {
-          const d = p.pts.map(([a, b], k) => { const a2 = a * c - b * s, b2 = a * s + b * c; return `${k ? 'L' : 'M'}${f1(cx + b2 * R * RXK)} ${f1(cy + a2 * R)}`; }).join('') + (p.closed ? 'Z' : '');
-          const w = p.main && extra.main ? extra.main : p.w;
-          return `<path d="${d}" fill="${p.fill ? (extra.hatch ? 'url(#hatch-s)' : '#ecebe7') : 'none'}" stroke="#1a1a1a" stroke-width="${w}"${p.dash ? ` stroke-dasharray="${p.dash}"` : ''}/>`;
+        const n = list.length, draw = extra.draw;
+        return list.map((p, j) => {
+          let q = p.pts.map(([a, b]) => { const a2 = a * c - b * s, b2 = a * s + b * c; return [cx + b2 * R * RXK, cy + a2 * R]; });
+          // line weights and dashes shrink with the plates when the bar folds, so a small plate is not drawn in a heavy line
+          const ws = extra.ws ?? 1, w = f1((p.main && extra.main ? extra.main : p.w) * ws), dash = p.dash && p.dash.split(' ').map(v => f1(v * ws)).join(' ');
+          let tip = '', fill = p.fill ? (extra.hatch ? 'url(#hatch-s)' : '#ecebe7') : 'none', closed = p.closed;
+          if (draw !== undefined) {
+            // drawn, not popped: each line is traced from its start by a pen point, one after another,
+            // and the polyline is cut at that length, so a dashed line keeps its dashes while it grows
+            const t = ease(clamp((draw - j / n * DRAW_STAGGER) / (1 - DRAW_STAGGER), 0, 1));
+            if (t <= 0) return '';
+            if (t < 1) {
+              if (closed) q = [...q, q[0]];
+              const segL = q.slice(1).map((v, k) => Math.hypot(v[0] - q[k][0], v[1] - q[k][1])), L = segL.reduce((x, y) => x + y, 0);
+              let want = L * t, out = [q[0]];
+              for (let k = 0; k < segL.length; k++) {
+                if (want >= segL[k]) { out.push(q[k + 1]); want -= segL[k]; continue; }
+                const u = want / segL[k]; out.push([lerp(q[k][0], q[k + 1][0], u), lerp(q[k][1], q[k + 1][1], u)]); break;
+              }
+              q = out; closed = false; fill = 'none';
+              const [tx, ty] = q[q.length - 1];
+              if (extra.pen) tip = `<circle cx="${f1(tx)}" cy="${f1(ty)}" r="1.1" fill="#1a1a1a"/>`;
+            }
+          }
+          const d = q.map(([x, y], k) => `${k ? 'L' : 'M'}${f1(x)} ${f1(y)}`).join('') + (closed ? 'Z' : '');
+          return `<path d="${d}" fill="${fill}" stroke="#1a1a1a" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>` + tip;
         }).join('');
       };
       const mixHex = (a, b, t) => '#' + [1, 3, 5].map(i => Math.round(lerp(parseInt(a.substr(i, 2), 16), parseInt(b.substr(i, 2), 16), t)).toString(16).padStart(2, '0')).join('');
       const barSVG = o => {
         const { xs, f, sel, hv, lift, phase } = o, rv = o.rv ?? 1, hl = o.hl || [], mid = o.mid || [], out = o.out || [], fc = clamp(f, 0, 1);
         const s = lerp(1, RSHUT, fc), cy = lerp(56, 27, f) + o.top, h = lerp(OPEN, SHUT, f), top = o.top, R = LAYER * s;
-        const reach = 66 * s;
+        const reach = 66 * s, LW = lerp(1, .55, fc); // line weight: thinner as the bar folds, in step with the plates
         const x0 = xs[0] - 22 * s - reach * (1 - fc), xR = xs[NODES - 1] + 30 * s, x1 = xR + R * 1.6 * RXK + 10;
         const pl = lerp(0, x0 - 96, lift), pr = lerp(W, x1 + hereW, lift), pw = pr - pl;
         // the ground: the sheet's paper while open, mixing to the undertone as it lifts; the plates take the same tone
@@ -280,19 +313,21 @@
         }
         // the axis: solid up to the place you are on, dashed beyond; a small cross at each place
         const xa = xs[sel * 3 + 2] + 6;
-        m += `<line x1="${f1(xo)}" x2="${f1(xa)}" y1="${f1(cy)}" y2="${f1(cy)}" stroke="#1a1a1a" stroke-width="1"/>`;
-        m += `<line x1="${f1(xa)}" x2="${f1(xR)}" y1="${f1(cy)}" y2="${f1(cy)}" stroke="#1a1a1a" stroke-width=".5" stroke-dasharray="3 3"/>`;
+        m += `<line x1="${f1(xo)}" x2="${f1(xa)}" y1="${f1(cy)}" y2="${f1(cy)}" stroke="#1a1a1a" stroke-width="${f1(LW)}"/>`;
+        m += `<line x1="${f1(xa)}" x2="${f1(xR)}" y1="${f1(cy)}" y2="${f1(cy)}" stroke="#1a1a1a" stroke-width="${f1(.5 * LW)}" stroke-dasharray="${f1(3 * LW)} ${f1(3 * LW)}"/>`;
         // fine dashed lines from each place to the next, so the plates read as one drawing
         for (let i = 0; i < N - 1; i++) { const xa2 = xs[i * 3], fr = smooth(clamp(rv * (N + 1) - (i + 1), 0, 1)), xb = lerp(xa2, xs[i * 3 + 3], fr); if (fr > 0) [-1, 1].forEach(sg => m += `<line x1="${f1(xa2)}" y1="${f1(cy + sg * R * .95)}" x2="${f1(xb)}" y2="${f1(cy + sg * R * lerp(.95, .9, fr))}" stroke="#1a1a1a" stroke-width=".3" stroke-dasharray="1.5 2.5" opacity=".7"/>`); }
-        // the line work round the whole bar: one coil from the head of the axis to its foot, winding round every plate.
-        // It is threaded through the plates' positions, so it tightens as the bar compresses and loosens as it opens.
-        const anchors = [xo, ...xs, xR], K = anchors.length - 1, uEnd = K * rv, Rh = R * 1.22;
+        // the line work round the whole bar: one coil from the head of the axis to its foot, its turns spread evenly.
+        // It spans the axis from head to foot, so it tightens as the bar compresses and loosens as it opens.
+        const Rh = R * 1.22;
+        // The turns are spread evenly along the whole length, not bunched at the plates, so the spiral never
+        // curls back on itself; the sideways lean is capped below the pitch so the line can never turn a corner.
+        const span = xR - xo, turns = N * COIL * 2, pitch = span / turns, lean = Math.min(RXK, .75 * pitch / (2 * Math.PI * Rh));
         let coilB = '', coilF = '', prev = null;
-        for (let k = 0, steps = K * 14; k <= steps; k++) {
-          const u = k / 14; if (u > uEnd) break;
-          const a = Math.floor(Math.min(u, K - 1e-6)), x = lerp(anchors[a], anchors[a + 1], u - a);
-          const ang = u * Math.PI * 2 * COIL + phase * 3, depth = Math.cos(ang), r = Rh * (1 + .06 * Math.sin(u * .9));
-          const pt = { x: x + depth * r * RXK, y: cy + Math.sin(ang) * r, front: depth >= 0 };
+        for (let k = 0, steps = 240; k <= steps; k++) {
+          const u = k / steps; if (u > rv) break;
+          const ang = u * turns * Math.PI * 2 + phase * 3, depth = Math.cos(ang), r = Rh * (1 + .06 * Math.sin(u * 9));
+          const pt = { x: xo + u * span + depth * r * lean, y: cy + Math.sin(ang) * r, front: depth >= 0 };
           // each stretch on one side is its own run, starting from the last point so the coil stays unbroken
           const startRun = q => `M${f1(q.x)} ${f1(q.y)}`, to = q => `L${f1(q.x)} ${f1(q.y)}`;
           if (!prev) { if (pt.front) coilF += startRun(pt); else coilB += startRun(pt); }
@@ -300,18 +335,23 @@
           else { if (pt.front) coilF += to(pt); else coilB += to(pt); }
           prev = pt;
         }
-        m += `<path d="${coilB}" fill="none" stroke="#1a1a1a" stroke-width=".35" stroke-dasharray="2 2.5" opacity=".75"/>`;
+        m += `<path d="${coilB}" fill="none" stroke="#1a1a1a" stroke-width="${f1(.35 * LW)}" stroke-dasharray="${f1(2 * LW)} ${f1(2.5 * LW)}" opacity=".75"/>`;
         // the plates
         xs.forEach((x, n) => {
           const i = Math.floor(n / 3), j = n % 3, on = i === sel, hot = i === hv;
           // at rest only the main plate shows. Pointing slides the outer part out from behind it;
           // only a click grows the middle part in, from the axis outward, past its size and back.
-          const rot = phase * (i % 2 ? -1 : 1) + i, st = { main: on ? 1.5 : hot ? 1 : 0, hatch: on && j === 1 };
+          const rot = phase * (i % 2 ? -1 : 1) + i, st = { main: on ? 1.5 : hot ? 1 : 0, hatch: on && j === 1, ws: lerp(1, .55, fc) };
           if (j === 0) m += shapes(LAYERS[i][0], x, cy, R, rot, st);
           else if (j === 2) { const g = smooth(clamp(out[i] ?? 0, 0, 1)); if (g > .01) m += `<g opacity="${f1(g)}">${shapes(LAYERS[i][2], x, cy, R * lerp(.7, 1, g), rot, st)}</g>`; }
-          else { const g = clamp(mid[i] ?? 0, 0, 1); if (g > .01) m += `<g opacity="${f1(clamp(g * 3, 0, 1))}">${shapes(LAYERS[i][1], x, cy, R * backOut(g), rot, st)}</g><path d="M${f1(x - 2.5)} ${f1(cy - 2.5)}l5 5m0 -5l-5 5" stroke="#1a1a1a" stroke-width=".5"/>`; }
+          else { const g = clamp(mid[i] ?? 0, 0, 1); if (g > .01) {
+            // first a cross is set on the axis where the part will stand, then its lines are drawn round it
+            const xk = 2.5 * ease(clamp(g / .12, 0, 1));
+            m += `<path d="M${f1(x - xk)} ${f1(cy - xk)}L${f1(x + xk)} ${f1(cy + xk)}M${f1(x + xk)} ${f1(cy - xk)}L${f1(x - xk)} ${f1(cy + xk)}" stroke="#1a1a1a" stroke-width=".5"/>`;
+            m += shapes(LAYERS[i][1], x, cy, R, rot, { ...st, draw: clamp((g - .1) / .9, 0, 1), pen: on }); // the pen shows only while drawing in; erasing is quiet
+          } }
         });
-        m += `<path d="${coilF}" fill="none" stroke="#1a1a1a" stroke-width=".6"/>`;
+        m += `<path d="${coilF}" fill="none" stroke="#1a1a1a" stroke-width="${f1(.6 * LW)}"/>`;
         // construction lines that draw themselves in for the place pointed at and the place you are on:
         // a dimension line over its three parts with the spread written on it, extension lines down to them, and a cone between them
         PLACES.forEach((_, i) => {
@@ -330,8 +370,8 @@
         PLACES.forEach((p, i) => { if (p[2]) m += `<rect x="${f1(xs[i * 3 + 1] - 2)}" y="${f1(cy - R * 1.05 - 7)}" width="4" height="4" fill="#1a1a1a" opacity="${clamp(f * 2 - 1, 0, 1)}"/>`; });
         if (o.text) {
           m += `<text x="${f1(pl + 24)}" y="${f1(cy + 4)}" font-family="monospace" font-size="11" letter-spacing="2" fill="#1a1a1a">STRATA</text>`;
-          if (f < .5) PLACES.forEach((p, i) => m += `<text x="${f1(xs[i * 3 + 1])}" y="${f1(top + h - 14)}" text-anchor="middle" font-family="monospace" font-size="11" letter-spacing="1.3" fill="#1a1a1a">${String(i + 1).padStart(2, '0')} ${p[1].toUpperCase()}${p[2] ? ` [${p[2]}]` : ''}</text>`);
-          else m += `<text x="${f1(x1 + 6)}" y="${f1(cy + 4)}" font-family="monospace" font-size="11" letter-spacing="1.3" fill="#1a1a1a">03 ${PLACES[sel][1].toUpperCase()}</text>`;
+          if (f < .5) PLACES.forEach((p, i) => m += `<text x="${f1(xs[i * 3 + 1])}" y="${f1(top + h - 14)}" text-anchor="middle" font-family="monospace" font-size="11" letter-spacing="2.2" fill="#1a1a1a">${p[1].toUpperCase()}${p[2] ? ` ${p[2]}` : ''}</text>`);
+          else m += `<text x="${f1(x1 + 6)}" y="${f1(cy + 4)}" font-family="monospace" font-size="11" letter-spacing="2.2" fill="#1a1a1a">${PLACES[sel][1].toUpperCase()}</text>`;
         }
         if (lift > .001) m = m.replaceAll('fill="#ecebe7"', `fill="${tone}"`);
         return { m, pl, pr, h, cy, x1 };
@@ -359,11 +399,11 @@
         items.forEach(([h, p], i) => {
           const sec = document.createElement('section'); sec.className = 'sect';
           sec.append(stack(items.length, i, k * 1.3 + i * .7));
-          sec.insertAdjacentHTML('beforeend', `<div><h2>${String(i + 1).padStart(2, '0')}&nbsp;&nbsp;${h}</h2><p>${p}</p></div>`);
+          sec.insertAdjacentHTML('beforeend', `<div><h2>${h}</h2><p>${p}</p></div>`);
           page.append(sec);
         });
         meta.textContent = `SHEET ${String(k + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}`;
-        here.innerHTML = `<span>${String(k + 1).padStart(2, '0')}</span>${name}`;
+        here.textContent = name;
       };
 
       // ---- state ----
@@ -449,7 +489,7 @@
         const step = (arr, want, dur) => arr.forEach((v, i) => { const t = want(i) ? 1 : 0; arr[i] = calm.matches ? t : clamp(v + Math.sign(t - v) * dt / dur, 0, 1); });
         step(OUT, i => i === hov || i === press || i === sel, PEEK);   // pointed at, pressed or picked: the outer part slides out
         step(MID, i => i === sel, GROW);                                // picked only: the middle part grows in
-        step(HL, i => i === sel && M.x < .5 && MID[i] > .5, DRAW);      // then its construction lines draw in
+        step(HL, i => i === sel && M.x < .5 && MID[i] > .97, DRAW);      // then its construction lines draw in
         draw();
         requestAnimationFrame(frame);
       };
@@ -485,7 +525,7 @@
       $('barfig').innerHTML =
         fig({ f: 0 }, `Open, ${OPEN}px: the first screen, after a pull up of ${PULL}px, or while pointed at. The plates spread along the axis, each place named under its plate.`) +
         fig({ f: 1 }, `Folded, ${SHUT}px: while you read. The plates pressed toward the middle at ${Math.round(RSHUT * 100)}% size, the sight lines and names gone; the place you are on named at the end; the plate lifted ${tok('--float-top')} off the sheet on an undertone, with no outline. A small mark keeps the places with something new.`) +
-        fig({ f: 0, hv: 1 }, `Pointing at Works: only its outer part slides out from behind the plate, ${tok('--pleat-hover')} away, and its slot widens, pushing the others outward. Nothing else appears until you click: Archive, the place you are on, shows what a click adds, the middle part grown in from the axis and the construction lines drawn over it.`);
+        fig({ f: 0, hv: 1 }, `Pointing at Works: its plate and its outer part part from the name's centre by the same amount each way, and its slot widens, pushing the others outward. Nothing else appears until you click: Archive, the place you are on, shows what a click adds, the middle part grown in from the axis and the construction lines drawn over it.`);
       const item = (st, open) => {
         const p = open ? PLEAT[st] : lerp(PLEAT[st], st === 'rest' ? PSHUT : PSHUT + (PLEAT[st] - PLEAT.rest) * .4, 1), s = open ? 1 : RSHUT, cy = 32, cx = 80, on = st === 'sel', R = LAYER * s;
         let m = `<line x1="${cx - 60}" x2="${cx + 60}" y1="${cy}" y2="${cy}" stroke="#1a1a1a" stroke-width="${on ? 1 : .5}" ${on ? '' : 'stroke-dasharray="3 3"'}/>`;
@@ -502,8 +542,8 @@
         ['Bar', [['Open', `${OPEN}px, full width, rules top and bottom`], ['Folded', `${SHUT}px, as short as its rings`], ['Lifted', `${tok('--float-top')} down, filled ${tok('--under')}, no outline`], ['Folded label', 'the place you are on, at the right end']]],
         ['Plates', [['One a place', 'pyramid, contour plate, fan of planes, dashed sheet, contoured slab, surveyed plot'], ['Size', `${tok('--layer')} half-height, ${RXK} as deep (on its side)`], ['Folded', `${RSHUT} of that`], ['Ends', 'sight lines with bearings at the head, an aquifer at the foot'], ['Weights', 'plate edge .7 (selected 1.5, pointed 1), contours .4, dashes .4, fan .3, axis 1 / .5 dashed'], ['Drift', `${DRIFT} rad/s, each plate turns slowly in its own plane`]]],
         ['Pleats', [['Open', `rest ${tok('--pleat-rest')}, hover ${tok('--pleat-hover')}, pressed ${tok('--pleat-press')}, selected ${tok('--pleat-sel')}`], ['Folded', `${tok('--pleat-shut')}, hover and selected a little more`], ['Slot', 'open: the name + 34; folded: two pleats + the plate + 12; hover +30']]],
-        ['What shows', [['At rest', 'the main plate only'], ['Pointed at, pressed', `+ the outer part, sliding out over ${tok('--peek')}`], ['Clicked (selected)', `+ the middle part, grown from the axis past its size and back over ${tok('--grow')}, then the construction lines`]]],
-        ['Line work', [['Coil', `one line round the whole bar, ${COIL} turn a plate part, threaded through every plate`], ['Weights', 'near side .6, far side .35 dashed'], ['Compresses', 'with the bar: tighter folded, looser open'], ['Draws in', `head to foot over ${tok('--reveal')} each time the bar opens from folded, with the sight lines and the dashed links`], ['Construction', `for the place you are on only, once its middle part has grown: extension lines, a dimension, a cone, drawn in over ${tok('--draw')}`]]],
+        ['What shows', [['At rest', 'the main plate only'], ['Pointed at, pressed', `+ the outer part, sliding out over ${tok('--peek')}`], ['Clicked (selected)', `+ the middle part, drawn in line by line by a pen point over ${tok('--grow')}, then the construction lines`]]],
+        ['Line work', [['Coil', `one line round the whole bar, ${N * COIL * 2} even turns from head to foot, no corners`], ['Weights', 'near side .6, far side .35 dashed'], ['Compresses', 'with the bar: tighter folded, looser open'], ['Draws in', `head to foot over ${tok('--reveal')} each time the bar opens from folded, with the sight lines and the dashed links`], ['Construction', `for the place you are on only, once its middle part has grown: extension lines, a dimension, a cone, drawn in over ${tok('--draw')}`]]],
         ['When it folds', [['Near the top', `follows the scroll for the first ${SCRUB}px`], ['Further down', 'scrolling down folds'], ['Opens again', `a pull up of ${PULL}px, pointing at it, or focus`], ['Leaving it', `folds back after ${HOLD}ms`]]],
         ['Motion', [['Each ring', 'its own spring'], ['Ripple', `stiffness / (1 + ${RIP} &times; rings from the source)`], ['Source', 'the middle for fold and open; the item for hover, press, pick'], ['Folding', `k ${FK}, &zeta; ${FZ}`], ['Opening', `k ${OK}, &zeta; ${OZ}`], ['Hover, press', `k ${HK}, &zeta; ${HZ}`], ['Lift', 'the last 60% of the fold']]],
       ];
