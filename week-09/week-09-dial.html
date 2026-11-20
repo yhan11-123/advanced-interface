@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dial &middot; Week 09 sketch</title>
+  <!-- Dial, after the user's reference: an activity list laid round an arc on light grey. Each place
+       is a soft grey blob holding a coloured icon, its name tilted to follow the curve; the picked
+       one sits at the centre in a pink outlined blob with its name in a white chip, and a dark
+       handle marks the centre on the arc.
+       Motion:
+       - the sidebar is a dial: picking turns the whole dial (spring) until the picked place reaches
+         the centre; the mouse wheel turns it one place at a time
+       - every place slides along the arc as it turns; its name tilts with the curve, and it shrinks
+         and fades with its distance from the centre
+       - the handle nudges in the direction of the turn and settles back
+       - hover swells a blob and tints it in its own colour; press squeezes it
+       - folded to a rail, the names slide into their blobs and fade, nearest the centre last;
+         headers fade with them
+       - the tab bar is the same dial lying on its side: places along a smiling arc, the picked one
+         at the centre with its name in a chip above -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #f2f2f2; font-family: "SF Pro Rounded", "Nunito", "Helvetica Neue", Arial, sans-serif; }
+    :root { --ink: #2c2c2e; --muted: #9b9ba0; --blob: #e7e7e9; --pink: #e05aa6; }
+    .arc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .arc path { fill: none; stroke: #d3d3d6; stroke-width: 1.5; }
+    .d-item { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+    .blob { position: absolute; left: -32px; top: -24px; display: grid; place-items: center; width: 64px; height: 48px; border-radius: 24px; background: var(--blob); color: var(--c);
+      transition: background-color .25s, box-shadow .25s, scale .3s var(--fast); }
+    .blob [data-i] { width: 22px; height: 22px; }
+    .d-item:hover .blob { scale: 1.06; background: color-mix(in srgb, var(--c) 12%, var(--blob)); }
+    .d-item:active .blob { scale: .92; transition: scale .06s; }
+    .d-item[aria-current="page"] .blob { background: #fbe9f4; box-shadow: inset 0 0 0 1.5px var(--pink); color: var(--pink); }
+    .d-item:focus-visible { outline: none; }
+    .d-item:focus-visible .blob { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--pink); }
+    .d-lab { position: absolute; right: 44px; top: 0; display: flex; align-items: center; gap: 6px; translate: 0 -50%; transform-origin: 100% 50%; white-space: nowrap; transition: opacity .3s var(--fx), translate .4s var(--spatial); }
+    .d-lab .lbl { font-size: 15px; font-weight: 600; color: var(--muted); transition: color .25s; }
+    .d-item[aria-current="page"] .d-lab { padding: 5px 12px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px #e1e1e4; }
+    .d-item[aria-current="page"] .lbl { color: var(--ink); }
+    .trail { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .t-icon [data-i] { width: 15px; height: 15px; color: #3aa776; }
+    .t-badge, .tb-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--c); color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; justify-content: center; }
+    .blob .tb-badge { position: absolute; top: -5px; right: -2px; box-shadow: 0 0 0 2px #f2f2f2; }
+    .stage .side .blob .tb-badge { display: none; }
+    .stage[data-side="rail"][data-slot="badge"] .side .blob .tb-badge { display: inline-flex; }
+    .d-head { position: absolute; left: 0; top: 0; margin: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #b7b7bb; white-space: nowrap; translate: -100% -50%; transition: opacity .3s; }
+    .stage[data-side="rail"] .d-lab { opacity: 0 !important; translate: 30px -50%; }
+    .stage[data-side="rail"] .d-head { opacity: 0 !important; }
+    .handle { position: absolute; width: 40px; height: 15px; margin: -7.5px 0 0 -10px; border-radius: 8px; background: #4a4a4e; pointer-events: none; }
+
+    .side { position: absolute; left: 330px; top: 0; width: 430px; height: 420px; overflow: hidden; }
+    .fold { position: absolute; right: 18px; top: 16px; z-index: 2; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); transition: scale .3s var(--fast); }
+    .fold:active { scale: .88; transition: scale .06s; }
+    .fold [data-i] { width: 18px; height: 18px; rotate: 180deg; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 0deg; }
+
+    .main { position: absolute; left: 26px; top: 26px; width: 330px; bottom: 20px; }
+    .view b { font-size: 30px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .view .lines { margin-top: 16px; display: grid; gap: 8px; }
+    .view .lines i { display: block; height: 10px; border-radius: 5px; background: #e2e2e5; }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; overflow: hidden; }
+    .tabs .d-lab { right: auto; left: 50%; top: -40px; translate: -50% -50%; transform-origin: 50% 100%; opacity: 0; }
+    .tabs .d-item[aria-current="page"] .d-lab { opacity: 1; }
+    .tabs .blob { width: 52px; height: 44px; left: -26px; top: -22px; border-radius: 22px; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Cycling</b><span>Picked on the dial or the bar below.</span><div class="lines"><i style="width:84%"></i><i style="width:62%"></i><i style="width:74%"></i></div></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <svg class="arc" aria-hidden="true"><path/></svg>
+      </nav>
+    </div>
+
+    <nav class="side" id="side" aria-label="Sidebar">
+      <svg class="arc" aria-hidden="true"><path/></svg>
+      <span class="handle" aria-hidden="true"></span>
+      <button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button>
+    </nav>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // places and headers, in dial order; trailing slot: [badge, icon, text]
+      const LIST = [
+        { head: 'Rest' },
+        { id: 'sleep', name: 'Sleep', i: 'sleep', c: '#4f8ff0' },
+        { head: 'Cardio' },
+        { id: 'skipping', name: 'Skipping', i: 'rope', c: '#f07a3a' },
+        { id: 'cycling', name: 'Cycling', i: 'bike', c: '#e05aa6', slot: ['3', 'done today', '32m'] },
+        { id: 'swimming', name: 'Swimming', i: 'swim', c: '#3aa4e8', slot: ['1', 'done today', '20m'] },
+        { head: 'Strength' },
+        { id: 'power', name: 'Power Training', i: 'muscle', c: '#e5484d' },
+        { id: 'tennis', name: 'Tennis', i: 'tennis', c: '#e8b830' },
+      ];
+      const ITEM = 64, HEAD = 34;
+      const side = document.getElementById('side'), tabs = document.querySelector('.tabs');
+
+      const make = (p, bar) => {
+        const a = document.createElement('a');
+        a.className = 'd-item'; a.href = '#' + p.id; a.dataset.place = p.id; a.style.setProperty('--c', p.c);
+        const slot = p.slot ? `<span class="trail"><span class="t-badge" aria-label="${p.slot[0]} this week">${p.slot[0]}</span><span class="t-icon" aria-label="${p.slot[1]}"><span data-i="check"></span></span><span class="t-text">${p.slot[2]}</span></span>` : '';
+        a.innerHTML = `<span class="d-lab"><span class="lbl">${p.name}</span>${bar ? '' : slot}</span><span class="blob"><span data-i="${p.i}"></span>${p.slot ? `<span class="tb-badge" aria-label="${p.slot[0]} this week">${p.slot[0]}</span>` : ''}</span>`;
+        if (bar) a.setAttribute('aria-label', p.name);
+        return a;
+      };
+      // sidebar dial: places and headers stacked; tab dial: places only
+      const build = (nav, bar) => {
+        let pos = 0; const out = [];
+        for (const p of LIST) {
+          if (p.head) { if (bar) continue; const h = document.createElement('h4'); h.className = 'd-head'; h.textContent = p.head; nav.append(h); out.push({ el: h, head: true, pos: pos + HEAD / 2 - ITEM / 2 + 6 }); pos += HEAD; continue; }
+          const a = make(p, bar); nav.append(a); out.push({ el: a, pos }); pos += bar ? 76 : ITEM;
+        }
+        return out;
+      };
+      const dials = [
+        // axis y: centre (cx, cy), the arc bulges left; items further from the centre move right
+        { nav: side, axis: 'y', entries: build(side, false), cx: 270, cy: 214, R: 300, reach: 230, arcGap: 74 },
+        // axis x: centre at the bottom, places along a smiling arc; further ones rise
+        { nav: tabs, axis: 'x', entries: build(tabs, true), cx: 165, cy: 108, R: 240, reach: 190, arcGap: 32 },
+      ].map(d => ({ ...d, off: { x: 0, v: 0 }, placed: false, path: d.nav.querySelector('.arc path'), handle: d.nav.querySelector('.handle') }));
+      const posOf = (d, place) => d.entries.find(e => e.el.dataset && e.el.dataset.place === place).pos;
+      const bend = (d, k) => d.R - Math.sqrt(Math.max(0, d.R * d.R - k * k));
+
+      const layout = d => {
+        const fold = N.stage.dataset.side === 'rail';
+        for (const e of d.entries) {
+          const k = e.pos - d.off.x, far = Math.min(1, Math.abs(k) / d.reach), b = bend(d, k);
+          const x = d.axis === 'y' ? d.cx + b : d.cx + k, y = d.axis === 'y' ? d.cy + k : d.cy - b * .9;
+          const sc = 1 - .16 * far, op = Math.max(0, 1 - far * far * 1.05);
+          e.el.style.translate = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
+          e.el.style.opacity = op.toFixed(3);
+          e.el.style.visibility = op < .02 ? 'hidden' : '';
+          const lab = e.head ? e.el : e.el.querySelector('.d-lab');
+          if (d.axis === 'y') {
+            // names tilt with the curve; headers sit left of the blob column
+            const tilt = -Math.asin(Math.max(-1, Math.min(1, k / d.R))) * 57.3 * .55;
+            if (e.head) { e.el.style.translate = `${(x - 44).toFixed(1)}px ${y.toFixed(1)}px`; e.el.style.rotate = tilt.toFixed(2) + 'deg'; e.el.style.transformOrigin = '100% 50%'; }
+            else { lab.style.rotate = tilt.toFixed(2) + 'deg'; e.el.querySelector('.blob').style.scale = ''; }
+            // folding: names nearest the centre go last
+            if (!e.head) lab.style.transitionDelay = fold ? (Math.round((1 - far) * 140)) + 'ms' : (Math.round(far * 140)) + 'ms';
+          }
+          e.el.style.scale = sc.toFixed(3);
+        }
+        // the arc, through the blob column, offset outward
+        let p = '';
+        for (let k = -d.reach - 40; k <= d.reach + 40; k += 6) {
+          const b = bend(d, k);
+          const x = d.axis === 'y' ? d.cx + b + d.arcGap : d.cx + k, y = d.axis === 'y' ? d.cy + k : d.cy - b * .9 + d.arcGap;
+          p += (p ? ' L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+        }
+        d.path.setAttribute('d', p);
+        if (d.handle) { const nudge = Math.max(-8, Math.min(8, d.off.v * .012)); d.handle.style.left = d.cx + d.arcGap + 'px'; d.handle.style.top = d.cy + nudge + 'px'; }
+      };
+
+      N.loop(dt => {
+        let moving = false;
+        for (const d of dials) {
+          const target = posOf(d, N.current());
+          if (!d.placed || N.calm.matches) { d.off.x = target; d.off.v = 0; d.placed = true; }
+          else if (N.spring(d.off, target, 140, .78, dt)) moving = true;
+          layout(d);
+        }
+        return moving;
+      });
+
+      // the wheel turns the sidebar dial one place at a time
+      let wheelAt = 0;
+      side.addEventListener('wheel', e => {
+        e.preventDefault();
+        const now = performance.now(); if (now - wheelAt < 220) return; wheelAt = now;
+        const ids = LIST.filter(p => p.id).map(p => p.id), i = ids.indexOf(N.current());
+        const j = Math.max(0, Math.min(ids.length - 1, i + Math.sign(e.deltaY)));
+        if (j !== i) N.go(ids[j]);
+      }, { passive: false });
+
+      N.init({ names: Object.fromEntries(LIST.filter(p => p.id).map(p => [p.id, p.name])), side: 'open' });
+      if (!new URLSearchParams(location.search).get('pick')) N.go('cycling', false);
+    })();
+  </script>
+</body>
+</html>

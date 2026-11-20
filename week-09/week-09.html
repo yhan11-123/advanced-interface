@@ -170,30 +170,46 @@
       <div class="set-grid">
         <div class="set-box" id="set-1">
           <button type="button" class="set-card" aria-haspopup="dialog" aria-controls="dlg-1">
-            <span class="set-thumbs" aria-hidden="true"><span class="thumb-empty"></span><span class="thumb-empty"></span></span>
-            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Tone to pick</span><span class="set-line">Not started yet.</span></span>
+            <span class="set-thumbs" aria-hidden="true"><img src="images/process/kinetic-nav-0.png?v=6" alt="" loading="lazy" /><img src="images/process/kinetic-nav-1.png?v=6" alt="" loading="lazy" /></span>
+            <span class="set-head"><span class="set-num">Set 1</span><span class="set-name">Sequence</span><span class="set-line">Kinetic. A picture editor's board: eleven cut-outs of one skier's turn pasted along a curve, and the navigation lives on that path. The pointer is a flipbook thumb: move along the skiers and the turn plays, forward or back, as fast as you move. At rest the board holds one print on an orange bar, the way in; pointed at, it opens into the whole path. A pick folds everything into the chosen photo, which then fades, and only the opening print is left.</span></span>
             <span class="set-open" aria-hidden="true"></span>
           </button>
           <dialog class="set-dialog" id="dlg-1" aria-labelledby="dlg-1-title">
             <div class="set-dialog-head">
-              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Tone to pick</span></span>
+              <span class="set-head"><span class="set-num">Set 1</span><span class="set-name" id="dlg-1-title">Sequence</span></span>
               <button type="button" class="set-close" aria-label="Close set 1"></button>
             </div>
             <div class="set-body">
               <h4>Prototypes</h4>
               <div class="proto-grid" style="grid-template-columns:1fr">
-                <figure class="proto is-empty">
-                  <div class="proto-art"><span>week-09-set-1-nav.html</span></div>
+                <figure class="proto">
+                  <iframe style="height:auto;aspect-ratio:1280/820" src="week-09-kinetic-nav.html?v=12" title="Sequence in use: a chronophotograph board whose path of cut-out photos is the navigation, then every state and the spec" loading="lazy"></iframe>
                   <figcaption>
-                    <b>In use and every state</b>
-                    <span>A sidebar that expands and collapses and a tab bar, with icon and text, category headers and a trailing badge, icon or text; every state; the spec.</span>
-                    <span class="soon">Coming soon</span>
+                    <b>In use, every state and the spec</b>
+                    <span>A flipbook only moves when a thumb moves it, so the pointer is the thumb: scrubbing along the path turns the photos over, forward to play the turn, backward to rewind, faster to flip faster, and it coasts to a stop when you let go. At speed the last photo stays as an afterimage; the cut-out under the pointer lifts and its neighbours less. Five stretches of the path are five places, titled with an orange bar that runs out as you reach them. Picking one runs the film a whole turn, then the middle photo of that stretch develops into the one full print on the board. Motion first: the collapsed state and the tab bar come next.</span>
+                    <button type="button" class="viewer-open" data-wide data-src="week-09-kinetic-nav.html?v=12">View larger</button>
                   </figcaption>
                 </figure>
               </div>
               <h4>Process</h4>
-              <p>How the set got here, one tried version at a time.</p>
-              <div class="process-grid"></div>
+              <p class="process-label">1 &middot; Sequence, a drawn sketch</p>
+              <div class="process-grid"><figure><img src="images/process/set1/01-sketch-drawn.jpg" alt="Drawn skier frames along a curve on a cream board" loading="lazy" /><figcaption>From a pasted-up ski chronophotograph: frames drawn in code, flipping twelve a second on hover, buttons drawn in pencil beside the path.</figcaption></figure></div>
+              <p class="process-why">The drawn skiers looked too much like generated pixels.</p>
+              <p class="process-label">2 &middot; The real photos</p>
+              <div class="process-grid"><figure><img src="images/process/set1/02-photos-rest.jpg" alt="The original board at rest" loading="lazy" /><figcaption>The reference itself became the board; each photo got a slot cut from the same image.</figcaption></figure><figure><img src="images/process/set1/02-photos-flip.jpg" alt="The board while flipping" loading="lazy" /><figcaption>On hover every slot steps to the next photo, so the real turn plays like film.</figcaption></figure></div>
+              <p class="process-why">Picked from Ideation to become Set 1, tone Kinetic. Motion first.</p>
+              <p class="process-label">3 &middot; The pointer as a thumb</p>
+              <div class="process-grid"><figure><img src="images/process/set1/03-ski-faded.jpg" alt="Scrubbing the film, the picked stretch in full contrast" loading="lazy" /><figcaption>Playback follows the pointer's speed and direction and coasts to a stop; an afterimage at speed; a lift that ripples to neighbours. A pick faded the other photos like old prints.</figcaption></figure></div>
+              <p class="process-why">New references: a single full picture among silhouettes, and an orange line under a figure.</p>
+              <p class="process-label">4 &middot; Cut-outs and one full print</p>
+              <div class="process-grid"><figure><img src="images/process/set1/04-cutout-rest.jpg" alt="Cut-out skiers with one full print on an orange bar" loading="lazy" /><figcaption>The skiers stand as cut-outs on fresh paper; the place you are develops into the one full print, halftone, on an orange bar. Titles carry an orange bar.</figcaption></figure><figure><img src="images/process/set1/04-cutout-scrub.jpg" alt="Scrubbing with afterimages" loading="lazy" /><figcaption>Scrubbing: the turn runs down the path.</figcaption></figure></div>
+              <p class="process-why">A poster reference: one clean grey, geometric type, orange bars.</p>
+              <p class="process-label">5 &middot; Clean grey</p>
+              <div class="process-grid"><figure><img src="images/process/set1/05-grey-rest.jpg" alt="Cut-out skiers on clean grey with Futura titles and orange bars" loading="lazy" /><figcaption>The board's paper and pencil marks went; the whole page is one grey, the type is Futura, the bars are the poster's orange. Cast shadows and a title block were tried and taken out to keep it clean.</figcaption></figure></div>
+              <p class="process-why">Next: start from a single image, open on hover, and come back to it.</p>
+              <p class="process-label">6 &middot; One print, opening</p>
+              <div class="process-grid"><figure><img src="images/process/set1/06-collapsed.jpg" alt="The board collapsed to one print on an orange bar" loading="lazy" /><figcaption>Collapsed: only the place you are, one print on an orange bar, no text.</figcaption></figure><figure><img src="images/process/set1/06-expanded.jpg" alt="The board expanded with every cut-out and title, the film playing" loading="lazy" /><figcaption>Pointed at, it expands: the cut-outs come out from the print along the path, the titles follow, the film plays. A pick develops the new print and everything else goes back in.</figcaption></figure></div>
+              <p class="process-why">Where it is now.</p>
             </div>
           </dialog>
         </div>
@@ -274,13 +290,6 @@
           <tr><td>Selected</td><td>The place you are now</td></tr>
         </tbody>
       </table>
-
-      <p>The brief shows three references. Apple's sidebar on iPad: a frosted panel over a blurred photo, a round toggle at its top right, and three rows of a tinted icon with a label (Landmarks, Map, Collections) beside a Mount Fuji article. Apple's tab bar: a dark floating capsule of four tabs, icon over label, the picked one lifted in its own lighter pill and tinted blue, and a separate round search button beside it. Material's navigation bar in two widths, icon over label and icon beside label, the picked item held in a soft pill; and the navigation drawer, with a Mail header, an Inbox row picked in a full-width pill with a count of 24 on its right, a divider and a Labels header.</p>
-
-      <div class="shot-row">
-        <figure class="shot"><img src="images/brief-apple-sidebar.webp" alt="Apple's iPad sidebar: a frosted panel with a toggle button and three rows, Landmarks, Map and Collections, beside a photo of cherry blossom and a Mount Fuji article" loading="lazy" /><figcaption>Sidebars, Apple HIG</figcaption></figure>
-        <figure class="shot"><img src="images/brief-tab-bars.png" alt="Apple's floating tab bar with four tabs and a search button, then Material's navigation bar in two layouts and two navigation drawers with Mail and Labels headers and an Inbox count of 24" loading="lazy" /><figcaption>Tab bars, Apple HIG; Navigation bar and drawer, Material 3</figcaption></figure>
-      </div>
 
       <h3>The spec</h3>
 
@@ -674,6 +683,134 @@
           </figcaption>
         </figure> -->
       <div class="idea-grid">
+        <figure class="idea">
+          <iframe src="week-09-sequence.html" title="Sequence sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Sequence</b>
+            <span>A chronophotograph pasted up on a board, eleven real photos of a skier's turn curving down the sheet (the user's own reference image). Each photo has a slot cut from the same image: at rest they show their own photo, but hovering along the path flips every slot to the next photo twelve times a second, so the turn plays like film, and the photo under the pointer lifts like a picked-up print. Each stretch of the path draws its button in beside it as a pencil loop with a handwritten name; the current one is circled in red crayon.</span>
+            <button type="button" class="viewer-open" data-src="week-09-sequence.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-hunt.html" title="Hunt sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Hunt</b>
+            <span>A treasure hunt. A grid of grey and white dots with fields of blue, cyan, red and yellow drifting through it, stirred round the pointer. The nav buttons are hidden in the dots, scattered; near the pointer each one develops pixel by pixel and dissolves again as you move away. Found buttons keep a faint trace, the current place stays developed with a blinking cursor, and Tab focus reveals them without a mouse.</span>
+            <button type="button" class="viewer-open" data-src="week-09-hunt.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-bleed.html" title="Bleed sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Bleed</b>
+            <span>A top nav bar with dropdowns on a chromatography sheet, drawn rough: blotchy dye bands, uneven rims, colour bleeding into the paper. The paths never change; every column is always there. Opening a menu only brings its column's detail back to life, band after band down the strip: the dye thickens, the rims sharpen, the labels surface. The rest sink back to faint stains. The picked item is a hollow ring.</span>
+            <button type="button" class="viewer-open" data-src="week-09-bleed.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-print.html" title="Print sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Print</b>
+            <span>A riso print on off-white paper: typewriter index, blocks of ink smeared sideways with scanlines, halftone edges and colour out of register. Each place has its own ink. Hover is a test print, a few dry streaks; press pushes the ink further and shifts the off-register layer; click runs every scanline out at its own speed into a full block as the layers line up. The old print lifts off and leaves a faint ghost.</span>
+            <button type="button" class="viewer-open" data-src="week-09-print.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-dot.html" title="Dot sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Dot</b>
+            <span>A grey capsule of words, the picked one white with a small dot under it. The dot stretches into a short dash as it travels, like a comet, then shrinks back and lands with a small bounce; the word it reaches brightens and grows a touch. Hover shows a faint ghost dot.</span>
+            <button type="button" class="viewer-open" data-src="week-09-dot.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-wire.html" title="Wire sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Wire</b>
+            <span>Places are knobs on one wire on a black base; the picked knob turns blue and the wire round it lights up. An iridescent orb, the assistant, rides above the wire like a bead on a soft spring, stretching along its path and slowly turning its colours. In the sidebar the wire stands up beside the labels.</span>
+            <button type="button" class="viewer-open" data-src="week-09-wire.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-cut.html" title="Cut sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Cut</b>
+            <span>A neon green frame around charcoal panels. The picked place is a slanted green cut through the dark bar; it slides on a spring and leans harder the faster it goes, the way the gutters lean in the reference, then stands back to its resting slant.</span>
+            <button type="button" class="viewer-open" data-src="week-09-cut.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-spread.html" title="Spread sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Spread</b>
+            <span>Wide capitals spread across a near-black card. Hover spreads a word's letters apart; picking brightens it, grows a short line from its centre, and slides the chapter number in from the side you came from. The sidebar is the same words down the left edge; folded, only the numbers stay.</span>
+            <button type="button" class="viewer-open" data-src="week-09-spread.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-ticker.html" title="Ticker sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Ticker</b>
+            <span>A market summary: the black list of markets is the sidebar, with each day's change in the trailing slot, and the chips are the tab bar. A green bar sweeps in behind the picked row, the black chip slides along, and the big word rolls letter by letter between UP and DOWN as the arrow turns over and the panel turns green or red. Folded, only the short codes stay.</span>
+            <button type="button" class="viewer-open" data-src="week-09-ticker.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-weight.html" title="Weight sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Weight</b>
+            <span>A soft white capsule with a heavy dark pill. The pill has mass: it stretches as it moves and overshoots as it stops, the bar leans the other way to counter it, and the labels ahead of it get pushed aside. Labels turn white exactly where the pill covers them, and the activity chips above swap one after another for the new place.</span>
+            <button type="button" class="viewer-open" data-src="week-09-weight.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-ink.html" title="Ink sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Ink</b>
+            <span>A black-outlined capsule of capital words. The black pill moves like an inchworm: its front reaches the new word first, covering both for a moment, then its back end lets go and pulls in. Letters invert exactly where the ink passes, so a word can be half white mid-move.</span>
+            <button type="button" class="viewer-open" data-src="week-09-ink.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-glass.html" title="Glass sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Glass</b>
+            <span>Milky frosted glass with a blue gel for the picked place. Light travels through the glass: a glint runs along the rim from the old row to the new, the old gel drains, and the new one fills in from the rim and flashes. In the tab bar the two light lines travel apart, the top one quicker.</span>
+            <button type="button" class="viewer-open" data-src="week-09-glass.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-dial.html" title="Dial sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Dial</b>
+            <span>An activity list laid round an arc. Picking turns the whole dial until the place reaches the centre handle; names tilt with the curve and fade with distance, and the mouse wheel turns it one place at a time. The tab bar is the same dial lying on its side.</span>
+            <button type="button" class="viewer-open" data-src="week-09-dial.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-notch.html" title="Notch sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Notch</b>
+            <span>A white bar on magenta whose three ways of marking a place become the states: hover is an underline, press is a tinted square, selected is a notch cut into the edge with a dot in it. On a pick the notch slides along the edge to the new place, with the dot riding inside it at the same height.</span>
+            <button type="button" class="viewer-open" data-src="week-09-notch.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-edge.html" title="Edge sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Edge</b>
+            <span>A white screen on a dotted grid in monospace capitals. The column of photo crops in the middle is the vertical navigation, with no separate sidebar: the picked crop opens from a circle into a large rounded square and the others shift to make room. Expanded, each name is typed in beside its crop; collapsed, only the crops stay. The tab bar is a scrubber line: the thumb slides to the picked stop and the count rolls its digits.</span>
+            <button type="button" class="viewer-open" data-src="week-09-edge.html">View larger</button>
+          </figcaption>
+        </figure>
+        <figure class="idea">
+          <iframe src="week-09-swell.html" title="Swell sketch" loading="lazy"></iframe>
+          <figcaption>
+            <b>Swell</b>
+            <span>A square charcoal bar of thin icons; its edge swells into a hump under the place you are, and a circle in that place's own colour rides the crest. Picking sends the swell along like a wave: it flattens while it travels and swells back on arrival, the circle's colour blends from place to place, and the icons lift as the wave passes under them. Hover raises a small swell of its own. In the sidebar the same wave bulges out of the left edge.</span>
+            <button type="button" class="viewer-open" data-src="week-09-swell.html">View larger</button>
+          </figcaption>
+        </figure>
         <figure class="idea">
           <iframe src="week-09-pill.html" title="Pill sketch" loading="lazy"></iframe>
           <figcaption>

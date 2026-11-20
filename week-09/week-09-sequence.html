@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sequence &middot; Week 09 sketch</title>
+  <!-- Sequence, on the user's own reference image (images/sequence-ref.webp, used at their request):
+       a chronophotograph pasted up on a board, eleven photos of a skier's turn curving down the
+       sheet, with crayon and pencil marks round them.
+       The user's idea (2026-11-19): hovering along the path of shots turns them over like frames of
+       film, so they move like video (a flipbook), and buttons appear along the path. They asked to
+       use the real photos, not drawn ones.
+       Motion:
+       - each photo has a slot cut from the same image. At rest every slot shows its own photo, so
+         the board looks untouched. With the pointer on the path every slot steps to the next photo
+         twelve times a second, so the turn plays down the whole curve like film; the photo under the
+         pointer lifts off the board a little, like a print picked up
+       - the path is cut into five stretches, one per place. Reaching a stretch draws its button
+         beside it: a pencil loop sketches itself round the name, then the name is written in.
+         Passed buttons stay in faint pencil; the current place is circled in red crayon
+       - hover re-draws a button's loop with a wobble; press flattens it
+       Keyboard: buttons are real links; focus draws them in. -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    /* the stage is the board itself: the image is 992 x 1476 */
+    :root { --w: 420px; --h: 625px; }
+    body { background: #2a2925; }
+    .stage { background: url("images/sequence-ref.webp") 0 0 / 420px 625px no-repeat; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,.4); }
+    /* cover the screenshot's own buttons (top left, bottom right) with board-coloured paper */
+    .patch { position: absolute; filter: blur(3px); }
+    .slot { position: absolute; background-image: url("images/sequence-ref.webp"); background-size: 420px 625px; background-repeat: no-repeat; pointer-events: none;
+      transition: scale .25s var(--fast), box-shadow .25s; }
+    .slot.up { scale: 1.07; box-shadow: 0 10px 18px -6px rgba(40,30,20,.55); z-index: 2; }
+    .hand { font-family: "Bradley Hand", "Segoe Print", "Chalkboard SE", "Comic Sans MS", cursive; }
+    .btn { position: absolute; z-index: 3; display: grid; place-items: center; width: 86px; height: 36px; margin: -18px 0 0 -43px; font-size: 14px; color: #34508a; opacity: 0; transition: opacity .3s; }
+    .btn svg { position: absolute; inset: -5px -8px; width: calc(100% + 16px); height: calc(100% + 10px); overflow: visible; pointer-events: none; }
+    .btn svg path { fill: none; stroke: #34508a; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; transition: stroke-dashoffset .55s cubic-bezier(.4,0,.2,1); }
+    .btn .w { clip-path: inset(0 100% 0 0); transition: clip-path .5s steps(9, end) .35s; }
+    .btn.shown { opacity: 1; }
+    .btn.shown svg path, .btn.kept svg path { stroke-dashoffset: 0; }
+    .btn.shown .w, .btn.kept .w { clip-path: inset(0 0 0 0); }
+    .btn.kept { opacity: .4; }
+    .btn.kept.shown { opacity: 1; }
+    .btn:hover svg { animation: wobble .45s ease-in-out; }
+    .btn:active { scale: .94; }
+    .btn[aria-current="page"] { opacity: 1; color: #b9322d; }
+    .btn[aria-current="page"] svg path { stroke: #c43a35; stroke-width: 2.4; stroke-dashoffset: 0; }
+    .btn[aria-current="page"] .w { clip-path: inset(0 0 0 0); }
+    .btn:focus-visible { outline: 1.5px dashed #34508a; outline-offset: 6px; }
+    @keyframes wobble { 0% { rotate: 0deg; } 35% { rotate: -4deg; scale: 1.04; } 70% { rotate: 3deg; } 100% { rotate: 0deg; } }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <span class="patch" style="left:-6px;top:-6px;width:50px;height:44px;background:rgb(209,196,179)" aria-hidden="true"></span>
+    <span class="patch" style="left:390px;top:540px;width:36px;height:90px;background:linear-gradient(180deg, rgb(226,215,204), rgb(220,208,193))" aria-hidden="true"></span>
+    <div id="slots" aria-hidden="true"></div>
+    <nav aria-label="Main" id="nav"></nav>
+  </div>
+
+  <script>
+    (() => {
+      const S = 420 / 992;   // image pixels to stage pixels
+      // where each photo's skier stands, in the image's own pixels, top right to bottom left
+      const FIG = [[818, 128], [668, 190], [515, 240], [395, 305], [298, 380], [230, 505], [190, 670], [190, 840], [218, 1000], [268, 1160], [356, 1310]];
+      const CW = 150 * S, CH = 190 * S;   // the slot: a crop round each skier
+      const N = FIG.length;
+      const slots = FIG.map(([fx, fy], i) => {
+        const el = document.createElement('span'); el.className = 'slot';
+        const x = fx * S - CW / 2, y = fy * S - CH / 2 + 10 * S;
+        Object.assign(el.style, { left: x + 'px', top: y + 'px', width: CW + 'px', height: CH + 'px' });
+        document.getElementById('slots').append(el);
+        return { el, i, x, y, cx: x + CW / 2, cy: y + CH / 2 };
+      });
+      // show photo k inside slot s: the same crop window, moved to photo k's skier
+      const show = (s, k) => { const t = slots[k]; s.el.style.backgroundPosition = `${-t.x}px ${-t.y}px`; };
+      slots.forEach(s => show(s, s.i));
+
+      // five stretches, five places; each button sits inside the curve beside its stretch
+      const PLACES = [['intro', 'Intro', [0, 1]], ['work', 'Work', [2, 3]], ['archive', 'Archive', [4, 5]], ['about', 'About', [6, 7, 8]], ['contact', 'Contact', [9, 10]]];
+      const rnd = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+      const nav = document.getElementById('nav');
+      const INWARD = [[60, 34], [62, 42], [70, 44], [82, 0], [80, -26]];   // nudge into the open board, clear of the photos
+      const btns = PLACES.map(([id, name, idx], k) => {
+        const mx = idx.reduce((a, i) => a + slots[i].cx, 0) / idx.length, my = idx.reduce((a, i) => a + slots[i].cy, 0) / idx.length;
+        const a = document.createElement('a');
+        a.className = 'btn hand'; a.href = '#' + id; a.dataset.place = id;
+        a.style.left = mx + INWARD[k][0] + 'px'; a.style.top = my + INWARD[k][1] + 'px'; a.style.rotate = ((rnd(k, 5) - .5) * 8).toFixed(1) + 'deg';
+        const loop = []; for (let s = 0; s <= 1.08; s += .04) { const ang = s * Math.PI * 2 - 2.6, rx = 50 + (rnd(k, s * 9) - .5) * 5, ry = 20 + (rnd(s * 7, k) - .5) * 4; loop.push(`${(51 + rx * Math.cos(ang)).toFixed(1)} ${(23 + ry * Math.sin(ang)).toFixed(1)}`); }
+        a.innerHTML = `<svg viewBox="0 0 102 46" aria-hidden="true"><path d="M${loop.join(' L')}"/></svg><span class="w">${name}</span>`;
+        nav.append(a);
+        const b = { id, name, a, idx };
+        a.addEventListener('click', e => { e.preventDefault(); pick(b); });
+        return b;
+      });
+      const pick = b => btns.forEach(x => x === b ? x.a.setAttribute('aria-current', 'page') : x.a.removeAttribute('aria-current'));
+      const reveal = (b, on) => { if (on === b.a.classList.contains('shown')) return; b.a.classList.toggle('shown', on); if (!on) b.a.classList.add('kept'); };
+
+      const stage = document.querySelector('.stage');
+      const P = { x: -999, y: -999, on: false };
+      stage.addEventListener('pointermove', e => { const r = stage.getBoundingClientRect(), f = r.width / 420; P.x = (e.clientX - r.left) / f; P.y = (e.clientY - r.top) / f; P.on = true; });
+      stage.addEventListener('pointerleave', () => P.on = false);
+
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      let step = 0, acc = 0, last = performance.now(), hover = -1;
+      const frame = now => {
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        hover = -1;
+        if (P.on) { let bd = 1e9; slots.forEach(s => { const d = Math.hypot(P.x - s.cx, P.y - s.cy); if (d < bd) { bd = d; hover = d < 46 ? s.i : -1; } }); }
+        // on the path the film runs; off it every photo goes back to its own place
+        if (hover >= 0 && !calm.matches) { acc += dt; let moved = false; while (acc > 1 / 12) { acc -= 1 / 12; step = (step + 1) % N; moved = true; } if (moved) slots.forEach(s => show(s, (s.i + step) % N)); }
+        else if (step !== 0 && hover < 0) { step = 0; acc = 0; slots.forEach(s => show(s, s.i)); }
+        slots.forEach(s => s.el.classList.toggle('up', s.i === hover));
+        const seg = hover < 0 ? -1 : btns.findIndex(b => b.idx.includes(hover));
+        btns.forEach((b, k) => reveal(b, k === seg || document.activeElement === b.a));
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / 420, innerHeight / 625, 1.6));
+      fit(); addEventListener('resize', fit);
+      const q = new URLSearchParams(location.search);
+      pick(btns.find(b => b.id === q.get('pick')) || btns[0]);
+      if (q.get('at')) { const [x, y] = q.get('at').split(',').map(Number); P.x = x; P.y = y; P.on = true; }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glass &middot; Week 09 sketch</title>
+  <!-- Glass, after the user's reference: milky frosted glass on silver grey, bright rims, soft
+       shadows; the picked place is lit by a blue gel that glows; the compact tab bar marks its
+       place with a blue icon and two thin light lines at the top and bottom of the glass.
+       Motion:
+       - light travels through the glass: on a pick a small glint runs along the sidebar's rim from
+         the old row to the new one; the old gel drains away toward the rim, and when the glint
+         arrives the new gel fills in from the rim side and flashes once
+       - in the tab bar the two light lines travel apart: the top one quick, the bottom one slower,
+         so the light shears as it moves, then both settle on the new tab and the icon turns blue
+       - hover lifts a row toward you with a brighter inner rim; press pushes it into the glass
+       - the sidebar folds to a rail: labels and slots fade, the slab narrows, the gel shrinks
+         to a lit square round the icon -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #d5d9df radial-gradient(90% 80% at 30% 20%, #e8ebef, #c8ccd3); font-family: -apple-system, "SF Pro Text", Inter, "Helvetica Neue", sans-serif; }
+    :root { --ink: #3c4048; --muted: #8a8f99; --blue: #3f86e0; }
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.28));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 1px rgba(255,255,255,.55), inset 0 -3px 8px rgba(40,50,70,.06), 0 14px 28px -10px rgba(30,40,60,.3), 0 2px 5px rgba(30,40,60,.08);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    .gel-look { background: linear-gradient(180deg, #96c6f7 0%, #5a9be8 45%, #3a7fd8 100%);
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,.75), inset 0 -2px 4px rgba(10,50,120,.3), 0 0 18px rgba(70,140,235,.55), 0 4px 10px rgba(50,110,210,.35); }
+
+    /* sidebar slab */
+    .side { position: absolute; left: 26px; top: 24px; width: 224px; height: 372px; padding: 14px 12px; border-radius: 28px; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 80px; }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 40px; padding-left: 8px; }
+    .brand { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; transition: opacity .15s; }
+    .brand i { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 50% 38%, #f2d5c0 0 30%, transparent 31%), radial-gradient(circle at 50% 110%, #f2d5c0 0 48%, #6b4a3a 49%); box-shadow: 0 0 0 2px #fff; flex: none; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 17px; color: var(--ink); transition: scale .3s var(--fast); }
+    .fold:active { scale: .88; transition: scale .06s; }
+    .fold [data-i] { width: 18px; height: 18px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; height: 26px; margin: 8px 0 0; padding-left: 12px; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--muted); line-height: 26px; white-space: nowrap; transition: color .15s; }
+    .side h4::after { content: ""; position: absolute; left: 17px; top: 50%; width: 0; height: 2px; border-radius: 1px; background: rgba(255,255,255,.9); box-shadow: 0 1px 0 rgba(0,0,0,.08); transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 22px; transition-delay: .12s; }
+    .row { position: relative; display: flex; align-items: center; gap: 12px; width: 200px; height: 44px; margin-top: 3px; padding: 0 14px 0 14px; border-radius: 22px; color: var(--ink); white-space: nowrap; overflow: hidden;
+      transition: width .36s var(--spatial), translate .25s var(--fast), box-shadow .2s; }
+    .stage[data-side="open"] .row { transition: width .52s var(--spatial), translate .25s var(--fast), box-shadow .2s; }
+    .stage[data-side="rail"] .row { width: 56px; }
+    .row:hover:not(.lit) { translate: 0 -1px; box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 1px rgba(255,255,255,.7), 0 4px 10px -4px rgba(30,40,60,.25); }
+    .row:active:not(.lit) { translate: 0 1px; box-shadow: inset 0 2px 5px rgba(30,40,60,.18), inset 0 0 0 1px rgba(255,255,255,.4); transition: none; }
+    .row .gel { position: absolute; inset: 0; border-radius: inherit; scale: 0 1; transform-origin: 0 50%; opacity: 0; transition: scale .5s var(--spatial), opacity .2s, filter .5s; }
+    .row.lit .gel { scale: 1 1; opacity: 1; }
+    .row.flash .gel { filter: brightness(1.5) saturate(1.2); transition: scale .5s var(--spatial), opacity .2s, filter 0s; }
+    .row.drain .gel { transform-origin: 0 50%; scale: 0 1; opacity: 0; transition: scale .26s cubic-bezier(.5,0,.8,.3), opacity .26s; }
+    .row > :not(.gel) { position: relative; }
+    .row [data-i] { width: 22px; height: 22px; transition: color .25s .1s; }
+    .row .lbl { flex: 1; font-size: 14px; font-weight: 500; transition: opacity .2s .1s, color .25s .1s; }
+    .row.lit { color: #fff; }
+    .row.lit .lbl { font-weight: 600; }
+    .trail { font-size: 12px; color: var(--muted); transition: opacity .2s .14s; }
+    .row.lit .trail { color: rgba(255,255,255,.85); }
+    .t-badge, .tb-badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; justify-content: center; }
+    .row.lit .t-badge { background: rgba(255,255,255,.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6); }
+    .t-icon [data-i] { width: 15px; height: 15px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+    .pip { position: absolute; right: -2px; top: -1px; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 6px var(--blue); scale: 0; transition: scale .3s var(--fast); }
+    .stage[data-side="rail"] .pip { scale: 1; transition-delay: .2s; }
+    .row:focus-visible, .tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .spark { position: absolute; left: 6px; top: 0; width: 16px; height: 34px; margin-top: -17px; border-radius: 8px; pointer-events: none; opacity: 0;
+      background: radial-gradient(closest-side, rgba(255,255,255,1), rgba(160,205,255,.8) 45%, transparent); filter: blur(1px); }
+
+    /* main + compact tab bar */
+    .main { position: absolute; left: 282px; right: 26px; top: 24px; bottom: 24px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 138px; transition: left .36s var(--spatial); }
+    .view b { font-size: 30px; font-weight: 600; color: var(--ink); letter-spacing: -.01em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .view .card { margin-top: 18px; width: 240px; padding: 16px; border-radius: 20px; }
+    .view .card i { display: block; height: 10px; margin-top: 8px; border-radius: 5px; background: rgba(60,64,72,.12); }
+    .tabs { position: absolute; left: 50%; bottom: 0; translate: -50% 0; display: flex; gap: 4px; padding: 6px 10px; border-radius: 30px; }
+    .tab { position: relative; display: grid; place-items: center; width: 58px; height: 46px; border-radius: 23px; color: #5b606a; transition: translate .25s var(--fast), box-shadow .2s; }
+    .tab [data-i] { width: 24px; height: 24px; transition: color .3s .15s; }
+    .tab[aria-current="page"] { color: var(--blue); }
+    .tab:hover:not([aria-current]) { translate: 0 -1px; box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 1px rgba(255,255,255,.6); }
+    .tab:active:not([aria-current]) { translate: 0 1px; box-shadow: inset 0 2px 5px rgba(30,40,60,.18); transition: none; }
+    .tb-badge { position: absolute; top: 4px; left: 33px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; }
+    .light { position: absolute; left: 0; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, #5aa2f0 18%, #3f86e0 50%, #5aa2f0 82%, transparent); box-shadow: 0 0 8px rgba(63,134,224,.8); pointer-events: none; }
+    .light.top { top: 0; } .light.bot { bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side glass" id="side" aria-label="Sidebar">
+      <span class="spark" aria-hidden="true"></span>
+      <div class="top"><span class="brand"><i></i>Sarah J.</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>Inbox</h4>
+      <ul>
+        <li><a class="row" href="#messages" data-place="messages" aria-current="page"><span class="gel gel-look"></span><span data-i="message"><span class="pip"></span></span><span class="lbl">Messages</span>
+          <span class="trail"><span class="t-badge gel-look" aria-label="4 unread">4</span><span class="t-icon" aria-label="pinned"><span data-i="star"></span></span><span class="t-text">Now</span></span></a></li>
+        <li><a class="row" href="#tasks" data-place="tasks"><span class="gel gel-look"></span><span data-i="tasks"><span class="pip"></span></span><span class="lbl">Tasks</span>
+          <span class="trail"><span class="t-badge gel-look" aria-label="2 due">2</span><span class="t-icon" aria-label="due soon"><span data-i="clock"></span></span><span class="t-text">2 due</span></span></a></li>
+      </ul>
+      <h4>Workspace</h4>
+      <ul>
+        <li><a class="row" href="#files" data-place="files"><span class="gel gel-look"></span><span data-i="folder"></span><span class="lbl">Files</span></a></li>
+        <li><a class="row" href="#activity" data-place="activity"><span class="gel gel-look"></span><span data-i="pulse"></span><span class="lbl">Activity</span></a></li>
+        <li><a class="row" href="#profile" data-place="profile"><span class="gel gel-look"></span><span data-i="user"></span><span class="lbl">Profile</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Messages</b><span>Picked in the sidebar or the bar below.</span><div class="card glass"><i style="width:60%;margin-top:0"></i><i style="width:90%"></i><i style="width:75%"></i></div></div>
+      <nav class="tabs glass" aria-label="Tab bar">
+        <span class="light top" aria-hidden="true"></span><span class="light bot" aria-hidden="true"></span>
+        <a class="tab" href="#messages" data-place="messages" aria-label="Messages" aria-current="page"><span data-i="message"></span><span class="tb-badge gel-look" aria-label="4 unread">4</span></a>
+        <a class="tab" href="#tasks" data-place="tasks" aria-label="Tasks"><span data-i="tasks"></span><span class="tb-badge gel-look" aria-label="2 due">2</span></a>
+        <a class="tab" href="#files" data-place="files" aria-label="Files"><span data-i="folder"></span></a>
+        <a class="tab" href="#activity" data-place="activity" aria-label="Activity"><span data-i="pulse"></span></a>
+        <a class="tab" href="#profile" data-place="profile" aria-label="Profile"><span data-i="user"></span></a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const side = document.getElementById('side'), spark = side.querySelector('.spark');
+      const tabs = document.querySelector('.tabs'), top = tabs.querySelector('.light.top'), bot = tabs.querySelector('.light.bot');
+      const row = p => side.querySelector(`.row[data-place="${p}"]`);
+      const tab = p => tabs.querySelector(`.tab[data-place="${p}"]`);
+      let timers = [];
+
+      // the two light lines: their own springs, the top one quick, the bottom one slower
+      const L = { t: { x: 0, v: 0 }, b: { x: 0, v: 0 }, placed: false };
+      N.loop(dt => {
+        const t = tab(N.current()); if (!t) return false;
+        const x = t.offsetLeft + 8, w = t.offsetWidth - 16;
+        if (!L.placed || N.calm.matches) { L.t.x = L.b.x = x; L.t.v = L.b.v = 0; L.placed = true; }
+        const m1 = N.spring(L.t, x, 520, .72, dt), m2 = N.spring(L.b, x, 170, .82, dt);
+        top.style.translate = L.t.x + 'px 0'; bot.style.translate = L.b.x + 'px 0';
+        top.style.width = bot.style.width = w + 'px';
+        return m1 || m2;
+      });
+
+      N.init({
+        names: { messages: 'Messages', tasks: 'Tasks', files: 'Files', activity: 'Activity', profile: 'Profile' },
+        onPick(place, prev, animate) {
+          timers.forEach(clearTimeout); timers = [];
+          const to = row(place), from = prev && row(prev);
+          side.querySelectorAll('.row').forEach(r => { if (r !== to && r !== from) r.classList.remove('lit', 'drain', 'flash'); });
+          if (!animate || !from) { side.querySelectorAll('.row').forEach(r => r.classList.toggle('lit', r === to)); return; }
+          // the old gel drains toward the rim, the glint runs along the rim, the new gel fills from the rim
+          from.classList.add('drain'); from.classList.remove('lit');
+          timers.push(setTimeout(() => from.classList.remove('drain'), 300));
+          const y0 = N.rel(from, side).cy, y1 = N.rel(to, side).cy, dur = 240 + Math.min(260, Math.abs(y1 - y0) * 1.1);
+          spark.animate([{ top: y0 + 'px', opacity: 0, height: '34px' }, { opacity: 1, height: '46px', offset: .2 }, { opacity: 1, height: '46px', offset: .85 }, { top: y1 + 'px', opacity: 0, height: '34px' }],
+            { duration: dur, easing: 'cubic-bezier(.45,0,.25,1)' });
+          timers.push(setTimeout(() => { to.classList.add('lit', 'flash'); requestAnimationFrame(() => requestAnimationFrame(() => to.classList.remove('flash'))); }, dur * .8));
+        },
+      });
+    })();
+  </script>
+</body>
+</html>

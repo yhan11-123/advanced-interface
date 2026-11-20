@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wire &middot; Week 09 sketch</title>
+  <!-- Wire, after the user's reference: an assistant on a phone. A white sheet of text, an iridescent
+       violet-blue orb floating above a small close button, and on the black base a row of small
+       round knobs, each sitting on its own short track, the active one blue with its track lit.
+       Motion:
+       - the places are knobs on one wire; the picked knob turns blue and the wire round it lights up
+         and stretches, pushing its neighbours along, like a slider gaining room
+       - the orb is the assistant hovering over where you are: it rides above the wire like a bead,
+         on a soft spring, stretching along the way it travels and slowly turning its colours
+       - hover lifts a knob and brightens its track; press presses it into the wire
+       - the sidebar is the same wire standing up beside the labels; the orb rides beside it;
+         folded to a rail the labels fade and only the wire, knobs and orb stay -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #eef0f2; font-family: -apple-system, "SF Pro Text", Inter, "Helvetica Neue", sans-serif; }
+    :root { --blue: #2f73e6; --base: #0b0b0c; --knob: #3a3a3e; }
+    .orb { position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; pointer-events: none; z-index: 3;
+      background: conic-gradient(from var(--spin, 0deg), #2a1d7a, #7f6bff, #e9e5ff, #3b2fb8, #0f0b3d, #6a8bff, #2a1d7a);
+      box-shadow: inset 0 0 10px rgba(255,255,255,.45), 0 6px 18px rgba(60,40,200,.35); filter: saturate(1.2); }
+    .orb::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.7), transparent 45%); }
+    .knob { position: relative; z-index: 2; display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--knob); color: #fff;
+      transition: background-color .3s, scale .3s var(--fast), translate .3s var(--fast), box-shadow .3s; }
+    .knob [data-i] { width: 14px; height: 14px; }
+    .item[aria-current="page"] .knob { background: var(--blue); box-shadow: 0 0 0 3px rgba(47,115,230,.25); }
+    .item:hover:not([aria-current]) .knob { translate: 0 -2px; background: #55555b; }
+    .item:active .knob { scale: .86; transition: scale .06s; }
+    .item:focus-visible { outline: none; }
+    .item:focus-visible .knob { box-shadow: 0 0 0 2px var(--base), 0 0 0 4px #fff; }
+    .wire { position: absolute; z-index: 1; background: #3a3a3e; border-radius: 2px; pointer-events: none; }
+    .lit { position: absolute; z-index: 1; border-radius: 2px; background: linear-gradient(90deg, transparent, #6aa2ff 25%, #9cc2ff 50%, #6aa2ff 75%, transparent); box-shadow: 0 0 8px rgba(80,140,255,.7); pointer-events: none; }
+
+    /* sidebar: a black base, the wire standing up */
+    .side { position: absolute; left: 22px; top: 22px; bottom: 22px; width: 206px; padding: 14px 14px 14px 18px; border-radius: 28px; background: var(--base); color: #fff; overflow: hidden; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 74px; }
+    .stage[data-side="rail"] .side .orb { z-index: 1; }
+    .side .wire { left: 34px; top: 70px; bottom: 26px; width: 2px; }
+    .side .lit { left: 34px; width: 2px; background: linear-gradient(180deg, transparent, #6aa2ff 25%, #9cc2ff 50%, #6aa2ff 75%, transparent); }
+    .top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; height: 36px; padding-left: 4px; }
+    .brand { font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 16px; background: #1d1d20; color: #fff; transition: scale .3s var(--fast); }
+    .fold:active { scale: .86; transition: scale .06s; }
+    .fold [data-i] { width: 16px; height: 16px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; z-index: 2; height: 22px; margin: 8px 0 0 104px; font-size: 10px; font-weight: 600; letter-spacing: .1em; color: #6c6c72; line-height: 22px; white-space: nowrap; transition: opacity .2s; }
+    .stage[data-side="rail"] .side h4 { opacity: 0; }
+    .row { position: relative; display: flex; align-items: center; gap: 14px; height: 42px; padding-left: 0; font-size: 14px; color: #c9c9ce; white-space: nowrap; }
+    .row .knob { margin-left: 4px; }
+    .row .lbl { flex: 1; margin-left: 46px; transition: opacity .2s .1s, color .25s; }
+    .row[aria-current="page"] .lbl { color: #fff; font-weight: 600; }
+    .row:hover:not([aria-current]) .lbl { color: #fff; }
+    .trail { font-size: 11.5px; color: #8a8a90; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 18px; height: 16px; padding: 0 5px; border-radius: 8px; background: var(--blue); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; justify-content: center; }
+    .t-icon [data-i] { width: 14px; height: 14px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+
+    /* main: the white sheet, the base with the horizontal wire */
+    .main { position: absolute; left: 250px; right: 22px; top: 22px; bottom: 22px; border-radius: 28px; background: var(--base); overflow: hidden; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 118px; transition: left .36s var(--spatial); }
+    .sheet { position: absolute; left: 0; right: 0; top: 0; height: 270px; border-radius: 0 0 26px 26px; background: #fff; padding: 22px 26px; }
+    .view b { font-size: 28px; font-weight: 600; letter-spacing: -.01em; color: #111; }
+    .view span { display: block; margin-top: 8px; max-width: 360px; font-size: 13px; line-height: 1.5; color: #6b6b70; }
+    .close { position: absolute; left: 50%; top: 214px; width: 36px; height: 36px; margin-left: -18px; border-radius: 50%; background: #f1f1f3; display: grid; place-items: center; color: #333; }
+    .close [data-i] { width: 14px; height: 14px; }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 104px; display: flex; justify-content: center; align-items: center; gap: 56px; padding-top: 22px; }
+    .tabs .wire { left: 40px; right: 40px; top: 62px; height: 2px; }
+    .tabs .lit { top: 62px; height: 2px; }
+    .tab { position: relative; display: grid; justify-items: center; gap: 8px; padding: 0 2px; transition: margin .5s var(--spatial); }
+    .tab .lbl { font-size: 10.5px; color: #8a8a90; transition: color .25s; }
+    .tab[aria-current="page"] { margin: 0 16px; }
+    .tab[aria-current="page"] .lbl { color: #fff; }
+    .tab .tb-badge { position: absolute; z-index: 3; top: -7px; left: 16px; box-shadow: 0 0 0 2px var(--base); }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <span class="wire" aria-hidden="true"></span><span class="lit" aria-hidden="true"></span><span class="orb" aria-hidden="true"></span>
+      <div class="top"><span class="brand">Assistant</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>STORE</h4>
+      <ul>
+        <li><a class="item row" href="#home" data-place="home" aria-current="page"><span class="knob"><span data-i="home"></span></span><span class="lbl">Home</span></a></li>
+        <li><a class="item row" href="#products" data-place="products"><span class="knob"><span data-i="tag"></span></span><span class="lbl">Products</span>
+          <span class="trail"><span class="t-badge" aria-label="6 to fix">6</span><span class="t-icon" aria-label="improving"><span data-i="spark"></span></span><span class="t-text">SEO</span></span></a></li>
+        <li><a class="item row" href="#search" data-place="search"><span class="knob"><span data-i="search"></span></span><span class="lbl">Search</span></a></li>
+      </ul>
+      <h4>YOU</h4>
+      <ul>
+        <li><a class="item row" href="#messages" data-place="messages"><span class="knob"><span data-i="message"></span></span><span class="lbl">Messages</span>
+          <span class="trail"><span class="t-badge" aria-label="2 unread">2</span><span class="t-icon" aria-label="recent"><span data-i="clock"></span></span><span class="t-text">2m</span></span></a></li>
+        <li><a class="item row" href="#account" data-place="account"><span class="knob"><span data-i="user"></span></span><span class="lbl">Account</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="sheet"><div class="view" aria-live="polite"><b>Home</b><span>I've optimised your product descriptions to perform better in search. Let me know what you want to do next.</span></div><span class="close"><span data-i="chevron" style="rotate:-90deg"></span></span></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <span class="wire" aria-hidden="true"></span><span class="lit" aria-hidden="true"></span><span class="orb" aria-hidden="true"></span>
+        <a class="item tab" href="#home" data-place="home" aria-current="page"><span class="knob"><span data-i="home"></span></span><span class="lbl">Home</span></a>
+        <a class="item tab" href="#products" data-place="products"><span class="knob"><span data-i="tag"></span></span><span class="tb-badge" aria-label="6 to fix">6</span><span class="lbl">Products</span></a>
+        <a class="item tab" href="#search" data-place="search"><span class="knob"><span data-i="search"></span></span><span class="lbl">Search</span></a>
+        <a class="item tab" href="#messages" data-place="messages"><span class="knob"><span data-i="message"></span></span><span class="tb-badge" aria-label="2 unread">2</span><span class="lbl">Messages</span></a>
+        <a class="item tab" href="#account" data-place="account"><span class="knob"><span data-i="user"></span></span><span class="lbl">Account</span></a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // each nav: the orb (a bead) rides above the picked knob; the lit stretch of wire follows it
+      const navs = [
+        { el: document.querySelector('.tabs'), axis: 'x', gap: -34 },
+        { el: document.getElementById('side'), axis: 'y', gap: 40 },
+      ].map(n => ({ ...n, orb: n.el.querySelector('.orb'), lit: n.el.querySelector('.lit'), c: { x: 0, v: 0 }, placed: false }));
+      let spin = 0;
+
+      N.loop((dt) => {
+        spin = (spin + dt * 40) % 360;
+        for (const n of navs) {
+          const k = n.el.querySelector('[data-place][aria-current] .knob'), r = N.rel(k, n.el);   // knobs only scale/translate a little; their centre holds
+          const target = n.axis === 'x' ? r.cx : r.cy;
+          if (!n.placed || N.calm.matches) { n.c.x = target; n.c.v = 0; n.placed = true; }
+          N.spring(n.c, target, 120, .7, dt);
+          // the bead stretches along its path with speed
+          const st = Math.min(.45, Math.abs(n.c.v) / 1400), o = n.orb.style;
+          o.setProperty('--spin', spin.toFixed(1) + 'deg');
+          if (n.axis === 'x') { o.left = n.c.x + 'px'; o.top = r.cy + n.gap + 'px'; o.scale = `${1 + st} ${1 - st * .4}`; n.lit.style.left = n.c.x - 46 + 'px'; n.lit.style.width = '92px'; }
+          else { o.left = r.cx + n.gap + 'px'; o.top = n.c.x + 'px'; o.scale = `${1 - st * .4} ${1 + st}`; n.lit.style.top = n.c.x - 34 + 'px'; n.lit.style.height = '68px'; }
+          // folded, the orb settles behind the picked knob as a glowing ring
+          if (N.stage.dataset.side === 'rail' && n.axis === 'y') { o.left = r.cx + 'px'; o.scale = `${(1 - st * .4) * 1.15} ${(1 + st) * 1.15}`; }
+        }
+        return !N.calm.matches;   // the orb keeps turning its colours
+      });
+
+      N.init({ names: { home: 'Home', products: 'Products', search: 'Search', messages: 'Messages', account: 'Account' },
+        onPick(p, prev, animate) { if (!animate) navs.forEach(n => n.placed = false); } });
+    })();
+  </script>
+</body>
+</html>

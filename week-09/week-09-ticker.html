@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ticker &middot; Week 09 sketch</title>
+  <!-- Ticker, after the user's reference: a market summary. A green panel with a row of rounded
+       chips (the picked one black with green text) and a huge word, UP, with an arrow; under it a
+       black list of tickers in large type with the day's change on the right.
+       Here the black list is the sidebar (each market a row, its change in the trailing slot) and the
+       chips are the tab bar.
+       Motion:
+       - picking: a green bar sweeps in from the left behind the new row and the old one sweeps out
+         to the right; the black chip slides along the chips (spring)
+       - the panel answers the market: the big word rolls letter by letter (UP / DOWN), the arrow turns
+         over on a spring, the panel crossfades green / red
+       - hover brightens a row and slides its name 4px; press dims it; chips darken on hover, shrink on press
+       - folded to a rail, only each market's short code stays (IDX, STK...), the names and changes fade -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #f6f6f0 radial-gradient(circle, rgba(0,0,0,.12) .7px, transparent 1.1px) 0 0 / 18px 18px; font-family: "Helvetica Neue", Inter, Arial, sans-serif; }
+    :root { --green: #19b36f; --red: #e5484d; --ink: #0c0c0c; }
+
+    /* sidebar: the black market list */
+    .side { position: absolute; left: 22px; top: 22px; bottom: 22px; width: 300px; padding: 14px 16px; border-radius: 26px; background: var(--ink); color: #fff; overflow: hidden; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 96px; }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 34px; padding-left: 6px; }
+    .brand { font-size: 13px; letter-spacing: .02em; color: #9a9a9a; white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: #fff; transition: background-color .15s, scale .3s var(--fast); }
+    .fold:hover { background: #222; } .fold:active { scale: .88; transition: scale .06s; }
+    .fold [data-i] { width: 18px; height: 18px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { height: 24px; margin: 8px 0 0; padding-left: 8px; font-size: 10.5px; font-weight: 500; letter-spacing: .12em; color: #6c6c6c; line-height: 24px; white-space: nowrap; }
+    .row { position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 10px 0 8px; border-radius: 10px; color: #fff; white-space: nowrap; overflow: hidden; font-size: 22px; letter-spacing: -.01em; }
+    .row::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--green); scale: 0 1; transform-origin: 100% 50%; transition: scale .3s cubic-bezier(.5,0,.8,.4); }
+    .row[aria-current="page"]::before { scale: 1 1; transform-origin: 0 50%; transition: scale .55s var(--spatial); }
+    .row > * { position: relative; }
+    .row .abbr { flex: none; width: 56px; font-weight: 500; transition: color .25s .1s, translate .3s var(--fast); }
+    .row .lbl { flex: 1; font-size: 13px; color: #8a8a8a; transition: opacity .2s .1s, color .25s .1s; }
+    .row[aria-current="page"] { color: var(--ink); }
+    .row[aria-current="page"] .lbl { color: rgba(0,0,0,.6); }
+    .row:hover:not([aria-current]) .abbr { translate: 4px 0; }
+    .row:hover:not([aria-current]) .lbl { color: #c4c4c4; }
+    .row:active:not([aria-current]) { opacity: .6; }
+    .row:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+    .trail { font-size: 15px; transition: opacity .2s .14s; }
+    .t-text { letter-spacing: -.01em; }
+    .t-badge { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px; background: #2a2a2a; color: #fff; font-size: 11px; font-weight: 700; line-height: 20px; justify-content: center; }
+    .row[aria-current="page"] .t-badge { background: rgba(0,0,0,.18); color: var(--ink); }
+    .t-icon [data-i] { width: 18px; height: 18px; }
+    .dn .t-icon [data-i] { rotate: 180deg; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+
+    /* the green panel and its chips = tab bar */
+    .panel { position: absolute; left: 340px; right: 22px; top: 22px; bottom: 22px; border-radius: 26px; background: var(--green); color: var(--ink); padding: 22px 24px; overflow: hidden; transition: left .52s var(--spatial), background-color .6s var(--fx); }
+    .stage[data-side="rail"] .panel { left: 136px; transition: left .36s var(--spatial), background-color .6s var(--fx); }
+    .panel.down { background: var(--red); }
+    .ph { display: flex; justify-content: space-between; align-items: center; }
+    .ph b { font-size: 26px; font-weight: 400; letter-spacing: -.02em; }
+    .ph [data-i] { width: 22px; height: 22px; }
+    .upd { margin: 10px 0 0; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,.18); font-size: 10px; }
+    .tabs { position: relative; display: flex; gap: 8px; margin: 14px -24px 0; padding: 8px 24px 0; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .chipfill { position: absolute; left: 0; top: 8px; height: 34px; border-radius: 9px; background: var(--ink); pointer-events: none; }
+    .tab { position: relative; height: 34px; padding: 0 12px; border-radius: 9px; background: rgba(0,0,0,.07); font-size: 17px; line-height: 34px; letter-spacing: -.01em; white-space: nowrap; transition: background-color .15s, color .25s, scale .3s var(--fast); }
+    .tab:hover:not([aria-current]) { background: rgba(0,0,0,.14); }
+    .tab:active { scale: .95; transition: scale .06s; }
+    .tab[aria-current="page"] { background: transparent; color: var(--green); }
+    .panel.down .tab[aria-current="page"] { color: var(--red); }
+    .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .tb-badge { position: absolute; top: -6px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 16px; justify-content: center; box-shadow: 0 0 0 2px var(--green); }
+    .big { position: absolute; left: 24px; right: 24px; bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .word { display: flex; height: 84px; overflow: hidden; font-size: 92px; line-height: 84px; letter-spacing: -.05em; }
+    .word span { display: block; }
+    .arrow { width: 64px; height: 64px; margin-bottom: 8px; transition: rotate .7s var(--fast); }
+    .arrow svg { stroke-width: 1.6; }
+    .panel.down .arrow { rotate: 180deg; }
+    .view { position: absolute; left: 24px; top: 150px; font-size: 13px; }
+    .view b { font-size: 13px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <div class="top"><span class="brand">Watchlist</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>MARKETS</h4>
+      <ul>
+        <li><a class="row" href="#indices" data-place="indices"><span class="abbr">IDX</span><span class="lbl">Indices</span><span class="trail"><span class="t-badge" aria-label="4 movers">4</span><span class="t-icon" aria-label="up"><span data-i="arrow"></span></span><span class="t-text">+0.42%</span></span></a></li>
+        <li><a class="row" href="#stocks" data-place="stocks"><span class="abbr">STK</span><span class="lbl">Stocks</span><span class="trail"><span class="t-badge" aria-label="9 movers">9</span><span class="t-icon" aria-label="up"><span data-i="arrow"></span></span><span class="t-text">+1.12%</span></span></a></li>
+        <li><a class="row" href="#crypto" data-place="crypto" aria-current="page"><span class="abbr">CRY</span><span class="lbl">Crypto</span><span class="trail"><span class="t-badge" aria-label="12 movers">12</span><span class="t-icon" aria-label="up"><span data-i="arrow"></span></span><span class="t-text">+1.83%</span></span></a></li>
+      </ul>
+      <h4>MORE</h4>
+      <ul>
+        <li><a class="row dn" href="#forex" data-place="forex"><span class="abbr">FX</span><span class="lbl">Forex</span><span class="trail"><span class="t-badge" aria-label="2 movers">2</span><span class="t-icon" aria-label="down"><span data-i="arrow"></span></span><span class="t-text">&minus;0.21%</span></span></a></li>
+        <li><a class="row dn" href="#futures" data-place="futures"><span class="abbr">FUT</span><span class="lbl">Futures</span><span class="trail"><span class="t-badge" aria-label="5 movers">5</span><span class="t-icon" aria-label="down"><span data-i="arrow"></span></span><span class="t-text">&minus;0.64%</span></span></a></li>
+      </ul>
+    </nav>
+
+    <div class="panel">
+      <div class="ph"><b>Market Summary</b><span data-i="tasks"></span></div>
+      <p class="upd">Last update &middot; <b>Nov 19th, 12:00 PM</b></p>
+      <nav class="tabs" aria-label="Tab bar">
+        <span class="chipfill" aria-hidden="true"></span>
+        <a class="tab" href="#indices" data-place="indices">Indices</a>
+        <a class="tab" href="#stocks" data-place="stocks">Stocks</a>
+        <a class="tab" href="#crypto" data-place="crypto" aria-current="page">Crypto<span class="tb-badge" aria-label="12 movers">12</span></a>
+        <a class="tab" href="#forex" data-place="forex">Forex</a>
+        <a class="tab" href="#futures" data-place="futures">Futures</a>
+      </nav>
+      <div class="view" aria-live="polite"><b>Crypto</b></div>
+      <div class="big"><span class="word" aria-hidden="true"></span><span class="arrow" data-i="arrow"></span></div>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const DOWN = new Set(['forex', 'futures']);
+      const panel = document.querySelector('.panel'), word = document.querySelector('.word');
+      const tabs = document.querySelector('.tabs'), fill = tabs.querySelector('.chipfill');
+
+      // the black chip: position and width on springs
+      const F = { x: { x: 0, v: 0 }, w: { x: 0, v: 0 }, placed: false };
+      N.loop(dt => {
+        const t = tabs.querySelector('[aria-current]'); if (!t) return false;
+        if (!F.placed || N.calm.matches) { F.x.x = t.offsetLeft; F.w.x = t.offsetWidth; F.x.v = F.w.v = 0; F.placed = true; }
+        const a = N.spring(F.x, t.offsetLeft, 300, .74, dt), b = N.spring(F.w, t.offsetWidth, 300, .8, dt);
+        fill.style.translate = F.x.x + 'px 0'; fill.style.width = F.w.x + 'px';
+        return a || b;
+      });
+
+      // the big word rolls letter by letter: old letters rise out, new ones rise in, one after another
+      const setWord = (w, animate) => {
+        const old = [...word.children];
+        if (old.map(s => s.textContent).join('') === w) return;
+        const fresh = [...w].map(c => { const s = document.createElement('span'); s.textContent = c; return s; });
+        if (!animate) { word.replaceChildren(...fresh); return; }
+        old.forEach((s, i) => s.animate([{ translate: '0 0', opacity: 1 }, { translate: '0 -100%', opacity: 0 }], { duration: 260, delay: i * 45, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' }));
+        setTimeout(() => {
+          word.replaceChildren(...fresh);
+          fresh.forEach((s, i) => s.animate([{ translate: '0 100%' }, { translate: '0 0' }], { duration: 520, delay: i * 55, easing: 'cubic-bezier(.2,.9,.3,1.15)', fill: 'backwards' }));
+        }, 200 + old.length * 45);
+      };
+
+      N.init({
+        names: { indices: 'Indices', stocks: 'Stocks', crypto: 'Crypto', forex: 'Forex', futures: 'Futures' },
+        onPick(place, prev, animate) {
+          const down = DOWN.has(place);
+          panel.classList.toggle('down', down);
+          setWord(down ? 'DOWN' : 'UP', animate);
+          if (!animate) F.placed = false;
+          // keep the picked chip in view, the row scrolls like the reference's
+          const t = tabs.querySelector('[aria-current]'), want = t.offsetLeft - (tabs.clientWidth - t.offsetWidth) / 2;
+          tabs.scrollTo({ left: Math.max(0, want), behavior: animate ? 'smooth' : 'auto' });
+        },
+      });
+    })();
+  </script>
+</body>
+</html>

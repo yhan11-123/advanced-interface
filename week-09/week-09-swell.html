@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swell &middot; Week 09 sketch</title>
+  <!-- Swell, after the user's reference: a square charcoal bar of thin white icons on pale grey;
+       its top edge swells into a hump under the picked place, and a coloured circle sits on the crest
+       holding that place's icon. Every place has its own colour.
+       Motion:
+       - the swell is a wave: picking sends the hump travelling along the bar (spring, a little underdamped);
+         it flattens while it moves fast and swells back up on arrival, with a small bounce
+       - the circle rides the crest; its colour blends from place to place as it passes over each one
+       - icons ride the wave: as the hump passes under an icon it lifts it, and the picked icon rides
+         all the way up into the circle
+       - hover raises a small swell under the hovered icon (the bar leaning toward it); press dips the
+         icon, and pressing the picked one squashes the circle
+       - the sidebar is the same wave turned 90 degrees: its left edge bulges outward at the picked row.
+         It folds to a rail: labels and slots fade first, the panel narrows, headers turn into short rules,
+         the slot becomes a dot; the wave keeps working in both. -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { overflow: hidden; background: #dedede; font-family: Inter, -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; }
+    :root {
+      --w: 760px; --h: 420px; --fit: 1;
+      --bar: #23242b; --line: rgba(255,255,255,.9); --muted: rgba(255,255,255,.4);
+      --spatial: linear(0, 0.072, 0.222, 0.395, 0.558, 0.696, 0.804, 0.884, 0.94, 0.976, 0.997, 1.009, 1.014, 1.014, 1.013, 1.011, 1.008, 1.006, 1.004, 1.003, 1.002, 1.001, 1, 1, 1);
+      --fast: linear(0, 0.108, 0.337, 0.58, 0.79, 0.944, 1.041, 1.084, 1.093, 1.081, 1.059, 1.036, 1.017, 1.004, 0.995, 0.992, 0.991, 0.993, 0.995, 0.997, 0.999, 1, 1, 1.001, 1);
+      --fx: linear(0, 0.095, 0.27, 0.441, 0.588, 0.703, 0.793, 0.856, 0.901, 0.932, 0.955, 0.969, 0.979, 0.986, 0.991, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1, 1, 1);
+    }
+    .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit)); }
+
+    /* shared: the wave surface, the circle, icons on top */
+    .surf { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+    .surf path { fill: var(--bar); }
+    .orb { position: absolute; left: 0; top: 0; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; pointer-events: none; z-index: 1; transition: scale .34s var(--fast); }
+    .orb.down { scale: .88; transition: scale .08s ease-out; }
+    .item { position: relative; z-index: 2; color: var(--line); }
+    .ico { display: block; width: 26px; height: 26px; }
+    .ico svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .ico-in { display: block; transition: translate .14s ease-out; }
+    .item:active:not([aria-current]) .ico-in { translate: 0 2px; }
+    .item:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+
+    /* sidebar: room on the left for the bulge */
+    .side { position: absolute; left: 14px; top: 34px; height: 352px; width: 252px; padding: 16px 14px 16px 60px; transition: width .36s var(--spatial); color: var(--line); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 124px; }
+    .side-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; height: 36px; padding-left: 8px; }
+    .brand { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; transition: opacity .15s var(--fx); }
+    .toggle { flex: none; display: grid; place-items: center; width: 36px; height: 36px; color: var(--line); transition: scale .3s var(--fast); }
+    .toggle:hover { color: #fff; } .toggle:active { scale: .85; transition: scale .08s; }
+    .toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .toggle svg { rotate: 180deg; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; }
+    .stage[data-side="rail"] .side-top { padding-left: 0; justify-content: center; }
+    .side h4 { position: relative; z-index: 2; height: 26px; margin: 8px 0 0; padding-left: 8px; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; line-height: 26px; color: var(--muted); white-space: nowrap; transition: color .14s var(--fx); }
+    .side h4::after { content: ""; position: absolute; left: 13px; top: 50%; width: 0; height: 1px; background: var(--muted); transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 24px; transition-delay: .12s; }
+    .side ul { list-style: none; margin: 0; padding: 0; }
+    .side .item { display: flex; align-items: center; gap: 14px; height: 44px; padding-left: 12px; white-space: nowrap; overflow: visible; }
+    .side .lbl { flex: 1; font-size: 14px; font-weight: 500; opacity: .72; transition: opacity .2s var(--fx) .12s, color .2s; }
+    .side .item:hover .lbl { opacity: 1; }
+    .side .item[aria-current="page"] .lbl { opacity: 1; font-weight: 700; }
+    .trail { display: inline-flex; font-size: 11.5px; font-weight: 600; color: var(--muted); transition: opacity .2s var(--fx) .14s; }
+    .trail > * { display: none; }
+    .stage[data-slot="badge"] .trail .t-badge, .stage[data-slot="icon"] .trail .t-icon, .stage[data-slot="text"] .trail .t-text { display: inline-flex; }
+    .badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; background: #fff; color: var(--bar); font-size: 11px; font-weight: 700; line-height: 18px; justify-content: center; }
+    .t-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .stage[data-side="rail"] .side .lbl, .stage[data-side="rail"] .side .trail { opacity: 0; transition: opacity .1s var(--fx); }
+    .pip { position: absolute; right: -3px; top: -1px; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--bar); scale: 0; transition: scale .3s var(--fast); }
+    .stage[data-side="rail"] .pip { scale: 1; transition-delay: .2s; }
+    .ico-in { position: relative; }
+
+    /* main + tab bar */
+    .main { position: absolute; left: 300px; right: 30px; top: 34px; bottom: 34px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 172px; transition: left .36s var(--spatial); }
+    .view b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.02em; color: var(--bar); }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: #6b6c74; }
+    .view .lines { margin-top: 18px; display: grid; gap: 8px; }
+    .view .lines i { display: block; height: 10px; border-radius: 5px; background: rgba(35,36,43,.1); }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 110px; padding-top: 52px; display: flex; justify-content: space-around; align-items: center; }
+    .tabs .item { display: grid; place-items: center; width: 56px; height: 58px; }
+    .tabs .ico { position: relative; }
+    .tabs .badge { position: absolute; left: 15px; top: -8px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; box-shadow: 0 0 0 2px var(--bar); display: none; }
+    .stage[data-slot="badge"] .tabs .badge { display: inline-flex; }
+
+    .ctl-pill { position: fixed; right: 10px; bottom: 10px; z-index: 9; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(20,20,20,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font: 600 11px/1 system-ui, sans-serif; }
+    .ctl-pill button { height: 24px; padding: 0 9px; border-radius: 999px; color: rgba(255,255,255,.6); }
+    .ctl-pill button:hover { color: #fff; background: rgba(255,255,255,.12); }
+    .ctl-pill button[aria-pressed="true"] { color: #111; background: #fff; }
+    .ctl-pill i { width: 1px; height: 14px; margin: 0 3px; background: rgba(255,255,255,.25); }
+    @media (max-width: 520px) { .ctl-pill { display: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; transition-delay: 0s !important; } }
+  </style>
+</head>
+<body>
+  <template id="icons">
+    <svg data-i="all" viewBox="0 0 26 26"><path d="M6 8 H20 M6 13 H20 M6 18 H20"/></svg>
+    <svg data-i="inbox" viewBox="0 0 26 26"><path d="M5 14 L7.5 6.5 H18.5 L21 14 V19.5 H5 Z M5 14 H10 L11 16.5 H15 L16 14 H21"/></svg>
+    <svg data-i="layers" viewBox="0 0 26 26"><path d="M13 5 L21 9.5 L13 14 L5 9.5 Z M5 13 L13 17.5 L21 13 M5 16.5 L13 21 L21 16.5"/></svg>
+    <svg data-i="layout" viewBox="0 0 26 26"><rect x="5.5" y="5.5" width="15" height="15" rx="1"/><path d="M5.5 10 H20.5 M10.5 10 V20.5"/></svg>
+    <svg data-i="images" viewBox="0 0 26 26"><rect x="5.5" y="5.5" width="15" height="15" rx="1"/><circle cx="10" cy="10" r="1.5"/><path d="M5.5 18 L10.5 13.5 L14 16.5 L16.5 14.5 L20.5 18"/></svg>
+  </template>
+
+  <div class="stage" data-side="open" data-slot="badge">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <svg class="surf" aria-hidden="true"><path/></svg>
+      <span class="orb" aria-hidden="true"></span>
+      <div class="side-top">
+        <span class="brand">Studio</span>
+        <button type="button" class="toggle" aria-expanded="true" aria-controls="side" aria-label="Collapse sidebar" title="Collapse sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 7 L9.5 12 L14.5 17"/></svg></button>
+      </div>
+      <h4>Workspace</h4>
+      <ul>
+        <li><a class="item" href="#all" data-place="all" aria-current="page"><span class="ico"><span class="ico-in" data-i="all"></span></span><span class="lbl">All</span></a></li>
+        <li><a class="item" href="#inbox" data-place="inbox"><span class="ico"><span class="ico-in" data-i="inbox"><span class="pip"></span></span></span><span class="lbl">Inbox</span>
+          <span class="trail"><span class="t-badge badge" aria-label="12 new">12</span><span class="t-icon" aria-label="syncing"><svg viewBox="0 0 24 24"><path d="M12 5 V15 M8 11 L12 15 L16 11 M6 19 H18"/></svg></span><span class="t-text">New</span></span></a></li>
+        <li><a class="item" href="#layers" data-place="layers"><span class="ico"><span class="ico-in" data-i="layers"></span></span><span class="lbl">Layers</span></a></li>
+      </ul>
+      <h4>Assets</h4>
+      <ul>
+        <li><a class="item" href="#layout" data-place="layout"><span class="ico"><span class="ico-in" data-i="layout"></span></span><span class="lbl">Layouts</span></a></li>
+        <li><a class="item" href="#images" data-place="images"><span class="ico"><span class="ico-in" data-i="images"><span class="pip"></span></span></span><span class="lbl">Images</span>
+          <span class="trail"><span class="t-badge badge" aria-label="48 images">48</span><span class="t-icon" aria-label="in the cloud"><svg viewBox="0 0 24 24"><path d="M7.5 17.5 H17 a3.5 3.5 0 0 0 .4 -7 a5 5 0 0 0 -9.6 1 a3 3 0 0 0 -.3 6 Z"/></svg></span><span class="t-text">2 GB</span></span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>All</b><span>Picked in the sidebar or the bar below.</span><div class="lines"><i style="width:80%"></i><i style="width:64%"></i><i style="width:72%"></i></div></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <svg class="surf" aria-hidden="true"><path/></svg>
+        <span class="orb" aria-hidden="true"></span>
+        <a class="item" href="#all" data-place="all" aria-label="All" aria-current="page"><span class="ico"><span class="ico-in" data-i="all"></span></span></a>
+        <a class="item" href="#inbox" data-place="inbox" aria-label="Inbox"><span class="ico"><span class="ico-in" data-i="inbox"></span><span class="badge" aria-label="12 new">12</span></span></a>
+        <a class="item" href="#layers" data-place="layers" aria-label="Layers"><span class="ico"><span class="ico-in" data-i="layers"></span></span></a>
+        <a class="item" href="#layout" data-place="layout" aria-label="Layouts"><span class="ico"><span class="ico-in" data-i="layout"></span></span></a>
+        <a class="item" href="#images" data-place="images" aria-label="Images"><span class="ico"><span class="ico-in" data-i="images"></span><span class="badge" aria-label="48 images">48</span></span></a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="ctl-pill" role="group" aria-label="Sketch controls">
+    <button type="button" data-side="open" aria-pressed="true">Open</button>
+    <button type="button" data-side="rail" aria-pressed="false">Rail</button>
+    <i></i>
+    <button type="button" data-slot="badge" aria-pressed="true">Badge</button>
+    <button type="button" data-slot="icon" aria-pressed="false">Icon</button>
+    <button type="button" data-slot="text" aria-pressed="false">Text</button>
+  </div>
+
+  <script>
+    (() => {
+      const stage = document.querySelector('.stage');
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / 760, innerHeight / 420, 1.6));
+      fit(); addEventListener('resize', () => { fit(); wake(); });
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      const NAMES = { all: 'All', inbox: 'Inbox', layers: 'Layers', layout: 'Layouts', images: 'Images' };
+      const COLOR = { all: [74, 163, 214], inbox: [226, 79, 138], layers: [75, 63, 232], layout: [226, 185, 59], images: [69, 165, 135] };
+
+      // icons: copy each into place (so they take currentColor and keep the pip beside them)
+      const tpl = document.getElementById('icons').content;
+      document.querySelectorAll('.ico-in').forEach(s => s.prepend(tpl.querySelector(`[data-i="${s.dataset.i}"]`).cloneNode(true)));
+
+      // bell: 1 at the crest, 0 at +-1 half-width, smooth at both ends
+      const bell = u => Math.abs(u) >= 1 ? 0 : Math.pow(Math.cos(Math.PI * u / 2), 2);
+      const spring = (s, target, k, z, dt) => { const w = Math.sqrt(k); s.v += (-k * (s.x - target) - 2 * z * w * s.v) * dt; s.x += s.v * dt; };
+
+      // one wave per nav. axis 'x': bar along x, swell rises from its top edge (up).
+      // axis 'y': panel along y, swell bulges out of its left edge (left).
+      const waves = [
+        { nav: document.querySelector('.tabs'), axis: 'x', edge: 52, depth: 58, H0: 40, W: 100, r: 27 },
+        { nav: document.querySelector('.side'), axis: 'y', edge: 46, depth: 0, H0: 32, W: 64, r: 25 },
+      ].map(w => ({ ...w, path: w.nav.querySelector('.surf path'), orb: w.nav.querySelector('.orb'),
+        items: [...w.nav.querySelectorAll('.item')], c: { x: 0, v: 0 }, h: { x: 0, v: 0 }, hov: { x: 0, v: 0 }, hovAt: 0, hovOn: null, placed: false }));
+
+      // item centre along the axis, and the icon's resting centre across it; from offsets, so transforms never feed back
+      const along = (w, el) => w.axis === 'x' ? el.offsetLeft + el.offsetWidth / 2 : el.offsetTop + el.offsetHeight / 2;
+      const iconAcross = (w, el) => { const ic = el.querySelector('.ico'); return w.axis === 'x' ? el.offsetTop + ic.offsetTop + 13 : el.offsetLeft + ic.offsetLeft + 13; };
+      const current = w => w.items.find(a => a.hasAttribute('aria-current'));
+
+      const colourAt = (w, pos) => {
+        const pts = w.items.map(a => [along(w, a), COLOR[a.dataset.place]]);
+        if (pos <= pts[0][0]) return pts[0][1];
+        for (let i = 1; i < pts.length; i++) if (pos <= pts[i][0]) {
+          const t = (pos - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]), e = t * t * (3 - 2 * t);
+          return pts[i - 1][1].map((c, j) => Math.round(c + (pts[i][1][j] - c) * e));
+        }
+        return pts[pts.length - 1][1];
+      };
+
+      const draw = w => {
+        const W = w.nav.offsetWidth, H = w.nav.offsetHeight, swell = p => w.h.x * bell((p - w.c.x) / w.W) + w.hov.x * bell((p - w.hovAt) / (w.W * .55));
+        let d = '';
+        if (w.axis === 'x') {
+          const top = w.edge;
+          d = `M0 ${H} L0 ${top}`;
+          for (let x = 0; x <= W; x += 3) d += ` L${x} ${(top - swell(x)).toFixed(1)}`;
+          d += ` L${W} ${top} L${W} ${H} Z`;
+        } else {
+          const left = w.edge;
+          d = `M${W} 0 L${left} 0`;
+          for (let y = 0; y <= H; y += 3) d += ` L${(left - swell(y)).toFixed(1)} ${y}`;
+          d += ` L${left} ${H} L${W} ${H} Z`;
+        }
+        w.path.setAttribute('d', d);
+        // the circle: on the crest, a little inside it
+        const cur = current(w), rest = iconAcross(w, cur), crest = w.edge - w.h.x, centre = crest + 8 + w.r;
+        const fill = colourAt(w, w.c.x);
+        w.orb.style.background = `rgb(${fill})`;
+        w.orb.style.width = w.orb.style.height = w.r * 2 + 'px'; w.orb.style.margin = -w.r + 'px 0 0 ' + -w.r + 'px';
+        if (w.axis === 'x') { w.orb.style.left = w.c.x + 'px'; w.orb.style.top = centre + 'px'; }
+        else { w.orb.style.left = centre + 'px'; w.orb.style.top = w.c.x + 'px'; }
+        // icons ride the wave toward the circle's centre, in proportion to the swell under them
+        const reach = (rest - centre) / w.H0;
+        for (const a of w.items) {
+          const lift = -reach * (w.h.x * bell((along(w, a) - w.c.x) / w.W) + .5 * w.hov.x * bell((along(w, a) - w.hovAt) / (w.W * .55)));
+          a.querySelector('.ico').style.translate = w.axis === 'x' ? `0 ${lift.toFixed(2)}px` : `${lift.toFixed(2)}px 0`;
+        }
+      };
+
+      let raf = 0, last = 0, until = 0;
+      const step = now => {
+        const dt = Math.min(.032, (now - last) / 1000 || .016); last = now;
+        let moving = false;
+        for (const w of waves) {
+          const target = along(w, current(w));
+          if (!w.placed || calm.matches) { w.c.x = target; w.c.v = 0; w.h.x = w.H0; w.h.v = 0; w.hov.x = 0; w.placed = true; draw(w); continue; }
+          for (let i = 0; i < 4; i++) {
+            const h = dt / 4;
+            spring(w.c, target, 150, .72, h);
+            // the swell flattens while it travels fast, swells back on arrival
+            const flat = Math.min(1, Math.abs(w.c.v) / 1100);
+            spring(w.h, w.H0 * (1 - .62 * flat), 330, .5, h);
+            spring(w.hov, w.hovOn && !w.hovOn.hasAttribute('aria-current') ? 10 : 0, 420, .55, h);
+          }
+          if (Math.abs(w.c.x - target) > .3 || Math.abs(w.c.v) > 3 || Math.abs(w.h.v) > 3 || Math.abs(w.h.x - w.H0) > .3 || Math.abs(w.hov.v) > 2 || (w.hov.x > .2 && !w.hovOn)) moving = true;
+          draw(w);
+        }
+        raf = (moving || now < until) ? requestAnimationFrame(step) : 0;
+      };
+      const wake = (ms = 600) => { until = Math.max(until, performance.now() + ms); if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } };
+
+      const go = place => {
+        for (const w of waves) w.items.forEach(a => a.dataset.place === place ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+        stage.querySelector('.view b').textContent = NAMES[place];
+        wake(400);
+      };
+      for (const w of waves) for (const a of w.items) {
+        a.addEventListener('click', e => { e.preventDefault(); if (!a.hasAttribute('aria-current')) go(a.dataset.place); });
+        a.addEventListener('pointerenter', () => { w.hovOn = a; w.hovAt = along(w, a); wake(); });
+        a.addEventListener('pointerleave', () => { if (w.hovOn === a) w.hovOn = null; wake(); });
+        a.addEventListener('pointerdown', () => { if (a.hasAttribute('aria-current')) w.orb.classList.add('down'); });
+      }
+      addEventListener('pointerup', () => document.querySelectorAll('.orb.down').forEach(o => o.classList.remove('down')));
+
+      const toggle = stage.querySelector('.toggle');
+      const ctl = [...document.querySelectorAll('.ctl-pill button')];
+      const fold = state => {
+        stage.dataset.side = state;
+        const open = state === 'open';
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Collapse sidebar' : 'Expand sidebar'); toggle.title = toggle.getAttribute('aria-label');
+        stage.querySelectorAll('.side .item').forEach(a => open ? a.removeAttribute('title') : (a.title = a.querySelector('.lbl').textContent));
+        ctl.forEach(b => b.dataset.side && b.setAttribute('aria-pressed', String(b.dataset.side === state)));
+        wake(700);
+      };
+      toggle.addEventListener('click', () => fold(stage.dataset.side === 'open' ? 'rail' : 'open'));
+      ctl.forEach(b => b.addEventListener('click', () => {
+        if (b.dataset.side) return fold(b.dataset.side);
+        stage.dataset.slot = b.dataset.slot;
+        ctl.forEach(x => x.dataset.slot && x.setAttribute('aria-pressed', String(x === b)));
+      }));
+      stage.addEventListener('transitionrun', e => { if (e.propertyName === 'width' || e.propertyName === 'left') wake(700); });
+
+      const q = new URLSearchParams(location.search);
+      if (q.has('rail')) fold('rail');
+      if (q.get('pick')) go(q.get('pick'));
+      if (q.get('demo')) setTimeout(() => go(q.get('demo')), 700);
+      wake(200);
+    })();
+  </script>
+</body>
+</html>

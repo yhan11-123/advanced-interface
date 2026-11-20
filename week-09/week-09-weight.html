@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weight &middot; Week 09 sketch</title>
+  <!-- Weight, after the user's reference: a soft white capsule on light grey with a thick white rim;
+       the picked place is a heavy dark pill holding a white icon and a bold label. Above the bar,
+       small chips show what's going on (a timer, the current exercise, a play button).
+       Motion:
+       - the dark pill has mass: it moves on a soft, underdamped spring, stretches along its path
+         with speed and squashes as it stops, overshooting a little
+       - the bar counters the weight: it slides a few pixels the other way while the pill moves, and
+         the labels ahead of the pill are pushed aside, then settle
+       - the labels turn white exactly where the pill covers them (a white copy, clipped to the pill)
+       - the chips above swap for the new place: the old ones drop and fade one after another,
+         the new ones rise in, one after another
+       - hover darkens a label and lifts its icon; press pushes the pill down into the bar
+       - the sidebar is the same soft slab standing up; it folds to a rail: labels fade, rows shrink
+         to circles, the pill becomes a dark circle -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #ececec; font-family: -apple-system, "SF Pro Display", Inter, "Helvetica Neue", sans-serif; }
+    :root { --ink: #1c1c1e; --muted: #8e8e93; }
+    .soft { background: #f7f7f7; box-shadow: inset 0 0 0 5px #fff, inset 0 2px 8px rgba(0,0,0,.04), 0 16px 34px -12px rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.05); }
+    .pill { position: absolute; left: 0; top: 0; border-radius: 999px; pointer-events: none; z-index: 0;
+      background: radial-gradient(120% 140% at 50% 0%, #3a3a3c, #121214 70%); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 14px -4px rgba(0,0,0,.4); }
+    .light { position: absolute; inset: 0; pointer-events: none; z-index: 2; color: #fff; }
+    .dark { position: relative; z-index: 1; }
+    .light .row, .light .tab, .light .lbl { color: #fff; }
+
+    /* sidebar */
+    .side { position: absolute; left: 24px; top: 24px; width: 216px; height: 372px; border-radius: 34px; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 78px; }
+    .side .dark, .side .light { padding: 16px 13px; }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 40px; padding-left: 10px; }
+    .brand { font-size: 16px; font-weight: 800; color: var(--ink); white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .light .top { visibility: hidden; }
+    .fold { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.08); transition: scale .3s var(--fast); }
+    .fold:active { scale: .88; transition: scale .06s; }
+    .fold [data-i] { width: 18px; height: 18px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; height: 26px; margin: 10px 0 2px; padding-left: 14px; font-size: 11px; font-weight: 600; color: var(--muted); line-height: 26px; white-space: nowrap; transition: color .15s; }
+    .side h4::after { content: ""; position: absolute; left: 17px; top: 50%; width: 0; height: 2px; border-radius: 1px; background: #d8d8dc; transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 18px; transition-delay: .12s; }
+    .light h4 { visibility: hidden; }
+    .row { display: flex; align-items: center; gap: 12px; width: 190px; height: 48px; margin-top: 4px; padding: 0 16px 0 15px; border-radius: 24px; color: var(--ink); white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .row { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .row { width: 52px; padding: 0 14px; }
+    .row [data-i], .tab [data-i] { position: relative; width: 22px; height: 22px; transition: translate .3s var(--fast); }
+    .row [data-i] svg, .tab [data-i] svg { stroke-width: 2; }
+    .row .lbl { flex: 1; transition: opacity .2s .1s, color .2s; }
+    .trail { font-size: 12px; font-weight: 600; color: var(--muted); transition: opacity .2s .14s; }
+    .light .trail { color: rgba(255,255,255,.7); }
+    .t-badge, .tb-badge { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px; background: #e2e2e6; color: var(--ink); font-size: 11px; font-weight: 700; line-height: 20px; justify-content: center; }
+    .light .t-badge { background: #3a3a3c; color: #fff; }
+    .t-icon [data-i] { width: 15px; height: 15px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+    .dark .row:hover:not([aria-current]) .lbl { color: #000; }
+    .dark .row:hover:not([aria-current]) [data-i], .dark .tab:hover:not([aria-current]) [data-i] { translate: 0 -2px; }
+    .row:focus-visible, .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+    /* main, chips and the capsule */
+    .main { position: absolute; left: 270px; right: 24px; top: 24px; bottom: 24px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 132px; transition: left .36s var(--spatial); }
+    .view b { font-size: 30px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .chips { position: absolute; left: 50%; bottom: 100px; translate: -50% 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 19px; background: #f7f7f7; box-shadow: inset 0 0 0 3px #fff, 0 8px 16px -8px rgba(0,0,0,.2); font-size: 14px; font-weight: 700; color: var(--ink); }
+    .chip small { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .chip [data-i] { width: 15px; height: 15px; color: #6b6b70; }
+    .chip.round { width: 38px; padding: 0; justify-content: center; }
+    .chip.round [data-i] svg { fill: var(--ink); stroke: var(--ink); }
+    .chip.gone { transition: translate .22s cubic-bezier(.5,0,.8,.4), opacity .22s; translate: 0 14px; opacity: 0; }
+    .chip.enter { translate: 0 16px; opacity: 0; }
+    .chip.rise { transition: translate .5s var(--fast), opacity .3s; translate: 0 0; opacity: 1; }
+    .bar { position: absolute; left: 50%; bottom: 4px; translate: -50% 0; height: 76px; border-radius: 38px; }
+    .bar .dark, .bar .light { display: flex; gap: 2px; padding: 9px; }
+    .tab { position: relative; display: flex; align-items: center; justify-content: center; gap: 7px; height: 58px; padding: 0 16px; border-radius: 29px; font-size: 15.5px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+    .tab [data-i] { width: 20px; height: 20px; }
+    .tb-badge { position: absolute; top: 4px; right: 8px; min-width: 18px; height: 17px; padding: 0 5px; font-size: 10px; line-height: 17px; }
+    .light .tb-badge { background: #3a3a3c; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side soft" id="side" aria-label="Sidebar">
+      <span class="pill" aria-hidden="true"></span>
+      <div class="dark">
+        <div class="top"><span class="brand">Lift</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+        <h4>Today</h4>
+        <ul>
+          <li><a class="row" href="#home" data-place="home" aria-current="page"><span data-i="home"></span><span class="lbl">Home</span></a></li>
+          <li><a class="row" href="#train" data-place="train"><span data-i="muscle"></span><span class="lbl">Train</span>
+            <span class="trail"><span class="t-badge" aria-label="3 planned">3</span><span class="t-icon" aria-label="in progress"><span data-i="play"></span></span><span class="t-text">45m</span></span></a></li>
+        </ul>
+        <h4>Look back</h4>
+        <ul>
+          <li><a class="row" href="#history" data-place="history"><span data-i="receipt"></span><span class="lbl">History</span>
+            <span class="trail"><span class="t-badge" aria-label="2 new records">2</span><span class="t-icon" aria-label="logged"><span data-i="check"></span></span><span class="t-text">52m</span></span></a></li>
+          <li><a class="row" href="#progress" data-place="progress"><span data-i="chart"></span><span class="lbl">Progress</span>
+            <span class="trail"><span class="t-badge" aria-label="up 12 percent">+12</span><span class="t-icon" aria-label="going up"><span data-i="up"></span></span><span class="t-text">+12%</span></span></a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Home</b><span>Picked in the sidebar or the bar below.</span></div>
+      <div class="chips" aria-live="polite"></div>
+      <nav class="bar soft" aria-label="Tab bar">
+        <span class="pill" aria-hidden="true"></span>
+        <div class="dark">
+          <a class="tab" href="#history" data-place="history"><span data-i="receipt"></span>History<span class="tb-badge" aria-label="2 new records">2</span></a>
+          <a class="tab" href="#home" data-place="home" aria-current="page"><span data-i="home"></span>Home</a>
+          <a class="tab" href="#train" data-place="train"><span data-i="muscle"></span>Train<span class="tb-badge" aria-label="3 planned">3</span></a>
+          <a class="tab" href="#progress" data-place="progress"><span data-i="chart"></span>Progress</a>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // a white copy of each nav's items sits on top, clipped to the pill, so labels turn white exactly under it
+      const navs = [
+        { el: document.querySelector('.bar'), axis: 'x' },
+        { el: document.getElementById('side'), axis: 'y' },
+      ].map(n => {
+        const dark = n.el.querySelector('.dark'), light = dark.cloneNode(true);
+        light.className = 'light'; light.setAttribute('aria-hidden', 'true');
+        light.querySelectorAll('a, button').forEach(a => { a.removeAttribute('href'); a.removeAttribute('data-place'); a.removeAttribute('data-fold'); a.tabIndex = -1; });
+        n.el.append(light);
+        const di = [...dark.querySelectorAll('[data-place]')], li = [...light.querySelectorAll('.row, .tab')];
+        return { ...n, pill: n.el.querySelector('.pill'), light, pairs: di.map((d, i) => [d, li[i]]), c: { x: 0, v: 0 }, s: { x: 0, v: 0 }, placed: false, base: n.el.style.translate };
+      });
+      const cur = n => n.pairs.find(([d]) => d.hasAttribute('aria-current'))[0];
+      const bell = u => Math.abs(u) >= 1 ? 0 : Math.pow(Math.cos(Math.PI * u / 2), 2);
+      let pressed = null;
+
+      N.loop(() => {
+        let moving = false;
+        const dt = 1 / 60;
+        for (const n of navs) {
+          const r = N.rel(cur(n), n.el.querySelector('.dark')), off = N.rel(n.el.querySelector('.dark'), n.el);
+          const x = r.x + off.x, y = r.y + off.y, mid = n.axis === 'x' ? x + r.w / 2 : y + r.h / 2, size = n.axis === 'x' ? r.w : r.h;
+          if (!n.placed || N.calm.matches) { n.c.x = mid; n.s.x = size; n.c.v = n.s.v = 0; n.placed = true; }
+          // heavy: soft and underdamped
+          if (N.spring(n.c, mid, 150, .6, dt)) moving = true;
+          if (N.spring(n.s, size, 260, .8, dt)) moving = true;
+          const v = n.c.v, st = Math.min(.28, Math.abs(v) / 2600), squash = n.el.querySelector('[aria-current]') === pressed ? .06 : 0;
+          let L, T, W, H;
+          if (n.axis === 'x') { W = n.s.x * (1 + st); H = r.h * (1 - st * .45 - squash); L = n.c.x - W / 2; T = y + (r.h - H) / 2; }
+          else { H = n.s.x * (1 + st); W = r.w * (1 - st * .3 - squash); T = n.c.x - H / 2; L = x + (r.w - W) / 2; }
+          Object.assign(n.pill.style, { left: L + 'px', top: T + 'px', width: W + 'px', height: H + 'px' });
+          const rad = Math.min(W, H) / 2;
+          n.light.style.clipPath = `inset(${T}px ${n.el.offsetWidth - L - W}px ${n.el.offsetHeight - T - H}px ${L}px round ${rad}px)`;
+          // the bar counters the weight; labels ahead of the pill get pushed
+          const lean = Math.max(-7, Math.min(7, -v * .006));
+          n.el.style.translate = n.axis === 'x' ? `calc(-50% + ${lean.toFixed(2)}px) 0` : `0 ${lean.toFixed(2)}px`;
+          for (const [d, l] of n.pairs) {
+            if (d.hasAttribute('aria-current')) { d.style.translate = l.style.translate = ''; continue; }
+            const dr = N.rel(d, n.el), dm = n.axis === 'x' ? dr.cx : dr.cy;
+            const ahead = Math.sign(dm - n.c.x) === Math.sign(v) ? 1 : 0;
+            const push = ahead * Math.max(-6, Math.min(6, v * .005)) * bell((dm - n.c.x) / (n.axis === 'x' ? 180 : 110));
+            d.style.translate = l.style.translate = n.axis === 'x' ? `${push.toFixed(2)}px 0` : `0 ${push.toFixed(2)}px`;
+          }
+          if (Math.abs(v) > 3) moving = true;
+        }
+        return moving;
+      });
+
+      // the chips above the bar, per place
+      const CHIPS = {
+        home: [['clock', '1:00:36'], ['', 'Shoulder Press', '4x25lbs', 'snow', '2:42'], ['play']],
+        train: [['muscle', '3 today'], ['', 'Leg Day', '6 moves', 'clock', '45:00'], ['play']],
+        history: [['receipt', 'Nov 18'], ['', 'Upper body', '52 min', 'star', 'PR x2']],
+        progress: [['chart', '+12%'], ['', 'Bench 1RM', '95lbs', 'up', '4 wk']],
+      };
+      const chips = document.querySelector('.chips');
+      const html = c => c.length === 1 ? `<span class="chip round"><span data-i="${c[0]}"></span></span>`
+        : c.length === 2 ? `<span class="chip"><span data-i="${c[0]}"></span>${c[1]}</span>`
+        : `<span class="chip">${c[1]}<small>${c[2]}</small><span data-i="${c[3]}" style="margin-left:10px"></span><small>${c[4]}</small></span>`;
+      const swap = (place, animate) => {
+        const old = [...chips.children];
+        const put = () => {
+          chips.innerHTML = CHIPS[place].map(html).join(''); N.fillIcons(chips);
+          if (!animate) return;
+          [...chips.children].forEach((c, i) => { c.classList.add('enter'); setTimeout(() => { c.classList.add('rise'); c.classList.remove('enter'); }, 30 + i * 70); });
+        };
+        if (!animate || !old.length) return put();
+        old.forEach((c, i) => setTimeout(() => c.classList.add('gone'), i * 50));
+        setTimeout(put, 160 + old.length * 50);
+      };
+
+      N.init({
+        names: { home: 'Home', train: 'Train', history: 'History', progress: 'Progress' },
+        onPick(place, prev, animate) { swap(place, animate); },
+      });
+      document.querySelectorAll('[data-place]').forEach(a => a.addEventListener('pointerdown', () => { pressed = a.hasAttribute('aria-current') ? a : null; N.wake(300); }));
+      addEventListener('pointerup', () => { pressed = null; N.wake(400); });
+    })();
+  </script>
+</body>
+</html>

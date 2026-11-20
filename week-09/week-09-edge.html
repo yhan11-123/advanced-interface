@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edge &middot; Week 09 sketch</title>
+  <!-- Edge, after the user's reference: a white phone screen on a dotted grid, monospace capitals,
+       and a column of round photo crops down the middle. The column of crops IS the vertical
+       navigation (no separate sidebar): each crop is a place, and the picked one opens from a circle
+       into a large rounded square, like the top card in the reference. The bottom bar is a
+       scrubber line, the horizontal navigation.
+       Motion:
+       - picking: the old card closes back into a circle while the new one opens into the rounded
+         square (size and corners on a spring); the cards between shift to make room, so the column
+         reflows like a stack of photos
+       - expanded, each card's name stands to its left in monospace, with the group headers, typed in
+         letter by letter; collapsing erases them backwards, quicker, and the cards shrink and close up
+       - hover rings a crop and nudges it toward the names; press shrinks it
+       - the scrubber thumb slides to the picked stop and the count rolls its digits;
+         MENU expands and collapses the card column -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #8d8d8b radial-gradient(120% 90% at 20% 10%, #b3b3b0, #5f5f5d); font-family: ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace; }
+    :root { --ink: #0d0d0d; --paper: #f4f4f1; --grey: #9a9a96; }
+    .phone { position: absolute; left: 70px; top: 18px; width: 620px; height: 384px; padding: 9px; border-radius: 44px; background: var(--ink); box-shadow: 0 30px 50px -20px rgba(0,0,0,.6); }
+    .screen { position: relative; height: 100%; border-radius: 36px; overflow: hidden; color: var(--ink);
+      background: var(--paper) radial-gradient(circle, rgba(0,0,0,.22) .8px, transparent 1.2px) 0 0 / 22px 22px; }
+    .info { position: absolute; right: 34px; top: 30px; text-align: right; font-size: 11px; line-height: 1.35; letter-spacing: .04em; }
+    .clock { position: absolute; right: 34px; top: 86px; font-size: 34px; font-weight: 700; letter-spacing: .02em; }
+    .view { position: absolute; right: 34px; top: 146px; text-align: right; font-size: 11px; line-height: 1.35; letter-spacing: .06em; }
+    .view b { font-size: 11px; }
+
+    /* ---------- the crop column = vertical navigation ---------- */
+    .stage { --lw: 150px; }
+    .stage[data-side="rail"] { --lw: 0px; }
+    .side { position: absolute; left: 30px; top: 16px; }
+    .hrow, .crow { display: grid; grid-template-columns: var(--lw) auto; align-items: center; transition: grid-template-columns .36s var(--spatial), height .36s var(--spatial); }
+    .stage[data-side="open"] .hrow, .stage[data-side="open"] .crow { transition: grid-template-columns .52s var(--spatial), height .52s var(--spatial); }
+    .hrow { height: 16px; }
+    .stage[data-side="rail"] .hrow { height: 8px; }
+    .hrow h4 { margin: 0; padding-right: 16px; text-align: right; font-size: 9px; font-weight: 400; letter-spacing: .16em; color: var(--grey); white-space: nowrap; overflow: hidden; }
+    .crow { padding: 1px 0; }
+    .lab { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-right: 16px; font-size: 10.5px; letter-spacing: .1em; color: #5b5b58; white-space: nowrap; overflow: hidden; }
+    .crow[aria-current="page"] .lab { color: var(--ink); font-weight: 700; }
+    .crop { position: relative; display: block; width: 44px; height: 44px; border-radius: 22px; margin-left: var(--off, 0px); background: var(--img);
+      transition: width .5s var(--spatial), height .5s var(--spatial), border-radius .5s var(--spatial), margin .5s var(--spatial), box-shadow .2s, scale .3s var(--fast); }
+    .stage[data-side="rail"] .crop { width: 36px; height: 36px; border-radius: 18px; }
+    .crow[aria-current="page"] .crop { width: 84px; height: 62px; border-radius: 20px; }
+    .stage[data-side="rail"] .crow[aria-current="page"] .crop { width: 66px; height: 50px; border-radius: 16px; }
+    .crow:hover:not([aria-current]) .crop { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); margin-left: calc(var(--off, 0px) - 4px); }
+    .crow:active .crop { scale: .92; transition: scale .06s; }
+    .crow:focus-visible { outline: none; }
+    .crow:focus-visible .crop { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+    .ch { opacity: 0; }
+    .ch.on { opacity: 1; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .trail { font-size: 9.5px; letter-spacing: .08em; color: var(--grey); }
+    .sq, .tb-badge { min-width: 18px; height: 16px; padding: 0 4px; background: var(--ink); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 16px; justify-content: center; }
+    .t-icon [data-i] { width: 13px; height: 13px; }
+    /* collapsed, the slot rides on the crop's corner */
+    .crop .tb-badge { position: absolute; right: -5px; top: -4px; box-shadow: 0 0 0 2px var(--paper); }
+    .stage .side .crop .tb-badge { display: none; }
+    .stage[data-side="rail"][data-slot="badge"] .side .crop .tb-badge { display: inline-flex; }
+
+    /* ---------- the scrubber = tab bar ---------- */
+    .bar { position: absolute; left: 22px; right: 22px; bottom: 16px; z-index: 2; display: flex; align-items: center; gap: 16px; height: 54px; padding: 0 18px; border-radius: 27px; background: rgba(244,244,241,.94); box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
+    .menu { display: flex; align-items: center; gap: 10px; flex: none; height: 32px; font-size: 10px; letter-spacing: .12em; }
+    .menu svg { width: 18px; height: 12px; fill: none; stroke: var(--ink); stroke-width: 1.4; transition: scale .3s var(--fast); }
+    .menu:hover svg { scale: 1.15 1; } .menu:active svg { scale: .8; transition: scale .06s; }
+    .track { position: relative; flex: 1; height: 54px; }
+    .track::before { content: ""; position: absolute; left: 0; right: 0; top: 33px; border-top: 1.5px solid var(--ink); }
+    .stop { position: absolute; top: 0; height: 54px; width: 70px; margin-left: -35px; display: grid; justify-items: center; align-content: start; padding-top: 6px; font-size: 9px; letter-spacing: .1em; color: var(--grey); }
+    .stop::after { content: ""; position: absolute; left: 50%; top: 30px; width: 1px; height: 7px; background: var(--ink); opacity: .45; }
+    .stop[aria-current="page"] { color: var(--ink); font-weight: 700; }
+    .stop:hover:not([aria-current]) { color: #555; }
+    .stop .ghost { position: absolute; left: 50%; top: 24px; width: 1.5px; height: 19px; margin-left: -.75px; background: var(--ink); opacity: 0; transition: opacity .15s; }
+    .stop:hover:not([aria-current]) .ghost { opacity: .25; }
+    .stop:focus-visible { outline: 1.5px solid var(--ink); outline-offset: -2px; }
+    .stop .tb-badge { position: absolute; left: 50%; top: 40px; margin-left: -9px; min-width: 16px; height: 12px; font-size: 8px; line-height: 12px; }
+    .thumb { position: absolute; left: 0; top: 23px; width: 3px; height: 21px; margin-left: -1.5px; background: var(--ink); pointer-events: none; transition: left .5s var(--spatial), width .25s var(--fast), margin .25s var(--fast); }
+    .count { flex: none; display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .08em; }
+    .roll { display: inline-flex; flex-direction: column; height: 14px; overflow: hidden; }
+    .roll span { display: block; line-height: 14px; transition: translate .5s var(--spatial); }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <div class="phone"><div class="screen">
+      <div class="info">MONDAY<br>19 NOV</div>
+      <div class="clock">9:PM</div>
+      <div class="view" aria-live="polite">PLACE<br><b>EXPLORE</b></div>
+
+      <nav class="side" id="side" aria-label="Sidebar">
+        <div class="hrow"><h4 data-type>&mdash; VIEW</h4></div>
+        <a class="crow" href="#explore" data-place="explore" aria-current="page" style="--off:0px;--img:radial-gradient(circle at 50% 80%, #fff 0 26%, transparent 27%), linear-gradient(160deg, #c9c9cf, #8b8b93)">
+          <span class="lab"><span class="lbl" data-type>EXPLORE</span></span><span class="crop"></span></a>
+        <a class="crow" href="#capture" data-place="capture" style="--off:22px;--img:radial-gradient(circle at 40% 45%, #d9d2c8 0 14%, transparent 15%), linear-gradient(150deg, #5c5751, #1e1d1c)">
+          <span class="lab"><span class="lbl" data-type>CAPTURE</span></span><span class="crop"></span></a>
+        <div class="hrow"><h4 data-type>&mdash; LIBRARY</h4></div>
+        <a class="crow" href="#files" data-place="files" style="--off:40px;--img:radial-gradient(circle at 60% 60%, #6e6a55 0 30%, transparent 31%), linear-gradient(120deg, #e3e0d8, #b8b4a8)">
+          <span class="lab"><span class="lbl" data-type>FILES</span><span class="trail"><span class="t-badge sq" aria-label="12 new">12</span><span class="t-icon" aria-label="locked"><span data-i="lock"></span></span><span class="t-text">2.4GB</span></span></span>
+          <span class="crop"><span class="tb-badge" aria-label="12 new">12</span></span></a>
+        <a class="crow" href="#people" data-place="people" style="--off:26px;--img:radial-gradient(ellipse 30% 36% at 55% 42%, #c9a58c 0 98%, transparent 100%), radial-gradient(circle at 50% 120%, #2c2c2c 0 52%, transparent 53%), linear-gradient(180deg, #f1ede6, #d0c8bd)">
+          <span class="lab"><span class="lbl" data-type>PEOPLE</span><span class="trail"><span class="t-badge sq" aria-label="3 new">3</span><span class="t-icon" aria-label="online"><span data-i="user"></span></span><span class="t-text">NEW</span></span></span>
+          <span class="crop"><span class="tb-badge" aria-label="3 new">3</span></span></a>
+        <a class="crow" href="#places" data-place="places" style="--off:48px;--img:radial-gradient(ellipse 40% 22% at 50% 58%, #8a8f96 0 96%, transparent 100%), linear-gradient(180deg, #f2b46a, #b4652e 60%, #6b3a1c)">
+          <span class="lab"><span class="lbl" data-type>PLACES</span></span><span class="crop"></span></a>
+      </nav>
+
+      <nav class="bar" aria-label="Tab bar">
+        <button type="button" class="menu" data-fold aria-controls="side"><svg viewBox="0 0 18 12" aria-hidden="true"><path d="M0 2 H18 M0 10 H18"/></svg>MENU</button>
+        <div class="track">
+          <span class="thumb" aria-hidden="true"></span>
+          <a class="stop" href="#explore" data-place="explore" aria-current="page" style="left:8%">EXPLORE<span class="ghost"></span></a>
+          <a class="stop" href="#capture" data-place="capture" style="left:29%">CAPTURE<span class="ghost"></span></a>
+          <a class="stop" href="#files" data-place="files" style="left:50%">FILES<span class="ghost"></span><span class="tb-badge" aria-label="12 new">12</span></a>
+          <a class="stop" href="#people" data-place="people" style="left:71%">PEOPLE<span class="ghost"></span><span class="tb-badge" aria-label="3 new">3</span></a>
+          <a class="stop" href="#places" data-place="places" style="left:92%">PLACES<span class="ghost"></span></a>
+        </div>
+        <span class="count" aria-hidden="true"><span class="roll"><span>00</span></span>X</span>
+      </nav>
+    </div></div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const COUNT = { explore: 50, capture: 8, files: 12, people: 3, places: 21 };
+      const thumb = document.querySelector('.thumb'), track = document.querySelector('.track'), roll = document.querySelector('.roll');
+
+      // names and headers are split into letters (a hidden copy keeps the full word for screen readers)
+      const typed = [...document.querySelectorAll('#side [data-type]')];
+      typed.forEach(el => { const t = el.textContent; el.innerHTML = `<span class="sr">${t}</span>` + [...t].map(c => `<span class="ch" aria-hidden="true">${c === ' ' ? '&nbsp;' : c}</span>`).join(''); });
+      let timers = [];
+      const type = (on, animate) => {
+        timers.forEach(clearTimeout); timers = [];
+        const chars = typed.flatMap(el => [...el.querySelectorAll('.ch')]);
+        if (!animate) return chars.forEach(c => c.classList.toggle('on', on));
+        if (on) chars.forEach((c, i) => timers.push(setTimeout(() => c.classList.add('on'), 240 + i * 11)));   // after the column has opened, top first
+        else [...chars].reverse().forEach((c, i) => timers.push(setTimeout(() => c.classList.remove('on'), i * 3))); // erase quickly, last letter first
+      };
+
+      const setCount = (n, animate) => {
+        const s = String(n).padStart(2, '0'), old = roll.firstElementChild;
+        if (old.textContent === s) return;
+        if (!animate) { old.textContent = s; return; }
+        const nu = document.createElement('span'); nu.textContent = s; roll.append(nu);
+        requestAnimationFrame(() => { old.style.translate = '0 -14px'; nu.style.translate = '0 -14px'; });
+        setTimeout(() => { old.remove(); nu.style.transition = 'none'; nu.style.translate = '0 0'; requestAnimationFrame(() => nu.style.transition = ''); }, 520);
+      };
+
+      N.init({
+        names: { explore: 'EXPLORE', capture: 'CAPTURE', files: 'FILES', people: 'PEOPLE', places: 'PLACES' },
+        onPick(place, prev, animate) {
+          thumb.style.left = track.querySelector(`[data-place="${place}"]`).style.left;
+          setCount(COUNT[place], animate);
+        },
+        onFold(state, animate) { type(state === 'open', animate); },
+      });
+    })();
+  </script>
+</body>
+</html>

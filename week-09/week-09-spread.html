@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spread &middot; Week 09 sketch</title>
+  <!-- Spread, after the user's reference: a near-black card on black, three words in wide bold
+       capitals spread across its top (INTRO left, HISTORY centre, ABOUT right), warm grey on dark,
+       nothing else. Quiet and editorial.
+       Motion:
+       - hover spreads a word's letters a little apart, as if it breathes in; press pulls them tight
+       - picking: the word brightens to warm white and a short line grows out from its centre while
+         the old one shrinks back into its centre; the chapter number and title slide in from the
+         side you travelled from while the old ones slide out the other way
+       - the sidebar is the same words standing down the card's left edge, each with its chapter number;
+         folded to a rail only the numbers stay, the words fade and close up -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #000; font-family: "Helvetica Neue", "Arial Black", Arial, sans-serif; }
+    :root { --card: #1f1d1d; --dim: #8b8379; --lit: #f1e8d9; --line: #3a3634; }
+    .card { position: absolute; left: 20px; right: 20px; top: 20px; bottom: 20px; border-radius: 16px; background: var(--card); overflow: hidden; }
+    .w { position: relative; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--dim); white-space: nowrap; transition: letter-spacing .45s var(--fast), color .3s; }
+    .w:hover:not([aria-current]) { letter-spacing: .14em; color: #b9b0a4; }
+    .w:active { letter-spacing: -.02em; transition: letter-spacing .08s; }
+    .w[aria-current="page"] { color: var(--lit); }
+    .w::after { content: ""; position: absolute; left: 50%; bottom: -8px; width: 22px; height: 2px; margin-left: -11px; background: var(--lit); scale: 0 1; transition: scale .3s cubic-bezier(.5,0,.8,.4); }
+    .w[aria-current="page"]::after { scale: 1 1; transition: scale .55s var(--fast) .08s; }
+    .w:focus-visible { outline: 1.5px solid var(--lit); outline-offset: 6px; }
+
+    /* sidebar: words down the left edge */
+    .side { position: absolute; left: 0; top: 0; bottom: 0; width: 196px; padding: 18px 14px 18px 18px; border-right: 1px solid var(--line); transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 66px; }
+    .fold { display: grid; place-items: center; width: 30px; height: 30px; margin: 0 0 10px -2px; border-radius: 15px; color: var(--dim); transition: color .15s, scale .3s var(--fast); }
+    .fold:hover { color: var(--lit); } .fold:active { scale: .85; transition: scale .06s; }
+    .fold [data-i] { width: 16px; height: 16px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { height: 22px; margin: 14px 0 4px; font-size: 9px; font-weight: 500; letter-spacing: .24em; color: #5d5852; line-height: 22px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .stage[data-side="rail"] .side h4 { opacity: 0; }
+    .row { display: flex; align-items: baseline; gap: 12px; height: 40px; font-size: 14px; }
+    .row::after { left: 32px; margin-left: 0; bottom: 8px; }
+    .row .num { flex: none; width: 20px; font-size: 10px; letter-spacing: .06em; font-weight: 500; }
+    .row .lbl { flex: 1; transition: opacity .2s .1s; }
+    .trail { font-size: 10px; font-weight: 500; letter-spacing: .1em; color: #6d675f; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 18px; height: 15px; padding: 0 5px; border-radius: 8px; box-shadow: inset 0 0 0 1px currentColor; font-size: 9px; line-height: 15px; justify-content: center; }
+    .t-icon [data-i] { width: 12px; height: 12px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+    .stage[data-side="rail"] .row::after { left: 0; width: 14px; }
+
+    /* main: the spread words across the top, the chapter below */
+    .main { position: absolute; left: 196px; right: 0; top: 0; bottom: 0; padding: 22px 26px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 66px; transition: left .36s var(--spatial); }
+    .tabs { display: flex; justify-content: space-between; }
+    .tab { font-size: 15px; }
+    .tb-badge { position: absolute; top: -9px; right: -16px; color: var(--dim); }
+    .chapter { position: absolute; left: 26px; right: 26px; bottom: 26px; height: 230px; overflow: hidden; }
+    .page { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; color: var(--lit); }
+    .page i { font-style: normal; font-size: 150px; font-weight: 700; line-height: .82; letter-spacing: -.04em; }
+    .page span { margin-top: 14px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+    .view { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <div class="card">
+      <nav class="side" id="side" aria-label="Sidebar">
+        <button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button>
+        <h4>STORY</h4>
+        <ul>
+          <li><a class="row w" href="#intro" data-place="intro" aria-current="page"><span class="num">01</span><span class="lbl">Intro</span></a></li>
+          <li><a class="row w" href="#history" data-place="history"><span class="num">02</span><span class="lbl">History</span></a></li>
+          <li><a class="row w" href="#work" data-place="work"><span class="num">03</span><span class="lbl">Work</span>
+            <span class="trail"><span class="t-badge" aria-label="14 projects">14</span><span class="t-icon" aria-label="featured"><span data-i="spark"></span></span><span class="t-text">14</span></span></a></li>
+        </ul>
+        <h4>STUDIO</h4>
+        <ul>
+          <li><a class="row w" href="#press" data-place="press"><span class="num">04</span><span class="lbl">Press</span>
+            <span class="trail"><span class="t-badge" aria-label="2 new">2</span><span class="t-icon" aria-label="opens a new site"><span data-i="up"></span></span><span class="t-text">NEW</span></span></a></li>
+          <li><a class="row w" href="#about" data-place="about"><span class="num">05</span><span class="lbl">About</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="main">
+        <nav class="tabs" aria-label="Tab bar">
+          <a class="tab w" href="#intro" data-place="intro" aria-current="page">Intro</a>
+          <a class="tab w" href="#history" data-place="history">History</a>
+          <a class="tab w" href="#work" data-place="work">Work<span class="tb-badge" aria-label="14 projects">14</span></a>
+          <a class="tab w" href="#press" data-place="press">Press<span class="tb-badge" aria-label="2 new">2</span></a>
+          <a class="tab w" href="#about" data-place="about">About</a>
+        </nav>
+        <div class="view" aria-live="polite"><b>Intro</b></div>
+        <div class="chapter" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const ORDER = ['intro', 'history', 'work', 'press', 'about'];
+      const TITLE = { intro: 'Where it starts', history: 'Forty years, one street', work: 'Fourteen projects', press: 'What they wrote', about: 'Who we are' };
+      const chapter = document.querySelector('.chapter');
+      const page = p => { const d = document.createElement('div'); d.className = 'page'; d.innerHTML = `<i>0${ORDER.indexOf(p) + 1}</i><span>${TITLE[p]}</span>`; return d; };
+
+      N.init({
+        names: { intro: 'Intro', history: 'History', work: 'Work', press: 'Press', about: 'About' },
+        onPick(place, prev, animate) {
+          const nu = page(place), old = chapter.lastElementChild;
+          chapter.append(nu);
+          if (!animate || !old) { [...chapter.children].forEach(c => c !== nu && c.remove()); return; }
+          // the new chapter comes in from the side you travelled from
+          const dir = Math.sign(ORDER.indexOf(place) - ORDER.indexOf(prev)) || 1;
+          old.animate([{ translate: '0 0', opacity: 1 }, { translate: `${-dir * 60}px 0`, opacity: 0 }], { duration: 320, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' }).finished.then(() => old.remove());
+          nu.animate([{ translate: `${dir * 90}px 0`, opacity: 0 }, { translate: '0 0', opacity: 1 }], { duration: 680, delay: 120, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+        },
+      });
+    })();
+  </script>
+</body>
+</html>

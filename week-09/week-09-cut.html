@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cut &middot; Week 09 sketch</title>
+  <!-- Cut, after the user's reference: a neon green frame holding dark charcoal panels, the panels
+       cut apart by slanted green gutters that form a letter; small top links on the green, a white
+       button, a serif tagline.
+       Motion:
+       - the picked place is a slanted green cut through the dark bar, its text dark on the green
+       - the cut slides to a new place on a spring and leans harder the faster it goes, the way the
+         gutters in the reference lean, then stands back to its resting slant as it stops
+       - hover shows a thin green slant at the item's edge; press narrows the cut
+       - the sidebar is a dark panel inside the frame with the same cut, slanted along its rows;
+         folded to a rail the labels fade and the cut becomes a slanted tile round the icon -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #3a3a3a; font-family: "Helvetica Neue", Inter, Arial, sans-serif; }
+    :root { --neon: #46ec1f; --dark: #2f2f2f; --ink: #141414; }
+    .frame { position: absolute; left: 22px; right: 22px; top: 18px; bottom: 18px; border-radius: 6px; background: var(--neon); }
+    .logo { position: absolute; left: 16px; top: 12px; font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+    .cta { position: absolute; right: 14px; top: 9px; height: 22px; padding: 0 10px; border-radius: 2px; background: #fff; color: var(--ink); font-size: 10.5px; line-height: 22px; }
+    .tag { position: absolute; right: 16px; bottom: 9px; font: italic 15px Georgia, "Times New Roman", serif; color: #fff; }
+    .word { position: absolute; left: 16px; bottom: 8px; font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.03em; }
+    .cut { position: absolute; left: 0; top: 0; background: var(--neon); pointer-events: none; z-index: 0; }
+    .lean-hover { position: absolute; inset: 0; pointer-events: none; }
+
+    /* sidebar */
+    .side { position: absolute; left: 12px; top: 42px; bottom: 34px; width: 196px; padding: 10px 8px; background: var(--dark); color: #e8e8e8; overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 62px; }
+    .top { position: relative; z-index: 1; display: flex; justify-content: flex-end; height: 30px; }
+    .stage[data-side="rail"] .top { justify-content: center; }
+    .fold { display: grid; place-items: center; width: 30px; height: 30px; color: var(--neon); transition: scale .3s var(--fast); }
+    .fold:active { scale: .85; transition: scale .06s; }
+    .fold [data-i] { width: 16px; height: 16px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; z-index: 1; height: 22px; margin: 8px 0 0; padding-left: 10px; font-size: 9.5px; font-weight: 600; letter-spacing: .14em; color: #8a8a8a; line-height: 22px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .side h4::before { content: ""; position: absolute; left: 12px; top: 50%; width: 0; height: 2px; background: var(--neon); transform: skewX(-24deg); transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::before { width: 20px; transition-delay: .12s; }
+    .item { position: relative; z-index: 1; color: #e8e8e8; transition: color .25s; }
+    .item[aria-current="page"] { color: var(--ink); }
+    .item::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--neon); transform: skewX(-24deg); opacity: 0; transition: opacity .15s; }
+    .item:hover:not([aria-current])::before { opacity: 1; }
+    .item:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+    .row { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; font-size: 13.5px; font-weight: 500; white-space: nowrap; }
+    .row [data-i] { width: 20px; height: 20px; flex: none; }
+    .row .lbl { flex: 1; transition: opacity .2s .1s; }
+    .trail { font-size: 11px; font-weight: 600; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 18px; height: 16px; padding: 0 5px; background: var(--neon); color: var(--ink); font-size: 10px; font-weight: 700; line-height: 16px; justify-content: center; clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%); }
+    .item[aria-current="page"] .t-badge { background: var(--ink); color: var(--neon); }
+    .t-icon [data-i] { width: 14px; height: 14px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+
+    /* main panel + tab bar */
+    .main { position: absolute; left: 216px; right: 12px; top: 42px; bottom: 34px; background: var(--dark); clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 0 100%); transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 82px; transition: left .36s var(--spatial); }
+    .view { padding: 22px 24px; color: #fff; }
+    .view b { font-size: 32px; font-weight: 700; letter-spacing: -.02em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: #a0a0a0; }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; display: flex; justify-content: space-around; align-items: stretch; border-top: 6px solid var(--neon); background: var(--dark); overflow: hidden; }
+    .tab { display: flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .tab [data-i] { width: 18px; height: 18px; }
+    .tb-badge { margin-left: -2px; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <div class="frame">
+      <span class="logo">Nodal</span>
+      <span class="cta">Speak to us</span>
+      <nav class="side" id="side" aria-label="Sidebar">
+        <span class="cut" aria-hidden="true"></span>
+        <div class="top"><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+        <h4>COVER</h4>
+        <ul>
+          <li><a class="item row" href="#products" data-place="products" aria-current="page"><span data-i="grid"></span><span class="lbl">Products</span></a></li>
+          <li><a class="item row" href="#services" data-place="services"><span data-i="tasks"></span><span class="lbl">Services</span></a></li>
+          <li><a class="item row" href="#claims" data-place="claims"><span data-i="doc"></span><span class="lbl">Claims</span>
+            <span class="trail"><span class="t-badge" aria-label="2 open">2</span><span class="t-icon" aria-label="in review"><span data-i="clock"></span></span><span class="t-text">2 open</span></span></a></li>
+        </ul>
+        <h4>COMPANY</h4>
+        <ul>
+          <li><a class="item row" href="#partners" data-place="partners"><span data-i="user"></span><span class="lbl">Partners</span></a></li>
+          <li><a class="item row" href="#node" data-place="node"><span data-i="book"></span><span class="lbl">The Node</span>
+            <span class="trail"><span class="t-badge" aria-label="3 new posts">3</span><span class="t-icon" aria-label="opens a new site"><span data-i="up"></span></span><span class="t-text">New</span></span></a></li>
+        </ul>
+      </nav>
+      <div class="main">
+        <div class="view" aria-live="polite"><b>Products</b><span>Picked in the sidebar or the bar below.</span></div>
+        <nav class="tabs" aria-label="Tab bar">
+          <span class="cut" aria-hidden="true"></span>
+          <a class="item tab" href="#products" data-place="products" aria-current="page">Products</a>
+          <a class="item tab" href="#services" data-place="services">Services</a>
+          <a class="item tab" href="#claims" data-place="claims">Claims<span class="tb-badge" aria-label="2 open">2</span></a>
+          <a class="item tab" href="#partners" data-place="partners">Partners</a>
+          <a class="item tab" href="#node" data-place="node">The Node<span class="tb-badge" aria-label="3 new posts">3</span></a>
+        </nav>
+      </div>
+      <span class="word">nodal</span>
+      <span class="tag">Navigation in tune with motion</span>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // each cut: its centre and length on springs along the axis; its slant = resting slant + lean from speed
+      const SLANT = 10;
+      const navs = [
+        { el: document.querySelector('.tabs'), axis: 'x' },
+        { el: document.getElementById('side'), axis: 'y' },
+      ].map(n => ({ ...n, cut: n.el.querySelector('.cut'), c: { x: 0, v: 0 }, s: { x: 0, v: 0 }, placed: false }));
+      let pressed = null;
+
+      N.loop(dt => {
+        let moving = false;
+        for (const n of navs) {
+          const a = n.el.querySelector('[data-place][aria-current]'), r = N.rel(a, n.el);
+          const mid = n.axis === 'x' ? r.cx : r.cy, len = n.axis === 'x' ? r.w + 18 : r.h;
+          if (!n.placed || N.calm.matches) { n.c.x = mid; n.s.x = len; n.c.v = n.s.v = 0; n.placed = true; }
+          if (N.spring(n.c, mid, 220, .78, dt)) moving = true;
+          if (N.spring(n.s, len * (pressed === a ? .9 : 1), 400, .8, dt)) moving = true;
+          const lean = Math.max(-46, Math.min(46, n.c.v * .045));
+          const st = n.cut.style;
+          if (n.axis === 'x') {
+            // a parallelogram through the bar: top edge shifted right by the slant, bottom left; speed adds lean
+            const dir = lean < -2 ? -1 : 1, k = SLANT + (dir > 0 ? Math.max(0, lean) : -lean);   // tiny leftover speed never flips the resting slant
+            st.left = (n.c.x - n.s.x / 2 - k) + 'px'; st.width = (n.s.x + 2 * k) + 'px'; st.top = '0'; st.height = '100%';
+            st.clipPath = dir > 0 ? `polygon(${2 * k}px 0, 100% 0, calc(100% - ${2 * k}px) 100%, 0 100%)` : `polygon(0 0, calc(100% - ${2 * k}px) 0, 100% 100%, ${2 * k}px 100%)`;
+          } else {
+            // a band across the panel whose right end slants; moving, the slant swings with the speed
+            const k = SLANT + lean;
+            st.left = '0'; st.width = '100%'; st.top = (n.c.x - n.s.x / 2) + 'px'; st.height = n.s.x + 'px';
+            st.clipPath = `polygon(0 0, calc(100% - ${Math.max(0, 14 - k)}px) 0, calc(100% - ${Math.max(0, 14 + k)}px) 100%, 0 100%)`;
+          }
+        }
+        return moving;
+      });
+
+      N.init({ names: { products: 'Products', services: 'Services', claims: 'Claims', partners: 'Partners', node: 'The Node' },
+        onPick(p, prev, animate) { if (!animate) navs.forEach(n => n.placed = false); } });
+      document.querySelectorAll('[data-place]').forEach(a => a.addEventListener('pointerdown', () => { pressed = a.hasAttribute('aria-current') ? a : null; N.wake(400); }));
+      addEventListener('pointerup', () => { pressed = null; N.wake(400); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ink &middot; Week 09 sketch</title>
+  <!-- Ink, after the user's reference: a black-outlined capsule of plain capital words on near white;
+       the picked word sits in a solid black pill and turns white.
+       Motion:
+       - the pill moves like an inchworm: its front end reaches out to the new place first, so for a
+         moment it covers both; then its back end lets go and pulls in after it
+       - the words are drawn in "difference" over the pill, so every letter turns white exactly where
+         the ink passes under it; mid-move a word can be half black, half white
+       - hover draws a thin outline pill round a word; pressing the picked one squeezes the ink
+       - the sidebar is the same outlined shape standing up, with icons; it folds to a rail: words
+         fade, rows shrink to circles and the ink becomes a dot of black round the icon -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #f4f4f4; font-family: "Helvetica Neue", Inter, Arial, sans-serif; }
+    :root { --ink: #0f0f0f; --bg: #f4f4f4; }
+    nav { isolation: isolate; background: var(--bg); }
+    .ink { position: absolute; left: 0; top: 0; border-radius: 999px; background: var(--ink); pointer-events: none; z-index: 0; transition: scale .3s var(--fast); }
+    .ink.down { scale: .94; transition: scale .07s; }
+    /* words and icons are white in "difference": black on the paper, white on the ink */
+    .w { position: relative; z-index: 1; color: #fff; mix-blend-mode: difference; }
+    .w::before { content: ""; position: absolute; inset: 0; border-radius: 999px; box-shadow: inset 0 0 0 1.5px #fff; opacity: 0; transition: opacity .18s; }
+    .w:hover:not([aria-current])::before { opacity: 1; }
+    .w:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+    /* sidebar */
+    .side { position: absolute; left: 24px; top: 24px; width: 214px; height: 372px; padding: 14px 12px; border: 2px solid var(--ink); border-radius: 30px; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 72px; }
+    .top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; height: 38px; padding-left: 10px; }
+    .brand { font-size: 13px; font-weight: 700; letter-spacing: .14em; white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 16px; box-shadow: inset 0 0 0 1.5px var(--ink); transition: scale .3s var(--fast), background-color .15s, color .15s; }
+    .fold:hover { background: var(--ink); color: #fff; } .fold:active { scale: .88; transition: scale .06s; }
+    .fold [data-i] { width: 16px; height: 16px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; z-index: 1; height: 24px; margin: 10px 0 2px; padding-left: 14px; font-size: 10px; font-weight: 500; letter-spacing: .16em; color: #8b8b8b; line-height: 24px; white-space: nowrap; transition: color .15s; }
+    .side h4::after { content: ""; position: absolute; left: 13px; top: 50%; width: 0; border-top: 1.5px solid var(--ink); transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 18px; transition-delay: .12s; }
+    .row { display: flex; align-items: center; gap: 12px; width: 186px; height: 42px; margin-top: 3px; padding: 0 14px 0 13px; border-radius: 21px; white-space: nowrap; overflow: hidden; font-size: 12.5px; font-weight: 500; letter-spacing: .06em; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .row { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .row { width: 44px; padding: 0 10px; }
+    .row [data-i] { position: relative; width: 20px; height: 20px; }
+    .row .lbl { flex: 1; transition: opacity .2s .1s; }
+    .trail { font-size: 11px; letter-spacing: .04em; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 18px; height: 16px; padding: 0 5px; border-radius: 8px; box-shadow: inset 0 0 0 1.5px currentColor; font-size: 10px; font-weight: 700; line-height: 16px; justify-content: center; }
+    .t-icon [data-i] { width: 14px; height: 14px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+    .pip { position: absolute; right: -3px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: currentColor; scale: 0; transition: scale .3s var(--fast); }
+    .stage[data-side="rail"] .pip { scale: 1; transition-delay: .2s; }
+
+    /* main + the outlined capsule */
+    .main { position: absolute; left: 266px; right: 24px; top: 24px; bottom: 24px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 124px; transition: left .36s var(--spatial); }
+    .view b { font-size: 34px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--ink); }
+    .view span { display: block; margin-top: 6px; font-size: 12px; letter-spacing: .06em; color: #8b8b8b; }
+    .view .lines { margin-top: 18px; display: grid; gap: 8px; }
+    .view .lines i { display: block; height: 2px; background: var(--ink); }
+    .tabs { position: absolute; left: 50%; bottom: 6px; translate: -50% 0; display: flex; gap: 2px; padding: 7px; border: 2px solid var(--ink); border-radius: 34px; }
+    .tab { display: grid; place-items: center; position: relative; height: 46px; padding: 0 20px; border-radius: 23px; font-size: 14px; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+    .tb-badge { position: absolute; top: 3px; right: 4px; min-width: 15px; height: 14px; padding: 0 4px; border-radius: 7px; font-size: 9px; line-height: 14px; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <span class="ink" aria-hidden="true"></span>
+      <div class="top"><span class="brand">NORTH</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>PRODUCT</h4>
+      <ul>
+        <li><a class="row w" href="#home" data-place="home" aria-current="page"><span data-i="home"></span><span class="lbl">HOME</span></a></li>
+        <li><a class="row w" href="#features" data-place="features"><span data-i="grid"></span><span class="lbl">FEATURES</span></a></li>
+        <li><a class="row w" href="#pricing" data-place="pricing"><span data-i="tag"></span><span class="lbl">PRICING</span></a></li>
+      </ul>
+      <h4>LEARN</h4>
+      <ul>
+        <li><a class="row w" href="#docs" data-place="docs"><span data-i="book"><span class="pip"></span></span><span class="lbl">DOCS</span>
+          <span class="trail"><span class="t-badge" aria-label="2 updated">2</span><span class="t-icon" aria-label="opens a new site"><span data-i="up"></span></span><span class="t-text">V4</span></span></a></li>
+        <li><a class="row w" href="#blog" data-place="blog"><span data-i="doc"><span class="pip"></span></span><span class="lbl">BLOG</span>
+          <span class="trail"><span class="t-badge" aria-label="5 new posts">5</span><span class="t-icon" aria-label="featured"><span data-i="star"></span></span><span class="t-text">NEW</span></span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>HOME</b><span>PICKED IN THE SIDEBAR OR THE BAR BELOW</span><div class="lines"><i style="width:80%"></i><i style="width:56%"></i><i style="width:68%"></i></div></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <span class="ink" aria-hidden="true"></span>
+        <a class="tab w" href="#home" data-place="home" aria-current="page">HOME</a>
+        <a class="tab w" href="#pricing" data-place="pricing">PRICING</a>
+        <a class="tab w" href="#features" data-place="features">FEATURES</a>
+        <a class="tab w" href="#docs" data-place="docs">DOCS<span class="tb-badge" aria-label="2 updated">2</span></a>
+        <a class="tab w" href="#blog" data-place="blog">BLOG<span class="tb-badge" aria-label="5 new posts">5</span></a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // each nav's ink has a front edge and a back edge on the axis of travel; across it, it just fits the item
+      const navs = [
+        { el: document.querySelector('.tabs'), axis: 'x' },
+        { el: document.getElementById('side'), axis: 'y' },
+      ].map(n => ({ ...n, ink: n.el.querySelector('.ink'), a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, letGo: 0, dir: 0, placed: false }));
+      const cur = n => n.el.querySelector('[data-place][aria-current]');
+
+      N.loop((dt, now) => {
+        let moving = false;
+        for (const n of navs) {
+          const r = N.rel(cur(n), n.el);   // items never transform, so their rects are safe to read
+          const lo = n.axis === 'x' ? r.x : r.y, hi = lo + (n.axis === 'x' ? r.w : r.h);
+          if (!n.placed || N.calm.matches) { n.a.x = lo; n.b.x = hi; n.a.v = n.b.v = 0; n.placed = true; }
+          else {
+            // the front reaches at once; the back holds on until its let-go time, then pulls in
+            const front = n.dir > 0 ? n.b : n.a, back = n.dir > 0 ? n.a : n.b;
+            const frontT = n.dir > 0 ? hi : lo, backT = n.dir > 0 ? lo : hi;
+            if (n.dir === 0) { if (N.spring(n.a, lo, 420, .9, dt)) moving = true; if (N.spring(n.b, hi, 420, .9, dt)) moving = true; }
+            else {
+              if (N.spring(front, frontT, 380, .82, dt)) moving = true;
+              if (now >= n.letGo) { if (N.spring(back, backT, 300, .74, dt)) moving = true; } else moving = true;
+            }
+          }
+          const s = n.ink.style;
+          if (n.axis === 'x') { s.left = n.a.x + 'px'; s.width = (n.b.x - n.a.x) + 'px'; s.top = r.y + 'px'; s.height = r.h + 'px'; }
+          else { s.top = n.a.x + 'px'; s.height = (n.b.x - n.a.x) + 'px'; s.left = r.x + 'px'; s.width = r.w + 'px'; }
+        }
+        return moving;
+      });
+
+      N.init({
+        names: { home: 'HOME', features: 'FEATURES', pricing: 'PRICING', docs: 'DOCS', blog: 'BLOG' },
+        onPick(place, prev, animate) {
+          for (const n of navs) {
+            if (!animate || !prev) { n.placed = false; n.dir = 0; continue; }
+            const p = N.rel(n.el.querySelector(`[data-place="${prev}"]`), n.el), q = N.rel(cur(n), n.el);
+            const d = n.axis === 'x' ? q.cx - p.cx : q.cy - p.cy;
+            n.dir = Math.sign(d);
+            n.letGo = performance.now() + 150 + Math.min(120, Math.abs(d) * .25);
+          }
+        },
+        onFold() { navs.forEach(n => n.dir = 0); },
+      });
+      // pressing the picked word squeezes the ink
+      document.querySelectorAll('[data-place]').forEach(a => a.addEventListener('pointerdown', () => a.hasAttribute('aria-current') && a.closest('nav').querySelector('.ink').classList.add('down')));
+      addEventListener('pointerup', () => document.querySelectorAll('.ink.down').forEach(i => i.classList.remove('down')));
+    })();
+  </script>
+</body>
+</html>

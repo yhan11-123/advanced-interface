@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bleed &middot; Week 09 sketch</title>
+  <!-- Bleed, after the user's reference: chromatography strips. Columns of rough oval bands, dye
+       soaked into paper, colours bleeding into each other, uneven rims, some bands hollow rings,
+       columns of different widths starting at different heights.
+       A top nav bar with dropdowns. The user's direction (2026-11-19): keep it rough like the image,
+       not clean "AI" capsules; the paths are already set, only the detail of their content comes
+       alive and fades away.
+       So nothing moves and nothing appears: every column and every band is always on the paper.
+       - each menu is the top band of its column. Opening it brings its column's bands back to life
+         one after another down the strip: the dye thickens, the rim sharpens, the label surfaces.
+         The other columns sink back into faint stains, bottom first.
+       - hover wakes a band's detail for a moment; press darkens it; the picked item is a hollow ring
+         and keeps a little life even when its column is closed
+       - drawn on a canvas: blotchy layered bodies, a blurred bleed between bands, paper grain
+         eaten out of the ink; labels are real links over the bands
+       Keyboard: menus are disclosure buttons (aria-expanded); a closed column's links are inert;
+       Escape closes. -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #f3f1ea; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .stage { background: #f8f6ef radial-gradient(rgba(60,50,30,.05) .6px, transparent .9px) 0 0 / 3px 3px; }
+    canvas.paper { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .lab { position: absolute; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .01em; color: #1d1a16; white-space: nowrap; opacity: 0; }
+    .lab:focus-visible { outline: 1.5px solid #1d1a16; outline-offset: 2px; }
+    .menu { font-size: 11.5px; font-weight: 700; opacity: 1; cursor: pointer; }
+    .menu .car { font-size: 9px; transition: rotate .4s var(--fast); display: inline-block; }
+    .menu[aria-expanded="true"] .car { rotate: 180deg; }
+    .head { position: absolute; font-size: 8px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #6f675c; opacity: 0; pointer-events: none; }
+    .trail { position: absolute; font-size: 9.5px; font-weight: 700; color: #3c362e; opacity: 0; pointer-events: none; }
+    .view { position: absolute; left: 22px; bottom: 16px; padding: 6px 10px; background: rgba(248,246,239,.86); font-size: 11px; color: #1d1a16; }
+    .view small { color: #7a7266; letter-spacing: .1em; text-transform: uppercase; font-size: 9.5px; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-slot="badge">
+    <canvas class="paper" aria-hidden="true"></canvas>
+    <nav aria-label="Main" id="nav"></nav>
+    <div class="view" aria-live="polite"><small></small><b></b></div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const stage = N.stage, nav = document.getElementById('nav'), cv = document.querySelector('canvas.paper');
+      const W = 760, H = 420;
+      const hx = c => c.match(/\w\w/g).map(x => parseInt(x, 16));
+      const rnd = (a, b) => { const v = Math.sin(a * 91.7 + b * 47.3 + 13.1) * 43758.5453; return v - Math.floor(v); };
+
+      // the columns: position, width, colour run, and the fixed path of bands down them.
+      // tokens: 'i:Name' an item, 'f' a filler band, 'h:Head' a gap with a header; decor columns are filler only
+      const COLS = [
+        { id: 'pigments', name: 'Pigments', x: 22, w: 86, pal: ['f5d92a', 'c3db45', '57bd63', '23ab9f', '2c86cf', '3d52cf', '6640bd'],
+          path: ['h:Mineral', 'f', 'i:Earth', 'f', 'i:Cadmium', 'f', 'f', 'i:Cobalt', 'f', 'h:Synthetic', 'i:Phthalo', 'f', 'i:Ultramarine', 'f', 'f', 'i:Dioxazine', 'f'] },
+        { decor: true, x: 120, w: 22, top: 70, pal: ['2fb3e6', 'f2c230', '3aa65a', '1e8fb0', '6b4fc4'], n: 17 },
+        { id: 'inks', name: 'Inks', x: 154, w: 78, pal: ['e8402f', 'b9352a', '8a2c23', '6a3a20', '8b6a2a', 'a49a3b'],
+          path: ['f', 'h:Classic', 'i:Iron gall', 'f', 'f', 'i:Sepia', 'f', 'f', 'h:Water', 'f', 'i:Walnut', 'f', 'i:Indian', 'f', 'f', 'f'], badge: { Sepia: 4 } },
+        { id: 'dyes', name: 'Dyes', x: 248, w: 118, pal: ['f2d32a', 'e33a9b', 'a83cbf', '6f49d0', '3a68dd', '1f9fd3', '1db39b', '2c8a5a'],
+          path: ['f', 'h:Red', 'i:Madder', 'f', 'i:Cochineal', 'f', 'i:Lac', 'f', 'f', 'h:Blue', 'i:Indigo', 'f', 'i:Woad', 'f', 'i:Logwood', 'f', 'f'] },
+        { decor: true, x: 378, w: 30, top: 150, pal: ['7b3fc0', '3d63d8', '1aa3c9', 'e33a9b'], n: 12 },
+        { id: 'papers', name: 'Papers', x: 420, w: 80, pal: ['ffd12a', 'ffa21c', 'ff7a1c', 'f24a36', 'e8417a', 'f28caf'],
+          path: ['f', 'f', 'h:Fibre', 'i:Cotton', 'f', 'f', 'i:Kozo', 'f', 'h:Lab', 'f', 'i:Blotting', 'f', 'f', 'i:Filter', 'f', 'f'], badge: { Filter: 12 } },
+        { id: 'studio', name: 'Studio', x: 516, w: 104, pal: ['1f8fd8', '19a7c4', '1fb385', '6cbf38', 'a8b52c', 'cf9a2a', '8a3a2a'],
+          path: ['h:Today', 'i:Runs', 'f', 'f', 'i:Strips', 'f', 'f', 'f', 'h:Kept', 'i:Notes', 'f', 'f', 'i:Archive', 'f', 'f', 'f'], badge: { Runs: 3 } },
+        { decor: true, x: 634, w: 56, top: 30, pal: ['c9b13a', 'b33a2e', 'd2405f', '7a4fb8', '3a62c8', '2a8f8a'], n: 21 },
+        { decor: true, x: 702, w: 34, top: 210, pal: ['f04a36', 'f5c92a', '2c86cf', '23ab9f'], n: 10 },
+      ];
+
+      // lay out every band once: the paths never change
+      const bands = [], cols = [];
+      const MENU_Y = 16, MENU_H = 22, FILL_H = 11, ITEM_H = 17, GAP = 4, HEAD = 18;
+      COLS.forEach((c, ci) => {
+        const col = { ...c, bands: [], items: [] };
+        cols.push(col);
+        const colour = t => { const p = c.pal, f = t * (p.length - 1), i = Math.min(p.length - 2, Math.floor(f)), k = f - i; const a = hx(p[i]), b = hx(p[i + 1]); return a.map((v, j) => Math.round(v + (b[j] - v) * k)); };
+        let y = c.decor ? MENU_Y + c.top : MENU_Y;
+        if (!c.decor) {
+          const b = { col, kind: 'menu', x: c.x, y, w: c.w, h: MENU_H, rgb: colour(0), seed: ci * 31 + .5, life: .62, target: .62, due: 0 };
+          bands.push(b); col.bands.push(b); col.menu = b; y += MENU_H + 10;
+        }
+        const path = c.decor ? Array(c.n).fill('f') : c.path;
+        path.forEach((tok, k) => {
+          const t = (k + 1) / (path.length + 1);
+          if (tok.startsWith('h:')) { col.bands.push({ kind: 'head', text: tok.slice(2), x: c.x, y: y + 4 }); y += HEAD; return; }
+          const isItem = tok.startsWith('i:'), h = isItem ? ITEM_H : FILL_H;
+          // filler bands narrower or wider, a little off centre, like hand-spotted dye
+          const jw = isItem ? 0 : (rnd(ci, k) - .5) * c.w * .18, w = c.w - Math.abs(jw);
+          const b = { col, kind: isItem ? 'item' : 'fill', text: isItem ? tok.slice(2) : '', x: c.x + (c.w - w) / 2 + (rnd(k, ci) - .5) * 3, y, w, h, rgb: colour(t), seed: ci * 31 + k * 1.7,
+            ring: !isItem && rnd(ci + 5, k) > .78, life: c.decor ? .3 : .12, target: c.decor ? .3 : .12, due: 0 };
+          bands.push(b); col.bands.push(b); if (isItem) col.items.push(b);
+          y += h + GAP;
+        });
+      });
+
+      let raf = 0, last = 0, until = 0;
+      const wake = (ms = 400) => { until = Math.max(until, performance.now() + ms); if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+
+      // DOM: menus are buttons over their band; items are links over theirs (inert while closed)
+      const view = document.querySelector('.view');
+      cols.filter(c => !c.decor).forEach(c => {
+        const m = c.menu;
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'lab menu'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'list-' + c.id);
+        btn.innerHTML = `${c.name}<span class="car" aria-hidden="true">&#9662;</span>`;
+        Object.assign(btn.style, { left: m.x + 'px', top: m.y + 'px', width: m.w + 'px', height: m.h + 'px' });
+        m.el = btn; nav.append(btn);
+        const list = document.createElement('div'); list.id = 'list-' + c.id; list.inert = true; nav.append(list); c.list = list; c.btn = btn;
+        c.bands.forEach(b => {
+          if (b.kind === 'head') { const s = document.createElement('span'); s.className = 'head'; s.textContent = b.text; s.style.left = b.x + 2 + 'px'; s.style.top = b.y + 'px'; list.append(s); b.el = s; return; }
+          if (b.kind !== 'item') return;
+          const a = document.createElement('a');
+          const id = c.id + '-' + b.text.toLowerCase().replace(/\s/g, '');
+          a.className = 'lab'; a.href = '#' + id; a.dataset.place = id; a.textContent = b.text;
+          Object.assign(a.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px' });
+          list.append(a); b.el = a;
+          const n = c.badge && c.badge[b.text];
+          if (n) {
+            const t = document.createElement('span'); t.className = 'trail';
+            t.innerHTML = `<span class="t-badge" aria-label="${n} new">${n}</span><span class="t-icon" aria-label="new">&#10022;</span><span class="t-text">${n} new</span>`;
+            t.style.left = b.x + b.w + 4 + 'px'; t.style.top = b.y + 3 + 'px'; list.append(t); b.trail = t;
+          }
+          a.addEventListener('pointerenter', () => { b.hover = true; wake(); });
+          a.addEventListener('pointerleave', () => { b.hover = false; b.down = false; wake(); });
+          a.addEventListener('pointerdown', () => { b.down = true; wake(); });
+          a.addEventListener('click', e => { e.preventDefault(); pick(b); });
+        });
+        btn.addEventListener('pointerenter', () => { m.hover = true; wake(); });
+        btn.addEventListener('pointerleave', () => { m.hover = false; wake(); });
+        btn.addEventListener('click', () => toggle(c, btn.getAttribute('aria-expanded') !== 'true'));
+      });
+      addEventListener('pointerup', () => { bands.forEach(b => b.down = false); wake(); });
+
+      // opening: the column's bands come alive one after another downward; closing: back to stains, bottom first
+      const open = (c, on, animate = !N.calm.matches) => {
+        c.btn.setAttribute('aria-expanded', String(on)); c.list.inert = !on;
+        const now = performance.now(), live = c.bands.filter(b => b.kind === 'item' || b.kind === 'fill');
+        live.forEach((b, i) => {
+          b.target = on ? (b.kind === 'item' ? 1 : .55) : .12;
+          b.due = animate ? now + (on ? 40 + i * 48 : (live.length - 1 - i) * 16) : 0;
+          if (!animate) b.life = b.target;
+        });
+        c.menu.target = on ? 1 : .62; if (!animate) c.menu.life = c.menu.target;
+        c.open = on; wake(1600);
+      };
+      const toggle = (c, on) => { cols.forEach(o => o !== c && o.open && open(o, false)); open(c, on); };
+      addEventListener('keydown', e => { if (e.key !== 'Escape') return; const c = cols.find(c => c.open); if (c) { open(c, false); c.btn.focus(); } });
+
+      let picked = null;
+      const pick = (b, animate = true) => {
+        if (picked) { picked.picked = false; picked.el.removeAttribute('aria-current'); picked.el.style.fontWeight = ''; }
+        picked = b; b.picked = true; b.el.setAttribute('aria-current', 'page'); b.el.style.fontWeight = '800';
+        cols.forEach(c => c.menu && (c.menu.mark = c === b.col));
+        view.querySelector('small').textContent = b.col.name; view.querySelector('b').textContent = b.text;
+        if (animate) setTimeout(() => open(b.col, false), 520);
+        wake();
+      };
+
+      // ---- drawing ----
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = H * dpr;
+      const g = cv.getContext('2d');
+      const halo = document.createElement('canvas'); halo.width = W * dpr; halo.height = H * dpr; const hg = halo.getContext('2d');
+      // paper grain that eats into the ink (seeded, so it never shimmers)
+      const grain = document.createElement('canvas'); grain.width = grain.height = 160; const gg = grain.getContext('2d');
+      for (let i = 0; i < 2600; i++) { gg.fillStyle = `rgba(0,0,0,${(rnd(i, 1) * .9).toFixed(2)})`; gg.fillRect(rnd(i, 2) * 160, rnd(i, 3) * 160, rnd(i, 4) < .2 ? 2 : 1, 1); }
+      const pill = (ctx, x, y, w, h) => { const r = Math.min(h / 2, w / 2); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
+
+      const draw = () => {
+        g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+        hg.setTransform(dpr, 0, 0, dpr, 0, 0); hg.clearRect(0, 0, W, H);
+        for (const b of bands) {
+          // the bleed: a soft tall patch of the band's colour, blurred below
+          const L = b.life, [r, gr, bl] = b.rgb;
+          hg.fillStyle = `rgba(${r},${gr},${bl},${(.06 + .3 * L).toFixed(3)})`;
+          hg.beginPath(); hg.ellipse(b.x + b.w / 2, b.y + b.h / 2, b.w * .55, b.h * (1.1 + .6 * L), 0, 0, Math.PI * 2); hg.fill();
+        }
+        g.save(); g.filter = 'blur(7px)'; g.drawImage(halo, 0, 0, W, H); g.restore();
+        for (const b of bands) {
+          const L = Math.min(1.2, b.life), [r, gr, bl] = b.rgb, s = b.seed;
+          // the body: three uneven layers of dye, each a little off
+          for (let k = 0; k < 3; k++) {
+            const jx = (rnd(s, k) - .5) * 2.4, jy = (rnd(k, s) - .5) * 1.6, jw = (rnd(s + k, 3) - .5) * 3;
+            g.fillStyle = `rgba(${r},${gr},${bl},${((.06 + .34 * L) * (k ? .7 : 1)).toFixed(3)})`;
+            pill(g, b.x + jx, b.y + jy, b.w + jw, b.h); g.fill();
+          }
+          // the rim: darker dye gathered at the edge, uneven thickness
+          const dk = .62;
+          g.strokeStyle = `rgba(${Math.round(r * dk)},${Math.round(gr * dk)},${Math.round(bl * dk)},${(.08 + .62 * Math.min(1, L)).toFixed(3)})`;
+          g.lineWidth = (b.ring || b.picked ? 2.2 : 1) + 1.4 * Math.min(1, L) * (.7 + .6 * rnd(s, 9));
+          pill(g, b.x + .5, b.y + .5, b.w - 1, b.h - 1); g.stroke();
+          // paler centre; a ring band (and the picked item) is nearly hollow
+          const core = b.ring || b.picked ? .78 : .22;
+          g.fillStyle = `rgba(250,248,240,${(core * Math.min(1, L + .15)).toFixed(3)})`;
+          const ins = b.ring || b.picked ? 3.6 : 4;
+          pill(g, b.x + ins + rnd(s, 4) * 2, b.y + ins * .55, b.w - ins * 2 - 2, b.h - ins * 1.1); g.fill();
+          if (b.mark) { g.fillStyle = 'rgba(29,26,22,.75)'; g.fillRect(b.x + 10, b.y + b.h + 3, b.w - 20, 2); }
+        }
+        // grain: paper shows through the ink
+        g.save(); g.globalCompositeOperation = 'destination-out'; g.globalAlpha = .42; g.fillStyle = g.createPattern(grain, 'repeat'); g.fillRect(0, 0, W, H); g.restore();
+        // labels surface with the detail
+        for (const b of bands) {
+          if (!b.el || b.kind === 'head') continue;
+          const o = b.kind === 'menu' ? 1 : Math.max(0, Math.min(1, (b.life - .35) / .45));
+          b.el.style.opacity = o.toFixed(3);
+          if (b.trail) b.trail.style.opacity = o.toFixed(3);
+        }
+        cols.forEach(c => { if (c.decor) return; const o = Math.max(0, Math.min(1, (c.items[0].life - .35) / .45)); c.bands.forEach(h => { if (h.kind === 'head') h.el.style.opacity = o.toFixed(3); }); });
+      };
+
+      function frame(now) {
+        const dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
+        let moving = false;
+        for (const b of bands) {
+          let t = now >= b.due ? b.target : b.life;
+          if (b.hover) t = Math.max(t, .85);
+          if (b.down) t = 1.15;
+          if (b.picked) t = Math.max(t, .5);
+          if (N.calm.matches) b.life = t;
+          else {
+            // detail comes back slowly and goes faster; a hover wakes it quickly
+            const rate = t > b.life ? (b.hover ? 14 : 5) : 7;
+            b.life += (t - b.life) * (1 - Math.exp(-rate * dt));
+          }
+          if (Math.abs(t - b.life) > .004 || now < b.due) moving = true;
+        }
+        draw();
+        raf = (moving || now < until) ? requestAnimationFrame(frame) : 0;
+      }
+
+      // the switch: open or closed, and what the slot holds
+      const pillEl = document.createElement('div'); pillEl.className = 'ctl-pill';
+      pillEl.innerHTML = '<button type="button" data-o="1">Open</button><button type="button" data-o="0" aria-pressed="true">Closed</button><i></i><button type="button" data-slot="badge" aria-pressed="true">Badge</button><button type="button" data-slot="icon">Icon</button><button type="button" data-slot="text">Text</button>';
+      document.body.append(pillEl);
+      pillEl.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.o) { toggle(picked.col, b.dataset.o === '1'); pillEl.querySelectorAll('[data-o]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }
+        else { stage.dataset.slot = b.dataset.slot; pillEl.querySelectorAll('[data-slot]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }
+      });
+
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / W, innerHeight / H, 1.6));
+      fit(); addEventListener('resize', fit);
+      const q = new URLSearchParams(location.search);
+      const first = bands.find(b => b.el && b.el.dataset.place === (q.get('pick') || 'dyes-indigo')) || bands.find(b => b.kind === 'item');
+      pick(first, false);
+      if (q.has('open')) open(first.col, true, false);
+      if (q.get('demo')) setTimeout(() => toggle(cols.find(c => c.id === q.get('demo')), true), 700);
+      wake(300);
+    })();
+  </script>
+</body>
+</html>

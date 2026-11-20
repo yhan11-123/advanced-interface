@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notch &middot; Week 09 sketch</title>
+  <!-- Notch, after the user's reference: white rounded bars on magenta, thin grey icons over labels.
+       The reference shows three ways to mark a place; here they become the three states:
+       hover = the magenta underline, pressed = the tinted square, selected = a notch cut into the
+       bar's edge with a white dot sitting in it, and the item turns magenta.
+       Motion:
+       - on a pick the notch slides along the bar's edge to the new place, and the dot rides inside it
+         at the same height (no hop): one smooth slide that settles without bouncing past
+       - the underline grows from the centre on hover; the tinted square fades in under a press
+       - the sidebar's right edge carries the same notch; it folds to a rail: labels fade, headers
+         become short rules, the slot becomes a dot on the icon -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #b0558a; font-family: "Helvetica Neue", Inter, Arial, sans-serif; }
+    :root { --mag: #b0558a; --ink: #3b3b3f; --tint: #f3dcea; }
+    .surf { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .surf path { fill: #fff; }
+    .dot { position: absolute; left: 0; top: 0; width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; border-radius: 50%; background: #fff; pointer-events: none; z-index: 3; }
+
+    /* sidebar */
+    .side { position: absolute; left: 24px; top: 22px; width: 214px; height: 376px; padding: 14px 14px; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 90px; }
+    .stage[data-side="rail"] .row { padding-left: 14px; }
+    .side > :not(.surf):not(.dot) { position: relative; z-index: 1; }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 40px; padding-left: 10px; }
+    .brand { font-size: 16px; font-weight: 700; color: var(--mag); white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; color: var(--ink); transition: background-color .15s, scale .3s var(--fast); }
+    .fold:hover { background: #f6eef3; } .fold:active { scale: .88; transition: scale .08s; }
+    .fold [data-i] { width: 20px; height: 20px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; height: 28px; margin: 8px 0 0; padding-left: 12px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; color: #a7a3a8; white-space: nowrap; transition: color .15s; }
+    .side h4::after { content: ""; position: absolute; left: 15px; top: 50%; width: 0; height: 1.5px; border-radius: 1px; background: #d9d3d8; transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 20px; transition-delay: .12s; }
+    .row { position: relative; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 26px 0 12px; border-radius: 14px; color: var(--ink); white-space: nowrap; }
+    .row [data-i] { margin-right: 0; }
+    .row [data-i], .tab [data-i] { position: relative; width: 26px; height: 26px; transition: color .2s, translate .3s var(--fast); }
+    .row .lbl { flex: 1; font-size: 14px; font-weight: 500; transition: opacity .2s .1s, color .2s; }
+    .row[aria-current="page"], .tab[aria-current="page"] { color: var(--mag); }
+    .row[aria-current="page"] .lbl { font-weight: 700; }
+    .trail { font-size: 12px; font-weight: 600; color: #a7a3a8; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; background: var(--mag); color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; justify-content: center; }
+    .t-icon [data-i] { width: 16px; height: 16px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+    .pip { position: absolute; right: -2px; top: -1px; width: 7px; height: 7px; border-radius: 50%; background: var(--mag); box-shadow: 0 0 0 2px #fff; scale: 0; transition: scale .3s var(--fast); }
+    .stage[data-side="rail"] .pip { scale: 1; transition-delay: .2s; }
+    /* hover = underline from the centre; press = the tinted square */
+    .row::before, .tab::before { content: ""; position: absolute; inset: 2px 0; border-radius: 14px; background: var(--tint); opacity: 0; transition: opacity .2s; z-index: -1; }
+    .row:active::before, .tab:active::before { opacity: 1; transition: none; }
+    .row::after, .tab::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 0; height: 3px; border-radius: 2px; background: var(--mag); translate: -50% 0; transition: width .32s var(--fast); }
+    .row::after { left: 52px; translate: 0 0; bottom: 6px; }
+    .row:hover:not([aria-current])::after { width: 40px; }
+    .stage[data-side="rail"] .row::after { left: 50%; translate: -50% 0; }
+    .stage[data-side="rail"] .row:hover:not([aria-current])::after { width: 24px; }
+    .tab:hover:not([aria-current])::after { width: 56%; }
+    .row:hover:not([aria-current]) [data-i], .tab:hover:not([aria-current]) [data-i] { translate: 0 -1px; }
+    .row:focus-visible, .tab:focus-visible { outline: 2px solid var(--mag); outline-offset: 1px; }
+
+    /* main + tab bar */
+    .main { position: absolute; left: 266px; right: 24px; top: 22px; bottom: 22px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 140px; transition: left .36s var(--spatial); }
+    .view { padding: 14px 6px; color: #fff; }
+    .view b { font-size: 32px; font-weight: 700; letter-spacing: -.01em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; opacity: .8; }
+    .view .lines { margin-top: 18px; display: grid; gap: 8px; }
+    .view .lines i { display: block; height: 10px; border-radius: 5px; background: rgba(255,255,255,.25); }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 122px; padding: 22px 14px 0; display: flex; justify-content: space-around; align-items: stretch; }
+    .tabs .tab { position: relative; z-index: 1; display: grid; justify-items: center; align-content: center; gap: 5px; width: 84px; margin: 24px 0 6px; color: var(--ink); font-size: 12.5px; font-weight: 600; }
+    .tabs .tab[aria-current="page"] { font-weight: 700; color: var(--mag); }
+    .tb-badge { position: absolute; top: 6px; left: 46px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; box-shadow: 0 0 0 2px #fff; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side" id="side" aria-label="Sidebar">
+      <svg class="surf" aria-hidden="true"><path/></svg>
+      <span class="dot" aria-hidden="true"></span>
+      <div class="top"><span class="brand">Pinboard</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>Feed</h4>
+      <ul>
+        <li><a class="row" href="#home" data-place="home" aria-current="page"><span data-i="home"></span><span class="lbl">Home</span></a></li>
+        <li><a class="row" href="#search" data-place="search"><span data-i="search"></span><span class="lbl">Search</span></a></li>
+        <li><a class="row" href="#likes" data-place="likes"><span data-i="heart"><span class="pip"></span></span><span class="lbl">Likes</span>
+          <span class="trail"><span class="t-badge" aria-label="8 new">8</span><span class="t-icon" aria-label="trending"><span data-i="up"></span></span><span class="t-text">New</span></span></a></li>
+      </ul>
+      <h4>You</h4>
+      <ul>
+        <li><a class="row" href="#notifications" data-place="notifications"><span data-i="bell"><span class="pip"></span></span><span class="lbl">Notifications</span>
+          <span class="trail"><span class="t-badge" aria-label="3 new">3</span><span class="t-icon" aria-label="recent"><span data-i="clock"></span></span><span class="t-text">2m</span></span></a></li>
+        <li><a class="row" href="#profile" data-place="profile"><span data-i="user"></span><span class="lbl">Profile</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Home</b><span>Picked in the sidebar or the bar below.</span><div class="lines"><i style="width:78%"></i><i style="width:60%"></i><i style="width:70%"></i></div></div>
+      <nav class="tabs" aria-label="Tab bar">
+        <svg class="surf" aria-hidden="true"><path/></svg>
+        <span class="dot" aria-hidden="true"></span>
+        <a class="tab" href="#home" data-place="home" aria-current="page"><span data-i="home"></span>Home</a>
+        <a class="tab" href="#search" data-place="search"><span data-i="search"></span>Search</a>
+        <a class="tab" href="#likes" data-place="likes"><span data-i="heart"></span><span class="tb-badge" aria-label="8 new">8</span>Likes</a>
+        <a class="tab" href="#notifications" data-place="notifications"><span data-i="bell"></span><span class="tb-badge" aria-label="3 new">3</span>Notifications</a>
+        <a class="tab" href="#profile" data-place="profile"><span data-i="user"></span>Profile</a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      const D = 25, HALF = 38, R = 26;   // notch depth, notch half-width, bar corner radius
+      const bell = u => Math.abs(u) >= 1 ? 0 : Math.pow(Math.cos(Math.PI * u / 2), 2);
+      // axis 'x': the notch dips down from the bar's top edge (top = 22 inside .tabs)
+      // axis 'y': the notch dips left from the sidebar's right edge
+      const navs = [
+        { el: document.querySelector('.tabs'), axis: 'x', top: 22 },
+        { el: document.querySelector('.side'), axis: 'y' },
+      ].map(n => ({ ...n, path: n.el.querySelector('.surf path'), dot: n.el.querySelector('.dot'), items: [...n.el.querySelectorAll('[data-place]')],
+        c: { x: 0, v: 0 }, placed: false }));
+      const along = (n, a) => { const r = N.rel(a, n.el); return n.axis === 'x' ? r.cx : r.cy; };   // rows and tabs never transform, so rects are safe
+      const cur = n => n.items.find(a => a.hasAttribute('aria-current'));
+
+      // one notch per bar, sliding along the edge; the dot rides inside it at the same height.
+      // The notch is two cubic curves with flat tangents at the rim and at the floor, so the outline
+      // stays smooth, and its centre is kept clear of the rounded corners.
+      const notch = (c, lo, hi) => { c = Math.max(lo + HALF, Math.min(hi - HALF, c)); return c; };
+      const draw = n => {
+        const W = n.el.offsetWidth, H = n.el.offsetHeight, h = HALF, k = h * .5; let d;
+        if (n.axis === 'x') {
+          const T = n.top, c = notch(n.c.x, R + 2, W - R - 2);
+          d = `M0 ${T + R} A${R} ${R} 0 0 1 ${R} ${T} L${c - h} ${T}`
+            + ` C${c - h + k} ${T} ${c - k} ${T + D} ${c} ${T + D} C${c + k} ${T + D} ${c + h - k} ${T} ${c + h} ${T}`
+            + ` L${W - R} ${T} A${R} ${R} 0 0 1 ${W} ${T + R} V${H - R} A${R} ${R} 0 0 1 ${W - R} ${H} H${R} A${R} ${R} 0 0 1 0 ${H - R} Z`;
+          n.dot.style.left = c + 'px'; n.dot.style.top = T + D - 11.5 + 'px';
+        } else {
+          const c = notch(n.c.x, R + 2, H - R - 2);
+          d = `M${R} 0 H${W - R} A${R} ${R} 0 0 1 ${W} ${R} L${W} ${c - h}`
+            + ` C${W} ${c - h + k} ${W - D} ${c - k} ${W - D} ${c} C${W - D} ${c + k} ${W} ${c + h - k} ${W} ${c + h}`
+            + ` L${W} ${H - R} A${R} ${R} 0 0 1 ${W - R} ${H} H${R} A${R} ${R} 0 0 1 0 ${H - R} V${R} A${R} ${R} 0 0 1 ${R} 0 Z`;
+          n.dot.style.left = W - D + 11.5 + 'px'; n.dot.style.top = c + 'px';
+        }
+        n.path.setAttribute('d', d);
+      };
+
+      N.loop(dt => {
+        let moving = false;
+        for (const n of navs) {
+          const target = along(n, cur(n));
+          if (!n.placed || N.calm.matches) { n.c.x = target; n.c.v = 0; n.placed = true; }
+          // a smooth slide that settles without bouncing past
+          else if (N.spring(n.c, target, 240, .92, dt)) moving = true;
+          draw(n);
+        }
+        return moving;
+      });
+
+      N.init({
+        names: { home: 'Home', search: 'Search', likes: 'Likes', notifications: 'Notifications', profile: 'Profile' },
+        onPick(place, prev, animate) { if (!animate || !prev) navs.forEach(n => n.placed = false); },
+      });
+    })();
+  </script>
+</body>
+</html>

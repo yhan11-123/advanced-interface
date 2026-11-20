@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dot &middot; Week 09 sketch</title>
+  <!-- Dot, after the user's reference: a grey rounded capsule on pale lilac grey holding three words
+       (Discover, Today, Profile); the picked word is white with a small white dot under it, the
+       others a soft grey. Nothing else.
+       Motion:
+       - the dot travels to the new word and stretches into a short dash as it goes, like a comet,
+         its tail fading; as it slows it shrinks back into a dot and lands with a small bounce
+       - the picked word brightens to white and grows a touch; the old one fades back to grey
+       - hover lightens a word and shows a faint ghost dot under it; press shrinks the word
+       - the sidebar is the same grey capsule standing up, icon and word per row, the dot left of
+         the word, stretching up and down; folded to a rail the words fade and the dot sits under
+         the icon -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #f1eff2; font-family: -apple-system, "SF Pro Rounded", "SF Pro Text", Inter, "Helvetica Neue", sans-serif; }
+    :root { --cap: #6b696d; --soft: #a9a7ab; }
+    .cap { background: var(--cap); }
+    .dot { position: absolute; left: 0; top: 0; height: 5px; border-radius: 3px; pointer-events: none; z-index: 2; background: linear-gradient(90deg, rgba(255,255,255,0), #fff 70%); }
+    .dot.v { width: 5px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 70%); }
+    .dot.v.up { background: linear-gradient(0deg, rgba(255,255,255,0), #fff 70%); }
+    .dot.left { background: linear-gradient(270deg, rgba(255,255,255,0), #fff 70%); }
+    .w { position: relative; color: var(--soft); transition: color .3s, scale .4s var(--fast); }
+    .w[aria-current="page"] { color: #fff; }
+    .w:hover:not([aria-current]) { color: #d6d4d8; }
+    .w:active { scale: .94; transition: scale .06s; }
+    .w:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+    .w .ghost { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .w:hover:not([aria-current]) .ghost { opacity: .3; }
+
+    /* sidebar */
+    .side { position: absolute; left: 24px; top: 24px; bottom: 24px; width: 204px; padding: 14px 12px; border-radius: 26px; overflow: hidden; transition: width .36s var(--spatial); }
+    .stage[data-side="open"] .side { transition: width .52s var(--spatial); }
+    .stage[data-side="rail"] .side { width: 70px; }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 36px; padding-left: 10px; }
+    .brand { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; transition: opacity .15s; }
+    .stage[data-side="rail"] .brand { opacity: 0; width: 0; overflow: hidden; }
+    .stage[data-side="rail"] .top { padding-left: 0; justify-content: center; }
+    .fold { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 16px; color: #e6e4e8; transition: background-color .15s, scale .3s var(--fast); }
+    .fold:hover { background: rgba(255,255,255,.12); } .fold:active { scale: .86; transition: scale .06s; }
+    .fold [data-i] { width: 17px; height: 17px; transition: rotate .45s var(--fast); }
+    .stage[data-side="rail"] .fold [data-i] { rotate: 180deg; }
+    .side h4 { position: relative; height: 24px; margin: 10px 0 0; padding-left: 34px; font-size: 11px; font-weight: 600; color: #a09ea3; line-height: 24px; white-space: nowrap; transition: color .15s; }
+    .side h4::after { content: ""; position: absolute; left: 14px; top: 50%; width: 0; height: 1.5px; border-radius: 1px; background: #8e8c91; transition: width .3s var(--fast); }
+    .stage[data-side="rail"] .side h4 { color: transparent; }
+    .stage[data-side="rail"] .side h4::after { width: 18px; transition-delay: .12s; }
+    .row { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px 0 22px; font-size: 16px; font-weight: 600; white-space: nowrap; transform-origin: 22px 50%; }
+    .row [data-i] { width: 20px; height: 20px; flex: none; }
+    .row .lbl { flex: 1; transition: opacity .2s .1s; }
+    .row .ghost { left: 9px; top: 50%; margin-top: -2.5px; }
+    .stage[data-side="rail"] .row { padding-left: 12px; }
+    .stage[data-side="rail"] .row .ghost { left: 19px; top: auto; bottom: 2px; }
+    .trail { font-size: 12px; font-weight: 600; color: #c4c2c6; transition: opacity .2s .14s; }
+    .t-badge, .tb-badge { min-width: 18px; height: 16px; padding: 0 5px; border-radius: 8px; background: rgba(255,255,255,.2); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; justify-content: center; }
+    .t-icon [data-i] { width: 14px; height: 14px; }
+    .stage[data-side="rail"] .row .lbl, .stage[data-side="rail"] .trail { opacity: 0; transition: opacity .1s; }
+
+    /* main + the word capsule */
+    .main { position: absolute; left: 252px; right: 24px; top: 24px; bottom: 24px; transition: left .52s var(--spatial); }
+    .stage[data-side="rail"] .main { left: 118px; transition: left .36s var(--spatial); }
+    .view b { font-size: 30px; font-weight: 700; color: #3a383c; letter-spacing: -.01em; }
+    .view span { display: block; margin-top: 6px; font-size: 13px; color: #8f8d92; }
+    .tabs { position: absolute; left: 50%; bottom: 24px; translate: -50% 0; display: flex; gap: 6px; padding: 0 18px; height: 64px; align-items: center; border-radius: 20px; }
+    .tab { display: grid; place-items: center; height: 64px; padding: 0 14px; font-size: 17px; font-weight: 600; white-space: nowrap; }
+    .tab[aria-current="page"] { scale: 1.04; }
+    .tab .ghost { left: 50%; bottom: 12px; margin-left: -2.5px; }
+    .tb-badge { position: absolute; top: 9px; right: 0; }
+    .homebar { position: absolute; left: 50%; bottom: 6px; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: #111; }
+  </style>
+</head>
+<body>
+  <div class="stage" data-side="open">
+    <nav class="side cap" id="side" aria-label="Sidebar">
+      <span class="dot v" aria-hidden="true"></span>
+      <div class="top"><span class="brand">Daily</span><button type="button" class="fold" data-fold aria-controls="side"><span data-i="chevron"></span></button></div>
+      <h4>Explore</h4>
+      <ul>
+        <li><a class="w row" href="#discover" data-place="discover"><span class="ghost"></span><span data-i="compass"></span><span class="lbl">Discover</span></a></li>
+        <li><a class="w row" href="#today" data-place="today" aria-current="page"><span class="ghost"></span><span data-i="sun"></span><span class="lbl">Today</span>
+          <span class="trail"><span class="t-badge" aria-label="3 new">3</span><span class="t-icon" aria-label="fresh"><span data-i="spark"></span></span><span class="t-text">3 new</span></span></a></li>
+      </ul>
+      <h4>You</h4>
+      <ul>
+        <li><a class="w row" href="#saved" data-place="saved"><span class="ghost"></span><span data-i="star"></span><span class="lbl">Saved</span>
+          <span class="trail"><span class="t-badge" aria-label="8 saved">8</span><span class="t-icon" aria-label="synced"><span data-i="check"></span></span><span class="t-text">8</span></span></a></li>
+        <li><a class="w row" href="#profile" data-place="profile"><span class="ghost"></span><span data-i="user"></span><span class="lbl">Profile</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <div class="view" aria-live="polite"><b>Today</b><span>Picked in the sidebar or the bar below.</span></div>
+      <nav class="tabs cap" aria-label="Tab bar">
+        <span class="dot" aria-hidden="true"></span>
+        <a class="w tab" href="#discover" data-place="discover">Discover<span class="ghost"></span></a>
+        <a class="w tab" href="#today" data-place="today" aria-current="page">Today<span class="ghost"></span><span class="tb-badge" aria-label="3 new">3</span></a>
+        <a class="w tab" href="#saved" data-place="saved">Saved<span class="ghost"></span></a>
+        <a class="w tab" href="#profile" data-place="profile">Profile<span class="ghost"></span></a>
+      </nav>
+      <span class="homebar" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <script src="week-09-sketch.js"></script>
+  <script>
+    (() => {
+      // the dot: one spring along the axis; with speed it stretches into a dash whose tail trails behind
+      const navs = [
+        { el: document.querySelector('.tabs'), axis: 'x' },
+        { el: document.getElementById('side'), axis: 'y' },
+      ].map(n => ({ ...n, dot: n.el.querySelector('.dot'), c: { x: 0, v: 0 }, placed: false }));
+
+      N.loop(dt => {
+        let moving = false;
+        const rail = N.stage.dataset.side === 'rail';
+        for (const n of navs) {
+          const a = n.el.querySelector('[data-place][aria-current]'), g = N.rel(a.querySelector('.ghost'), n.el);
+          // vertical axis while open: the dot sits left of the word; folded, under the icon (then it travels along y too)
+          const target = n.axis === 'x' ? g.cx : g.cy;
+          if (!n.placed || N.calm.matches) { n.c.x = target; n.c.v = 0; n.placed = true; }
+          if (N.spring(n.c, target, 260, .62, dt)) moving = true;
+          const len = 5 + Math.min(34, Math.abs(n.c.v) * .028), back = n.c.v > 0;   // the tail sits behind the motion
+          const s = n.dot.style;
+          if (n.axis === 'x') {
+            s.width = len + 'px'; s.height = '5px'; s.top = g.cy - 2.5 + 'px';
+            s.left = (back ? n.c.x + 2.5 - len : n.c.x - 2.5) + 'px';
+            n.dot.classList.toggle('left', !back);
+          } else {
+            s.height = len + 'px'; s.width = '5px'; s.left = g.cx - 2.5 + 'px';
+            s.top = (back ? n.c.x + 2.5 - len : n.c.x - 2.5) + 'px';
+            n.dot.classList.toggle('up', !back);
+          }
+        }
+        return moving;
+      });
+
+      N.init({ names: { discover: 'Discover', today: 'Today', saved: 'Saved', profile: 'Profile' },
+        onPick(p, prev, animate) { if (!animate) navs.forEach(n => n.placed = false); },
+        onFold() { navs.forEach(n => n.placed = false); } });
+    })();
+  </script>
+</body>
+</html>

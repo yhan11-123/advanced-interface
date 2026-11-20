@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hunt &middot; Week 09 sketch</title>
+  <!-- Hunt, after the user's reference: a grid of small square dots, grey and white in a checker,
+       with fields of colour washing through it (cyan rims round blue cores, red bands edged with
+       yellow and green), like a low-resolution thermal or weather map.
+       The user's idea (2026-11-19): make that texture a background that ripples, and hide the nav
+       bar buttons in it; moving the mouse over it, like a treasure hunt, reveals the buttons,
+       scattered irregularly.
+       Motion:
+       - the colour fields drift slowly all the time; near the pointer they are stirred round it
+       - each button is hidden in the dots. As the pointer comes near, its plate develops pixel by
+         pixel in random order (a dissolve) and its label surfaces; moving away dissolves it again
+       - a button you have found keeps a faint trace, like a marked spot; the place you are on
+         stays fully developed, with a blinking pixel cursor
+       - hover fills the plate with the colour of the field under it; press shifts it down a cell
+       Keyboard: every button is a real link; Tab focus develops it as if the pointer were there. -->
+  <link rel="stylesheet" href="week-09-sketch.css" />
+  <style>
+    body { background: #e9e7e2; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+    .stage { background: #f6f5f2; overflow: hidden; cursor: crosshair; }
+    canvas.field { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .btn { position: absolute; display: grid; place-items: center; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; opacity: 0; pointer-events: none; cursor: pointer; }
+    .btn.live { pointer-events: auto; }
+    .btn:focus-visible { outline: 2px dashed #111; outline-offset: 3px; }
+    .hint { position: absolute; left: 16px; bottom: 12px; padding: 4px 6px; background: #f6f5f2; font-size: 10px; letter-spacing: .1em; color: #6e6a62; transition: opacity .6s; }
+    .view { position: absolute; right: 16px; top: 12px; padding: 4px 6px; background: #111; color: #fff; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <canvas class="field" aria-hidden="true"></canvas>
+    <nav aria-label="Main" id="nav"></nav>
+    <div class="view" aria-live="polite"><b>Home</b></div>
+    <div class="hint" aria-hidden="true">MOVE TO SEARCH &middot; 1 / 7 FOUND</div>
+  </div>
+
+  <script>
+    (() => {
+      const W = 760, H = 420, C = 8, SQ = 5;            // cell pitch and dot size, as in the reference
+      const COLS = Math.ceil(W / C), ROWS = Math.ceil(H / C);
+      const stage = document.querySelector('.stage'), cv = document.querySelector('canvas.field'), nav = document.getElementById('nav');
+      const hint = document.querySelector('.hint'), view = document.querySelector('.view b');
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      const hash = (i, j) => { const v = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return v - Math.floor(v); };
+
+      // the hidden buttons, scattered (cell positions); width follows the label
+      const PLACES = [
+        ['home', 'Home', 9, 7], ['work', 'Work', 62, 5], ['lab', 'Lab', 36, 21], ['notes', 'Notes', 79, 29],
+        ['shop', 'Shop', 15, 36], ['about', 'About', 50, 41], ['contact', 'Contact', 28, 48],
+      ];
+      const btns = PLACES.map(([id, name, ci, cj]) => {
+        const cw = Math.ceil((name.length * 8.6 + 22) / C), ch = 3;
+        const a = document.createElement('a');
+        a.className = 'btn'; a.href = '#' + id; a.textContent = name; a.dataset.place = id;
+        Object.assign(a.style, { left: ci * C + 'px', top: cj * C + 'px', width: cw * C + 'px', height: ch * C + 'px' });
+        nav.append(a);
+        const b = { id, name, a, ci, cj, cw, ch, cx: (ci + cw / 2) * C, cy: (cj + ch / 2) * C, rev: 0, mem: 0, hover: false, down: false, focus: false, found: false };
+        a.addEventListener('pointerenter', () => b.hover = true);
+        a.addEventListener('pointerleave', () => { b.hover = false; b.down = false; });
+        a.addEventListener('pointerdown', () => b.down = true);
+        a.addEventListener('focus', () => b.focus = true);
+        a.addEventListener('blur', () => b.focus = false);
+        a.addEventListener('click', e => { e.preventDefault(); pick(b); });
+        return b;
+      });
+      addEventListener('pointerup', () => btns.forEach(b => b.down = false));
+
+      let current = btns[0];
+      const pick = b => {
+        btns.forEach(x => x === b ? x.a.setAttribute('aria-current', 'page') : x.a.removeAttribute('aria-current'));
+        current = b; view.textContent = b.name; b.found = true; updateHint();
+      };
+      const updateHint = () => {
+        const n = btns.filter(b => b.found).length;
+        hint.textContent = `MOVE TO SEARCH · ${n} / ${btns.length} FOUND`;
+        if (n === btns.length) hint.style.opacity = 0;
+      };
+
+      // the pointer, in stage pixels (eased, so the stirring trails a little)
+      const P = { x: -999, y: -999, tx: -999, ty: -999, on: false };
+      const toStage = e => { const r = stage.getBoundingClientRect(), f = r.width / W; return [(e.clientX - r.left) / f, (e.clientY - r.top) / f]; };
+      stage.addEventListener('pointermove', e => { [P.tx, P.ty] = toStage(e); if (!P.on) { P.x = P.tx; P.y = P.ty; } P.on = true; });
+      stage.addEventListener('pointerleave', () => { P.on = false; });
+
+      // ---- the field ----
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = H * dpr;
+      const g = cv.getContext('2d');
+      const GREY = '#a7a39b', WHITE = '#ffffff';
+      const PAL = { blue: '#2f56e6', cyan: '#52d8f2', red: '#ec3a3a', yellow: '#f6e81e', green: '#3fe05a', ink: '#141414' };
+      const stir = (x, y) => { if (!P.on) return 0; const dx = x - P.x, dy = y - P.y, d2 = dx * dx + dy * dy; return Math.exp(-d2 / (2 * 85 * 85)); };
+
+      const cellColour = (i, j, t) => {
+        const x = i * C, y = j * C;
+        const s = stir(x, y), ang = Math.atan2(y - P.y, x - P.x);
+        // diagonal sweeps, bent by slow waves, stirred round the pointer
+        const u = x * .86 - y * .5 + s * 60 * Math.sin(ang * 2 + t * 1.6);
+        const v1 = Math.sin(u * .014 + 1.7 * Math.sin(y * .013 + t * .32) + t * .22) + .3 * Math.sin(x * .028 - t * .5);
+        const v2 = Math.sin(u * .011 - y * .01 + 2.1 * Math.cos(x * .009 - t * .21) - t * .17 + 2.4) + .3 * Math.sin(y * .035 + t * .4);
+        const checker = (i + j) & 1, h = hash(i, j);
+        // blue cores with cyan rims; red bands with yellow and green at their edges; grey checker elsewhere
+        if (v1 > .74) { const k = (v1 - .74) / .26; if (checker || h < k * .95) return k > .3 ? PAL.blue : PAL.cyan; }
+        else if (v1 > .64 && (checker ? h < .8 : h < .25)) return PAL.cyan;
+        if (v2 > .7) { const k = (v2 - .7) / .3; if (checker || h < k * .9) return k < .16 ? PAL.yellow : k < .26 ? (h < .5 ? PAL.green : PAL.yellow) : PAL.red; }
+        else if (v2 > .6 && checker && h < .6) return h < .3 ? PAL.yellow : PAL.red;
+        return checker ? GREY : WHITE;
+      };
+
+      let raf = 0, last = performance.now(), t = 0;
+      const frame = now => {
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        if (!calm.matches) t += dt;
+        P.x += (P.tx - P.x) * (1 - Math.exp(-10 * dt)); P.y += (P.ty - P.y) * (1 - Math.exp(-10 * dt));
+
+        // how close the pointer is to each button decides how much of it develops
+        for (const b of btns) {
+          const dx = Math.max(Math.abs(P.x - b.cx) - b.cw * C / 2, 0), dy = Math.max(Math.abs(P.y - b.cy) - b.ch * C / 2, 0), d = Math.hypot(dx, dy);
+          const near = P.on ? 1 - Math.min(1, Math.max(0, (d - 18) / 110)) : 0;
+          if (near > .85 && !b.found) { b.found = true; updateHint(); }
+          if (near > .85) b.mem = .2;
+          const target = Math.max(near * near * (3 - 2 * near), b.mem, b.focus || b === current || b.hover ? 1 : 0);
+          b.rev = calm.matches ? target : b.rev + (target - b.rev) * (1 - Math.exp(-(target > b.rev ? 9 : 4) * dt));
+          b.a.style.opacity = Math.max(0, Math.min(1, (b.rev - .5) / .35)).toFixed(3);
+          b.a.classList.toggle('live', b.rev > .45);
+        }
+
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.fillStyle = '#f6f5f2'; g.fillRect(0, 0, W, H);
+        const o = (C - SQ) / 2;
+        for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) { g.fillStyle = cellColour(i, j, t); g.fillRect(i * C + o, j * C + o, SQ, SQ); }
+
+        // the plates: each cell develops at its own threshold, so the button appears as a pixel dissolve
+        for (const b of btns) {
+          if (b.rev < .02) continue;
+          const shift = b.down ? 1 : 0, fill = b.hover && b !== current ? cellColour(b.ci + 1, b.cj + 1, t) : PAL.ink;
+          for (let j = -1; j <= b.ch; j++) for (let i = -1; i <= b.cw; i++) {
+            const edge = i < 0 || j < 0 || i >= b.cw || j >= b.ch, th = hash(b.ci + i + 3, b.cj + j + 7);
+            if (th > b.rev * (edge ? .8 : 1.02)) continue;
+            g.fillStyle = edge ? WHITE : fill;
+            g.fillRect((b.ci + i) * C, (b.cj + j + shift) * C, C, C);
+          }
+          if (b === current && Math.floor(now / 480) % 2) { g.fillStyle = PAL.yellow; g.fillRect((b.ci + b.cw - 1) * C + 1, (b.cj + 1) * C + 1, C - 2, C - 2); }
+        }
+        raf = requestAnimationFrame(frame);
+      };
+      raf = requestAnimationFrame(frame);
+
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / W, innerHeight / H, 1.6));
+      fit(); addEventListener('resize', fit);
+      const q = new URLSearchParams(location.search);
+      pick(btns.find(b => b.id === q.get('pick')) || btns[0]);
+      // stills: ?at=x,y puts the pointer somewhere
+      if (q.get('at')) { const [x, y] = q.get('at').split(',').map(Number); P.x = P.tx = x; P.y = P.ty = y; P.on = true; }
+    })();
+  </script>
+</body>
+</html>
