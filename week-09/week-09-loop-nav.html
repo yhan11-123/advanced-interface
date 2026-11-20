@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Week 09 &middot; Set 2 &middot; Loop</title>
+  <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml" />
+  <style>
+  /* Week 09, Set 2 · Loop. Tone: Wandering. After the user's reference: a diagram of one day. A straight time
+     axis cuts up the sheet; a line coils round it as the day goes on; small circles on the coil are the things
+     that happened, each named in bold capitals with an arrow pointing in from outside, some with small notes;
+     what is done is drawn solid, what is still to come dashed. Down the left, the same day as a list of times
+     with arrows pointing up.
+       The places sit on the coil in order, like moments in a day.
+       Selected   the coil is drawn solid from the start up to the place you are, dashed beyond it
+       Pick       the solid line runs along the coil to the new place (or draws back to it)
+       Hover      the label's arrow reaches in to its circle, the circle opens up, the notes appear (the slot)
+       Press      the circle closes small and the label leans in
+       Expanded   the coil diagram; Collapsed: the list of times with arrows up, as down the left of the reference.
+                  Switching, the labels travel between the two layouts and the coil draws in or out. */
+  :root {
+    --paper: #f4f4f2; --ink: #121212; --dim: #6a6a6a;
+    --font: "Helvetica Neue", Arial, sans-serif;
+    --w: 780px; --h: 640px;
+    --line: 2px; --dash: 7 7; --node: 6px; --node-hover: 9px; --node-press: 3.5px;
+    --label: 17px; --note: 9px; --time: 15px;
+    --run: 900ms; --move: 700ms; --sway: .3; --sway-period: 7s; --flow: 22; --slow: .1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--paper); color: var(--ink); font: 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  .hero { position: relative; height: 100vh; min-height: 560px; overflow: hidden; }
+  .stage { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); transform: translate(-50%, -50%) scale(var(--fit, 1)); }
+  svg.dia { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .dia path, .dia line { fill: none; stroke: var(--ink); stroke-width: var(--line); stroke-linecap: round; }
+  .dia marker path { fill: var(--ink); stroke: none; }
+  .dia .future { stroke-dasharray: var(--dash); transition: opacity .5s; }
+  .dia .past { transition: opacity .5s; }
+  .dia .axis { stroke-width: 1.6; }
+  .dia .node { fill: var(--paper); stroke: var(--ink); stroke-width: 2; transition: r .35s cubic-bezier(.3,1.5,.5,1), fill .25s; }
+  .dia .node.on { fill: var(--ink); }
+  .dia .arrow { stroke-width: 1.8; transition: stroke-width .25s, opacity .4s; }
+  .dia .arrow.hot { stroke-width: 3.2; }
+  .dia .head { fill: var(--ink); stroke: none; transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .4s; }
+  .dia .up { stroke-width: 1.6; transition: opacity .4s; }
+  .stage.list .dia .loopish { opacity: 0; }
+  .stage:not(.list) .dia .listish { opacity: 0; }
+  .t { position: absolute; font: 400 var(--time)/1 var(--font); }
+  .t small { display: block; margin-top: 6px; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
+
+  .lbl { position: absolute; display: grid; gap: 5px; text-decoration: none; color: var(--ink); white-space: nowrap; transition: translate .2s; }
+  /* only while switching layouts do the labels glide; otherwise they ride the turning coil frame by frame */
+  .stage.moving .lbl { transition: left var(--move) cubic-bezier(.5,0,.2,1), top var(--move) cubic-bezier(.5,0,.2,1), translate .2s; }
+  .lbl b { font: 700 var(--label)/1 var(--font); letter-spacing: .01em; text-transform: uppercase; }
+  .lbl .time { font: 400 12px/1 var(--font); color: var(--dim); }
+  .lbl .note { font: 600 var(--note)/1.3 var(--font); color: var(--ink); white-space: pre; clip-path: inset(0 0 100% 0); transition: clip-path .4s cubic-bezier(.2,.8,.2,1); }
+  .lbl.right { text-align: left; }
+  .lbl.left { text-align: right; }
+  .lbl:hover .note, .lbl:focus-visible .note, .lbl[aria-current="page"] .note { clip-path: inset(0 0 0 0); }
+  .lbl:active { translate: var(--lean, 0) 0; }
+  .lbl[aria-current="page"] b { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 3px; }
+  .lbl:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 6px; }
+  .stage.list .lbl .note { display: none; }
+  .stage.list .lbl { text-align: left; }
+  /* the list reads like the left of the reference: the time large, the name small under it */
+  .stage.list .lbl .time { order: -1; font-size: 18px; color: var(--ink); }
+  .stage.list .lbl b { font-size: 11px; font-weight: 600; letter-spacing: .03em; }
+  .mode { position: absolute; left: 0; bottom: 0; display: flex; gap: 0; font: 700 11px/1 var(--font); letter-spacing: .08em; }
+  .mode button { padding: 7px 10px; border: 1.6px solid var(--ink); background: none; color: var(--ink); font: inherit; letter-spacing: inherit; cursor: pointer; }
+  .mode button + button { border-left: 0; }
+  .mode button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  /* ---------- states and spec ---------- */
+  .states, .spec { max-width: 1080px; margin: 0 auto; padding: 32px 32px 40px; border-top: 1.6px solid var(--ink); }
+  .states h2, .spec h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.01em; text-transform: uppercase; }
+  .states p, .spec p { max-width: 720px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  th, td { padding: 12px 10px; border-bottom: 1px solid #cfcfcc; text-align: center; vertical-align: middle; }
+  th { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  td:first-child, th:first-child { text-align: left; width: 170px; }
+  td small { display: block; color: var(--dim); font-size: 12px; }
+  .st { position: relative; display: inline-block; width: 190px; height: 92px; text-align: left; }
+  .st svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .st .lbl { position: absolute; transition: none; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
+  .spec-card { padding: 14px 16px; border: 1.6px solid var(--ink); font-size: 13px; }
+  .spec-card h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  .spec-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+  .spec-card dt { color: var(--dim); }
+  .spec-card dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .back-pill { position: fixed; right: 12px; bottom: 12px; z-index: 9; font: 700 11px/1 var(--font); letter-spacing: .08em; color: var(--paper); background: var(--ink); padding: 8px 12px; text-decoration: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-label="The navigation in use">
+  <div class="stage" id="stage">
+    <svg class="dia" id="dia" aria-hidden="true">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#121212" stroke="none"/></marker></defs>
+      <g class="loopish">
+        <line class="axis" id="axis" marker-end="url(#ah)"/>
+        <path class="future" id="future"/>
+        <path class="past" id="past"/>
+        <g id="arrows"></g>
+        <g id="nodes"></g>
+      </g>
+      <g class="listish" id="ups"></g>
+    </svg>
+    <span class="t loopish-t" id="t0" style="left:30px;top:520px">11:20<small>Time</small></span>
+    <span class="t loopish-t" id="t1" style="left:640px;top:30px">01:20</span>
+    <nav aria-label="Main" id="nav"></nav>
+    <div class="mode" role="group" aria-label="Layout"><button type="button" id="m-loop" aria-pressed="true">LOOP</button><button type="button" id="m-list" aria-pressed="false">LIST</button></div>
+  </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <h2 id="states-title">Every state</h2>
+    <p>A place on the coil, and the same place in the list. At rest a circle on the line with its name and an arrow pointing in. Pointed at, the arrow thickens, the circle opens and the notes appear. Pressed, the circle closes small and the name leans in. Picked, the circle fills, the name is underlined, and the line is solid up to it and dashed beyond.</p>
+    <table>
+      <thead><tr><th>Part</th><th>Enabled</th><th>Hover</th><th>Pressed</th><th>Selected</th></tr></thead>
+      <tbody id="state-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="spec" aria-labelledby="spec-title">
+    <h2 id="spec-title">Spec</h2>
+    <p>Read from the values this page runs on.</p>
+    <div class="spec-grid" id="spec"></div>
+  </section>
+
+  <a class="back-pill" href="week-09.html#set-2">&larr; Week 09</a>
+
+  <script>
+    (() => {
+      const css = getComputedStyle(document.documentElement);
+      const num = n => parseFloat(css.getPropertyValue(n));
+      const W = num('--w'), H = num('--h'), NODE = num('--node'), NODEH = num('--node-hover'), NODEP = num('--node-press'), RUN = num('--run');
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      const stage = document.getElementById('stage'), nav = document.getElementById('nav');
+      const fit = () => document.documentElement.style.setProperty('--fit', Math.min(innerWidth / W, innerHeight / H, 1.4) * .96);
+      fit(); addEventListener('resize', fit);
+
+      // ---- the coil: a line winding round a straight time axis from bottom left to top right ----
+      // it seems to turn round the axis but only sways a little either way (phi), so the places never stray far;
+      // the dashes flowing along it carry the rest of the turning
+      const A = [130, 530], B = [600, 80];
+      const ax = B[0] - A[0], ay = B[1] - A[1], L = Math.hypot(ax, ay), ux = ax / L, uy = ay / L, nx = -uy, ny = ux;
+      const TURNS = 2.6, NP = 400, SWAY = num('--sway'), PERIOD = num('--sway-period'), FLOW = num('--flow'), SLOW = num('--slow');
+      const coil = (s, phi) => {
+        const th = s * TURNS * Math.PI * 2 - Math.PI / 2 + phi, r = 136 * (1 - s * .4);
+        const along = Math.sin(th) * r * .55, across = Math.cos(th) * r;
+        return [A[0] + ax * s + ux * along + nx * across, A[1] + ay * s + uy * along + ny * across];
+      };
+      const past = document.getElementById('past'), future = document.getElementById('future');
+      let phi = 0, cum = [0];
+      const build = () => {
+        const pts = []; for (let i = 0; i <= NP; i++) pts.push(coil(i / NP, phi));
+        cum = [0]; for (let i = 1; i <= NP; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+        const d = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+        past.setAttribute('d', d); future.setAttribute('d', d);
+      };
+      const lenS = s => cum[Math.max(0, Math.min(NP, Math.round(s * NP)))];
+      build();
+      const axis = document.getElementById('axis');
+      axis.setAttribute('x1', A[0] - ux * 40 - 30); axis.setAttribute('y1', A[1] - uy * 40 + 40);
+      axis.setAttribute('x2', B[0] + ux * 30); axis.setAttribute('y2', B[1] + uy * 30);
+
+      // ---- the places: moments on the coil, each named with an arrow in from outside ----
+      const PLACES = [
+        ['index', 'Index', '11:40', .07, 'start here'],
+        ['works', 'Works', '13:05', .23, '12 projects\n2019 – 2026'],
+        ['archive', 'Archive', '14:56', .40, '340 drawings\n58 boxes'],
+        ['journal', 'Journal', '16:43', .56, '3 new\nlast at 16:08'],
+        ['studio', 'Studio', '18:21', .72, 'open till 20:45'],
+        ['contact', 'Contact', '20:20', .88, 'hello@\nreply in a day'],
+      ];
+      const SVGNS = 'http://www.w3.org/2000/svg';
+      const nodesG = document.getElementById('nodes'), arrowsG = document.getElementById('arrows'), upsG = document.getElementById('ups');
+      let hovering = 0;
+      const items = PLACES.map(([id, name, time, s, note], k) => {
+        const [x, y] = coil(s, 0);
+        // the label keeps its side and its distance across; it rides up and down with its circle, the arrow stretches to reach it
+        const side = x > A[0] + ax * s ? 1 : -1;
+        const lx = x + side * 150;
+        const c = document.createElementNS(SVGNS, 'circle'); c.setAttribute('class', 'node'); c.setAttribute('r', NODE); nodesG.append(c);
+        const ar = document.createElementNS(SVGNS, 'line'); ar.setAttribute('class', 'arrow'); ar.setAttribute('marker-end', 'url(#ah)'); arrowsG.append(ar);
+        const a = document.createElement('a');
+        a.className = 'lbl ' + (side > 0 ? 'right' : 'left'); a.href = '#' + id; a.dataset.place = id;
+        a.innerHTML = `<span class="time">${time}</span><b>${name}</b><span class="note">${note}</span>`;
+        a.style.setProperty('--lean', (-side * 4) + 'px');
+        nav.append(a);
+        const it = { id, name, s, side, lx, a, c, ar, r: NODE };
+        a.addEventListener('pointerenter', () => hover(it, true)); a.addEventListener('pointerleave', () => { hover(it, false); press(it, false); });
+        a.addEventListener('focus', () => hover(it, true)); a.addEventListener('blur', () => hover(it, false));
+        a.addEventListener('pointerdown', () => press(it, true)); a.addEventListener('pointerup', () => press(it, false));
+        a.addEventListener('click', e => { e.preventDefault(); pick(it); });
+        return it;
+      });
+      const hover = (it, on) => { if (on !== !!it.hot) hovering += on ? 1 : -1; it.hot = on; it.ar.classList.toggle('hot', on); it.r = on ? NODEH : NODE; it.c.setAttribute('r', it.r); };
+      const press = (it, on) => { if (on) { it.r = NODEP; it.c.setAttribute('r', NODEP); } else if (it.a.matches(':hover')) { it.r = NODEH; it.c.setAttribute('r', NODEH); } };
+      const follow = it => {
+        const [x, y] = coil(it.s, phi);
+        it.c.setAttribute('cx', x.toFixed(1)); it.c.setAttribute('cy', y.toFixed(1));
+        it.ar.setAttribute('x1', (it.lx - it.side * 6).toFixed(1)); it.ar.setAttribute('y1', y.toFixed(1));
+        it.ar.setAttribute('x2', (x + it.side * (it.r + 6)).toFixed(1)); it.ar.setAttribute('y2', y.toFixed(1));
+        it.y = y;
+      };
+      items.forEach(follow);
+
+      // ---- the list: the same day as times stacked up the left, arrows pointing up ----
+      const LIST_X = 40, LIST_TOP = 40, LIST_GAP = 92;
+      items.forEach((it, k) => { it.listY = LIST_TOP + (items.length - 1 - k) * LIST_GAP; });
+      items.slice(0, -1).forEach((it, k) => {
+        const l = document.createElementNS(SVGNS, 'line'); l.setAttribute('class', 'up');
+        l.setAttribute('x1', LIST_X + 30); l.setAttribute('x2', LIST_X + 30);
+        l.setAttribute('y1', it.listY - 12); l.setAttribute('y2', items[k + 1].listY + 52); l.setAttribute('marker-end', 'url(#ah)');
+        upsG.append(l);
+      });
+      const loopPos = it => [(it.side > 0 ? it.lx : it.lx - it.a.offsetWidth), it.y - it.a.offsetHeight / 2 - 6];
+      const place = list => items.forEach(it => {
+        const [x, y] = list ? [LIST_X, it.listY] : loopPos(it);
+        it.a.style.left = x + 'px'; it.a.style.top = y + 'px';
+      });
+
+      // ---- selected: solid along the coil up to the place, dashed beyond; a pick runs the line there ----
+      let shownS = 0, tween = null, current = null, moving = false;
+      const setPast = () => { past.style.strokeDasharray = `${lenS(shownS)} ${cum[NP]}`; };
+      const run = (to, dur, ease) => { tween = { from: shownS, to, t0: performance.now(), dur, ease }; };
+      const inOut = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, outCubic = t => 1 - Math.pow(1 - t, 3);
+      const pick = (it, animate = !calm.matches) => {
+        items.forEach(x => { if (x === it) x.a.setAttribute('aria-current', 'page'); else x.a.removeAttribute('aria-current'); x.c.classList.toggle('on', x === it); });
+        current = it;
+        if (!animate) { tween = null; shownS = it.s; return; }
+        run(it.s, Math.max(350, Math.min(RUN * 1.6, Math.abs(it.s - shownS) * 1600)), inOut);
+      };
+
+      // ---- expanded (loop) / collapsed (list) ----
+      const mLoop = document.getElementById('m-loop'), mList = document.getElementById('m-list');
+      const setMode = list => {
+        stage.classList.toggle('list', list);
+        mLoop.setAttribute('aria-pressed', String(!list)); mList.setAttribute('aria-pressed', String(list));
+        document.getElementById('t0').style.opacity = list ? 0 : 1; document.getElementById('t1').style.opacity = list ? 0 : 1;
+        // the labels travel between the two layouts; while they do, the turning coil doesn't move them
+        moving = true; stage.classList.add('moving'); place(list);
+        setTimeout(() => { moving = false; stage.classList.remove('moving'); }, num('--move') + 60);
+        // the coil draws in from the start when it comes back
+        if (!list && !calm.matches) { const keep = shownS; shownS = 0; setTimeout(() => run(keep, RUN, outCubic), 300); }
+      };
+      mLoop.addEventListener('click', () => setMode(false));
+      mList.addEventListener('click', () => setMode(true));
+
+      // ---- the sway: the coil rocks a little either way, the dashes flow, the circles and labels ride along ----
+      let pace = calm.matches ? 0 : 1, phase = 0, flow = 0, last = performance.now();
+      const frame = now => {
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        const want = calm.matches ? 0 : hovering > 0 ? SLOW : 1;
+        pace += (want - pace) * (1 - Math.exp(-4 * dt));
+        phase += pace * dt * Math.PI * 2 / PERIOD;
+        phi = SWAY * Math.sin(phase);
+        flow += pace * FLOW * dt;
+        future.style.strokeDashoffset = (-flow).toFixed(1);
+        if (tween) { const t = Math.min(1, (now - tween.t0) / tween.dur); shownS = tween.from + (tween.to - tween.from) * tween.ease(t); if (t >= 1) tween = null; }
+        build();
+        const list = stage.classList.contains('list');
+        items.forEach(it => { follow(it); if (!list && !moving) { const [x, y] = loopPos(it); it.a.style.left = x.toFixed(1) + 'px'; it.a.style.top = y.toFixed(1) + 'px'; } });
+        setPast();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+
+      const q = new URLSearchParams(location.search);
+      place(false);
+      pick(items.find(i => i.id === q.get('pick')) || items[2], false);
+      if (q.has('list')) setMode(true);
+      document.fonts && document.fonts.ready.then(() => place(stage.classList.contains('list')));
+
+      // ---- every state: one place drawn small, at each state ----
+      const cell = (st, list) => {
+        if (list) {
+          const cur = st === 'sel' ? ' aria-current="page"' : '';
+          return `<span class="st"><span class="lbl" style="left:40px;top:14px;${st === 'press' ? 'translate:3px 0' : ''}"${cur}><span class="time" style="font-size:18px;color:#121212">14:56</span><b style="font-size:11px;font-weight:600;letter-spacing:.03em${st === 'hover' ? ';text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px' : ''}">Archive</b></span></span>`;
+        }
+        const r = st === 'hover' ? NODEH : st === 'press' ? NODEP : NODE, fill = st === 'sel' ? '#121212' : '#f4f4f2', aw = st === 'hover' ? 3.2 : 1.8;
+        const line = st === 'sel' ? '<path d="M150 88 C 150 50, 150 40, 150 46" style="stroke-dasharray:none"/><path d="M150 46 C 150 30, 162 10, 180 4" style="stroke-dasharray:7 7"/>' : '<path d="M150 88 C 150 50, 162 10, 180 4" style="stroke-dasharray:7 7"/>';
+        const note = st === 'hover' || st === 'sel' ? 'clip-path:inset(0 0 0 0)' : '';
+        const cur = st === 'sel' ? ' aria-current="page"' : '';
+        return `<span class="st"><svg class="dia" viewBox="0 0 190 92">${line}<line class="arrow" x1="84" y1="46" x2="${150 - r - 6}" y2="46" marker-end="url(#ah)" style="stroke-width:${aw}"/><circle class="node" cx="150" cy="46" r="${r}" style="fill:${fill}"/></svg><span class="lbl left"${cur} style="left:0;top:22px;${st === 'press' ? 'translate:4px 0' : ''}"><span class="time">14:56</span><b>Archive</b><span class="note" style="${note}">340 drawings\n58 boxes</span></span></span>`;
+      };
+      const labels = ['Enabled', 'Hover', 'Pressed', 'Selected'], ks = ['rest', 'hover', 'press', 'sel'];
+      const row = (name, sub, list) => `<tr><td>${name}<small>${sub}</small></td>${ks.map((k, j) => `<td><span class="sr">${labels[j]}</span><span aria-hidden="true">${cell(k, list)}</span></td>`).join('')}</tr>`;
+      document.getElementById('state-rows').innerHTML = row('Place on the coil', 'expanded', false) + row('Place in the list', 'collapsed', true);
+
+      // ---- spec ----
+      const tok = n => css.getPropertyValue(n).trim();
+      const cards = [
+        ['Sheet', [['Size', `${W} &times; ${H}`], ['Paper', tok('--paper')], ['Ink', tok('--ink')]]],
+        ['Coil', [['Axis', `(${A}) &rarr; (${B})`], ['Turns', TURNS], ['Radius', '136, narrowing to 60%'], ['Line', `${tok('--line')}; future dashed ${tok('--dash')}`]]],
+        ['Place', [['Circle', `r ${NODE}; hover ${NODEH}; pressed ${NODEP}; selected filled`], ['Arrow', '1.8, hover 3.2, solid head'], ['Label', `${tok('--label')} bold caps`], ['Time', '12px regular'], ['Notes (slot)', `${tok('--note')} semibold, 2 lines`]]],
+        ['List (collapsed)', [['Time', '18px regular'], ['Name', '11px semibold caps'], ['Gap', `${LIST_GAP}, arrow up between`]]],
+        ['Motion', [['Sway', `&plusmn;${tok('--sway')} rad round the axis, every ${tok('--sway-period')}`], ['Dashes flow', `${tok('--flow')} px/s along the coil`], ['Pointed at', `both slow to &times;${tok('--slow')}`], ['Pick', `solid line runs along the coil, ease-in-out, 350&ndash;${Math.round(RUN * 1.6)}ms by distance`], ['Switch layout', `labels travel ${tok('--move')}; coil redraws ${tok('--run')}`], ['Circle', 'spring, slight overshoot']]],
+      ];
+      document.getElementById('spec').innerHTML = cards.map(([h, rows]) => `<div class="spec-card"><h3>${h}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('');
+    })();
+  </script>
+</body>
+</html>
