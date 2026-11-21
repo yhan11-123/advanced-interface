@@ -110,7 +110,6 @@
 
     <div class="g-filters" role="region" aria-label="Filters">
       <div class="g-row"><span class="g-label" id="lbl-kind">Show</span><div class="g-chips" role="group" aria-labelledby="lbl-kind" id="f-kind"></div></div>
-      <div class="g-row"><span class="g-label" id="lbl-week">Week</span><div class="g-chips" role="group" aria-labelledby="lbl-week" id="f-week"></div></div>
       <p class="g-count" id="g-count" aria-live="polite"></p>
     </div>
 
@@ -153,14 +152,12 @@
 
       // ---- filters: kind and week, kept in the address so a filtered view can be linked ----
       const q = new URLSearchParams(location.search);
-      const state = { kind: KINDS.some(k => k[0] === q.get('kind')) ? q.get('kind') : 'all', week: weeks.some(w => String(w.week) === q.get('week')) ? +q.get('week') : 0 };
+      const state = { kind: KINDS.some(k => k[0] === q.get('kind')) ? q.get('kind') : 'all', week: 0 };  // the week filter was dropped: the weeks are headings below
 
-      const fKind = document.getElementById('f-kind'), fWeek = document.getElementById('f-week');
+      const fKind = document.getElementById('f-kind');
       const chip = (label, attrs, n) => `<button type="button" class="chip" ${attrs}>${label}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
       const drawChips = () => {
         fKind.innerHTML = KINDS.map(([k, label]) => chip(label, `data-kind="${k}" aria-pressed="${state.kind === k}"`, count(k, state.week))).join('');
-        fWeek.innerHTML = chip('All weeks', `data-week="0" aria-pressed="${!state.week}"`, count(state.kind, 0)) +
-          weeks.map(w => chip(`<span class="wk">${pad(w.week)}</span>${esc(w.title)}`, `data-week="${w.week}" aria-pressed="${state.week === w.week}"`, count(state.kind, w.week))).join('');
       };
 
       const apply = animate => {
@@ -182,7 +179,6 @@
         drawChips();
         const p = new URLSearchParams();
         if (state.kind !== 'all') p.set('kind', state.kind);
-        if (state.week) p.set('week', state.week);
         history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
         // what comes in rises a little, a few at a time; only what is on screen is animated
         if (animate && !calm.matches) {
@@ -198,14 +194,6 @@
 
       const filters = document.querySelector('.g-filters');
       fKind.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; state.kind = b.dataset.kind; apply(true); fKind.querySelector(`[data-kind="${state.kind}"]`).focus(); });
-      fWeek.addEventListener('click', e => {
-        const b = e.target.closest('.chip'); if (!b) return; state.week = +b.dataset.week; apply(true);
-        fWeek.querySelector(`[data-week="${state.week}"]`).focus();
-        // bring the first still back under the filters if you were scrolled far down
-        const top = root.getBoundingClientRect().top + scrollY - filters.offsetHeight - 8;
-        if (scrollY > top) scrollTo({ top, behavior: calm.matches ? 'auto' : 'smooth' });
-      });
-
       document.getElementById('g-sub').textContent = `Every deliverable and every Ideation sketch, week by week: ${count('deliverable', 0)} deliverables and ${count('ideation', 0)} sketches. Click a still to run it.`;
       apply(false);
     })();
