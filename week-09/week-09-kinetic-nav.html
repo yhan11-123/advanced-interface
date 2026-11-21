@@ -39,7 +39,7 @@
     --lift-scale: 1.45; --lift-y: -6px; --wave-sigma: .85; --rest-scale: .9; --press-scale: .97;
     --run: 1100ms; --stop-min: 6; --stop-max: 1.8; --develop: 700ms; --hl-scale: 1.14;
     --cutout: grayscale(1) contrast(2.9) brightness(1.45);
-    --title-size: 24px; --t-rest: .667; --t-near: .833; --t-grow: 480ms; --bar-stub: 16px; --bar: 4px; --bar-on: 7px; --bar-down: 9px; --bar-gap: 6px;
+    --title-size: 24px; --t-rest: .667; --t-sel: .917; --stack-top: 175; --stack-bottom: 548; --t-near: .833; --t-grow: 480ms; --bar-stub: 16px; --bar: 4px; --bar-on: 7px; --bar-down: 9px; --bar-gap: 6px;
     --bar-run: 450ms; --hl-bar: 9px; --hl-bar-w: 2.1;
   }
   * { box-sizing: border-box; }
@@ -60,10 +60,10 @@
   .slot { opacity: 0; pointer-events: none; transition: opacity .38s ease var(--d, 0ms); }
   .board.open .slot, .slot.hl { opacity: 1; pointer-events: auto; }
   .board:not(.open) .btn { opacity: 0; visibility: hidden; transition: opacity .2s, visibility 0s .2s; }
-  .board.open .btn { transition: opacity .35s ease var(--d, 0ms), translate .15s, scale var(--t-grow) cubic-bezier(.3,1.35,.5,1); }
+  .board.open .btn { transition: opacity .35s ease var(--d, 0ms), translate .15s, scale var(--t-grow) cubic-bezier(.3,1.35,.5,1), top .5s cubic-bezier(.2,.8,.2,1), left .5s cubic-bezier(.2,.8,.2,1); }
   .opener { position: absolute; z-index: 8; padding: 0; border: 0; background: none; color: transparent; cursor: pointer; }
   .opener:focus-visible { outline: 2px dashed var(--ink); outline-offset: 4px; }
-  .board.open .opener { pointer-events: none; }
+  /* open, the opener stays where it was and closes: the same spot never changes meaning under the pointer */
   .slot i { position: absolute; inset: 0; background-image: url("images/sequence-ref.webp"); background-size: var(--board-w) var(--board-h); background-repeat: no-repeat; }
   .slot .img { filter: var(--cutout); transition: filter var(--develop) ease; }
   .slot .ghost { opacity: 0; filter: var(--cutout); mix-blend-mode: multiply; }
@@ -79,7 +79,7 @@
   .btn.near .bar, .btn:hover .bar, .btn:focus-visible .bar { width: 100%; }
   .btn:active { translate: 0 1px; }
   .btn:active .bar { height: var(--bar-down); }
-  .btn[aria-current="page"] { scale: 1; }
+  .btn[aria-current="page"] { scale: var(--t-sel); }
   .btn[aria-current="page"] .bar { width: 100%; height: var(--bar-on); }
   .btn:focus-visible { outline: 1.5px dashed var(--title-ink); outline-offset: 5px; }
 
@@ -180,22 +180,49 @@
       slots.forEach(s => { crop(s.img, s.i); crop(s.ghost, s.i); });
 
       // ---- five stretches, five places; titles inside the curve ----
-      const PLACES = [['intro', 'Intro', [0, 1]], ['work', 'Work', [2, 3]], ['archive', 'Archive', [4, 5]], ['about', 'About', [6, 7, 8]], ['contact', 'Contact', [9, 10]]];
-      const AT = [[338, 150], [232, 192], [176, 250], [150, 352], [206, 516]];
-      const btns = PLACES.map(([id, name, idx], k) => {
+      // The first photo is only the opener, not a place. The titles stand as one evenly spaced stack: the gap between
+      // one title and the next is the same everywhere, measured between what you see (the picked title is larger, so
+      // it takes more room, not a bigger gap on one side). Each title then takes the photo nearest its row as the print
+      // that develops when picked, and stands just right of it; the photos between are shared out to the nearest title.
+      const PLACES = [['intro', 'Intro'], ['work', 'Work'], ['archive', 'Archive'], ['about', 'About'], ['contact', 'Contact']];
+      const TITLE_H = num('--title-size') * 1.2 + 2 + num('--bar-gap') + num('--bar-down'), GAP = 22;
+      const T_REST = num('--t-rest'), T_SEL = num('--t-sel'), STACK = [num('--stack-top'), num('--stack-bottom')];
+      const printCY = i => slots[i].y + CH / 2;
+      let HIS = null;
+      const layTitles = selK => {
+        const hv = PLACES.map((_, k) => TITLE_H * (k === selK ? T_SEL : T_REST));
+        const gap = (STACK[1] - STACK[0] - hv.reduce((x, y) => x + y, 0)) / (PLACES.length - 1);
+        let y = STACK[0]; const cs = hv.map(h => { const c = y + h / 2; y += h + gap; return c; });
+        // each place's photo is fixed once, from the stack with nothing picked: picking only re-spaces the titles,
+        // it never hands a place a different photo, so no two places ever light up the same print
+        const his = HIS || (HIS = (() => { let from = 1; return cs.map((c, k) => { let best = from; for (let i = from; i <= N - (PLACES.length - k); i++) if (Math.abs(printCY(i) - c) < Math.abs(printCY(best) - c)) best = i; from = best + 1; return best; }); })());
+        return PLACES.map((_, k) => {
+          const lo = k ? Math.floor((his[k - 1] + his[k]) / 2) + 1 : 1, hiEnd = k < PLACES.length - 1 ? Math.floor((his[k] + his[k + 1]) / 2) : N - 1;
+          const idx = []; for (let i = lo; i <= hiEnd; i++) idx.push(i);
+          const h = slots[his[k]];
+          // clear of every photo in this row, not only its own: the path bends back to the right near the foot
+          const top = cs[k] - hv[k] / 2, bot = cs[k] + hv[k] / 2;
+          // and measured at the size a photo reaches when it lifts under the pointer, so a lifted photo never runs into the text
+          const LS = num('--lift-scale'), inRow = slots.filter(o => { const cy = o.y + CH / 2; return o.i && cy - CH * LS * .32 < bot && cy + CH * LS * .32 > top; }).map(o => o.x + CW / 2 + CW * LS / 2 * .9);
+          return { c: cs[k], hi: his[k], idx, left: Math.max(h.x + CW / 2 + CW * num('--hl-scale') / 2, ...inRow) + GAP };
+        });
+      };
+      const placeTitles = selK => layTitles(selK).forEach((L, k) => { const b = btns[k]; b.idx = L.idx; b.hlIndex = L.hi; b.a.style.left = L.left + 'px'; b.a.style.top = L.c - TITLE_H / 2 + 'px'; });
+      const btns = PLACES.map(([id, name], k) => {
         const a = document.createElement('a');
         a.className = 'btn'; a.href = '#' + id; a.dataset.place = id;
-        a.style.left = AT[k][0] + 'px'; a.style.top = AT[k][1] + 'px';
         a.innerHTML = `${name}<i class="bar" aria-hidden="true"></i>`;
         nav.append(a);
-        const b = { id, name, a, idx, k, hlIndex: idx[Math.floor((idx.length - 1) / 2)] };
+        const b = { id, name, a, idx: [], k, hlIndex: 0 };
         a.addEventListener('click', e => { e.preventDefault(); pick(b); });
         a.addEventListener('focus', () => { if (!calm.matches) F.v += 9; });
         a.addEventListener('pointerenter', () => b.hover = true);
         a.addEventListener('pointerleave', () => b.hover = false);
-        idx.forEach(i => slots[i].el.addEventListener('click', () => pick(b)));
         return b;
       });
+      // a photo picks whichever place it belongs to now
+      slots.forEach(sl => sl.el.addEventListener('click', () => { const b = btns.find(x => x.idx.includes(sl.i)); if (b) pick(b); }));
+      layTitles(-1); placeTitles(0);
 
       // ---- the film ----
       const GAIN = num('--gain'), IDLE = num('--idle-fps'), FRICTION = num('--friction'), CAP = num('--fps-cap'), ONION = num('--onion-max'), RESTK = num('--rest-k');
@@ -223,7 +250,7 @@
 
       // the highlighted print: one full photo, standing on an orange bar
       const obar = document.getElementById('obar');
-      let current = null, hlSlot = null, hlTimer = 0, closeT = 0, busy = false, isOpen = false;
+      let current = null, hlSlot = null, hlTimer = 0, closeT = 0, busy = false, isOpen = false, openedAt = 0;
       const opener = document.getElementById('opener');
       // the one print that is always there when the board is collapsed: it opens the navigation
       const OPENER = slots[0];
@@ -236,8 +263,10 @@
         slots.forEach(x => x.el.classList.toggle('hl', x === s));
         hlSlot = s;
         obar.classList.remove('on');
-        const w = CW * num('--hl-bar-w');
-        Object.assign(obar.style, { left: s.x + CW / 2 - w * .62 + 'px', top: s.y + CH / 2 + CH * (1 + HL) / 2 + 3 + 'px', width: w + 'px' });
+        // the opener's bar is only as wide as its print, so it never reaches toward the Intro title below it
+        const w = s === OPENER ? CW * (1 + HL) : CW * num('--hl-bar-w');
+        // the bar ends at the print's right edge and runs out to the left, away from the titles inside the curve
+        Object.assign(obar.style, { left: s.x + CW / 2 + CW * (1 + HL) / 2 - w + 'px', top: s.y + CH / 2 + CH * (1 + HL) / 2 + 3 + 'px', width: w + 'px' });
         // the keyboard's way in sits over the print
         const pw = CW * (1 + HL), ph = CH * (1 + HL);
         Object.assign(opener.style, { left: s.x + CW / 2 - pw / 2 + 'px', top: s.y + CH / 2 - ph / 2 + 'px', width: pw + 'px', height: ph + 'px' });
@@ -246,7 +275,7 @@
       };
       const pick = (b, animate = !calm.matches) => {
         btns.forEach(x => x === b ? x.a.setAttribute('aria-current', 'page') : x.a.removeAttribute('aria-current'));
-        current = b;
+        current = b; placeTitles(b.k);
         clearTimeout(hlTimer);
         if (!animate) { develop(slots[b.hlIndex], false); return; }
         // the old print sinks back to a cut-out while the film slows to a stop: it keeps the speed it was playing at
@@ -274,14 +303,15 @@
       };
       const setOpen = on => {
         if (on === isOpen) return;
-        isOpen = on; clearTimeout(closeT); stagger(on);
+        isOpen = on; clearTimeout(closeT); stagger(on); if (on) openedAt = performance.now();
         board.classList.toggle('open', on); nav.inert = !on;
         opener.setAttribute('aria-expanded', String(on));
         opener.setAttribute('aria-label', on ? 'Close the navigation' : `Open the navigation, now at ${current ? current.name : ''}`);
         if (!on) btns.forEach(b => { b.a.classList.remove('near'); b.hover = false; });
       };
       slots.forEach(s => s.el.addEventListener('pointerenter', () => { if (!isOpen && s === hlSlot) setOpen(true); }));
-      opener.addEventListener('click', () => setOpen(!isOpen));
+      // pointing at the print already opens it, so the click that usually follows must not close it straight away
+      opener.addEventListener('click', () => { if (isOpen && performance.now() - openedAt < 600) return; setOpen(!isOpen); });
       addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) { setOpen(false); opener.focus(); } });
 
       // the readout panel is gone; these stand in so the loop needs no checks
@@ -387,7 +417,7 @@
         ['Cut-out', [['Crop', `${tok('--slot-w')} &times; ${tok('--slot-h')} image px`], ['On the board', `${r1(CW)} &times; ${r1(CH)}`], ['Filter', tok('--cutout')], ['Path reach', tok('--reach')], ['Focus', `&times;${tok('--lift-scale')}, ${tok('--lift-y')}`], ['The rest', `&times;${tok('--rest-scale')}`], ['Wave spread', `&sigma; ${tok('--wave-sigma')} frames`], ['Pressed', `&times;${tok('--press-scale')}`]]],
         ['Full print (selected)', [['Grows to', `&times;${tok('--hl-scale')}`], ['Develops', tok('--develop')], ['Screen', 'halftone, 3px pitch'], ['Bar under it', `${tok('--hl-bar')}, ${tok('--accent')}`]]],
         ['Film', [['Gain', `${tok('--gain')} frames per frame moved`], ['Resting on the path', `${tok('--idle-fps')} fps, last direction`], ['Friction', `${tok('--friction')} /s`], ['Speed cap', `${tok('--fps-cap')} fps`], ['Afterimage', `up to ${tok('--onion-max')}, multiply`], ['Rest spring', `k ${tok('--rest-k')}, critical`], ['On a pick', `brakes evenly to the next whole turn, at most ${tok('--stop-max')}s`]]],
-        ['Title', [['Type', 'Futura 500, +.01em, never dimmed'], ['Size at rest', `${Math.round(num('--title-size') * num('--t-rest'))}px`], ['Reached / hover', `${Math.round(num('--title-size') * num('--t-near'))}px`], ['Selected', `${tok('--title-size')}`], ['Grows', `${tok('--t-grow')}, slight overshoot`], ['Example size', `${r1(b0.width / kk)} &times; ${r1(b0.height / kk)}`], ['Bar', `stub ${tok('--bar-stub')} &times; ${tok('--bar')}`], ['Bar hover / picked', `full &times; ${tok('--bar')} / ${tok('--bar-on')}`], ['Bar pressed', tok('--bar-down')], ['Bar runs', tok('--bar-run')]]],
+        ['Title', [['Type', 'Futura 500, +.01em, never dimmed'], ['Size at rest', `${Math.round(num('--title-size') * num('--t-rest'))}px`], ['Reached / hover', `${Math.round(num('--title-size') * num('--t-near'))}px`], ['Selected', `${Math.round(num('--title-size') * num('--t-sel'))}px`], ['Spacing', 'one even gap between titles, edge to edge'], ['Grows', `${tok('--t-grow')}, slight overshoot`], ['Example size', `${r1(b0.width / kk)} &times; ${r1(b0.height / kk)}`], ['Bar', `stub ${tok('--bar-stub')} &times; ${tok('--bar')}`], ['Bar hover / picked', `full &times; ${tok('--bar')} / ${tok('--bar-on')}`], ['Bar pressed', tok('--bar-down')], ['Bar runs', tok('--bar-run')]]],
         ['Colour', [['Accent', sw('--accent')], ['Type', sw('--title-ink')], ['Ground', sw('--paper')]]],
         ['Type', [['Family', 'Futura'], ['Titles', `16 / 20 / 24px medium`], ['Body', '14px medium']]],
       ];

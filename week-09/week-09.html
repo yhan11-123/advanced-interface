@@ -183,11 +183,11 @@
               <h4>Prototypes</h4>
               <div class="proto-grid" style="grid-template-columns:1fr">
                 <figure class="proto">
-                  <iframe style="height:auto;aspect-ratio:1280/820" src="week-09-kinetic-nav.html?v=12" title="Sequence in use: a chronophotograph board whose path of cut-out photos is the navigation, then every state and the spec" loading="lazy"></iframe>
+                  <iframe style="height:auto;aspect-ratio:1280/820" src="week-09-kinetic-nav.html?v=17" title="Sequence in use: a chronophotograph board whose path of cut-out photos is the navigation, then every state and the spec" loading="lazy"></iframe>
                   <figcaption>
                     <b>In use, every state and the spec</b>
                     <span>A flipbook only moves when a thumb moves it, so the pointer is the thumb: scrubbing along the path turns the photos over, forward to play the turn, backward to rewind, faster to flip faster, and it coasts to a stop when you let go. At speed the last photo stays as an afterimage; the cut-out under the pointer lifts and its neighbours less. Five stretches of the path are five places, titled with an orange bar that runs out as you reach them. Picking one runs the film a whole turn, then the middle photo of that stretch develops into the one full print on the board. Motion first: the collapsed state and the tab bar come next.</span>
-                    <button type="button" class="viewer-open" data-wide data-src="week-09-kinetic-nav.html?v=12">View larger</button>
+                    <button type="button" class="viewer-open" data-wide data-src="week-09-kinetic-nav.html?v=17">View larger</button>
                   </figcaption>
                 </figure>
               </div>
@@ -209,6 +209,18 @@
               <p class="process-why">Next: start from a single image, open on hover, and come back to it.</p>
               <p class="process-label">6 &middot; One print, opening</p>
               <div class="process-grid"><figure><img src="images/process/set1/06-collapsed.jpg" alt="The board collapsed to one print on an orange bar" loading="lazy" /><figcaption>Collapsed: only the place you are, one print on an orange bar, no text.</figcaption></figure><figure><img src="images/process/set1/06-expanded.jpg" alt="The board expanded with every cut-out and title, the film playing" loading="lazy" /><figcaption>Pointed at, it expands: the cut-outs come out from the print along the path, the titles follow, the film plays. A pick develops the new print and everything else goes back in.</figcaption></figure></div>
+              <p class="process-why">Opening put the Intro title right under the print you had just clicked, and the print itself stopped being the opener, so a second click on the same spot picked a place. The two needed to be well apart.</p>
+              <p class="process-label">7 &middot; Clear of the opener</p>
+              <div class="process-grid"><figure><img src="images/process/set1/07-clear-of-opener.jpg" alt="The board opened: the print and its orange bar at the top right, and the Intro title well below and to the left of them, inside the curve of photos" loading="lazy" /><figcaption>The titles move down and in, so Intro sits about 50px below and left of the print and its bar instead of 17px under it. The print stays where it was and now closes the board, so the spot you clicked never changes meaning; a click right after a hover-open is ignored, so it does not close at once.</figcaption></figure></div>
+              <p class="process-why">Picking a title lit up a print that was not beside it: the highlight was the middle photo of its stretch, wherever the title happened to sit.</p>
+              <p class="process-label">8 &middot; The print beside the title</p>
+              <div class="process-grid"><figure><img src="images/process/set1/08-print-beside-title.jpg" alt="Three moments: the board just opened with the opener print at the top right and Intro well below it; Archive picked, its print lit just left of the title; Contact picked, its print lit just left of the title" loading="lazy" /><figcaption>Each title is now placed from its photo: the one print that develops when you pick it stands in the same row, just left of the title, 12px apart. The first photo is only the opener, not a place. The lit print&rsquo;s orange bar runs out to the left, away from the titles, and the opener&rsquo;s bar is only as wide as its print, so nothing reaches toward Intro.</figcaption></figure></div>
+              <p class="process-why">With each title pinned to its photo, the gaps between titles came out uneven, and the picked title, half again as large, opened a much bigger gap around it.</p>
+              <p class="process-label">9 &middot; One even gap</p>
+              <div class="process-grid"><figure><img src="images/process/set1/09-even-stack.jpg" alt="Three moments: just opened, Work picked, Contact picked; in each the five titles are evenly spaced down the curve, the picked one a little larger with its print just left of it" loading="lazy" /><figcaption>The titles now stand as one stack with the same gap, edge to edge, between every pair: 58px whichever is picked. The picked title is 22px against 16px at rest, so it takes a little more room but leaves no hole. When you pick, the stack re-spaces itself over half a second; each title takes the nearest photo as its print and keeps clear of every photo in its row.</figcaption></figure></div>
+              <p class="process-why">Pointing along the path lifts the photos to almost half again their size, and the black figures ran into the black titles until the words were lost.</p>
+              <p class="process-label">10 &middot; Room for the lift</p>
+              <div class="process-grid"><figure><img src="images/process/set1/10-clear-of-lift.jpg" alt="Intro, Archive and Contact while pointed at: the lifted photos to the left of each title stop well short of the text" loading="lazy" /><figcaption>Each title now keeps clear of every photo in its row at the size that photo reaches when it lifts, not at rest, with 22px to spare. The stack starts a little lower so Intro still stays clear of the opener. Each place&rsquo;s photo is now fixed once instead of chosen again on every pick, which had let About and Contact light up the same print.</figcaption></figure></div>
               <p class="process-why">Where it is now.</p>
             </div>
           </dialog>
