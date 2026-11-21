@@ -326,7 +326,9 @@
         let coilB = '', coilF = '', prev = null;
         for (let k = 0, steps = 240; k <= steps; k++) {
           const u = k / steps; if (u > rv) break;
-          const ang = u * turns * Math.PI * 2 + phase * 3, depth = Math.cos(ang), r = Rh * (1 + .06 * Math.sin(u * 9));
+          // the ends grow out of the axis and sink back into it over half a turn, so the line has no loose tip
+          const ends = Math.min(1, u * turns * 2, (1 - u) * turns * 2), grow = ends * ends * (3 - 2 * ends);
+          const ang = u * turns * Math.PI * 2 + phase * 3, depth = Math.cos(ang), r = Rh * (1 + .06 * Math.sin(u * 9)) * grow;
           const pt = { x: xo + u * span + depth * r * lean, y: cy + Math.sin(ang) * r, front: depth >= 0 };
           // each stretch on one side is its own run, starting from the last point so the coil stays unbroken
           const startRun = q => `M${f1(q.x)} ${f1(q.y)}`, to = q => `L${f1(q.x)} ${f1(q.y)}`;
@@ -541,7 +543,7 @@
         ['Plates', [['One a place', 'pyramid, contour plate, fan of planes, dashed sheet, contoured slab, surveyed plot'], ['Size', `${tok('--layer')} half-height, ${RXK} as deep (on its side)`], ['Folded', `${RSHUT} of that`], ['Ends', 'sight lines with bearings at the head, an aquifer at the foot'], ['Weights', 'plate edge .7 (selected 1.5, pointed 1), contours .4, dashes .4, fan .3, axis 1 / .5 dashed'], ['Drift', `${DRIFT} rad/s, each plate turns slowly in its own plane`]]],
         ['Pleats', [['Open', `rest ${tok('--pleat-rest')}, hover ${tok('--pleat-hover')}, pressed ${tok('--pleat-press')}, selected ${tok('--pleat-sel')}`], ['Folded', `${tok('--pleat-shut')}, hover and selected a little more`], ['Slot', 'open: the name + 34; folded: two pleats + the plate + 12; hover +30']]],
         ['What shows', [['At rest', 'the main plate only'], ['Pointed at, pressed', `+ the outer part, sliding out over ${tok('--peek')}`], ['Clicked (selected)', `+ the middle part, drawn in line by line by a pen point over ${tok('--grow')}, then the construction lines`]]],
-        ['Line work', [['Coil', `one line round the whole bar, ${N * COIL * 2} even turns from head to foot, no corners`], ['Weights', 'near side .6, far side .35 dashed'], ['Compresses', 'with the bar: tighter folded, looser open'], ['Draws in', `head to foot over ${tok('--reveal')} each time the bar opens from folded, with the sight lines and the dashed links`], ['Construction', `for the place you are on only, once its middle part has grown: extension lines, a dimension, a cone, drawn in over ${tok('--draw')}`]]],
+        ['Line work', [['Coil', `one line round the whole bar, ${N * COIL * 2} even turns from head to foot, no corners; it grows out of the axis at the head and sinks back into it at the foot`], ['Weights', 'near side .6, far side .35 dashed'], ['Compresses', 'with the bar: tighter folded, looser open'], ['Draws in', `head to foot over ${tok('--reveal')} each time the bar opens from folded, with the sight lines and the dashed links`], ['Construction', `for the place you are on only, once its middle part has grown: extension lines, a dimension, a cone, drawn in over ${tok('--draw')}`]]],
         ['When it folds', [['Near the top', `follows the scroll for the first ${SCRUB}px`], ['Further down', 'scrolling down folds'], ['Opens again', `a pull up of ${PULL}px, pointing at it, or focus`], ['Leaving it', `folds back after ${HOLD}ms`]]],
         ['Motion', [['Each ring', 'its own spring'], ['Ripple', `stiffness / (1 + ${RIP} &times; rings from the source)`], ['Source', 'the middle for fold and open; the item for hover, press, pick'], ['Folding', `k ${FK}, &zeta; ${FZ}`], ['Opening', `k ${OK}, &zeta; ${OZ}`], ['Hover, press', `k ${HK}, &zeta; ${HZ}`], ['Lift', 'the last 60% of the fold']]],
       ];
