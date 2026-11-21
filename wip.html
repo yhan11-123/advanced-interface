@@ -21,8 +21,53 @@
     .note { bottom: 40px; }
     :root[data-theme="light"] { --bg: #f7f6f2; --bg-elev: #ffffff; --fg: #1a1a1a; --fg-muted: #6b6b66; --line: #e2e0d8; --accent: #2b47ff; color-scheme: light; }
     :root[data-theme="dark"] { --bg: #121212; --bg-elev: #1c1c1c; --fg: #ededea; --fg-muted: #9a9a94; --line: #2c2c2a; --accent: #8fa0ff; color-scheme: dark; }
-    @media (max-width: 600px) { .ring-stage { width: calc(100% - 32px); } .note { bottom: 40px; } }
+    /* On a phone the description runs the full width, so the count can't sit beside it:
+       it drops to the bottom-left, on one line with "See the full process", and the
+       description moves up to clear them both. */
+    @media (max-width: 600px) {
+      .ring-stage { width: calc(100% - 32px); }
+      .note { left: 0; right: auto; bottom: 14px; text-align: left; }
+      .about { bottom: 72px; }
+    }
+    /* On a phone the ring's cards are too small to read, so the preview is the one place you
+       can see what you're on: it runs the full width. The ring gets its own band below it,
+       never under the preview, so it's clear where to drag, and it sits low, where a thumb is.
+       Order, top to bottom: what you're looking at, the thing you turn, what this is. */
+    @media (max-width: 600px) {
+      .ring-stage { --peek-w: calc(100vw - 32px); }
+      .peek { width: var(--peek-w); top: 16px; }
+      .scene { top: calc(66px + var(--peek-w) * 2 / 3); bottom: 230px; }
+      .ring { top: 57%; }
+    }
+    /* short phones (SE and the like): a smaller preview, so the ring keeps its room */
+    @media (max-width: 600px) and (max-height: 700px) {
+      .ring-stage { --peek-w: calc((100vw - 32px) * .62); }
+    }
+
+    /* The way back to the portfolio, when the page is opened on its own (from the portfolio's
+       Work in progress card). The same bar every case study on the portfolio wears, in the
+       portfolio's own colours, so it reads as the portfolio's frame around this page.
+       Hidden inside an iframe: there the portfolio is already around it. */
+    .pf-bar { display: none; }
+    :root.pf-open { --pf-bar: 44px; }
+    :root.pf-open body { box-sizing: border-box; padding-top: var(--pf-bar); }
+    :root.pf-open .pf-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 10; height: var(--pf-bar); box-sizing: border-box;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 max(24px, env(safe-area-inset-left, 0px));
+      background: rgb(245, 245, 245); border-bottom: 1px solid rgba(4, 32, 59, .15); color: rgb(4, 32, 59); font-family: "Inter", sans-serif; }
+    .pf-bar a { color: inherit; text-decoration: none; transition: opacity .2s; }
+    .pf-bar a:hover { opacity: .6; }
+    .pf-bar a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 2px; }
+    .pf-name { font-family: "Oswald", sans-serif; font-size: 1.125rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; line-height: 1; }
+    .pf-right { display: flex; align-items: center; gap: 14px; font-size: .8125rem; font-weight: 500; white-space: nowrap; }
+    @media (max-width: 600px) { :root.pf-open .pf-bar { padding: 0 16px; } }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&family=Oswald:wght@600&display=swap" rel="stylesheet" />
+  <script>{
+    // opened on its own (not embedded): show the bar back to the portfolio
+    if (self === top) document.documentElement.classList.add('pf-open');
+  }</script>
   <script>{
     // ?theme=light|dark matches the portfolio's mode; ?bg=ffffff matches its background exactly
     const p = new URLSearchParams(location.search), t = p.get('theme'), bg = p.get('bg');
@@ -31,6 +76,11 @@
   }</script>
 </head>
 <body>
+
+  <header class="pf-bar">
+    <a class="pf-name" href="https://accdportfolio.younheehan.com/">Younhee Han</a>
+    <span class="pf-right"><a href="https://accdportfolio.younheehan.com/wip.html">&larr; Work in progress</a><a href="https://accdportfolio.younheehan.com/">All work</a></span>
+  </header>
 
   <main class="ring-stage">
     <div class="scene" tabindex="0"><div class="ring"></div></div>
