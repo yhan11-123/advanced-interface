@@ -366,8 +366,6 @@
         // the foot of the axis: an aquifer, a slab inside dashed rings
         m += shapes([blob(1.5, 6, { w: .35, dash: '3 3' }), blob(1.2, 6.5, { w: .35, dash: '3 3' })], xR, cy, R, phase * .5);
         m += shapes([blob(.55, 7, { w: .7, fill: true, db: .12 }), blob(.55, 7, { w: .7, fill: true })], xR, cy, R, 0);
-        // folded, a place with something new keeps a small filled mark (the slot, folded)
-        PLACES.forEach((p, i) => { if (p[2]) m += `<rect x="${f1(xs[i * 3 + 1] - 2)}" y="${f1(cy - R * 1.05 - 7)}" width="4" height="4" fill="#1a1a1a" opacity="${clamp(f * 2 - 1, 0, 1)}"/>`; });
         if (o.text) {
           m += `<text x="${f1(pl + 24)}" y="${f1(cy + 4)}" font-family="monospace" font-size="11" letter-spacing="2" fill="#1a1a1a">STRATA</text>`;
           if (f < .5) PLACES.forEach((p, i) => m += `<text x="${f1(xs[i * 3 + 1])}" y="${f1(top + h - 14)}" text-anchor="middle" font-family="monospace" font-size="11" letter-spacing="2.2" fill="#1a1a1a">${p[1].toUpperCase()}${p[2] ? ` ${p[2]}` : ''}</text>`);
@@ -524,7 +522,7 @@
       };
       $('barfig').innerHTML =
         fig({ f: 0 }, `Open, ${OPEN}px: the first screen, after a pull up of ${PULL}px, or while pointed at. The plates spread along the axis, each place named under its plate.`) +
-        fig({ f: 1 }, `Folded, ${SHUT}px: while you read. The plates pressed toward the middle at ${Math.round(RSHUT * 100)}% size, the sight lines and names gone; the place you are on named at the end; the plate lifted ${tok('--float-top')} off the sheet on an undertone, with no outline. A small mark keeps the places with something new.`) +
+        fig({ f: 1 }, `Folded, ${SHUT}px: while you read. The plates pressed toward the middle at ${Math.round(RSHUT * 100)}% size, the sight lines and names gone; the place you are on named at the end; the plate lifted ${tok('--float-top')} off the sheet on an undertone, with no outline.`) +
         fig({ f: 0, hv: 1 }, `Pointing at Works: its plate and its outer part part from the name's centre by the same amount each way, and its slot widens, pushing the others outward. Nothing else appears until you click: Archive, the place you are on, shows what a click adds, the middle part grown in from the axis and the construction lines drawn over it.`);
       const item = (st, open) => {
         const p = open ? PLEAT[st] : lerp(PLEAT[st], st === 'rest' ? PSHUT : PSHUT + (PLEAT[st] - PLEAT.rest) * .4, 1), s = open ? 1 : RSHUT, cy = 32, cx = 80, on = st === 'sel', R = LAYER * s;
