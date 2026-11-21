@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gallery · Advanced Interface</title>
+  <meta name="description" content="Every deliverable and every Ideation sketch from the 14-week log, in one place." />
+  <link rel="icon" href="shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="shared/site.css?v=24" />
+  <style>
+    /* Gallery: every deliverable and Ideation sketch, as stills; a click runs the piece in the shared popup.
+       Wider than the timeline, so the stills have room: the page takes its own --max. */
+    :root { --max: 1160px; --tile-ease: cubic-bezier(.2, .8, .2, 1); }
+    .site-header nav a[aria-current="page"] { color: var(--fg); }
+
+    .g-intro { padding: 44px 0 8px; }
+    .g-intro h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -.02em; }
+    .g-intro p { margin: 0; color: var(--fg-muted); }
+
+    /* filters: what kind, which week. Sticky, so they stay in reach while you scroll the stills */
+    .g-filters { position: sticky; top: 0; z-index: 5; display: grid; gap: 10px; margin: 24px 0 8px; padding: 12px 0;
+      background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .g-row { display: flex; align-items: center; gap: 8px; }
+    .g-row > .g-label { flex: none; width: 46px; font-size: 12px; color: var(--fg-muted); }
+    .g-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; margin: -2px; }
+    .g-chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: none;
+      font-size: 13px; color: var(--fg-muted); cursor: pointer; white-space: nowrap;
+      transition: color .15s, border-color .15s, background-color .15s; }
+    .chip:hover { color: var(--fg); border-color: var(--fg-muted); }
+    .chip[aria-pressed="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+    .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .chip .n { margin-left: 6px; font-family: var(--mono); font-size: 11px; opacity: .65; }
+    .chip .wk { margin-right: 6px; font-family: var(--mono); font-size: 11px; opacity: .65; }
+    .g-count { margin: 0; font-size: 12px; color: var(--fg-muted); }
+
+    /* one block per week: its name, a way to the week, then its stills */
+    /* the two kinds, deliverables first: a heading for each, then its weeks */
+    .g-kind { padding-top: 16px; }
+    .g-kind + .g-kind { margin-top: 40px; border-top: 1px solid var(--line); }
+    .g-kind[hidden] { display: none; }
+    .g-kind-head { margin: 24px 0 0; font-size: 24px; letter-spacing: -.015em; }
+    .g-kind-head .n { margin-left: 10px; font: 400 13px var(--mono); color: var(--fg-muted); }
+    .g-kind.is-deliverable .g-kind-head::before { content: ""; display: inline-block; width: 8px; height: 8px; margin: 0 10px 3px 0; border-radius: 50%; background: var(--accent); }
+    .g-week { padding: 24px 0 8px; }
+    .g-week[hidden] { display: none; }
+    .g-week-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+    .g-week-head h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+    .g-week-head .num { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--fg-muted); margin-right: 8px; }
+    .g-week-head a { margin-left: auto; font-size: 13px; color: var(--fg-muted); }
+    .g-week-head a:hover { color: var(--accent); }
+
+    .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px 18px; margin: 0; padding: 0; list-style: none; }
+    .tile { margin: 0; }
+    .tile[hidden] { display: none; }
+    /* the still is the button: the whole picture runs the piece */
+    .tile-hit { display: block; width: 100%; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+      background: var(--bg-elev); cursor: zoom-in; aspect-ratio: 3 / 2; position: relative;
+      transition: border-color .2s var(--tile-ease), translate .25s var(--tile-ease); }
+    .tile-hit img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top;
+      transition: scale .45s var(--tile-ease); }
+    .tile-hit:hover, .tile-hit:focus-visible { border-color: var(--fg-muted); translate: 0 -2px; }
+    .tile-hit:hover img, .tile-hit:focus-visible img { scale: 1.035; }
+    .tile-hit:active { translate: 0; transition-duration: .08s; }
+    .tile-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    /* "Run" appears on the still while pointed at, so it is clear it plays rather than navigates */
+    .tile-hit .run { position: absolute; right: 10px; bottom: 10px; padding: 4px 10px; border-radius: 999px; font-size: 12px;
+      color: #fff; background: rgb(20 20 20 / .72); opacity: 0; translate: 0 4px; transition: opacity .2s, translate .25s var(--tile-ease); }
+    .tile-hit:hover .run, .tile-hit:focus-visible .run { opacity: 1; translate: 0; }
+
+    /* no still yet (a new piece not captured): the name, quietly, in its place */
+    .tile-hit.no-still::before { content: attr(data-title); position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+      font-size: 13px; color: var(--fg-muted); background: repeating-linear-gradient(135deg, transparent 0 9px, color-mix(in srgb, var(--line) 60%, transparent) 9px 10px); }
+    .tile .cap { padding: 10px 2px 0; }
+    .tile .kind { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); }
+    .tile .kind::before { content: ""; width: 6px; height: 6px; border-radius: 50%; border: 1px solid currentColor; }
+    .tile.is-deliverable .kind { color: var(--accent); }
+    .tile.is-deliverable .kind::before { background: currentColor; }
+    .tile b { display: block; margin-top: 3px; font-size: 15px; line-height: 1.3; }
+    .tile p { margin: 3px 0 0; font-size: 13px; line-height: 1.45; color: var(--fg-muted);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .g-empty { padding: 48px 0; color: var(--fg-muted); text-align: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tile-hit, .tile-hit img, .tile-hit .run { transition: none; }
+      .tile-hit:hover, .tile-hit:focus-visible { translate: none; }
+      .tile-hit:hover img, .tile-hit:focus-visible img { scale: none; }
+    }
+    @media (max-width: 560px) {
+      .g-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+      .tile p { display: none; }
+      .g-row > .g-label { display: none; }
+      .chip { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">Advanced Interface</a>
+    <nav><a href="index.html">Timeline</a><a href="gallery.html" aria-current="page">Gallery</a></nav>
+  </header>
+
+  <main class="page">
+    <section class="g-intro">
+      <h1>Gallery</h1>
+      <p id="g-sub">Every deliverable and every Ideation sketch, week by week. Click a still to run it.</p>
+    </section>
+
+    <div class="g-filters" role="region" aria-label="Filters">
+      <div class="g-row"><span class="g-label" id="lbl-kind">Show</span><div class="g-chips" role="group" aria-labelledby="lbl-kind" id="f-kind"></div></div>
+      <div class="g-row"><span class="g-label" id="lbl-week">Week</span><div class="g-chips" role="group" aria-labelledby="lbl-week" id="f-week"></div></div>
+      <p class="g-count" id="g-count" aria-live="polite"></p>
+    </div>
+
+    <div id="g-weeks"></div>
+    <p class="g-empty" id="g-empty" hidden>Nothing here for that filter.</p>
+  </main>
+
+  <script src="gallery/items.js"></script>
+  <script src="shared/viewer.js?v=8"></script>
+  <script>
+    (() => {
+      const { weeks, items } = window.GALLERY;
+      const pad = n => String(n).padStart(2, '0');
+      const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
+      const KINDS = [['all', 'All'], ['deliverable', 'Deliverables'], ['ideation', 'Ideation']];
+      const count = (kind, week) => items.filter(i => (kind === 'all' || i.kind === kind) && (!week || i.week === week)).length;
+
+      // ---- the stills: all the deliverables first, then all the Ideation, each kind week by week ----
+      const root = document.getElementById('g-weeks');
+      const tile = it => {
+        const meta = it.kind === 'deliverable' ? [it.set.replace(/^Set (\d+) · .*/, 'Set $1'), it.tone].filter(Boolean).join(' · ') : '';
+        return `<li class="tile is-${it.kind}" data-kind="${it.kind}" data-week="${it.week}">
+          <button type="button" class="viewer-open tile-hit" data-src="${esc(it.src)}" data-title="${esc(it.title)}" data-about="${esc(it.about)}"${it.wide ? ' data-wide' : ''} aria-label="Run ${esc(it.title)}">
+            <img src="${esc(it.thumb)}" alt="" width="720" height="480" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('no-still');this.remove()" /><span class="run" aria-hidden="true">Run</span>
+          </button>
+          <div class="cap">${meta ? `<span class="kind">${esc(meta)}</span>` : ''}<b>${esc(it.title)}</b>${it.short ? `<p>${esc(it.short)}</p>` : ''}</div>
+        </li>`;
+      };
+      root.innerHTML = KINDS.slice(1).map(([kind, label]) => `<section class="g-kind is-${kind}" data-kind="${kind}" aria-labelledby="k-${kind}">
+        <h2 class="g-kind-head" id="k-${kind}">${label}<span class="n">${count(kind, 0)}</span></h2>
+        ${weeks.map(w => {
+          const mine = items.filter(i => i.kind === kind && i.week === w.week);
+          if (!mine.length) return '';
+          return `<section class="g-week" data-week="${w.week}" aria-labelledby="wk-${kind}-${w.week}">
+            <div class="g-week-head"><h3 id="wk-${kind}-${w.week}"><span class="num">Week ${pad(w.week)}</span>${esc(w.title)}</h3>
+              <a href="week-${pad(w.week)}/week-${pad(w.week)}.html">Read the week &rarr;</a></div>
+            <ul class="g-grid">${mine.map(tile).join('')}</ul></section>`;
+        }).join('')}</section>`).join('');
+
+      // ---- filters: kind and week, kept in the address so a filtered view can be linked ----
+      const q = new URLSearchParams(location.search);
+      const state = { kind: KINDS.some(k => k[0] === q.get('kind')) ? q.get('kind') : 'all', week: weeks.some(w => String(w.week) === q.get('week')) ? +q.get('week') : 0 };
+
+      const fKind = document.getElementById('f-kind'), fWeek = document.getElementById('f-week');
+      const chip = (label, attrs, n) => `<button type="button" class="chip" ${attrs}>${label}${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
+      const drawChips = () => {
+        fKind.innerHTML = KINDS.map(([k, label]) => chip(label, `data-kind="${k}" aria-pressed="${state.kind === k}"`, count(k, state.week))).join('');
+        fWeek.innerHTML = chip('All weeks', `data-week="0" aria-pressed="${!state.week}"`, count(state.kind, 0)) +
+          weeks.map(w => chip(`<span class="wk">${pad(w.week)}</span>${esc(w.title)}`, `data-week="${w.week}" aria-pressed="${state.week === w.week}"`, count(state.kind, w.week))).join('');
+      };
+
+      const apply = animate => {
+        const entering = [];
+        root.querySelectorAll('.g-week').forEach(sec => {
+          const wOk = !state.week || +sec.dataset.week === state.week;
+          let any = false;
+          sec.querySelectorAll('.tile').forEach(t => {
+            const show = wOk && (state.kind === 'all' || t.dataset.kind === state.kind);
+            if (show && t.hidden) entering.push(t);
+            t.hidden = !show; any ||= show;
+          });
+          sec.hidden = !any;
+        });
+        root.querySelectorAll('.g-kind').forEach(k => { k.hidden = !k.querySelector('.g-week:not([hidden])'); });
+        const n = count(state.kind, state.week);
+        document.getElementById('g-count').textContent = `Showing ${n} of ${items.length}`;
+        document.getElementById('g-empty').hidden = n > 0;
+        drawChips();
+        const p = new URLSearchParams();
+        if (state.kind !== 'all') p.set('kind', state.kind);
+        if (state.week) p.set('week', state.week);
+        history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
+        // what comes in rises a little, a few at a time; only what is on screen is animated
+        if (animate && !calm.matches) {
+          let k = 0;
+          for (const t of entering) {
+            const r = t.getBoundingClientRect();
+            if (r.top > innerHeight || r.bottom < 0) continue;
+            t.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+              { duration: 320, delay: Math.min(k++ * 30, 300), easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+          }
+        }
+      };
+
+      const filters = document.querySelector('.g-filters');
+      fKind.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; state.kind = b.dataset.kind; apply(true); fKind.querySelector(`[data-kind="${state.kind}"]`).focus(); });
+      fWeek.addEventListener('click', e => {
+        const b = e.target.closest('.chip'); if (!b) return; state.week = +b.dataset.week; apply(true);
+        fWeek.querySelector(`[data-week="${state.week}"]`).focus();
+        // bring the first still back under the filters if you were scrolled far down
+        const top = root.getBoundingClientRect().top + scrollY - filters.offsetHeight - 8;
+        if (scrollY > top) scrollTo({ top, behavior: calm.matches ? 'auto' : 'smooth' });
+      });
+
+      document.getElementById('g-sub').textContent = `Every deliverable and every Ideation sketch, week by week: ${count('deliverable', 0)} deliverables and ${count('ideation', 0)} sketches. Click a still to run it.`;
+      apply(false);
+    })();
+  </script>
+</body>
+</html>

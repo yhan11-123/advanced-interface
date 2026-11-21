@@ -8,6 +8,7 @@
   <link rel="icon" href="shared/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="shared/site.css?v=23" />
   <style>
+    .site-header nav a[aria-current="page"] { color: var(--fg); }
     /* the lecture-notes tip: quiet, beside the timeline rather than part of it */
     .tip { margin: 0 0 20px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: var(--radius); font-size: 13px; line-height: 1.4; }
     .tip-kicker { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-muted); }
@@ -34,7 +35,7 @@
 
   <header class="site-header">
     <a class="brand" href="index.html">Advanced Interface</a>
-    <nav><a href="index.html">Timeline</a></nav>
+    <nav><a href="index.html" aria-current="page">Timeline</a><a href="gallery.html">Gallery</a></nav>
   </header>
 
   <main class="page">
