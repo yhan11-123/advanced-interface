@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Component &amp; Interaction Study · Work in progress</title>
+  <meta name="description" content="A component and interaction study, in progress: one interface component a week, each built as a working prototype." />
+  <link rel="icon" href="shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="shared/site.css?v=25" />
+  <link rel="stylesheet" href="shared/ring.css?v=6" />
+  <style>
+    /* The ring on its own, for a portfolio: no site header, no class wording. Embed it with an iframe:
+         <iframe src="https://advancedi.younheehan.com/wip.html" style="width:100%;height:720px;border:0" loading="lazy"></iframe>
+       ?theme=light or ?theme=dark matches the portfolio around it (by default it follows the viewer's system),
+       and ?bg=ffffff sets the exact background colour. */
+    html, body { height: 100%; }
+    body { display: flex; overflow: hidden; }
+    .ring-stage { flex: none; width: calc(100% - 48px); margin-inline: auto; }
+    .open-site { position: absolute; right: 0; bottom: 14px; font-size: 12px; color: var(--fg-muted); }
+    .open-site:hover { color: var(--fg); }
+    .note { bottom: 40px; }
+    :root[data-theme="light"] { --bg: #f7f6f2; --bg-elev: #ffffff; --fg: #1a1a1a; --fg-muted: #6b6b66; --line: #e2e0d8; --accent: #2b47ff; color-scheme: light; }
+    :root[data-theme="dark"] { --bg: #121212; --bg-elev: #1c1c1c; --fg: #ededea; --fg-muted: #9a9a94; --line: #2c2c2a; --accent: #8fa0ff; color-scheme: dark; }
+    @media (max-width: 600px) { .ring-stage { width: calc(100% - 32px); } .note { bottom: 40px; } }
+  </style>
+  <script>{
+    // ?theme=light|dark matches the portfolio's mode; ?bg=ffffff matches its background exactly
+    const p = new URLSearchParams(location.search), t = p.get('theme'), bg = p.get('bg');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    if (bg && /^[0-9a-f]{3,8}$/i.test(bg)) document.documentElement.style.setProperty('--bg', '#' + bg);
+  }</script>
+</head>
+<body>
+
+  <main class="ring-stage">
+    <div class="scene" tabindex="0"><div class="ring"></div></div>
+    <figure class="peek" aria-live="polite"></figure>
+    <div class="about">
+      <p class="status">Work in progress</p>
+      <h1>Component &amp; Interaction Study</h1>
+      <p class="lead">One everyday interface component a week, a loading bar, a switch, a menu, a nav bar. I give each a tone, build it as a working prototype, and keep changing it until it feels right in the hand, not only works.</p>
+    </div>
+    <p class="note" data-unit="components"></p>
+    <a class="open-site" href="index.html" target="_top">See the full process &rarr;</a>
+  </main>
+
+  <script src="gallery/items.js"></script>
+  <script src="shared/viewer.js?v=8"></script>
+  <script src="shared/ring.js?v=2"></script>
+</body>
+</html>

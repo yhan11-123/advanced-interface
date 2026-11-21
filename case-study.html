@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Work in progress · Advanced Interface</title>
+  <meta name="description" content="Work in progress: every deliverable so far, standing in one ring." />
+  <link rel="icon" href="shared/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="shared/site.css?v=25" />
+  <link rel="stylesheet" href="shared/ring.css?v=6" />
+  <style>
+    /* the ring inside the site: under the site header, filling the rest of the screen (shared/ring.css, shared/ring.js) */
+    html, body { height: 100%; }
+    body { display: flex; flex-direction: column; overflow: hidden; }
+    .site-header { width: min(1160px, 100% - 32px); }
+    .site-header nav a[aria-current="page"] { color: var(--fg); }
+    .ring-stage { width: min(1160px, 100% - 32px); margin-inline: auto; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">Advanced Interface</a>
+    <nav><a href="index.html">Timeline</a><a href="gallery.html">Gallery</a><a href="case-study.html" aria-current="page">Case study</a></nav>
+  </header>
+
+  <div class="ring-stage">
+    <div class="scene" tabindex="0"><div class="ring"></div></div>
+    <figure class="peek" aria-live="polite"></figure>
+    <div class="about">
+      <p class="status">Work in progress</p>
+      <h1>Component &amp; Interaction Study</h1>
+      <p class="lead">One everyday interface component a week, a loading bar, a switch, a menu, a nav bar. I give each a tone, build it as a working prototype, and keep changing it until it feels right in the hand, not only works.</p>
+    </div>
+    <p class="note" data-unit="deliverables"></p>
+  </div>
+
+  <script src="gallery/items.js"></script>
+  <script src="shared/viewer.js?v=8"></script>
+  <script src="shared/ring.js?v=2"></script>
+</body>
+</html>

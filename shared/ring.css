@@ -1,0 +1,42 @@
+/* ---------------------------------------------------------------
+   Advanced Interface - the ring of deliverables (shared/ring.js).
+   Used by case-study.html (inside the site) and wip.html (alone, for
+   embedding in a portfolio). Every deliverable stands on edge in one
+   ring, seen a little from above; scroll or drag turns it; the card you
+   are on shows in the corner; a click runs it.
+   --------------------------------------------------------------- */
+:root { --tilt: -14deg; --idle: .035; }
+
+.ring-stage { position: relative; flex: 1; min-height: 0; }
+.scene { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 50% 30%; touch-action: pan-y; cursor: grab; outline: none; }
+.scene.dragging { cursor: grabbing; }
+.scene:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+/* the ring lies flat; tilting it shows it from a little above */
+.ring { position: absolute; left: 50%; top: 46%; width: 0; height: 0; transform-style: preserve-3d; }
+.card { position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none; cursor: pointer; transform-style: preserve-3d; transform-origin: 50% 100%; }
+.card .face { display: block; width: 100%; height: 100%; border-radius: 3px; overflow: hidden; background: var(--bg-elev);
+  outline: 1px solid color-mix(in srgb, var(--fg) 12%, transparent); outline-offset: -1px;
+  transition: translate .35s cubic-bezier(.2, .8, .2, 1), outline-color .2s; backface-visibility: visible; }
+.card img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; pointer-events: none; }
+.card:hover .face, .card.on .face { translate: 0 -18px; outline-color: var(--fg); }
+
+/* the corner: the card you are on, small, with its name */
+/* large enough to sit over the edge of the ring, in front of it */
+.peek { position: absolute; z-index: 2; left: 0; top: 24px; width: clamp(220px, 26vw, 360px); margin: 0; pointer-events: none; }
+.peek img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; object-position: center top; border-radius: 4px; background: var(--bg-elev);
+  box-shadow: 0 18px 40px -16px rgb(0 0 0 / .45), 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent); }
+/* the name sits above the picture, clear of the ring */
+.peek figcaption { margin: 0 0 10px; font-size: 14px; line-height: 1.35; }
+.peek figcaption span { display: block; color: var(--fg-muted); }
+.peek.swap img { animation: ring-swap .3s cubic-bezier(.2, .8, .2, 1); }
+@keyframes ring-swap { from { opacity: .3; } }
+
+/* what this is, in a few lines: a title and what is being studied, not a slogan */
+.about { position: absolute; left: 0; bottom: 34px; max-width: 520px; margin: 0; pointer-events: none; }
+.about .status { margin: 0 0 10px; font-size: 12px; color: var(--fg-muted); }
+.about .status::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 8px 1px 0; border-radius: 50%; background: #e8a33d; }
+.about h1 { margin: 0; font-size: clamp(24px, 2.6vw, 34px); font-weight: 600; line-height: 1.1; letter-spacing: -.02em; }
+.about p.lead { margin: 10px 0 0; font-size: 15px; line-height: 1.55; color: var(--fg-muted); }
+.note { position: absolute; right: 0; bottom: 40px; margin: 0; font-size: 12px; line-height: 1.5; color: var(--fg-muted); text-align: right; pointer-events: none; }
+@media (max-width: 600px) { .peek { width: 42vw; top: 16px; } .peek figcaption { font-size: 12px; } .note { bottom: 14px; } .about { bottom: 44px; max-width: none; right: 0; } .about p.lead { font-size: 14px; } }
+@media (prefers-reduced-motion: reduce) { .card .face { transition: none; } .peek.swap img { animation: none; } }
